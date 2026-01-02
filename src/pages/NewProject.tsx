@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ArrowLeft } from "lucide-react";
 import { auth } from "@/lib/firebase"; // Assuming firebase auth is set up
+import { API_BASE_URL } from "@/lib/utils";
 
 const NewProject = () => {
   const [name, setName] = useState("");
@@ -34,7 +35,7 @@ const NewProject = () => {
       const user = auth.currentUser;
       const ownerId = user ? user.uid : "anonymous"; // Fallback for dev
 
-      const response = await fetch("http://localhost:5000/api/projects/generate", {
+      const response = await fetch(`${API_BASE_URL}/api/projects/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

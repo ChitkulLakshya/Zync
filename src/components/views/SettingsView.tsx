@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth } from "@/lib/firebase";
-import { updateEmail, updatePassword, deleteUser, reauthenticateWithCredential, EmailAuthProvider, PhoneAuthProvider, linkWithCredential, updatePhoneNumber, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
+import { updateEmail, updatePassword, deleteUser, reauthenticateWithCredential, EmailAuthProvider, PhoneAuthProvider, linkWithCredential, updatePhoneNumber } from "firebase/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,7 +14,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { cn, API_BASE_URL } from "@/lib/utils";
 import { useTheme } from "next-themes";
 
 const countries = [
@@ -58,7 +58,7 @@ const SettingsView = () => {
   // Fetch User Data
   useEffect(() => {
     if (currentUser) {
-      fetch(`http://localhost:5000/api/users/${currentUser.uid}`)
+      fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`)
         .then(res => res.json())
         .then(data => {
           setUserData(data);
@@ -72,51 +72,76 @@ const SettingsView = () => {
             phoneNumber: data.phoneNumber || "",
             email: currentUser.email || ""
           });
-          // If phone number exists in DB, assume it was verified.
-          setIsPhoneVerified(!!data.phoneNumber);
+          // Check verification status from DB
+          setIsPhoneVerified(data.isPhoneVerified || false);
         })
         .catch(err => console.error(err));
     }
   }, [currentUser]);
 
-  const setupRecaptcha = () => {
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-      });
-    }
-  };
-
   const initiatePhoneVerification = async () => {
     if (!profileForm.phoneNumber || !profileForm.countryCode) return;
     const fullNumber = `${profileForm.countryCode}${profileForm.phoneNumber}`;
     
+    setLoading(true);
     try {
-      setupRecaptcha();
-      const appVerifier = (window as any).recaptchaVerifier;
-      const confirmationResult = await signInWithPhoneNumber(auth, fullNumber, appVerifier);
-      (window as any).confirmationResult = confirmationResult;
-      
-      console.log("DEMO EMAIL CODE: 123456");
-      toast({ title: "Verification Sent", description: "OTP sent to phone and code sent to email (Check console)." });
-      
+      const response = await fetch(`${API_BASE_URL}/api/users/verify-phone/request`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: currentUser?.uid,
+          phoneNumber: fullNumber
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to send verification code');
+
+      toast({
+        title: "Verification Code Sent",
+        description: "Please check your email for the verification code.",
+      });
       setShowPhoneVerify(true);
     } catch (error: any) {
       console.error(error);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error.message || "Failed to send verification code",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
   const verifyPhoneCode = async () => {
-     try {
-      const confirmationResult = (window as any).confirmationResult;
-      await confirmationResult.confirm(phoneCode);
-      
+    setLoading(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users/verify-phone/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uid: currentUser?.uid,
+          code: phoneCode
+        })
+      });
+
+      if (!response.ok) throw new Error('Invalid verification code');
+
       setIsPhoneVerified(true);
       setShowPhoneVerify(false);
-      toast({ title: "Success", description: "Phone number verified!" });
+      toast({
+        title: "Success",
+        description: "Phone number verified successfully",
+      });
     } catch (error: any) {
-      toast({ title: "Error", description: "Invalid OTP", variant: "destructive" });
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Invalid verification code",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,7 +159,7 @@ const SettingsView = () => {
 
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:5000/api/users/${currentUser?.uid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileForm)
@@ -177,7 +202,7 @@ const SettingsView = () => {
       if (currentUser && newEmail) {
         await updateEmail(currentUser, newEmail);
         // Update DB
-        await fetch(`http://localhost:5000/api/users/${currentUser.uid}`, {
+        await fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ email: newEmail })
@@ -195,7 +220,7 @@ const SettingsView = () => {
     if (!window.confirm("Are you sure? This is permanent.")) return;
     
     try {
-      await fetch(`http://localhost:5000/api/users/${currentUser?.uid}`, { method: "DELETE" });
+      await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, { method: "DELETE" });
       await deleteUser(currentUser!);
       window.location.href = "/login";
     } catch (error: any) {
@@ -339,7 +364,7 @@ const SettingsView = () => {
                       )}
                       {showPhoneVerify && (
                         <div className="mt-2 space-y-2 p-2 border rounded-md bg-muted/50">
-                          <Label className="text-xs">Enter SMS Code</Label>
+                          <Label className="text-xs">Enter Verification Code</Label>
                           <div className="flex gap-2">
                             <Input 
                               value={phoneCode}
@@ -349,7 +374,7 @@ const SettingsView = () => {
                             />
                             <Button type="button" size="sm" onClick={verifyPhoneCode}>Confirm</Button>
                           </div>
-                          <p className="text-xs text-muted-foreground">Also check your email for a code (Simulated).</p>
+                          <p className="text-xs text-muted-foreground">Check your email for the verification code.</p>
                         </div>
                       )}
                       {isPhoneVerified && profileForm.phoneNumber && (
@@ -369,8 +394,6 @@ const SettingsView = () => {
                       onChange={e => setProfileForm({...profileForm, birthday: e.target.value})} 
                     />
                   </div>
-
-                  <div id="recaptcha-container"></div>
 
                   <div className="flex justify-end pt-4">
                     <Button type="submit" disabled={loading || (!!profileForm.phoneNumber && !isPhoneVerified)}>
@@ -446,7 +469,14 @@ const SettingsView = () => {
                 </div>
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center text-white font-bold">G</div>
+                    <div className="w-8 h-8 flex items-center justify-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" className="w-full h-full">
+                        <path fill="#FFC107" d="M43.611,20.083H42V20H24v8h11.303c-1.649,4.657-6.08,8-11.303,8c-6.627,0-12-5.373-12-12c0-6.627,5.373-12,12-12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C12.955,4,4,12.955,4,24c0,11.045,8.955,20,20,20c11.045,0,20-8.955,20-20C44,22.659,43.862,21.35,43.611,20.083z"/>
+                        <path fill="#FF3D00" d="M6.306,14.691l6.571,4.819C14.655,15.108,18.961,12,24,12c3.059,0,5.842,1.154,7.961,3.039l5.657-5.657C34.046,6.053,29.268,4,24,4C16.318,4,9.656,8.337,6.306,14.691z"/>
+                        <path fill="#4CAF50" d="M24,44c5.166,0,9.86-1.977,13.409-5.192l-6.19-5.238C29.211,35.091,26.715,36,24,36c-5.202,0-9.619-3.317-11.283-7.946l-6.522,5.025C9.505,39.556,16.227,44,24,44z"/>
+                        <path fill="#1976D2" d="M43.611,20.083H42V20H24v8h11.303c-0.792,2.237-2.231,4.166-4.087,5.571c0.001-0.001,0.002-0.001,0.003-0.002l6.19,5.238C36.971,39.205,44,34,44,24C44,22.659,43.862,21.35,43.611,20.083z"/>
+                      </svg>
+                    </div>
                     <div>
                       <p className="font-medium">Google</p>
                       <p className="text-sm text-muted-foreground">Used for sign in and calendar sync.</p>

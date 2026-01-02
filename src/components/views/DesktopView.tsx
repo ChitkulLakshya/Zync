@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { API_BASE_URL } from "@/lib/utils";
 import { 
   Search, 
   Bell, 
@@ -121,7 +122,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       if (user && !isPreview) {
         // Sync user to backend
         try {
-          await fetch("http://localhost:5000/api/users/sync", {
+          await fetch(`${API_BASE_URL}/api/users/sync`, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -146,7 +147,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     if (activeSection === "People" && !isPreview) {
       const fetchUsers = async () => {
         try {
-          const response = await fetch("http://localhost:5000/api/users");
+          const response = await fetch(`${API_BASE_URL}/api/users`);
           if (response.ok) {
             const data = await response.json();
             setUsersList(data);
@@ -182,7 +183,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       const user = auth.currentUser;
       const ownerId = user ? user.uid : "anonymous";
 
-      const response = await fetch("http://localhost:5000/api/projects/generate", {
+      const response = await fetch(`${API_BASE_URL}/api/projects/generate`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

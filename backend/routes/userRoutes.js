@@ -3,29 +3,35 @@ const router = express.Router();
 const User = require('../models/User');
 const nodemailer = require('nodemailer');
 
-// Configure Nodemailer (Mock for now, replace with real credentials)
+// Configure Nodemailer
 const transporter = nodemailer.createTransport({
-    host: 'smtp.ethereal.email',
-    port: 587,
+    host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
+    port: process.env.EMAIL_PORT || 587,
     auth: {
-        user: 'ethereal.user@ethereal.email',
-        pass: 'ethereal.pass'
+        user: process.env.EMAIL_USER || 'ethereal.user@ethereal.email',
+        pass: process.env.EMAIL_PASS || 'ethereal.pass'
     }
 });
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {
     console.log(`[MOCK EMAIL] Sending verification code ${code} to ${email}`);
-    // In production, uncomment this:
-    /*
-    await transporter.sendMail({
-        from: '"Zync Support" <support@zync.com>',
-        to: email,
-        subject: 'Phone Verification Code',
-        text: `Your verification code is: ${code}`,
-        html: `<b>Your verification code is: ${code}</b>`
-    });
-    */
+    
+    if (process.env.EMAIL_HOST) {
+      try {
+        await transporter.sendMail({
+            from: '"Zync Support" <support@zync.com>',
+            to: email,
+            subject: 'Phone Verification Code',
+            text: `Your verification code is: ${code}`,
+            html: `<b>Your verification code is: ${code}</b>`
+        });
+        console.log(`[EMAIL SENT] Verification code sent to ${email}`);
+      } catch (error) {
+        console.error('[EMAIL ERROR] Failed to send email:', error);
+      }
+    }
+    
     return true;
 };
 

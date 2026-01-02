@@ -9,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/utils";
 
 interface Project {
   _id: string;
@@ -57,7 +58,7 @@ const ProjectDetails = () => {
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/projects/${id}`);
+        const response = await fetch(`${API_BASE_URL}/api/projects/${id}`);
         if (!response.ok) throw new Error("Project not found");
         const data = await response.json();
         setProject(data);
