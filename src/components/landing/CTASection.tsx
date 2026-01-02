@@ -1,10 +1,16 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 const CTASection = () => {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate("/signup", { state: { email } });
+  };
 
   return (
     <section className="py-20 lg:py-32 bg-sidebar relative overflow-hidden">
@@ -24,7 +30,7 @@ const CTASection = () => {
           </h2>
           
           <p className="text-lg text-sidebar-foreground/70 mb-10 max-w-2xl mx-auto">
-            Join thousands of teams already using ProjectFlow to manage their software projects 
+            Join thousands of teams already using Zync to manage their software projects 
             more effectively. Get started in minutes, not hours.
           </p>
 
@@ -37,7 +43,7 @@ const CTASection = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="h-12 px-5 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/50"
             />
-            <Button variant="hero" size="lg" className="whitespace-nowrap">
+            <Button variant="hero" size="lg" className="whitespace-nowrap" onClick={handleGetStarted}>
               Get Started
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>

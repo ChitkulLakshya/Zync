@@ -23,9 +23,9 @@ const Footer = () => {
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">P</span>
+                <span className="text-primary-foreground font-bold text-lg">Z</span>
               </div>
-              <span className="text-xl font-bold text-foreground">ProjectFlow</span>
+              <span className="text-xl font-bold text-foreground">Zync</span>
             </div>
             <p className="text-muted-foreground mb-6 max-w-xs">
               Beautiful online software for effective team collaboration, project management, and task execution.
@@ -67,7 +67,7 @@ const Footer = () => {
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-muted-foreground">
-            © 2026 ProjectFlow. All rights reserved.
+            © 2026 Zync. All rights reserved.
           </p>
           <div className="flex gap-6">
             <a href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">

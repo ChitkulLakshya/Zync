@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X, ChevronDown, FolderKanban, Calendar, MessageSquare, Video } from "lucide-react";
@@ -22,9 +23,9 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">P</span>
+              <span className="text-primary-foreground font-bold text-lg">Z</span>
             </div>
-            <span className="text-xl font-bold text-foreground">ProjectFlow</span>
+            <span className="text-xl font-bold text-foreground">Zync</span>
           </div>
 
           {/* Desktop Navigation */}
@@ -44,12 +45,16 @@ const Navbar = () => {
           {/* Desktop Auth Buttons */}
           <div className="hidden lg:flex items-center gap-3">
             <ThemeToggle />
-            <Button variant="ghost" size="default">
-              Log In
-            </Button>
-            <Button variant="hero" size="default">
-              Sign Up
-            </Button>
+            <Link to="/login">
+              <Button variant="ghost" size="default">
+                Log In
+              </Button>
+            </Link>
+            <Link to="/signup">
+              <Button variant="hero" size="default">
+                Sign Up
+              </Button>
+            </Link>
           </div>
 
           {/* Mobile Menu Button */}
@@ -81,12 +86,16 @@ const Navbar = () => {
                 </button>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="ghost" className="w-full justify-center">
-                  Log In
-                </Button>
-                <Button variant="hero" className="w-full justify-center">
-                  Sign Up
-                </Button>
+                <Link to="/login" onClick={() => setIsOpen(false)}>
+                  <Button variant="ghost" className="w-full justify-center">
+                    Log In
+                  </Button>
+                </Link>
+                <Link to="/signup" onClick={() => setIsOpen(false)}>
+                  <Button variant="hero" className="w-full justify-center">
+                    Sign Up
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>

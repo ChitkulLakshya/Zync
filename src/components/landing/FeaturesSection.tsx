@@ -62,7 +62,7 @@ const FeaturesSection = () => {
             <span className="gradient-text">software projects</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            From AI-powered planning to GitHub integration, ProjectFlow has all the tools 
+            From AI-powered planning to GitHub integration, Zync has all the tools 
             your team needs to ship faster and collaborate better.
           </p>
         </div>
@@ -132,7 +132,7 @@ const FeaturesSection = () => {
               Create teams and projects, invite your teammates
             </h3>
             <p className="text-lg text-muted-foreground mb-6">
-              ProjectFlow allows you to create tasks and events at the team level or the project level. 
+              Zync allows you to create tasks and events at the team level or the project level. 
               Invite people from different teams, assign tasks to them, schedule appointments, and track progress.
             </p>
             <div className="space-y-3">
@@ -154,7 +154,7 @@ const FeaturesSection = () => {
             </h3>
             <p className="text-lg text-muted-foreground mb-6">
               Have you ever had difficulties figuring out what your employees are working on? 
-              ProjectFlow removes this chaos forever. Now each of your employees will have a complete 
+              Zync removes this chaos forever. Now each of your employees will have a complete 
               list of activities for today, tomorrow, and the following days.
             </p>
             <div className="space-y-3">
@@ -177,8 +177,8 @@ const FeaturesSection = () => {
                 </div>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center mb-2">
-                {["S", "M", "T", "W", "T", "F", "S"].map((d) => (
-                  <div key={d} className="text-xs text-muted-foreground font-medium py-2">{d}</div>
+                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                  <div key={i} className="text-xs text-muted-foreground font-medium py-2">{d}</div>
                 ))}
               </div>
               <div className="grid grid-cols-7 gap-1 text-center">

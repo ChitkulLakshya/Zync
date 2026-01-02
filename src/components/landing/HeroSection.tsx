@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
@@ -6,6 +7,11 @@ import DesktopView from "@/components/views/DesktopView";
 
 const HeroSection = () => {
   const [email, setEmail] = useState("");
+  const navigate = useNavigate();
+
+  const handleGetStarted = () => {
+    navigate("/signup", { state: { email } });
+  };
 
   const features = [
     "AI-powered project architecture",
@@ -34,7 +40,7 @@ const HeroSection = () => {
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up animate-delay-100">
-            ProjectFlow is a beautiful online software for effective team collaboration,
+            Zync is a beautiful online software for effective team collaboration,
             project management, task planning, and execution.
           </p>
 
@@ -47,7 +53,7 @@ const HeroSection = () => {
               onChange={(e) => setEmail(e.target.value)}
               className="h-12 px-5 bg-card border-border/50 text-foreground placeholder:text-muted-foreground"
             />
-            <Button variant="hero" size="lg" className="whitespace-nowrap">
+            <Button variant="hero" size="lg" className="whitespace-nowrap" onClick={handleGetStarted}>
               Get Started
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
@@ -74,7 +80,7 @@ const HeroSection = () => {
 
         {/* Dashboard Preview - Desktop View */}
         <div className="relative max-w-6xl mx-auto animate-scale-in animate-delay-500">
-          <DesktopView />
+          <DesktopView isPreview={true} />
           {/* Shadow effect */}
           <div className="absolute -inset-4 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
         </div>

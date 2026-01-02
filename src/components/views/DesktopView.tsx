@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { 
   Search, 
   Bell, 
@@ -13,104 +14,589 @@ import {
   Users, 
   Settings,
   MoreHorizontal,
-  Star
+  Star,
+  Video,
+  MessageSquare,
+  Circle,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/hooks/use-toast";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { auth, rtdb, db } from "@/lib/firebase";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
+import { collectionGroup, query, where, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
+import ChatView from "./ChatView";
+import SettingsView from "./SettingsView";
 
-const DesktopView = () => {
+const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
+  const [activeSection, setActiveSection] = useState("My Workspace");
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [usersList, setUsersList] = useState<any[]>([]);
+  const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
+  const [userStatuses, setUserStatuses] = useState<Record<string, any>>({});
+
+  // Presence Logic
+  useEffect(() => {
+    if (currentUser && !isPreview) {
+      const userStatusDatabaseRef = ref(rtdb, '/status/' + currentUser.uid);
+      const isOfflineForDatabase = {
+        state: 'offline',
+        last_changed: rtdbServerTimestamp(),
+      };
+      const isOnlineForDatabase = {
+        state: 'online',
+        last_changed: rtdbServerTimestamp(),
+      };
+
+      const connectedRef = ref(rtdb, '.info/connected');
+      const unsubscribe = onValue(connectedRef, (snapshot) => {
+        if (snapshot.val() === false) {
+          return;
+        }
+        onDisconnect(userStatusDatabaseRef).set(isOfflineForDatabase).then(() => {
+          set(userStatusDatabaseRef, isOnlineForDatabase);
+        });
+      });
+
+      return () => unsubscribe();
+    }
+  }, [currentUser, isPreview]);
+
+  // Listen for all users' status
+  useEffect(() => {
+    if (!isPreview) {
+      const allStatusRef = ref(rtdb, '/status');
+      const unsubscribe = onValue(allStatusRef, (snapshot) => {
+        setUserStatuses(snapshot.val() || {});
+      });
+      return () => unsubscribe();
+    }
+  }, [isPreview]);
+
+  // Global Message Delivery Listener
+  useEffect(() => {
+    if (!currentUser || isPreview) return;
+
+    // Listen for messages sent TO the current user that are NOT yet delivered
+    // This marks them as delivered as long as the user is online (DesktopView is mounted)
+    const q = query(
+      collectionGroup(db, "messages"),
+      where("receiverId", "==", currentUser.uid),
+      where("delivered", "==", false)
+    );
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      snapshot.docs.forEach(async (doc) => {
+        try {
+          await updateDoc(doc.ref, {
+            delivered: true,
+            deliveredAt: serverTimestamp()
+          });
+        } catch (error) {
+          console.error("Error marking message as delivered:", error);
+        }
+      });
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, isPreview]);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      setLoading(false);
+
+      if (user && !isPreview) {
+        // Sync user to backend
+        try {
+          await fetch("http://localhost:5000/api/users/sync", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName || user.email?.split('@')[0],
+              photoURL: user.photoURL,
+            }),
+          });
+        } catch (error) {
+          console.error("Error syncing user:", error);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [isPreview]);
+
+  useEffect(() => {
+    if (activeSection === "People" && !isPreview) {
+      const fetchUsers = async () => {
+        try {
+          const response = await fetch("http://localhost:5000/api/users");
+          if (response.ok) {
+            const data = await response.json();
+            setUsersList(data);
+          }
+        } catch (error) {
+          console.error("Error fetching users:", error);
+        }
+      };
+      fetchUsers();
+    }
+  }, [activeSection, isPreview]);
+
+  // New Project State
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleCreateProject = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!projectName || !projectDescription) {
+      toast({
+        title: "Missing fields",
+        description: "Please fill in both project name and description.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+
+    try {
+      const user = auth.currentUser;
+      const ownerId = user ? user.uid : "anonymous";
+
+      const response = await fetch("http://localhost:5000/api/projects/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: projectName,
+          description: projectDescription,
+          ownerId,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to generate project");
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "Project Created!",
+        description: "AI has generated your project architecture.",
+      });
+
+      navigate(`/projects/${data._id}`);
+
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Something went wrong while generating the project.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const sidebarItems = [
-    { icon: Home, label: "Dashboard", active: false },
-    { icon: FolderKanban, label: "My Workspace", active: true, children: [
+    { icon: Home, label: "Dashboard", active: activeSection === "Dashboard" },
+    { icon: FolderKanban, label: "My Workspace", active: activeSection === "My Workspace", children: [
       { label: "Roadmap" },
       { label: "Schedule" },
     ]},
-    { icon: Star, label: "Favorites", active: false },
-    { icon: FolderOpen, label: "My Projects", active: false, children: [
-      { label: "Marketing" },
-      { label: "Wedding" },
-      { label: "House construction" },
-    ]},
-    { icon: CheckSquare, label: "Tasks", active: false },
-    { icon: FileText, label: "Notes", active: false },
-    { icon: FolderOpen, label: "Files", active: false },
-    { icon: Clock, label: "Activity log", active: false },
-    { icon: Users, label: "People", active: false },
-    { icon: Settings, label: "Settings", active: false },
+    { icon: Star, label: "Favorites", active: activeSection === "Favorites" },
+    { icon: FolderOpen, label: "My Projects", active: activeSection === "My Projects" },
+    { icon: CheckSquare, label: "Tasks", active: activeSection === "Tasks" },
+    { icon: FileText, label: "Notes", active: activeSection === "Notes" },
+    { icon: FolderOpen, label: "Files", active: activeSection === "Files" },
+    { icon: Clock, label: "Activity log", active: activeSection === "Activity log" },
+    { icon: Users, label: "People", active: activeSection === "People" },
+    { icon: Video, label: "Meet", active: activeSection === "Meet" },
+    { icon: Settings, label: "Settings", active: activeSection === "Settings" },
   ];
 
-  const tasks = [
-    { id: 1, title: "Check email", time: "0.20h", due: "Due today", color: "bg-task-orange/20 border-task-orange/40", user: "Oliver Campbell" },
-    { id: 2, title: "Make competitors analysis for Nokia", time: "0.40h", due: "Due today", color: "bg-task-teal/20 border-task-teal/40", user: "Oliver Campbell" },
-    { id: 3, title: "Weekly planning session", time: "1.00h", due: "10:00 - 10:40", color: "bg-task-teal/20 border-task-teal/40", user: "Oliver Campbell" },
-    { id: 4, title: "Interview with John Warner", time: "0.40h", due: "10:00 - 10:40", color: "bg-task-pink/20 border-task-pink/40", user: "Oliver Campbell" },
-    { id: 5, title: "Prepare the questions for the interviews", time: "0.30h", due: "2 days ago", color: "bg-task-orange/20 border-task-orange/40", user: "Oliver Campbell" },
-    { id: 6, title: "Interview with Rebecca Johnson", time: "0.40h", due: "11:00 - 11:40", color: "bg-task-pink/20 border-task-pink/40", user: "Oliver Campbell" },
-    { id: 7, title: "Come up with 5 slogan ideas for ALP Guitar School", time: "1.30h", due: "Due today", color: "bg-task-green/20 border-task-green/40", user: "Oliver Campbell" },
-    { id: 8, title: "KYFO results analysis", time: "1.30h", due: "Due today", color: "bg-task-purple/20 border-task-purple/40", user: "Oliver Campbell" },
-    { id: 9, title: "Write a Press Release feature launch", time: "4.00h", due: "Due today", color: "bg-task-yellow/20 border-task-yellow/40", user: "Oliver Campbell" },
-    { id: 10, title: "Send a Press Release to partners", time: "0.20h", due: "Due today", color: "bg-task-green/20 border-task-green/40", user: "Oliver Campbell" },
+  const tasks: any[] = [];
+  const waitingList: any[] = [];
+
+  // Mock Users Data for Preview
+  const mockUsers = [
+    { _id: 1, displayName: "Oliver Campbell", email: "oliver@zync.io", status: "online", avatar: "OC" },
+    { _id: 2, displayName: "Sarah Chen", email: "sarah@zync.io", status: "online", avatar: "SC" },
+    { _id: 3, displayName: "Mike Wilson", email: "mike@zync.io", status: "offline", avatar: "MW" },
+    { _id: 4, displayName: "Emily Davis", email: "emily@zync.io", status: "away", avatar: "ED" },
   ];
 
-  const waitingList = [
-    { title: "Keyword research for Bordio Google Ads", time: "4.00h", due: "Due tomorrow", color: "bg-task-orange" },
-    { title: "Upload products to Samsung GDN campaign", time: "0.30h", due: "Due today", color: "bg-task-pink" },
-    { title: "Give feedback on a blog post", time: "0.15h", due: "3 days ago", color: "bg-task-teal" },
-    { title: "Give feedback on slogan ideas for Guitar School", time: "0.15h", due: "10 days left", color: "bg-task-green" },
-    { title: "Compare and choose software for email", time: "2.00h", due: "13 days left", color: "bg-task-purple" },
-  ];
+  const displayUsers = isPreview 
+    ? mockUsers 
+    : usersList.filter(user => user.uid !== currentUser?.uid);
+
+  const handleCreateMeeting = () => {
+    const meetLink = `https://meet.google.com/new`;
+    window.open(meetLink, "_blank");
+    toast({
+      title: "Meeting Created",
+      description: "Redirecting to Google Meet...",
+    });
+  };
+
+  const handleChat = (user: any) => {
+    setSelectedChatUser(user);
+    setActiveSection("Chat");
+  };
+
+  const renderContent = () => {
+    switch (activeSection) {
+      case "Chat":
+        return (
+          <div className="flex h-full w-full">
+            {/* Chat Sidebar (User List) */}
+            <div className="w-80 border-r border-border/50 flex flex-col bg-secondary/10">
+              <div className="p-4 border-b border-border/50">
+                <h2 className="text-lg font-semibold mb-4">Messages</h2>
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder="Search people..." className="pl-8" />
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto">
+                {displayUsers.map((user) => {
+                  const status = !isPreview && userStatuses[user.uid] 
+                    ? userStatuses[user.uid].state 
+                    : user.status;
+                  const isSelected = selectedChatUser?.uid === user.uid;
+                  
+                  return (
+                    <div 
+                      key={user._id || user.id}
+                      className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-secondary/50 transition-colors ${isSelected ? 'bg-secondary/50' : ''}`}
+                      onClick={() => setSelectedChatUser(user)}
+                    >
+                      <div className="relative">
+                        <Avatar>
+                          <AvatarImage src={user.photoURL} />
+                          <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
+                          status === "online" ? "bg-green-500" : 
+                          status === "away" ? "bg-yellow-500" : "bg-gray-400"
+                        }`} />
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="font-medium truncate">{user.displayName || user.name}</div>
+                        <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Chat Area */}
+            <div className="flex-1 flex flex-col">
+              {selectedChatUser ? (
+                <ChatView 
+                  selectedUser={{
+                    ...selectedChatUser,
+                    status: userStatuses[selectedChatUser.uid]?.state || selectedChatUser.status || 'offline'
+                  }} 
+                  // No onBack prop needed for desktop split view
+                />
+              ) : (
+                <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-background/50">
+                  <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
+                  <p>Select a user to start chatting</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "People":
+        return (
+          <div className="flex-1 w-full p-6 space-y-6 overflow-y-auto h-full">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold tracking-tight">People</h2>
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" /> Invite Member
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {displayUsers.map((user) => {
+                const status = !isPreview && userStatuses[user.uid] 
+                  ? userStatuses[user.uid].state 
+                  : user.status;
+
+                return (
+                <Card key={user._id || user.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="flex flex-row items-center gap-4">
+                    <div className="relative">
+                      <Avatar>
+                        <AvatarImage src={user.photoURL} />
+                        <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
+                      <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
+                        status === "online" ? "bg-green-500" : 
+                        status === "away" ? "bg-yellow-500" : "bg-gray-400"
+                      }`} />
+                    </div>
+                    <div className="flex flex-col">
+                      <CardTitle className="text-base">{user.displayName || user.name}</CardTitle>
+                      <CardDescription className="text-xs">{user.email}</CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <Badge variant={status === "online" ? "default" : "secondary"} className="capitalize">
+                        {status}
+                      </Badge>
+                      <Button size="sm" variant="ghost" onClick={() => handleChat(user)}>
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Chat
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )})}
+            </div>
+          </div>
+        );
+      
+      case "New Project":
+        return (
+          <div className="flex-1 overflow-y-auto p-8">
+            <div className="max-w-3xl mx-auto space-y-8">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">Create New Project</h2>
+                <p className="text-muted-foreground mt-2 text-lg">
+                  Describe your project idea, and our AI will generate a complete architecture and development plan for you.
+                </p>
+              </div>
+
+              <Card className="border-none shadow-none bg-transparent p-0">
+                <CardContent className="p-0">
+                  <form onSubmit={handleCreateProject} className="space-y-8">
+                    <div className="space-y-4">
+                      <Label htmlFor="name" className="text-base">Project Name</Label>
+                      <Input
+                        id="name"
+                        placeholder="e.g., E-commerce Platform, Task Manager"
+                        value={projectName}
+                        onChange={(e) => setProjectName(e.target.value)}
+                        disabled={isGenerating}
+                        className="h-12 text-lg"
+                      />
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <Label htmlFor="description" className="text-base">Project Description</Label>
+                      <Textarea
+                        id="description"
+                        placeholder="Describe your project in detail. What features does it have? Who is it for?"
+                        className="min-h-[300px] text-lg p-4 resize-none"
+                        value={projectDescription}
+                        onChange={(e) => setProjectDescription(e.target.value)}
+                        disabled={isGenerating}
+                      />
+                    </div>
+
+                    <div className="flex justify-end">
+                      <Button type="submit" size="lg" className="px-8" disabled={isGenerating}>
+                        {isGenerating ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Generating Architecture...
+                          </>
+                        ) : (
+                          "Generate Project Plan"
+                        )}
+                      </Button>
+                    </div>
+                  </form>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+
+      case "Meet":
+        return (
+          <div className="flex-1 w-full flex flex-col items-center justify-center h-full p-6 text-center space-y-6">
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Video className="w-12 h-12 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold">Video Meetings</h2>
+            <p className="text-muted-foreground max-w-md">
+              Connect with your team instantly. Create a new Google Meet link and share it with your colleagues.
+            </p>
+            <Button size="lg" onClick={handleCreateMeeting} className="gap-2">
+              <Plus className="w-5 h-5" />
+              Create New Meeting
+            </Button>
+          </div>
+        );
+
+      case "Settings":
+        return <SettingsView />;
+
+      default:
+        // Default Schedule View
+        return (
+          <div className="flex-1 flex flex-col h-full">
+            {/* Timeline */}
+            <div className="flex-1 flex overflow-hidden">
+              {/* Schedule Grid */}
+              <div className="flex-1 overflow-auto">
+                {/* Date Header */}
+                <div className="flex border-b border-border/50 sticky top-0 bg-background z-10">
+                  <div className="w-40 p-3 text-sm text-muted-foreground border-r border-border/50">September 2021</div>
+                  {["1 Mon", "2 Tue", "3 Wed", "4 Thu", "5 Fri"].map((day, i) => (
+                    <div key={day} className={`flex-1 p-3 text-center text-sm font-medium border-r border-border/50 ${i === 1 ? "bg-primary/5" : ""}`}>
+                      <span className={i === 1 ? "text-primary" : "text-muted-foreground"}>{day}</span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Time slots with tasks */}
+                <div className="flex">
+                  <div className="w-40 border-r border-border/50">
+                    {/* User row */}
+                    <div className="flex items-center gap-2 px-3 py-3 border-b border-border/50">
+                      <div className="w-6 h-6 rounded-full bg-task-teal flex items-center justify-center text-[10px] text-primary-foreground">OC</div>
+                      <div>
+                        <div className="text-xs font-medium text-foreground">Oliver Campbell</div>
+                        <div className="text-[10px] text-muted-foreground">3.50h</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 px-3 py-3 border-b border-border/50">
+                      <div className="w-6 h-6 rounded-full bg-task-pink flex items-center justify-center text-[10px] text-primary-foreground">CR</div>
+                      <div>
+                        <div className="text-xs font-medium text-foreground">Charlie Rogers</div>
+                        <div className="text-[10px] text-muted-foreground">4.20h</div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Tasks grid */}
+                  <div className="flex-1 grid grid-cols-5">
+                    {[...Array(5)].map((_, colIndex) => (
+                      <div key={colIndex} className={`border-r border-border/50 p-2 space-y-2 ${colIndex === 1 ? "bg-primary/5" : ""}`}>
+                        {tasks.slice(colIndex * 2, colIndex * 2 + 3).map((task) => (
+                          <div
+                            key={task.id}
+                            className={`p-2 rounded-lg border ${task.color} cursor-pointer hover:shadow-md transition-shadow`}
+                          >
+                            <div className="text-xs font-medium text-foreground line-clamp-2">{task.title}</div>
+                            <div className="flex items-center gap-1 mt-1">
+                              <span className="text-[10px] text-muted-foreground">{task.time}</span>
+                              <span className="text-[10px] text-muted-foreground">•</span>
+                              <span className="text-[10px] text-muted-foreground">{task.due}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Waiting List */}
+              <div className="w-64 border-l border-border/50 bg-secondary/30">
+                <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-foreground">Waiting list</span>
+                    <span className="w-5 h-5 rounded-full bg-muted text-xs flex items-center justify-center text-muted-foreground">15</span>
+                  </div>
+                  <div className="flex gap-1">
+                    <Plus className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                    <Search className="w-4 h-4 text-muted-foreground cursor-pointer" />
+                  </div>
+                </div>
+                <div className="p-3 space-y-2 overflow-y-auto max-h-[500px]">
+                  {waitingList.map((item, i) => (
+                    <div key={i} className="bg-card rounded-lg p-3 border border-border/50 cursor-pointer hover:shadow-md transition-shadow">
+                      <div className="flex items-start gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${item.color} mt-1.5 shrink-0`} />
+                        <div className="flex-1">
+                          <div className="text-xs font-medium text-foreground line-clamp-2">{item.title}</div>
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-[10px] text-muted-foreground">{item.time}</span>
+                            <span className="text-[10px] text-muted-foreground">•</span>
+                            <span className="text-[10px] text-muted-foreground">{item.due}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+    }
+  };
 
   return (
-    <div className="bg-card rounded-2xl shadow-xl border border-border/50 overflow-hidden">
-      {/* Browser Chrome */}
-      <div className="flex items-center gap-2 px-4 py-3 bg-secondary/50 border-b border-border/50">
-        <div className="flex gap-1.5">
-          <div className="w-3 h-3 rounded-full bg-destructive/60" />
-          <div className="w-3 h-3 rounded-full bg-task-yellow/60" />
-          <div className="w-3 h-3 rounded-full bg-task-green/60" />
-        </div>
-        <div className="flex-1 flex justify-center">
-          <div className="bg-background/80 rounded-md px-4 py-1 text-xs text-muted-foreground">
-            app.projectflow.io/dashboard
+    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+      {/* Sidebar */}
+      <div className="w-64 bg-secondary/30 border-r border-border/50 flex flex-col">
+        <div className="p-4 flex items-center gap-2 border-b border-border/50">
+          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
+            Z
           </div>
+          <span className="font-bold text-lg">Zync</span>
+          <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" />
         </div>
-      </div>
-      
-      <div className="flex h-[600px]">
-        {/* Sidebar */}
-        <div className="w-56 bg-sidebar border-r border-sidebar-border flex flex-col">
-          {/* Logo */}
-          <div className="p-4 border-b border-sidebar-border">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-sm">P</span>
-              </div>
-              <span className="text-sm font-semibold text-sidebar-foreground">ProjectFlow</span>
-            </div>
+        
+        <div className="flex-1 overflow-y-auto py-4">
+          <div className="px-3 mb-2">
+            <Button 
+              className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => setActiveSection("New Project")}
+            >
+              <Plus className="w-4 h-4" />
+              Create new project
+            </Button>
           </div>
 
-          {/* Search */}
-          <div className="p-3">
-            <div className="flex items-center gap-2 px-3 py-2 bg-sidebar-accent rounded-lg">
-              <Search className="w-4 h-4 text-sidebar-foreground/50" />
-              <span className="text-sm text-sidebar-foreground/50">Search...</span>
-            </div>
-          </div>
-
-          {/* Nav Items */}
-          <div className="flex-1 overflow-y-auto px-2 space-y-1">
-            {sidebarItems.map((item) => (
-              <div key={item.label}>
-                <div className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
-                  item.active ? "bg-sidebar-accent text-sidebar-accent-foreground" : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50"
-                }`}>
+          <nav className="space-y-1 px-2">
+            {sidebarItems.map((item, index) => (
+              <div key={index}>
+                <Button
+                  variant={item.active ? "secondary" : "ghost"}
+                  className={`w-full justify-start gap-3 ${item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                  onClick={() => setActiveSection(item.label)}
+                >
                   <item.icon className="w-4 h-4" />
-                  <span className="flex-1">{item.label}</span>
-                  {item.children && <ChevronDown className="w-4 h-4" />}
-                </div>
+                  {item.label}
+                </Button>
                 {item.children && item.active && (
-                  <div className="ml-6 space-y-1 mt-1">
-                    {item.children.map((child) => (
-                      <div key={child.label} className="px-3 py-1.5 text-sm text-sidebar-foreground/60 hover:text-sidebar-foreground cursor-pointer">
+                  <div className="ml-9 mt-1 space-y-1">
+                    {item.children.map((child, childIndex) => (
+                      <div
+                        key={childIndex}
+                        className="text-sm text-muted-foreground hover:text-foreground py-1 cursor-pointer"
+                      >
                         {child.label}
                       </div>
                     ))}
@@ -118,137 +604,59 @@ const DesktopView = () => {
                 )}
               </div>
             ))}
-          </div>
+          </nav>
+        </div>
 
-          {/* Teams */}
-          <div className="p-3 border-t border-sidebar-border">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-sidebar-foreground/50 uppercase tracking-wider">Teams</span>
-              <Plus className="w-4 h-4 text-sidebar-foreground/50" />
+        <div className="p-4 border-t border-border/50">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+              {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
             </div>
-            {["Marketing", "Sales B2B", "Programmers", "Bug fixing"].map((team) => (
-              <div key={team} className="px-3 py-1.5 text-sm text-sidebar-foreground/70 hover:text-sidebar-foreground cursor-pointer">
-                {team}
+            <div className="flex-1 overflow-hidden">
+              <div className="text-sm font-medium truncate">
+                {isPreview ? "John Doe" : (currentUser?.displayName || currentUser?.email?.split('@')[0] || "User")}
               </div>
-            ))}
+              <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
+            </div>
+            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Global Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background shrink-0">
+          <div className="flex items-center gap-4">
+            {(activeSection === "My Workspace" || activeSection === "Dashboard") ? (
+              <>
+                <span className="font-semibold text-foreground">Tools</span>
+                <Button size="sm" variant="hero" onClick={() => setActiveSection("New Project")}>+ Add new</Button>
+                <div className="flex gap-2">
+                  <span className="px-3 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full cursor-pointer">Week view</span>
+                  <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full cursor-pointer">Today</span>
+                  <span className="px-3 py-1 text-muted-foreground text-xs font-medium rounded-full hover:bg-secondary cursor-pointer">Filters</span>
+                </div>
+              </>
+            ) : (
+              <h2 className="text-lg font-semibold text-foreground">{activeSection}</h2>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-full">
+              <Clock className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-foreground">01:27:31</span>
+            </div>
+            <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
+            <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
+            {!isPreview && <ThemeToggle />}
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+              {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
+            </div>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 bg-background flex flex-col">
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-border/50">
-            <div className="flex items-center gap-4">
-              <span className="font-semibold text-foreground">Tools</span>
-              <Button size="sm" variant="hero">+ Add new</Button>
-              <div className="flex gap-2">
-                <span className="px-3 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full cursor-pointer">Week view</span>
-                <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full cursor-pointer">Today</span>
-                <span className="px-3 py-1 text-muted-foreground text-xs font-medium rounded-full hover:bg-secondary cursor-pointer">Filters</span>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-full">
-                <Clock className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-foreground">01:27:31</span>
-              </div>
-              <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
-              <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
-              <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                OC
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Schedule Grid */}
-            <div className="flex-1 overflow-auto">
-              {/* Date Header */}
-              <div className="flex border-b border-border/50 sticky top-0 bg-background z-10">
-                <div className="w-40 p-3 text-sm text-muted-foreground border-r border-border/50">September 2021</div>
-                {["1 Mon", "2 Tue", "3 Wed", "4 Thu", "5 Fri"].map((day, i) => (
-                  <div key={day} className={`flex-1 p-3 text-center text-sm font-medium border-r border-border/50 ${i === 1 ? "bg-primary/5" : ""}`}>
-                    <span className={i === 1 ? "text-primary" : "text-muted-foreground"}>{day}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Time slots with tasks */}
-              <div className="flex">
-                <div className="w-40 border-r border-border/50">
-                  {/* User row */}
-                  <div className="flex items-center gap-2 px-3 py-3 border-b border-border/50">
-                    <div className="w-6 h-6 rounded-full bg-task-teal flex items-center justify-center text-[10px] text-primary-foreground">OC</div>
-                    <div>
-                      <div className="text-xs font-medium text-foreground">Oliver Campbell</div>
-                      <div className="text-[10px] text-muted-foreground">3.50h</div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 px-3 py-3 border-b border-border/50">
-                    <div className="w-6 h-6 rounded-full bg-task-pink flex items-center justify-center text-[10px] text-primary-foreground">CR</div>
-                    <div>
-                      <div className="text-xs font-medium text-foreground">Charlie Rogers</div>
-                      <div className="text-[10px] text-muted-foreground">4.20h</div>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Tasks grid */}
-                <div className="flex-1 grid grid-cols-5">
-                  {[...Array(5)].map((_, colIndex) => (
-                    <div key={colIndex} className={`border-r border-border/50 p-2 space-y-2 ${colIndex === 1 ? "bg-primary/5" : ""}`}>
-                      {tasks.slice(colIndex * 2, colIndex * 2 + 3).map((task) => (
-                        <div
-                          key={task.id}
-                          className={`p-2 rounded-lg border ${task.color} cursor-pointer hover:shadow-md transition-shadow`}
-                        >
-                          <div className="text-xs font-medium text-foreground line-clamp-2">{task.title}</div>
-                          <div className="flex items-center gap-1 mt-1">
-                            <span className="text-[10px] text-muted-foreground">{task.time}</span>
-                            <span className="text-[10px] text-muted-foreground">•</span>
-                            <span className="text-[10px] text-muted-foreground">{task.due}</span>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Waiting List */}
-            <div className="w-64 border-l border-border/50 bg-secondary/30">
-              <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
-                <div className="flex items-center gap-2">
-                  <span className="text-sm font-medium text-foreground">Waiting list</span>
-                  <span className="w-5 h-5 rounded-full bg-muted text-xs flex items-center justify-center text-muted-foreground">15</span>
-                </div>
-                <div className="flex gap-1">
-                  <Plus className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  <Search className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                </div>
-              </div>
-              <div className="p-3 space-y-2 overflow-y-auto max-h-[500px]">
-                {waitingList.map((item, i) => (
-                  <div key={i} className="bg-card rounded-lg p-3 border border-border/50 cursor-pointer hover:shadow-md transition-shadow">
-                    <div className="flex items-start gap-2">
-                      <div className={`w-1.5 h-1.5 rounded-full ${item.color} mt-1.5 shrink-0`} />
-                      <div className="flex-1">
-                        <div className="text-xs font-medium text-foreground line-clamp-2">{item.title}</div>
-                        <div className="flex items-center gap-1 mt-1">
-                          <span className="text-[10px] text-muted-foreground">{item.time}</span>
-                          <span className="text-[10px] text-muted-foreground">•</span>
-                          <span className="text-[10px] text-muted-foreground">{item.due}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
+        {renderContent()}
       </div>
     </div>
   );

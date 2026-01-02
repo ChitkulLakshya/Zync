@@ -63,9 +63,9 @@ const MobileView = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <span className="text-primary-foreground font-bold text-xs">P</span>
+                  <span className="text-primary-foreground font-bold text-xs">Z</span>
                 </div>
-                <span className="font-semibold text-foreground text-sm">ProjectFlow</span>
+                <span className="font-semibold text-foreground text-sm">Zync</span>
               </div>
               <div className="flex items-center gap-2">
                 <Bell className="w-5 h-5 text-muted-foreground" />
