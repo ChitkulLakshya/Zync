@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Search, ExternalLink, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/lib/utils";
 
 interface DesignItem {
   id: string;
@@ -71,10 +72,10 @@ const DesignView = () => {
       // Use the unified endpoint which returns { ok: true, items: [...] } 
       // OR direct array depending on how getInspiration is structured.
       // Based on previous code, getInspiration returns { ok: true, count, items: [] }
-      const response = await fetch(`http://localhost:5000/api/design/search?q=${encodeURIComponent(query)}`);
+      const response = await fetch(`${API_BASE_URL}/api/design/search?q=${encodeURIComponent(query)}`);
       
       if (!response.ok) {
-        throw new Error("Failed to fetch designs");
+        throw new Error(`Failed to fetch designs: ${response.statusText}`);
       }
       const data = await response.json();
       

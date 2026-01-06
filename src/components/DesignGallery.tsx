@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { API_BASE_URL } from "@/lib/utils";
 
 type Item = {
   id: string;
@@ -20,11 +21,16 @@ export default function DesignGallery({ query = 'web design' }: { query?: string
     let mounted = true;
     setLoading(true);
     setError(null);
-    const url = `http://localhost:5000/api/design/behance?q=${encodeURIComponent(query)}`;
+    const url = `${API_BASE_URL}/api/design/behance?q=${encodeURIComponent(query)}`;
     
     // Explicitly make a simple fetch without custom auth headers
     fetch(url, { headers: { 'Content-Type': 'application/json' } }) 
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+           throw new Error(`Request failed: ${res.statusText}`);
+        }
+        return res.json();
+      })
       .then(data => {
         if (!mounted) return;
         // Handle array response from /api/design/behance or object from /api/inspiration
