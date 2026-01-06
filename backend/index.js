@@ -13,7 +13,8 @@ const designRoutes = require('./routes/designRoutes');
 const inspirationRoutes = require('./routes/inspirationRoutes');
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:8080'],
+  origin: ['http://localhost:5173', 'http://localhost:8080', 'https://zync-meet.vercel.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
 app.use(express.json());
