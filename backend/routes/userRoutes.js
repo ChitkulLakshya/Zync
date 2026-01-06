@@ -1,38 +1,16 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const nodemailer = require('nodemailer');
-
-// Configure Nodemailer
-const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.ethereal.email',
-    port: process.env.EMAIL_PORT || 587,
-    auth: {
-        user: process.env.EMAIL_USER || 'ethereal.user@ethereal.email',
-        pass: process.env.EMAIL_PASS || 'ethereal.pass'
-    }
-});
+const { sendEmail } = require('../utils/emailService');
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {
-    console.log(`[MOCK EMAIL] Sending verification code ${code} to ${email}`);
-    
-    if (process.env.EMAIL_HOST) {
-      try {
-        await transporter.sendMail({
-            from: '"Zync Support" <support@zync.com>',
-            to: email,
-            subject: 'Phone Verification Code',
-            text: `Your verification code is: ${code}`,
-            html: `<b>Your verification code is: ${code}</b>`
-        });
-        console.log(`[EMAIL SENT] Verification code sent to ${email}`);
-      } catch (error) {
-        console.error('[EMAIL ERROR] Failed to send email:', error);
-      }
-    }
-    
-    return true;
+    return sendEmail({
+        to: email,
+        subject: 'Phone Verification Code',
+        text: `Your verification code is: ${code}`,
+        html: `<b>Your verification code is: ${code}</b>`
+    });
 };
 
 // Sync user (create or update)
