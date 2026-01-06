@@ -1,13 +1,24 @@
 const mongoose = require('mongoose');
 
+const TaskSchema = new mongoose.Schema({
+  id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
+  title: { type: String, required: true },
+  description: { type: String },
+  status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
+  assignedTo: { type: String, default: null }, // User UID
+  assignedToName: { type: String, default: null },
+  createdAt: { type: Date, default: Date.now }
+});
+
 const StepSchema = new mongoose.Schema({
   id: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String },
   status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
-  assignedTo: { type: String, default: null }, // User ID or Name
+  assignedTo: { type: String, default: null }, 
   type: { type: String, enum: ['Frontend', 'Backend', 'Database', 'Design', 'Other'], default: 'Other' },
-  page: { type: String, default: 'General' } // Related page/module
+  page: { type: String, default: 'General' },
+  tasks: [TaskSchema] // Embedded tasks
 });
 
 const ProjectSchema = new mongoose.Schema({

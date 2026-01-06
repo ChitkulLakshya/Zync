@@ -47,6 +47,15 @@ const updateSession = async (req, res) => {
     if (!session) return res.status(404).json({ message: 'Session not found' });
 
     session.endTime = new Date();
+    
+    // Update activity stats if provided
+    if (req.body.lastAction) {
+        session.lastAction = req.body.lastAction;
+    }
+    if (req.body.activeIncrement) {
+        session.activeDuration = (session.activeDuration || 0) + req.body.activeIncrement;
+    }
+
     await session.save();
     
     res.json(session);

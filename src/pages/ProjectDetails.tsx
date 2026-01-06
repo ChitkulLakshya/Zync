@@ -8,8 +8,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical } from "lucide-react";
 import { API_BASE_URL } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
 
 interface Project {
   _id: string;
@@ -38,25 +40,48 @@ interface Project {
     apiFlow: string;
     integrations: string[];
   };
-  steps: {
-    id: string;
-    title: string;
-    description: string;
-    status: "Pending" | "In Progress" | "Completed";
-    type: string;
-    page: string;
-    assignedTo?: string;
-  }[];
+  steps: Step[];
+  ownerId: string;
 }
+
+interface Task {
+  _id: string; 
+  id: string;
+  title: string;
+  description: string;
+  status: "Pending" | "In Progress" | "Completed";
+  assignedTo?: string;
+  assignedToName?: string;
+}
+
+interface Step {
+  _id: string; 
+  id: string;
+  title: string;
+  description: string;
+  status: "Pending" | "In Progress" | "Completed";
+  type: string;
+  page: string;
+  assignedTo?: string;
+  tasks: Task[];
+}
+
+// Mock users for assignment - In real app, fetch from API
+const MOCK_USERS = [
+    { uid: "admin1", name: "Admin User", email: "admin@zync.com" },
+    { uid: "dev1", name: "Frontend Dev", email: "frontend@zync.com" },
+    { uid: "dev2", name: "Backend Dev", email: "backend@zync.com" },
+    { uid: auth.currentUser?.uid || "current", name: auth.currentUser?.displayName || "You", email: auth.currentUser?.email },
+].filter((v,i,a)=>a.findIndex(t=>(t.uid===v.uid))===i);
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(true); 
 
-  useEffect(() => {
-    const fetchProject = async () => {
+  const fetchProject = async () => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/projects/${id}`);
         if (!response.ok) throw new Error("Project not found");
@@ -69,8 +94,42 @@ const ProjectDetails = () => {
       }
     };
 
+  useEffect(() => {
     if (id) fetchProject();
   }, [id]);
+
+  const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
+      if (!project) return;
+      
+      const newProject = { ...project };
+      const step = newProject.steps.find(s => s._id === stepId || s.id === stepId);
+      if (step) {
+          const task = step.tasks.find(t => t._id === taskId || t.id === taskId);
+          if (task) {
+              Object.assign(task, updates);
+              setProject(newProject);
+          }
+      }
+
+      try {
+          const realStepId = step?._id;
+          const realTaskId = step?.tasks.find(t => t.id === taskId || t._id === taskId)?._id; 
+
+          if(!realStepId || !realTaskId) return;
+
+          await fetch(`${API_BASE_URL}/api/projects/${project._id}/steps/${realStepId}/tasks/${realTaskId}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  ...updates,
+                  assignedBy: auth.currentUser?.displayName || 'Admin'
+              })
+          });
+      } catch (error) {
+          console.error("Failed to update task", error);
+          fetchProject();
+      }
+  };
 
   if (loading) {
     return (
@@ -230,50 +289,96 @@ const ProjectDetails = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="steps" className="flex-1 overflow-hidden">
-            <Card className="h-full flex flex-col">
-              <CardHeader>
-                <CardTitle>Development Plan</CardTitle>
-                <CardDescription>Step-by-step guide to build your project</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 overflow-hidden p-0">
-                <ScrollArea className="h-full px-6 pb-6">
-                  <div className="space-y-4">
-                    {project.steps.map((step, index) => (
-                      <div key={index} className="flex items-start gap-4 p-4 border rounded-lg hover:bg-secondary/20 transition-colors">
-                        <div className="mt-1">
-                          {step.status === "Completed" ? (
-                            <CheckCircle2 className="h-5 w-5 text-green-500" />
-                          ) : (
-                            <Circle className="h-5 w-5 text-muted-foreground" />
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <h4 className="font-semibold">{step.title}</h4>
-                            <Badge variant="outline">{step.type}</Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-2">{step.description}</p>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                            <span className="bg-secondary px-2 py-1 rounded">Page: {step.page}</span>
-                            {step.assignedTo ? (
-                              <span className="flex items-center gap-1">
-                                <Avatar className="h-4 w-4">
-                                  <AvatarFallback>U</AvatarFallback>
-                                </Avatar>
-                                Assigned to {step.assignedTo}
-                              </span>
-                            ) : (
-                              <span className="text-orange-500 cursor-pointer hover:underline">Unassigned</span>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
+          <TabsContent value="steps" className="flex-1 overflow-auto">
+             <Card className="h-full">
+                 <CardHeader>
+                     <CardTitle>Development Plan</CardTitle>
+                     <CardDescription>Step-by-step implementation guide</CardDescription>
+                 </CardHeader>
+                 <CardContent>
+                     <div className="space-y-6">
+                         {project.steps.map((step, index) => (
+                             <div key={step.id || index} className="border rounded-lg p-4 bg-card/50">
+                                 <div className="flex items-center justify-between mb-4">
+                                     <div className="flex items-center gap-2">
+                                         <Badge variant="outline" className="bg-background">{index + 1}</Badge>
+                                         <h3 className="font-semibold">{step.title}</h3>
+                                     </div>
+                                     <Badge variant="secondary">{step.type}</Badge>
+                                 </div>
+                                 <p className="text-sm text-muted-foreground mb-4">{step.description}</p>
+                                 
+                                 <div className="space-y-3 pl-4 border-l-2 border-muted ml-2">
+                                     {step.tasks && step.tasks.map((task) => (
+                                         <div key={task.id || task._id} className="flex items-start gap-3 group">
+                                             <Checkbox 
+                                                id={task.id} 
+                                                checked={task.status === "Completed"}
+                                                onCheckedChange={(checked) => handleTaskUpdate(step._id, task._id, { status: checked ? "Completed" : "Pending" })}
+                                                disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
+                                             />
+                                             <div className="flex-1 space-y-1">
+                                                <div className="flex items-center justify-between">
+                                                     <label
+                                                         htmlFor={task.id}
+                                                         className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === "Completed" ? "line-through text-muted-foreground" : ""}`}
+                                                     >
+                                                         {task.title}
+                                                     </label>
+                                                </div>
+                                                 <p className="text-xs text-muted-foreground">{task.description}</p>
+                                                 
+                                                 <div className="flex items-center gap-4 mt-2">
+                                                     {/* Assignment Dropdown */}
+                                                     <Select 
+                                                        value={task.assignedTo || "unassigned"} 
+                                                        onValueChange={(val) => handleTaskUpdate(step._id, task._id, { 
+                                                            assignedTo: val === "unassigned" ? null : val,
+                                                            assignedToName: val === "unassigned" ? null : MOCK_USERS.find(u => u.uid === val)?.name
+                                                        })}
+                                                        disabled={!isAdmin}
+                                                     >
+                                                        <SelectTrigger className="w-[140px] h-7 text-xs">
+                                                            <SelectValue placeholder="Assignee" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                                                            {MOCK_USERS.map(user => (
+                                                                <SelectItem key={user.uid} value={user.uid}>{user.name}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                     </Select>
+                                                     
+                                                     {/* Status Dropdown */}
+                                                     <Select 
+                                                        value={task.status} 
+                                                        onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
+                                                     >
+                                                        <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${
+                                                            task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 
+                                                            task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                                                        }`}>
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            <SelectItem value="Pending">Pending</SelectItem>
+                                                            <SelectItem value="In Progress">In Progress</SelectItem>
+                                                            <SelectItem value="Completed">Completed</SelectItem>
+                                                        </SelectContent>
+                                                     </Select>
+                                                 </div>
+                                             </div>
+                                         </div>
+                                     ))}
+                                     {(!step.tasks || step.tasks.length === 0) && (
+                                         <div className="text-sm text-muted-foreground italic">No specific tasks generated for this step.</div>
+                                     )}
+                                 </div>
+                             </div>
+                         ))}
+                     </div>
+                 </CardContent>
+             </Card>
           </TabsContent>
 
           <TabsContent value="team">

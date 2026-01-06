@@ -2,8 +2,11 @@ const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Project = require('../models/Project');
+const { sendEmail } = require('../utils/emailService');
+const User = require('../models/User');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
 
 router.post('/generate', async (req, res) => {
   try {
@@ -13,7 +16,7 @@ router.post('/generate', async (req, res) => {
       return res.status(400).json({ message: 'Name and description are required' });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
     const prompt = `
       You are a software architect. Generate a comprehensive project architecture and step-by-step development plan for the following project:
@@ -50,15 +53,21 @@ router.post('/generate', async (req, res) => {
         "steps": [
           {
             "id": "1",
-            "title": "Step Title",
-            "description": "Detailed description of the task",
+            "title": "Phase Title (e.g., Planning, Frontend, Backend)",
+            "description": "Description of the phase",
             "type": "Frontend" | "Backend" | "Database" | "Design" | "Other",
-            "page": "Related Page or Module (e.g., 'Login Page', 'Dashboard')"
+            "page": "Related Page",
+            "tasks": [
+               {
+                 "title": "Task Title",
+                 "description": "Task details"
+               }
+            ]
           }
         ]
       }
       
-      Ensure the steps are ordered logically for development (e.g., Setup -> Auth -> Core Features).
+      Ensure the steps are ordered logically for development. Each step should act as a phase (e.g. 'Setup', 'Database', 'Frontend Core') and contain multiple granular tasks.
     `;
 
     const result = await model.generateContent(prompt);
@@ -91,7 +100,16 @@ router.post('/generate', async (req, res) => {
 
   } catch (error) {
     console.error('Error generating project:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    
+    // Improved error handling
+    let errorMessage = 'Server error';
+    if (error.status === 404 && error.message.includes('not found')) {
+        errorMessage = `Model not found: ${GEMINI_MODEL}. Please check API key availability.`;
+    } else if (error.message) {
+        errorMessage = error.message;
+    }
+
+    res.status(500).json({ message: 'Failed to generate project', error: errorMessage });
   }
 });
 
@@ -117,6 +135,51 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
+});
+
+// Update a specific task status or assignment
+router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
+    try {
+        const { projectId, stepId, taskId } = req.params;
+        const { status, assignedTo, assignedToName, assignedBy } = req.body;
+        
+        const project = await Project.findById(projectId);
+        if (!project) return res.status(404).json({ message: 'Project not found' });
+        
+        const step = project.steps.id(stepId);
+        if (!step) return res.status(404).json({ message: 'Step not found' });
+        
+        const task = step.tasks.id(taskId);
+        if (!task) return res.status(404).json({ message: 'Task not found' });
+        
+        if (status) task.status = status;
+        
+        // Handle Assignment
+        if (assignedTo !== undefined) {
+             const oldAssignee = task.assignedTo;
+             task.assignedTo = assignedTo;
+             task.assignedToName = assignedToName;
+             
+             // Send email if newly assigned and different from old
+             if (assignedTo && assignedTo !== oldAssignee) {
+                 const user = await User.findOne({ uid: assignedTo });
+                 
+                 if (user && user.email) {
+                     await sendEmail({
+                         to: user.email,
+                         subject: `New Task Assigned: ${task.title}`,
+                         text: `You have been assigned a new task in project "${project.name}".\n\nStep: ${step.title}\nTask: ${task.title}\nAssigned By: ${assignedBy || 'Admin'}`
+                     });
+                 }
+             }
+        }
+        
+        await project.save();
+        res.json(project);
+    } catch (error) {
+         console.error('Error updating task:', error);
+         res.status(500).json({ message: 'Server error', error: error.message });
+    }
 });
 
 module.exports = router;

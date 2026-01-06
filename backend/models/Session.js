@@ -19,9 +19,20 @@ const sessionSchema = new mongoose.Schema({
     type: Number, // in seconds
     default: 0
   },
+  activeDuration: {
+    type: Number, // in seconds (active time)
+    default: 0
+  },
+  lastAction: {
+    type: Date,
+    default: Date.now
+  },
   date: {
     type: String, // YYYY-MM-DD for easy grouping
     required: true
+  },
+  deviceInfo: {
+      type: String
   }
 });
 

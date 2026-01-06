@@ -20,6 +20,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mongoose": "^9.1.1",
+    "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
     "rss-parser": "^3.13.0"
   },
