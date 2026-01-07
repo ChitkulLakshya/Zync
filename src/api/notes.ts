@@ -1,5 +1,6 @@
 // src/api/notes.ts
-const API_URL = 'http://localhost:5000/api/notes';
+import { API_BASE_URL } from '../lib/utils';
+const API_URL = `${API_BASE_URL}/api/notes`;
 
 export interface Folder {
   _id: string;
