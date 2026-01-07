@@ -49,10 +49,10 @@ const updateSession = async (req, res) => {
     session.endTime = new Date();
     
     // Update activity stats if provided
-    if (req.body.lastAction) {
+    if (req.body && req.body.lastAction) {
         session.lastAction = req.body.lastAction;
     }
-    if (req.body.activeIncrement) {
+    if (req.body && req.body.activeIncrement) {
         session.activeDuration = (session.activeDuration || 0) + req.body.activeIncrement;
     }
 

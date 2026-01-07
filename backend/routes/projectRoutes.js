@@ -4,6 +4,8 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Project = require('../models/Project');
 const { sendEmail } = require('../utils/emailService');
 const User = require('../models/User');
+// Prisma Client with Driver Adapter
+const prisma = require('../lib/prisma');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
@@ -132,6 +134,19 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
     res.json(project);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Delete a project
+router.delete('/:id', async (req, res) => {
+  try {
+    const project = await Project.findByIdAndDelete(req.params.id);
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    res.json({ message: 'Project deleted successfully' });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

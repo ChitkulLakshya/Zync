@@ -19,8 +19,10 @@ import {
   Video,
   MessageSquare,
   Circle,
-  Loader2
+  Loader2,
+  LogOut
 } from "lucide-react";
+import Workspace from "@/components/workspace/Workspace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -32,7 +34,15 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { auth, rtdb, db } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, signOut } from "firebase/auth";
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import { collection, query, where, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import ChatView from "./ChatView";
@@ -404,6 +414,15 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case "My Workspace":
+        return (
+          <Workspace 
+            onNavigate={setActiveSection} 
+            onSelectProject={(id) => navigate(`/projects/${id}`)}
+            currentUser={currentUser}
+          />
+        );
+        
       case "Chat":
         return (
           <div className="flex h-full w-full">
@@ -797,18 +816,39 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         </div>
 
         <div className="p-4 border-t border-border/50">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-              {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <div className="text-sm font-medium truncate">
-                {isPreview ? "John Doe" : (currentUser?.displayName || currentUser?.email?.split('@')[0] || "User")}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md transition-colors">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                  {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
+                </div>
+                <div className="flex-1 overflow-hidden">
+                  <div className="text-sm font-medium truncate">
+                    {isPreview ? "John Doe" : (currentUser?.displayName || currentUser?.email?.split('@')[0] || "User")}
+                  </div>
+                  <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
+                </div>
+                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
               </div>
-              <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
-            </div>
-            <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-          </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setActiveSection("Settings")}>
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={async () => {
+                  if (isPreview) return;
+                  await signOut(auth);
+                  navigate("/login");
+              }} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 

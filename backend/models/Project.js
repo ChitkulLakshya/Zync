@@ -4,17 +4,31 @@ const TaskSchema = new mongoose.Schema({
   id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
   title: { type: String, required: true },
   description: { type: String },
-  status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
+  status: { 
+    type: String, 
+    enum: ['Pending', 'Backlog', 'Ready', 'In Progress', 'In Review', 'Completed', 'Done'], 
+    default: 'Backlog' 
+  },
   assignedTo: { type: String, default: null }, // User UID
   assignedToName: { type: String, default: null },
-  createdAt: { type: Date, default: Date.now }
+  createdAt: { type: Date, default: Date.now },
+  commitInfo: {
+      message: String,
+      url: String,
+      author: String,
+      timestamp: Date
+  }
 });
 
 const StepSchema = new mongoose.Schema({
   id: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String },
-  status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
+  status: { 
+    type: String, 
+    enum: ['Pending', 'Backlog', 'In Progress', 'Completed', 'Done'], 
+    default: 'Pending' 
+  },
   assignedTo: { type: String, default: null }, 
   type: { type: String, enum: ['Frontend', 'Backend', 'Database', 'Design', 'Other'], default: 'Other' },
   page: { type: String, default: 'General' },
@@ -25,10 +39,12 @@ const ProjectSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   architecture: {
+    highLevel: { type: String },
     frontend: { type: Object },
     backend: { type: Object },
     database: { type: Object },
     integrations: { type: Array },
+    apiFlow: { type: String },
     flow: { type: String }
   },
   steps: [StepSchema],

@@ -9,9 +9,12 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban } from "lucide-react";
 import { API_BASE_URL } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
+import KanbanBoard from "@/components/workspace/KanbanBoard";
+import { io } from "socket.io-client";
+import { toast } from "sonner";
 
 interface Project {
   _id: string;
@@ -52,6 +55,12 @@ interface Task {
   status: "Pending" | "In Progress" | "Completed";
   assignedTo?: string;
   assignedToName?: string;
+  commitInfo?: {
+    message: string;
+    url: string;
+    author: string;
+    timestamp: string;
+  };
 }
 
 interface Step {
@@ -97,6 +106,44 @@ const ProjectDetails = () => {
   useEffect(() => {
     if (id) fetchProject();
   }, [id]);
+
+  useEffect(() => {
+    // Connect to Socket.io
+    const socket = io(API_BASE_URL);
+
+    socket.on('connect', () => {
+      console.log('Connected to WebSocket');
+    });
+
+    socket.on('taskUpdated', (data) => {
+      console.log('Task Updated Event:', data);
+      toast.success(`Task ${data.taskId} completed via commit!`);
+      
+      setProject((prevProject) => {
+        if (!prevProject) return null;
+
+        const newSteps = prevProject.steps.map(step => {
+          const newTasks = step.tasks.map(task => {
+            // Check against both id (display ID) and _id (database ID)
+            if (task.id === data.taskId || task._id === data.taskId) {
+              return { 
+                ...task, 
+                status: data.status 
+              } as Task;
+            }
+            return task;
+          });
+          return { ...step, tasks: newTasks };
+        });
+
+        return { ...prevProject, steps: newSteps };
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
 
   const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
       if (!project) return;
@@ -171,6 +218,9 @@ const ProjectDetails = () => {
             </TabsTrigger>
             <TabsTrigger value="steps" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
               Development Steps
+            </TabsTrigger>
+            <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
+              Task Board
             </TabsTrigger>
             <TabsTrigger value="team" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
               Team & Assignments
@@ -289,6 +339,14 @@ const ProjectDetails = () => {
             </div>
           </TabsContent>
 
+          <TabsContent value="board" className="flex-1 overflow-auto h-full p-4">
+             <KanbanBoard 
+                steps={project.steps} 
+                onUpdateTask={handleTaskUpdate} 
+                users={MOCK_USERS}
+             />
+          </TabsContent>
+
           <TabsContent value="steps" className="flex-1 overflow-auto">
              <Card className="h-full">
                  <CardHeader>
@@ -328,6 +386,19 @@ const ProjectDetails = () => {
                                                 </div>
                                                  <p className="text-xs text-muted-foreground">{task.description}</p>
                                                  
+                                                 {task.commitInfo && (
+                                                     <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
+                                                         <GitCommit className="w-3 h-3 text-primary" />
+                                                         <span className="font-mono text-primary truncate max-w-[200px]">{task.commitInfo.message}</span>
+                                                         <span className="text-muted-foreground">- {task.commitInfo.author}</span>
+                                                         {task.commitInfo.url && (
+                                                            <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-primary">
+                                                                <ExternalLink className="w-3 h-3" />
+                                                            </a>
+                                                         )}
+                                                     </div>
+                                                 )}
+
                                                  <div className="flex items-center gap-4 mt-2">
                                                      {/* Assignment Dropdown */}
                                                      <Select 
