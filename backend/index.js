@@ -18,6 +18,10 @@ const io = new Server(server, {
 // Make io accessible to our routers
 app.set('io', io);
 
+// Initialize Socket Handlers
+require('./sockets/noteSocketHandler')(io);
+
+
 const PORT = process.env.PORT || 5000;
 
 const projectRoutes = require('./routes/projectRoutes');

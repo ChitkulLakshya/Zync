@@ -34,9 +34,34 @@ router.get('/folders', async (req, res) => {
     const { userId } = req.query;
     if (!userId) return res.status(400).json({ error: 'User ID is required' });
 
-    // Fetch personal folders and any project folders user has access to (simplified for now to just owner)
-    const folders = await Folder.find({ ownerId: userId }).sort({ createdAt: -1 });
+    // Fetch personal folders (owner) AND shared folders (collaborator)
+    const folders = await Folder.find({
+      $or: [
+        { ownerId: userId },
+        { collaborators: userId }
+      ]
+    }).sort({ createdAt: -1 });
+    
     res.json(folders);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Share a folder
+router.post('/folders/:id/share', async (req, res) => {
+  try {
+    const { collaboratorIds } = req.body; // Array of UIDs
+    const { id } = req.params;
+
+    const folder = await Folder.findByIdAndUpdate(
+      id,
+      { $addToSet: { collaborators: { $each: collaboratorIds } } },
+      { new: true }
+    );
+
+    if (!folder) return res.status(404).json({ error: 'Folder not found' });
+    res.json(folder);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -75,10 +100,41 @@ router.get('/', async (req, res) => {
     
     if (!userId) return res.status(400).json({ error: 'User ID is required' });
 
-    const query = { ownerId: userId };
-    
+    let query = {};
+
     if (folderId) {
-      query.folderId = folderId;
+      // If asking for a specific folder, ensure user has access to it
+      const folder = await Folder.findById(folderId);
+      if (folder) {
+         const isOwner = folder.ownerId === userId;
+         const isCollaborator = folder.collaborators && folder.collaborators.includes(userId);
+         
+         if (isOwner || isCollaborator) {
+            query = { folderId };
+         } else {
+             return res.status(403).json({ error: 'Access denied to this folder' });
+         }
+      } else {
+          // Folder not found or looking for root notes?
+          // If folderId is provided but not found, return empty or error.
+          // Assuming strict check:
+           return res.status(404).json({ error: 'Folder not found' });
+      }
+    } else {
+        // Fetch ALL accessible notes (Root + Personal Folders + Shared Folders + Shared Notes)
+        
+        // 1. Get IDs of folders shared with this user
+        const sharedFolders = await Folder.find({ collaborators: userId }).select('_id');
+        const sharedFolderIds = sharedFolders.map(f => f._id);
+        
+        query = {
+            $or: [
+                { ownerId: userId },                  // 1. Created by me
+                { folderId: { $in: sharedFolderIds } }, // 2. In a folder shared with me
+                { collaborators: userId },            // 3. Directly shared with me
+                { isShared: true, projectId: { $ne: null } } // 4. (Optional) Project notes if we impl project permissions
+            ]
+        };
     }
 
     const notes = await Note.find(query).sort({ updatedAt: -1 });

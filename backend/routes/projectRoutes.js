@@ -197,4 +197,93 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
     }
 });
 
+// Search for tasks across all projects
+router.get('/tasks/search', async (req, res) => {
+    try {
+        const { query, userId } = req.query;
+        if (!query) return res.json([]);
+        
+        // Find projects accessible to user (owned)
+        // Note: In a real app, also check collaborators
+        const projects = await Project.find({  ownerId: userId });
+        
+        const results = [];
+        const regex = new RegExp(query, 'i');
+        
+        projects.forEach(project => {
+            project.steps.forEach(step => {
+                step.tasks.forEach(task => {
+                    if (regex.test(task.title)) {
+                        results.push({
+                            id: task.id,
+                            title: task.title,
+                            projectId: project._id,
+                            projectName: project.name,
+                            status: task.status,
+                            stepName: step.title
+                        });
+                    }
+                });
+            });
+        });
+        
+        // Return top 10 matches
+        res.json(results.slice(0, 10));
+    } catch (error) {
+        console.error('Error searching tasks:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Create a quick task from external source (e.g. Notes)
+router.post('/:projectId/quick-task', async (req, res) => {
+    try {
+        const { projectId } = req.params;
+        const { title, description } = req.body;
+        
+        const project = await Project.findById(projectId);
+        if (!project) return res.status(404).json({ message: 'Project not found' });
+        
+        // Find a suitable step (e.g. "Planning", "Backlog", or the first step)
+        let step = project.steps.find(s => 
+            s.title.toLowerCase().includes('backlog') || 
+            s.title.toLowerCase().includes('planning') || 
+            s.title.toLowerCase().includes('general')
+        );
+        
+        if (!step) {
+            step = project.steps[0];
+        }
+        
+        if (!step) {
+             // Create a default step if none exist
+             project.steps.push({
+                 title: 'Backlog',
+                 description: 'Auto-generated backlog',
+                 type: 'Other',
+                 tasks: []
+             });
+             step = project.steps[project.steps.length - 1]; // Get the one we just pushed (Wait, mongoose arrays behave differently)
+             // It's safer to save and re-fetch or just assume index 0 if it was empty.
+             // Actually, project.steps is a MongooseDocumentArray.
+             step = project.steps[project.steps.length - 1];
+        }
+        
+        const newTask = {
+            title,
+            description,
+            status: 'Backlog',
+            assignedBy: 'Note Integration'
+        };
+        
+        step.tasks.push(newTask);
+        await project.save();
+        
+        res.json({ message: 'Task created', task: newTask, stepId: step.id, project });
+    } catch (error) {
+         console.error('Error creating quick task:', error);
+         res.status(500).json({ message: 'Server error' });
+    }
+});
+
 module.exports = router;

@@ -2,10 +2,11 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { API_BASE_URL } from "@/lib/utils";
-import { FolderGit2, Plus, ArrowRight, Loader2, Calendar, User, Trash2 } from "lucide-react";
+import { FolderGit2, Plus, ArrowRight, Loader2, Calendar, User, Trash2, Pin, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
+import { fetchNotes, Note } from '../../api/notes';
 
 interface Project {
   _id: string;
@@ -18,11 +19,13 @@ interface Project {
 interface WorkspaceProps {
     onNavigate: (section: string) => void;
     onSelectProject: (id: string) => void;
+    onOpenNote?: (id: string) => void;
     currentUser: any;
 }
 
-const Workspace = ({ onNavigate, onSelectProject, currentUser }: WorkspaceProps) => {
+const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: WorkspaceProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [pinnedNotes, setPinnedNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -55,22 +58,31 @@ const Workspace = ({ onNavigate, onSelectProject, currentUser }: WorkspaceProps)
 
   // Load projects
   useEffect(() => {
-    const fetchProjects = async () => {
+    const loadData = async () => {
       try {
         const ownerQuery = currentUser ? `?ownerId=${currentUser.uid}` : '';
-        const response = await fetch(`${API_BASE_URL}/api/projects${ownerQuery}`);
-        if (response.ok) {
-          const data = await response.json();
+        const [projectsRes, notes] = await Promise.all([
+             fetch(`${API_BASE_URL}/api/projects${ownerQuery}`),
+             currentUser ? fetchNotes(currentUser.uid) : Promise.resolve([])
+        ]);
+        
+        if (projectsRes.ok) {
+          const data = await projectsRes.json();
           setProjects(data);
         }
+        
+        if (notes && Array.isArray(notes)) {
+            setPinnedNotes(notes.filter(n => n.isPinned));
+        }
+
       } catch (error) {
-        console.error("Failed to fetch projects:", error);
+        console.error("Failed to fetch data:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchProjects();
+    loadData();
   }, [currentUser]);
 
   if (loading) {
@@ -96,6 +108,37 @@ const Workspace = ({ onNavigate, onSelectProject, currentUser }: WorkspaceProps)
                 New Project
             </Button>
         </div>
+
+        {/* Pinned Notes Widget */}
+        {pinnedNotes.length > 0 && (
+           <div>
+               <div className="flex items-center mb-4">
+                  <h3 className="text-xl font-semibold">Pinned Notes</h3>
+               </div>
+               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {pinnedNotes.map(note => (
+                      <Card 
+                        key={note._id} 
+                        className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50 group"
+                        onClick={() => onOpenNote && onOpenNote(note._id)}
+                      >
+                          <CardHeader className="p-4 pb-2">
+                              <div className="flex justify-between items-start">
+                                <FileText className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                                <Pin className="w-4 h-4 text-orange-500 fill-orange-500" />
+                              </div>
+                          </CardHeader>
+                          <CardContent className="p-4 pt-2">
+                              <h4 className="font-semibold truncate">{note.title}</h4>
+                              <p className="text-xs text-muted-foreground overflow-hidden h-4 mt-1">
+                                  {format(new Date(note.updatedAt), "MMM d, yyyy")}
+                              </p>
+                          </CardContent>
+                      </Card>
+                  ))}
+               </div>
+           </div>
+        )}
 
         {projects.length === 0 ? (
             <Card className="border-dashed border-2 bg-secondary/20">

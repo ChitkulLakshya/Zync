@@ -1,23 +1,65 @@
 import React, { useState } from 'react';
-import { Folder, Note, createFolder, createNote } from '../../api/notes';
-import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown } from 'lucide-react';
+import { Folder, Note, createFolder, createNote, shareFolder } from '../../api/notes';
+import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown, Share2, Users } from 'lucide-react';
 import { cn } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface NotesSidebarProps {
   userId: string;
   folders: Folder[];
   notes: Note[];
   selectedNoteId: string | null;
+  users?: any[];
   onSelectNote: (note: Note) => void;
   onRefresh: () => void;
   className?: string;
 }
 
 export const NotesSidebar: React.FC<NotesSidebarProps> = ({ 
-  userId, folders, notes, selectedNoteId, onSelectNote, onRefresh, className
+  userId, folders, notes, selectedNoteId, users = [], onSelectNote, onRefresh, className
 }) => {
   const [newFolderMode, setNewFolderMode] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+  
+  // Share Dialog State
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [folderToShare, setFolderToShare] = useState<Folder | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
+
+  const handleShareClick = (folder: Folder) => {
+    setFolderToShare(folder);
+    setShareDialogOpen(true);
+    setSelectedUserId("");
+  };
+
+  const executeShare = async () => {
+    if (!folderToShare || !selectedUserId) return;
+    try {
+      await shareFolder(folderToShare._id, [selectedUserId]);
+      toast.success(`Folder shared successfully`);
+      setShareDialogOpen(false);
+      onRefresh(); // Refresh to update potentially (though collaborators update might not be visible immediately in sidebar unless we show icon)
+    } catch (error) {
+      console.error("Failed to share folder", error);
+      toast.error("Failed to share folder");
+    }
+  };
 
   const handleCreateFolder = async () => {
     if (!newFolderName.trim()) return;
@@ -82,6 +124,8 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
              selectedNoteId={selectedNoteId}
              onSelectNote={onSelectNote}
              onCreateNote={() => handleCreateNote(folder._id)}
+             onShare={() => handleShareClick(folder)}
+             isOwner={folder.ownerId === userId}
            />
         ))}
 
@@ -111,6 +155,47 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           </button>
         </div>
       </div>
+
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Share Folder</DialogTitle>
+            <DialogDescription>
+              Invite users to collaborate on <strong>{folderToShare?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="user" className="text-right text-sm font-medium">
+                User
+              </label>
+              <div className="col-span-3">
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a team member" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users
+                      .filter(u => u.uid !== userId && (!folderToShare?.collaborators?.includes(u.uid)))
+                      .map((user) => (
+                      <SelectItem key={user.uid} value={user.uid}>
+                        {user.displayName || user.email}
+                      </SelectItem>
+                    ))}
+                    {users.length === 0 && <div className="p-2 text-sm text-muted-foreground">No other users found</div>}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShareDialogOpen(false)}>Cancel</Button>
+            <Button onClick={executeShare} disabled={!selectedUserId}>
+              Share
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
@@ -119,11 +204,13 @@ interface FolderItemProps {
     folder: Folder;
     notes: Note[];
     selectedNoteId: string | null;
+    isOwner: boolean;
     onSelectNote: (note: Note) => void;
     onCreateNote: () => void;
+    onShare: () => void;
 }
 
-const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, onSelectNote, onCreateNote }) => {
+const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
@@ -135,14 +222,27 @@ const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, 
         <span className="mr-1 opacity-70">
             {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
-        <FolderIcon size={14} className="mr-2 text-muted-foreground group-hover:text-primary transition-colors" />
+        <FolderIcon size={14} className={cn("mr-2 transition-colors", folder.collaborators?.length ? "text-blue-500" : "text-muted-foreground group-hover:text-primary")} />
         <span className="font-medium flex-1 truncate">{folder.name}</span>
-        <button 
-          onClick={(e) => { e.stopPropagation(); onCreateNote(); setIsOpen(true); }}
-          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-background rounded text-muted-foreground hover:text-primary transition-all shadow-sm"
-        >
-          <Plus size={12} />
-        </button>
+        
+        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+           {isOwner && (
+            <button 
+                onClick={(e) => { e.stopPropagation(); onShare(); }}
+                className="p-1 mr-1 hover:bg-background rounded text-muted-foreground hover:text-blue-500 transition-all shadow-sm"
+                title="Share folder"
+            >
+                <Share2 size={12} />
+            </button>
+           )}
+           <button 
+            onClick={(e) => { e.stopPropagation(); onCreateNote(); setIsOpen(true); }}
+            className="p-1 hover:bg-background rounded text-muted-foreground hover:text-primary transition-all shadow-sm"
+            title="New note"
+           >
+            <Plus size={12} />
+           </button>
+        </div>
       </div>
       
       {isOpen && (

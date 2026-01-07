@@ -1,30 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { NotesSidebar } from './NotesSidebar';
-import { NoteEditor } from './NoteEditor';
+import { NoteEditor } from '@/components/notes/NoteEditor';
 import { fetchFolders, fetchNotes, Note, Folder } from '../../api/notes';
 import { Loader2, FilePenLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
 
 interface NotesViewProps {
-  userId: string;
+  user: { uid: string; displayName?: string; email?: string } | null;
+  users?: any[];
+  initialNoteId?: string | null;
   className?: string;
 }
 
-export const NotesView: React.FC<NotesViewProps> = ({ userId, className }) => {
+export const NotesView: React.FC<NotesViewProps> = ({ user, users = [], initialNoteId, className }) => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const loadData = async () => {
+    if (!user?.uid) return;
+    
     try {
       const [fetchedFolders, fetchedNotes] = await Promise.all([
-        fetchFolders(userId),
-        fetchNotes(userId)
+        fetchFolders(user.uid),
+        fetchNotes(user.uid)
       ]);
       setFolders(fetchedFolders);
       setNotes(fetchedNotes);
+      
+      if (initialNoteId) {
+          const target = fetchedNotes.find(n => n._id === initialNoteId);
+          if (target) setSelectedNote(target);
+      }
     } catch (error) {
       console.error("Failed to load notes data", error);
       toast.error("Failed to load your notes");
@@ -34,10 +43,18 @@ export const NotesView: React.FC<NotesViewProps> = ({ userId, className }) => {
   };
 
   useEffect(() => {
-    if (userId) {
+    if (user?.uid) {
       loadData();
     }
-  }, [userId]);
+  }, [user?.uid]);
+  
+  // Handle initialNoteId change if it updates after mount (e.g. reused component)
+  useEffect(() => {
+      if (initialNoteId && notes.length > 0) {
+          const target = notes.find(n => n._id === initialNoteId);
+          if (target && target._id !== selectedNote?._id) setSelectedNote(target);
+      }
+  }, [initialNoteId, notes]);
 
   const handleNoteUpdate = (updatedNote: Note) => {
     // Update local list
@@ -63,7 +80,8 @@ export const NotesView: React.FC<NotesViewProps> = ({ userId, className }) => {
   return (
     <div className={cn("flex h-full bg-background overflow-hidden", className)}>
       <NotesSidebar 
-        userId={userId}
+        userId={user?.uid || ''}
+        users={users}
         folders={folders}
         notes={notes}
         selectedNoteId={selectedNote?._id || null}
@@ -72,10 +90,11 @@ export const NotesView: React.FC<NotesViewProps> = ({ userId, className }) => {
         className="shrink-0"
       />
       <div className="flex-1 bg-background relative flex flex-col min-w-0">
-        {selectedNote ? (
+        {selectedNote && user ? (
           <NoteEditor 
             key={selectedNote._id} 
             note={selectedNote} 
+            user={{ uid: user.uid, displayName: user.displayName, email: user.email }}
             onUpdate={handleNoteUpdate} 
           />
         ) : (
