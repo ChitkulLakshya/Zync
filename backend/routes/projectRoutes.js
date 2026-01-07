@@ -6,7 +6,7 @@ const { sendEmail } = require('../utils/emailService');
 const User = require('../models/User');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 router.post('/generate', async (req, res) => {
   try {
