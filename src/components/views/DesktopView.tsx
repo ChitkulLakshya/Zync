@@ -22,6 +22,7 @@ import {
   Loader2,
   LogOut
 } from "lucide-react";
+import { NotesView } from "@/components/notes/NotesView";
 import Workspace from "@/components/workspace/Workspace";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -537,7 +538,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             </div>
           </div>
         );
+
+      case "Notes":
+        return currentUser ? <NotesView userId={currentUser.uid} /> : null;
       
+      case "Notes":
+        return currentUser ? <NotesView userId={currentUser.uid} /> : null;
+
       case "New Project":
         return (
           <div className="flex-1 overflow-y-auto p-8">
@@ -663,6 +670,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case "Design":
         return <DesignView />;
+
+      case "Notes":
+        return <NotesView userId={currentUser?.uid || ""} />;
 
       case "Settings":
         return <SettingsView />;

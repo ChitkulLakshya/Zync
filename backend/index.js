@@ -28,6 +28,7 @@ const inspirationRoutes = require('./routes/inspirationRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
 const githubAppWebhook = require('./routes/githubAppWebhook'); // Import new route
+const noteRoutes = require('./routes/noteRoutes');
 
 app.use(cors({
   origin: ['http://localhost:5173', 'http://localhost:8080', 'https://zync-meet.vercel.app', 'http://localhost:3000'],
@@ -48,6 +49,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/design', designRoutes);
 app.use('/api/inspiration', inspirationRoutes);
+app.use('/api/notes', noteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/github-app', githubAppWebhook); // Register new route
