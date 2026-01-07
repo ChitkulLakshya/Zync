@@ -59,6 +59,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [usersList, setUsersList] = useState<any[]>([]);
   const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
   const [userStatuses, setUserStatuses] = useState<Record<string, any>>({});
+  const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
 
   // Session Timer State
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
@@ -291,7 +292,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   }, [isPreview]);
 
   useEffect(() => {
-    if (activeSection === "People" && !isPreview) {
+    if ((activeSection === "People" || activeSection === "Notes" || activeSection === "Chat") && !isPreview) {
       const fetchUsers = async () => {
         try {
           const response = await fetch(`${API_BASE_URL}/api/users`);
@@ -420,6 +421,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           <Workspace 
             onNavigate={setActiveSection} 
             onSelectProject={(id) => navigate(`/projects/${id}`)}
+            onOpenNote={(noteId) => {
+                setActiveNoteId(noteId);
+                setActiveSection("Notes");
+            }}
             currentUser={currentUser}
           />
         );
@@ -539,11 +544,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           </div>
         );
 
-      case "Notes":
-        return currentUser ? <NotesView userId={currentUser.uid} /> : null;
-      
-      case "Notes":
-        return currentUser ? <NotesView userId={currentUser.uid} /> : null;
 
       case "New Project":
         return (
@@ -672,7 +672,15 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <DesignView />;
 
       case "Notes":
-        return <NotesView userId={currentUser?.uid || ""} />;
+        return <NotesView 
+          user={currentUser ? { 
+            uid: currentUser.uid, 
+            displayName: currentUser.displayName || undefined, 
+            email: currentUser.email || undefined 
+          } : null} 
+          users={usersList}
+          initialNoteId={activeNoteId}
+        />;
 
       case "Settings":
         return <SettingsView />;

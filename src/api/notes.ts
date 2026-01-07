@@ -9,6 +9,7 @@ export interface Folder {
   parentId: string | null;
   type: 'personal' | 'team' | 'project';
   color: string;
+  collaborators?: string[];
 }
 
 export interface Note {
@@ -18,6 +19,7 @@ export interface Note {
   ownerId: string;
   folderId: string | null;
   updatedAt: string;
+  isPinned?: boolean;
 }
 
 export const fetchFolders = async (userId: string): Promise<Folder[]> => {
@@ -33,6 +35,16 @@ export const createFolder = async (data: { name: string; ownerId: string; parent
     body: JSON.stringify(data),
   });
   if (!response.ok) throw new Error('Failed to create folder');
+  return response.json();
+};
+
+export const shareFolder = async (folderId: string, collaboratorIds: string[]) => {
+  const response = await fetch(`${API_URL}/folders/${folderId}/share`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ collaboratorIds }),
+  });
+  if (!response.ok) throw new Error('Failed to share folder');
   return response.json();
 };
 

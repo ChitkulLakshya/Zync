@@ -26,6 +26,9 @@ const folderSchema = new mongoose.Schema({
     ref: 'Project',
     default: null
   },
+  collaborators: [{
+    type: String // Array of User UIDs
+  }],
   color: {
     type: String,
     default: '#FFFFFF'
