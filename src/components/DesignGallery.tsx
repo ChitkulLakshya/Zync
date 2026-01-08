@@ -12,6 +12,8 @@ type Item = {
   link?: string | null;
 };
 
+const PLACEHOLDER_IMG = 'https://via.placeholder.com/600x400?text=No+Preview';
+
 export default function DesignGallery({ query = 'web design' }: { query?: string }) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
@@ -21,24 +23,33 @@ export default function DesignGallery({ query = 'web design' }: { query?: string
     let mounted = true;
     setLoading(true);
     setError(null);
-    const url = `${API_BASE_URL}/api/design/behance?q=${encodeURIComponent(query)}`;
+    // Use unified inspiration endpoint (Unsplash + Pinterest + Behance)
+    const url = `${API_BASE_URL}/api/inspiration?q=${encodeURIComponent(query)}`;
     
     // Explicitly make a simple fetch without custom auth headers
     fetch(url, { headers: { 'Content-Type': 'application/json' } }) 
       .then(res => {
         if (!res.ok) {
-           throw new Error(`Request failed: ${res.statusText}`);
+          const err = new Error(`Request failed: ${res.status} ${res.statusText}`);
+          console.error('DesignGallery fetch error (HTTP):', err);
+          throw err;
         }
         return res.json();
       })
       .then(data => {
         if (!mounted) return;
-        // Handle array response from /api/design/behance or object from /api/inspiration
+        // Handle array/object response
         const list = Array.isArray(data) ? data : (data.items || []);
         setItems(list);
-        if (list.length === 0) setError('No results found');
+        if (list.length === 0) {
+          console.warn('DesignGallery: No results found for query:', query);
+          setError('No results found');
+        }
       })
-      .catch(err => { if (mounted) setError(err.message); })
+      .catch(err => {
+        console.error('DesignGallery fetch error (Exception):', err);
+        if (mounted) setError(err.message);
+      })
       .finally(() => { if (mounted) setLoading(false); });
 
     return () => { mounted = false; };
@@ -58,9 +69,14 @@ export default function DesignGallery({ query = 'web design' }: { query?: string
         {items.map(it => (
           <a key={it.id} href={it.link || '#'} target="_blank" rel="noreferrer" style={cardStyle}>
             {it.image ? (
-              <img src={it.image} alt={it.title || ''} style={{ width: '100%', display: 'block', borderRadius: 8 }} />
+              <img 
+                src={it.image} 
+                alt={it.title || ''} 
+                style={{ width: '100%', display: 'block', borderRadius: 8 }} 
+                onError={(e) => { e.currentTarget.src = PLACEHOLDER_IMG; }}
+              />
             ) : (
-              <div style={{ height: 140, background: '#eee', borderRadius: 8 }} />
+              <img src={PLACEHOLDER_IMG} alt="Placeholder" style={{ width: '100%', display: 'block', borderRadius: 8 }} />
             )}
             <div style={{ padding: '8px 6px' }}>
               <div style={{ fontSize: 13, fontWeight: 600 }}>{it.title}</div>

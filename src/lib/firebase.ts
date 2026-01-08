@@ -12,7 +12,7 @@ const firebaseConfig = {
   storageBucket: "zync-7c9b0.firebasestorage.app",
   messagingSenderId: "504395777430",
   appId: "1:504395777430:web:4968b84164c6e4426109b7",
-  databaseURL: "https://zync-7c9b0-default-rtdb.firebaseio.com" 
+  databaseURL: "https://zync-7c9b0-default-rtdb.firebaseio.com/"
 };
 
 // Initialize Firebase

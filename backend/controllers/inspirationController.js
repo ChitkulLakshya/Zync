@@ -5,12 +5,17 @@ const UNSPLASH_BASE = 'https://api.unsplash.com';
 const PINTEREST_BASE = 'https://api.pinterest.com/v5';
 const parser = new Parser();
 
-async function fetchUnsplash(query = 'web design', page = 1, per_page = 30) {
+const PLACEHOLDER_IMG = 'https://via.placeholder.com/600x400?text=No+Preview';
+
+async function fetchUnsplash(query = 'web design', page = 1, per_page = 50) {
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!accessKey) throw new Error('UNSPLASH_ACCESS_KEY missing');
 
+  // Refine query to be design-specific
+  const refinedQuery = `website design ${query}`;
+
   const resp = await axios.get(`${UNSPLASH_BASE}/search/photos`, {
-    params: { query, page, per_page },
+    params: { query: refinedQuery, page, per_page },
     headers: { Authorization: `Client-ID ${accessKey}` },
   });
 
@@ -18,38 +23,79 @@ async function fetchUnsplash(query = 'web design', page = 1, per_page = 30) {
     id: `unsplash_${r.id}`,
     source: 'unsplash',
     title: r.alt_description || r.description || 'Untitled',
-    image: r.urls?.regular || r.urls?.full,
-    thumb: r.urls?.small,
+    // Use regular or small as requested
+    image: r.urls?.regular || r.urls?.small || r.urls?.full || PLACEHOLDER_IMG,
+    thumb: r.urls?.small || r.urls?.thumb,
     photographer: r.user?.name,
     photographerProfile: r.user?.links?.html,
     link: r.links?.html,
   }));
 }
 
-async function fetchPinterest(boardId, token, page_size = 25) {
+async function fetchPinterest(boardId, token, query, page_size = 40) {
   if (!boardId) return [];
-  const t = token || process.env.PINTEREST_TOKEN;
-  if (!t) throw new Error('PINTEREST_TOKEN missing');
+  
+  // Ensure token and secret are available
+  let t = token || process.env.PINTEREST_TOKEN;
+  const appSecret = process.env.PINTEREST_APP_SECRET;
 
-  const resp = await axios.get(`${PINTEREST_BASE}/boards/${boardId}/pins`, {
-    headers: { Authorization: `Bearer ${t}` },
+  if (!t) throw new Error('PINTEREST_TOKEN missing');
+  
+  // Clean token
+  t = t.trim();
+
+  // Note: For basic board fetch, Bearer token is sufficient. 
+  
+  const endpoint = `${PINTEREST_BASE}/boards/${boardId}/pins`;
+  // Mask the ID in logs
+  const maskedId = typeof boardId === 'string' ? boardId.slice(0, 3) + '...' : '***';
+  console.log('Pinterest Request URL (Masked):', `${PINTEREST_BASE}/boards/${maskedId}/pins`);
+  
+  const resp = await axios.get(endpoint, {
+    headers: { 
+      'Authorization': `Bearer ${t}`,
+      'Content-Type': 'application/json'
+    },
     params: { page_size },
   });
 
-  const data = resp.data?.items || resp.data?.results || [];
-  return data.map(p => ({
-    id: `pinterest_${p.id}`,
-    source: 'pinterest',
-    title: p.note || p.title || '',
-    image: (p.image && p.image.url) || (p.images && p.images[0] && p.images[0].url) || null,
-    link: p.link || p.url || null,
-  }));
+  let data = resp.data?.items || resp.data?.results || [];
+  
+  // Filter locally by query if provided (simple case-insensitive match)
+  if (query && query.trim() !== 'web design') {
+    const qLower = query.toLowerCase();
+    data = data.filter(p => {
+       const title = (p.note || p.title || '').toLowerCase();
+       const desc = (p.description || '').toLowerCase();
+       return title.includes(qLower) || desc.includes(qLower);
+    });
+  }
+
+  return data.map(p => {
+    // Attempt multiple paths for image: v5 media.images['600x'], or fallback
+    let imgUrl = null;
+    if (p.media && p.media.images) {
+       imgUrl = p.media.images['600x']?.url || p.media.images['400x300']?.url || p.media.images['1200x']?.url;
+    } else if (p.image) {
+       imgUrl = p.image.url || p.image.original?.url;
+    }
+    
+    return {
+      id: `pinterest_${p.id}`,
+      source: 'pinterest',
+      title: p.note || p.title || '',
+      image: imgUrl || PLACEHOLDER_IMG,
+      link: p.link || p.url || null,
+    };
+  });
 }
 
-async function fetchBehance(query = 'web design', limit = 50) {
+async function fetchBehance(query = 'web design', limit = 30) {
   try {
     // Fetch from Behance RSS feed with tags
-    const feedUrl = `https://www.behance.net/feeds/projects?tags=${encodeURIComponent(query)}`;
+    // Hardcode 'web design' tag in addition to user query
+    const tags = `web design,${query}`;
+    const feedUrl = `https://www.behance.net/feeds/projects?tags=${encodeURIComponent(tags)}`;
     const feed = await parser.parseURL(feedUrl);
 
     const results = [];
@@ -58,21 +104,27 @@ async function fetchBehance(query = 'web design', limit = 50) {
 
       // Extract image URL from content or description
       let image = null;
-      const content = item.content || item.description || '';
-      const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/);
-      if (imgMatch && imgMatch[1]) {
-        image = imgMatch[1];
-      }
+      // 1. Try custom covers if RSS parser captured them (unlikely without custom fields, but harmless)
+      if (item.covers && item.covers['404']) image = item.covers['404'];
+      else if (item.covers && item.covers.original) image = item.covers.original;
       
+      // 2. Regex fallback (standard RSS)
+      if (!image) {
+        const content = item.content || item.description || '';
+        const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/);
+        if (imgMatch && imgMatch[1]) {
+          image = imgMatch[1];
+        }
+      }
+
       // Use GUID or Link + Index to ensure uniqueness
-      // base64(link) slice(0,8) was causing collisions because all links start with https://
       const uniqueId = item.guid || item.link || `no-link-${index}`;
 
       results.push({
         id: `behance_${Buffer.from(uniqueId).toString('base64')}`,
         source: 'behance',
         title: item.title || 'Untitled',
-        image: image,
+        image: image || PLACEHOLDER_IMG,
         link: item.link,
         creator: item.creator || item.author || 'Unknown',
       });
@@ -87,9 +139,17 @@ async function fetchBehance(query = 'web design', limit = 50) {
 
 // Express controller
 async function getInspiration(req, res) {
+  // Simple checkLog to verify keys safely
+  console.log("Pinterest Config Loaded:", { 
+    id: !!process.env.PINTEREST_APP_ID, 
+    secret: !!process.env.PINTEREST_APP_SECRET,
+    token: !!process.env.PINTEREST_TOKEN, 
+    board: !!process.env.PINTEREST_BOARD_ID
+  });
+
   const q = req.query.q || 'web design';
   const unsplashPage = parseInt(req.query.up) || 1;
-  const unsplashPer = parseInt(req.query.upp) || 30;
+  const unsplashPer = parseInt(req.query.upp) || 50;
   const pinterestBoard = req.query.pboard || process.env.PINTEREST_BOARD_ID;
   const pinterestToken = req.header('x-pinterest-token') || process.env.PINTEREST_TOKEN;
 
@@ -98,7 +158,7 @@ async function getInspiration(req, res) {
       fetchUnsplash(q, unsplashPage, unsplashPer).catch(e => { console.error('Unsplash error', e.message); return []; }),
       (async () => {
         try {
-          return await fetchPinterest(pinterestBoard, pinterestToken, 50);
+          return await fetchPinterest(pinterestBoard, pinterestToken, q, 100);
         } catch (e) {
           console.error('Pinterest error', e.message);
           return [];
@@ -106,6 +166,8 @@ async function getInspiration(req, res) {
       })(),
       fetchBehance(q, 50),
     ]);
+    
+    console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}`);
 
     // Unified list
     const unified = [...unsplash, ...pinterest, ...behance];
