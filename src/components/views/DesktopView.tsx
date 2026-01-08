@@ -20,7 +20,8 @@ import {
   MessageSquare,
   Circle,
   Loader2,
-  LogOut
+  LogOut,
+  Trash2
 } from "lucide-react";
 import { NotesView } from "@/components/notes/NotesView";
 import Workspace from "@/components/workspace/Workspace";
@@ -191,6 +192,41 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       fetchLogs();
     }
   }, [activeSection, currentUser, isPreview]);
+
+  const handleDeleteLog = async (logId: string) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sessions/${logId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setActivityLogs(prev => prev.filter(log => log._id !== logId));
+        toast({ title: "Success", description: "Log deleted successfully." });
+      } else {
+        throw new Error('Failed to delete');
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Failed to delete log.", variant: "destructive" });
+    }
+  };
+
+  const handleClearLogs = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/sessions/user/${currentUser.uid}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        setActivityLogs([]);
+        toast({ title: "Success", description: "All logs cleared successfully." });
+      } else {
+        throw new Error('Failed to clear');
+      }
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Error", description: "Failed to clear logs.", variant: "destructive" });
+    }
+  };
 
   // Presence Logic
   useEffect(() => {
@@ -607,17 +643,26 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           <div className="p-6 h-full overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6">Activity Log</h2>
             <Card>
-              <CardHeader>
-                <CardTitle>Session History</CardTitle>
-                <CardDescription>Track your active time on the platform.</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
+                <div className="space-y-1.5">
+                  <CardTitle>Session History</CardTitle>
+                  <CardDescription>Track your active time on the platform.</CardDescription>
+                </div>
+                {activityLogs.length > 0 && (
+                  <Button variant="destructive" size="sm" onClick={handleClearLogs}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear History
+                  </Button>
+                )}
               </CardHeader>
               <CardContent>
                 <div className="rounded-md border">
-                  <div className="grid grid-cols-4 p-4 font-medium border-b bg-muted/50">
+                  <div className="grid grid-cols-5 p-4 font-medium border-b bg-muted/50">
                     <div>Date</div>
                     <div>Start Time</div>
                     <div>End Time</div>
                     <div>Duration</div>
+                    <div className="text-right">Actions</div>
                   </div>
                   {activityLogs.length === 0 ? (
                     <div className="p-8 text-center text-muted-foreground">No activity logs found.</div>
@@ -634,12 +679,17 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                         : `${minutes} min`;
 
                       return (
-                        <div key={log._id} className="grid grid-cols-4 p-4 border-b last:border-0 hover:bg-muted/20">
+                        <div key={log._id} className="grid grid-cols-5 p-4 border-b last:border-0 hover:bg-muted/20 items-center">
                           <div>{log.date}</div>
                           <div>{start.toLocaleTimeString()}</div>
                           <div>{end.toLocaleTimeString()}</div>
                           <div className="font-medium">
                             {formattedDuration}
+                          </div>
+                          <div className="text-right">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteLog(log._id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
                           </div>
                         </div>
                       );
