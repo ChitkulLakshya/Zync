@@ -24,6 +24,7 @@
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "groq-sdk": "^0.37.0",
     "mongoose": "^9.1.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.12",
