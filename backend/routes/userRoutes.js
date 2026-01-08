@@ -75,13 +75,27 @@ router.get('/:uid', async (req, res) => {
 // Update user profile
 router.put('/:uid', async (req, res) => {
   try {
+    const { uid } = req.params;
+    const updates = req.body;
+
+    // Check if phone number is being updated
+    if (updates.phoneNumber) {
+      const user = await User.findOne({ uid });
+      if (user && user.phoneNumber !== updates.phoneNumber) {
+        updates.isPhoneVerified = false; // Reset verification status
+        updates.phoneVerificationCode = undefined;
+        updates.phoneVerificationCodeExpires = undefined;
+      }
+    }
+
     const user = await User.findOneAndUpdate(
-      { uid: req.params.uid },
-      { $set: req.body },
+      { uid },
+      { $set: updates },
       { new: true }
     );
     res.status(200).json(user);
   } catch (error) {
+    console.error('Error updating profile:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

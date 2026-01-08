@@ -1,11 +1,12 @@
-const { Pool } = require('pg');
-const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('../prisma/generated/client');
 
-const connectionString = process.env.DATABASE_URL;
+// Prevent multiple instances of Prisma Client in development
+const globalForPrisma = global;
 
-const pool = new Pool({ connectionString });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter });
+if (!globalForPrisma.prisma) {
+  globalForPrisma.prisma = new PrismaClient();
+}
+
+const prisma = globalForPrisma.prisma;
 
 module.exports = prisma;

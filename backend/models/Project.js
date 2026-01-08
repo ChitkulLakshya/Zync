@@ -38,6 +38,7 @@ const StepSchema = new mongoose.Schema({
 const ProjectSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
+  githubRepoIds: { type: [String], default: [] }, // Linked Repositories
   architecture: {
     highLevel: { type: String },
     frontend: { type: Object },

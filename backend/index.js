@@ -31,6 +31,9 @@ const designRoutes = require('./routes/designRoutes');
 const inspirationRoutes = require('./routes/inspirationRoutes');
 const uploadRoutes = require('./routes/uploadRoutes');
 const webhookRoutes = require('./routes/webhookRoutes');
+const generationRoutes = require('./routes/generateProjectRoutes');
+const githubRoutes = require('./routes/githubRoutes');
+const linkRoutes = require('./routes/linkRoutes');
 const githubAppWebhook = require('./routes/githubAppWebhook'); // Import new route
 const noteRoutes = require('./routes/noteRoutes');
 
@@ -49,6 +52,9 @@ app.use(express.json({
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/projects', projectRoutes);
+app.use('/api/generate-project', generationRoutes);
+app.use('/api/github', githubRoutes);
+app.use('/api/link', linkRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/sessions', sessionRoutes);
 app.use('/api/design', designRoutes);
@@ -69,7 +75,7 @@ app.get('/', (req, res) => {
 });
 
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`Server successfully started on port ${PORT}`);
 });
 
 // Global Error Handler

@@ -38,7 +38,10 @@ const userSchema = new mongoose.Schema({
     github: {
       connected: { type: Boolean, default: false },
       username: String,
-      accessToken: String
+      accessToken: String,
+      installationId: String, // App Installation ID
+      encryptedAppId: String, // Encrypted App ID
+      encryptedPrivateKey: String // Encrypted Private Key
     },
     google: {
       connected: { type: Boolean, default: false }

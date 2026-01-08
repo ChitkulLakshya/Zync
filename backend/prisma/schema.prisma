@@ -1,50 +1,32 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
   output   = "./generated/client"
-  previewFeatures = ["driverAdapters"]
 }
 
 datasource db {
-  provider = "postgresql" // Changed to PostgreSQL for relational features (join tables)
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
 model Task {
-  id          Int      @id @default(autoincrement())
-  display_id  String   @unique // e.g., 'GLOBAL-01'
-  description String?
-  status      String   @default("pending") // e.g. 'Backlog', 'In Progress', 'Done'
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  // Relations
-  repositories TaskRepositoryMapping[]
+  id          String   @id @default(auto()) @map("_id") @db.ObjectId
+  displayId   String   @unique
+  title       String?  // Add title as it's common
+  description String
+  status      String   @default("pending")
+  repoIds     String[] // Stores GitHub Repository IDs
+  userId      String   // Firebase UID
+  projectId   String?  // Link to Mongoose Project ID
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Repository {
-  id             Int    @id @default(autoincrement())
-  github_repo_id String @unique // ID from GitHub API
-  repo_name      String
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  // Relations
-  tasks TaskRepositoryMapping[]
-}
-
-// Explicit Many-to-Many Join Table
-model TaskRepositoryMapping {
-  task_id       Int
-  repository_id Int
-
-  task       Task       @relation(fields: [task_id], references: [id])
-  repository Repository @relation(fields: [repository_id], references: [id])
-
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
-  @@id([task_id, repository_id])
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  githubRepoId String   @unique // The GitHub ID stored in Task.repoIds
+  repoName     String
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

@@ -3,7 +3,7 @@
  * Client
 **/
 
-import * as runtime from './runtime/client.js';
+import * as runtime from './runtime/library.js';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -23,15 +23,10 @@ export type Task = $Result.DefaultSelection<Prisma.$TaskPayload>
  * 
  */
 export type Repository = $Result.DefaultSelection<Prisma.$RepositoryPayload>
-/**
- * Model TaskRepositoryMapping
- * 
- */
-export type TaskRepositoryMapping = $Result.DefaultSelection<Prisma.$TaskRepositoryMappingPayload>
 
 /**
  * ##  Prisma Client ʲˢ
- *
+ * 
  * Type-safe database client for TypeScript & Node.js
  * @example
  * ```
@@ -40,19 +35,19 @@ export type TaskRepositoryMapping = $Result.DefaultSelection<Prisma.$TaskReposit
  * const tasks = await prisma.task.findMany()
  * ```
  *
- *
- * Read more in our [docs](https://pris.ly/d/client).
+ * 
+ * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
  */
 export class PrismaClient<
   ClientOptions extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
-  const U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
+  U = 'log' extends keyof ClientOptions ? ClientOptions['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<ClientOptions['log']> : never : never,
   ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
     /**
    * ##  Prisma Client ʲˢ
-   *
+   * 
    * Type-safe database client for TypeScript & Node.js
    * @example
    * ```
@@ -61,12 +56,12 @@ export class PrismaClient<
    * const tasks = await prisma.task.findMany()
    * ```
    *
-   *
-   * Read more in our [docs](https://pris.ly/d/client).
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client).
    */
 
   constructor(optionsArg ?: Prisma.Subset<ClientOptions, Prisma.PrismaClientOptions>);
-  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): PrismaClient;
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
    * Connect with the database
@@ -78,54 +73,14 @@ export class PrismaClient<
    */
   $disconnect(): $Utils.JsPromise<void>;
 
+  /**
+   * Add a middleware
+   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
+   * @see https://pris.ly/d/extensions
+   */
+  $use(cb: Prisma.Middleware): void
+
 /**
-   * Executes a prepared raw query and returns the number of affected rows.
-   * @example
-   * ```
-   * const result = await prisma.$executeRaw`UPDATE User SET cool = ${true} WHERE email = ${'user@email.com'};`
-   * ```
-   *
-   * Read more in our [docs](https://pris.ly/d/raw-queries).
-   */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
-
-  /**
-   * Executes a raw query and returns the number of affected rows.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * ```
-   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
-   * ```
-   *
-   * Read more in our [docs](https://pris.ly/d/raw-queries).
-   */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;
-
-  /**
-   * Performs a prepared raw query and returns the `SELECT` data.
-   * @example
-   * ```
-   * const result = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1} OR email = ${'user@email.com'};`
-   * ```
-   *
-   * Read more in our [docs](https://pris.ly/d/raw-queries).
-   */
-  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
-
-  /**
-   * Performs a raw query and returns the `SELECT` data.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * ```
-   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
-   * ```
-   *
-   * Read more in our [docs](https://pris.ly/d/raw-queries).
-   */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;
-
-
-  /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
    * @example
    * ```
@@ -138,13 +93,26 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P]): $Utils.JsPromise<runtime.Types.Utils.UnwrapTuple<P>>
 
-  $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): $Utils.JsPromise<R>
+  $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => $Utils.JsPromise<R>, options?: { maxWait?: number, timeout?: number }): $Utils.JsPromise<R>
 
-  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb<ClientOptions>, ExtArgs, $Utils.Call<Prisma.TypeMapCb<ClientOptions>, {
-    extArgs: ExtArgs
-  }>>
+  /**
+   * Executes a raw MongoDB command and returns the result of it.
+   * @example
+   * ```
+   * const user = await prisma.$runCommandRaw({
+   *   aggregate: 'User',
+   *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
+   *   explain: false,
+   * })
+   * ```
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $runCommandRaw(command: Prisma.InputJsonObject): Prisma.PrismaPromise<Prisma.JsonObject>
+
+  $extends: $Extensions.ExtendsHook<"extends", Prisma.TypeMapCb, ExtArgs>
 
       /**
    * `prisma.task`: Exposes CRUD operations for the **Task** model.
@@ -154,7 +122,7 @@ export class PrismaClient<
     * const tasks = await prisma.task.findMany()
     * ```
     */
-  get task(): Prisma.TaskDelegate<ExtArgs, ClientOptions>;
+  get task(): Prisma.TaskDelegate<ExtArgs>;
 
   /**
    * `prisma.repository`: Exposes CRUD operations for the **Repository** model.
@@ -164,17 +132,7 @@ export class PrismaClient<
     * const repositories = await prisma.repository.findMany()
     * ```
     */
-  get repository(): Prisma.RepositoryDelegate<ExtArgs, ClientOptions>;
-
-  /**
-   * `prisma.taskRepositoryMapping`: Exposes CRUD operations for the **TaskRepositoryMapping** model.
-    * Example usage:
-    * ```ts
-    * // Fetch zero or more TaskRepositoryMappings
-    * const taskRepositoryMappings = await prisma.taskRepositoryMapping.findMany()
-    * ```
-    */
-  get taskRepositoryMapping(): Prisma.TaskRepositoryMappingDelegate<ExtArgs, ClientOptions>;
+  get repository(): Prisma.RepositoryDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -195,6 +153,7 @@ export namespace Prisma {
   export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
   export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
   export import PrismaClientValidationError = runtime.PrismaClientValidationError
+  export import NotFoundError = runtime.NotFoundError
 
   /**
    * Re-export of sql-template-tag
@@ -215,6 +174,14 @@ export namespace Prisma {
   export type DecimalJsLike = runtime.DecimalJsLike
 
   /**
+   * Metrics 
+   */
+  export type Metrics = runtime.Metrics
+  export type Metric<T> = runtime.Metric<T>
+  export type MetricHistogram = runtime.MetricHistogram
+  export type MetricHistogramBucket = runtime.MetricHistogramBucket
+
+  /**
   * Extensions
   */
   export import Extension = $Extensions.UserArgs
@@ -225,22 +192,20 @@ export namespace Prisma {
   export import Exact = $Public.Exact
 
   /**
-   * Prisma Client JS version: 7.2.0
-   * Query Engine version: 0c8ef2ce45c83248ab3df073180d5eda9e8be7a3
+   * Prisma Client JS version: 5.22.0
+   * Query Engine version: 605197351a3c8bdd595af2d2a9bc3025bca48ea2
    */
   export type PrismaVersion = {
     client: string
-    engine: string
   }
 
-  export const prismaVersion: PrismaVersion
+  export const prismaVersion: PrismaVersion 
 
   /**
    * Utility Types
    */
 
 
-  export import Bytes = runtime.Bytes
   export import JsonObject = runtime.JsonObject
   export import JsonArray = runtime.JsonArray
   export import JsonValue = runtime.JsonValue
@@ -250,15 +215,15 @@ export namespace Prisma {
 
   /**
    * Types of the values used to represent different kinds of `null` values when working with JSON fields.
-   *
+   * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   namespace NullTypes {
     /**
     * Type of `Prisma.DbNull`.
-    *
+    * 
     * You cannot use other instances of this class. Please use the `Prisma.DbNull` value.
-    *
+    * 
     * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
     */
     class DbNull {
@@ -268,9 +233,9 @@ export namespace Prisma {
 
     /**
     * Type of `Prisma.JsonNull`.
-    *
+    * 
     * You cannot use other instances of this class. Please use the `Prisma.JsonNull` value.
-    *
+    * 
     * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
     */
     class JsonNull {
@@ -280,9 +245,9 @@ export namespace Prisma {
 
     /**
     * Type of `Prisma.AnyNull`.
-    *
+    * 
     * You cannot use other instances of this class. Please use the `Prisma.AnyNull` value.
-    *
+    * 
     * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
     */
     class AnyNull {
@@ -293,21 +258,21 @@ export namespace Prisma {
 
   /**
    * Helper for filtering JSON entries that have `null` on the database (empty on the db)
-   *
+   * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   export const DbNull: NullTypes.DbNull
 
   /**
    * Helper for filtering JSON entries that have JSON `null` values (not empty on the db)
-   *
+   * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   export const JsonNull: NullTypes.JsonNull
 
   /**
    * Helper for filtering JSON entries that are `Prisma.DbNull` or `Prisma.JsonNull`
-   *
+   * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
   export const AnyNull: NullTypes.AnyNull
@@ -495,7 +460,7 @@ export namespace Prisma {
   type AtLeast<O extends object, K extends string> = NoExpand<
     O extends unknown
     ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
-      | {[P in keyof O as P extends K ? P : never]-?: O[P]} & O
+      | {[P in keyof O as P extends K ? K : never]-?: O[P]} & O
     : never>;
 
   type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
@@ -610,25 +575,24 @@ export namespace Prisma {
 
   export const ModelName: {
     Task: 'Task',
-    Repository: 'Repository',
-    TaskRepositoryMapping: 'TaskRepositoryMapping'
+    Repository: 'Repository'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
 
 
-
-  interface TypeMapCb<ClientOptions = {}> extends $Utils.Fn<{extArgs: $Extensions.InternalArgs }, $Utils.Record<string, any>> {
-    returns: Prisma.TypeMap<this['params']['extArgs'], ClientOptions extends { omit: infer OmitOptions } ? OmitOptions : {}>
+  export type Datasources = {
+    db?: Datasource
   }
 
-  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> = {
-    globalOmitOptions: {
-      omit: GlobalOmitOptions
-    }
+  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.InternalArgs, clientOptions: PrismaClientOptions }, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs'], this['params']['clientOptions']>
+  }
+
+  export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "task" | "repository" | "taskRepositoryMapping"
-      txIsolationLevel: Prisma.TransactionIsolationLevel
+      modelProps: "task" | "repository"
+      txIsolationLevel: never
     }
     model: {
       Task: {
@@ -663,10 +627,6 @@ export namespace Prisma {
             args: Prisma.TaskCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
-          createManyAndReturn: {
-            args: Prisma.TaskCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskPayload>[]
-          }
           delete: {
             args: Prisma.TaskDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$TaskPayload>
@@ -683,10 +643,6 @@ export namespace Prisma {
             args: Prisma.TaskUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
-          updateManyAndReturn: {
-            args: Prisma.TaskUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskPayload>[]
-          }
           upsert: {
             args: Prisma.TaskUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$TaskPayload>
@@ -698,6 +654,14 @@ export namespace Prisma {
           groupBy: {
             args: Prisma.TaskGroupByArgs<ExtArgs>
             result: $Utils.Optional<TaskGroupByOutputType>[]
+          }
+          findRaw: {
+            args: Prisma.TaskFindRawArgs<ExtArgs>
+            result: JsonObject
+          }
+          aggregateRaw: {
+            args: Prisma.TaskAggregateRawArgs<ExtArgs>
+            result: JsonObject
           }
           count: {
             args: Prisma.TaskCountArgs<ExtArgs>
@@ -737,10 +701,6 @@ export namespace Prisma {
             args: Prisma.RepositoryCreateManyArgs<ExtArgs>
             result: BatchPayload
           }
-          createManyAndReturn: {
-            args: Prisma.RepositoryCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$RepositoryPayload>[]
-          }
           delete: {
             args: Prisma.RepositoryDeleteArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$RepositoryPayload>
@@ -757,10 +717,6 @@ export namespace Prisma {
             args: Prisma.RepositoryUpdateManyArgs<ExtArgs>
             result: BatchPayload
           }
-          updateManyAndReturn: {
-            args: Prisma.RepositoryUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$RepositoryPayload>[]
-          }
           upsert: {
             args: Prisma.RepositoryUpsertArgs<ExtArgs>
             result: $Utils.PayloadToResult<Prisma.$RepositoryPayload>
@@ -773,83 +729,17 @@ export namespace Prisma {
             args: Prisma.RepositoryGroupByArgs<ExtArgs>
             result: $Utils.Optional<RepositoryGroupByOutputType>[]
           }
+          findRaw: {
+            args: Prisma.RepositoryFindRawArgs<ExtArgs>
+            result: JsonObject
+          }
+          aggregateRaw: {
+            args: Prisma.RepositoryAggregateRawArgs<ExtArgs>
+            result: JsonObject
+          }
           count: {
             args: Prisma.RepositoryCountArgs<ExtArgs>
             result: $Utils.Optional<RepositoryCountAggregateOutputType> | number
-          }
-        }
-      }
-      TaskRepositoryMapping: {
-        payload: Prisma.$TaskRepositoryMappingPayload<ExtArgs>
-        fields: Prisma.TaskRepositoryMappingFieldRefs
-        operations: {
-          findUnique: {
-            args: Prisma.TaskRepositoryMappingFindUniqueArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload> | null
-          }
-          findUniqueOrThrow: {
-            args: Prisma.TaskRepositoryMappingFindUniqueOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>
-          }
-          findFirst: {
-            args: Prisma.TaskRepositoryMappingFindFirstArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload> | null
-          }
-          findFirstOrThrow: {
-            args: Prisma.TaskRepositoryMappingFindFirstOrThrowArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>
-          }
-          findMany: {
-            args: Prisma.TaskRepositoryMappingFindManyArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>[]
-          }
-          create: {
-            args: Prisma.TaskRepositoryMappingCreateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>
-          }
-          createMany: {
-            args: Prisma.TaskRepositoryMappingCreateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          createManyAndReturn: {
-            args: Prisma.TaskRepositoryMappingCreateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>[]
-          }
-          delete: {
-            args: Prisma.TaskRepositoryMappingDeleteArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>
-          }
-          update: {
-            args: Prisma.TaskRepositoryMappingUpdateArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>
-          }
-          deleteMany: {
-            args: Prisma.TaskRepositoryMappingDeleteManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateMany: {
-            args: Prisma.TaskRepositoryMappingUpdateManyArgs<ExtArgs>
-            result: BatchPayload
-          }
-          updateManyAndReturn: {
-            args: Prisma.TaskRepositoryMappingUpdateManyAndReturnArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>[]
-          }
-          upsert: {
-            args: Prisma.TaskRepositoryMappingUpsertArgs<ExtArgs>
-            result: $Utils.PayloadToResult<Prisma.$TaskRepositoryMappingPayload>
-          }
-          aggregate: {
-            args: Prisma.TaskRepositoryMappingAggregateArgs<ExtArgs>
-            result: $Utils.Optional<AggregateTaskRepositoryMapping>
-          }
-          groupBy: {
-            args: Prisma.TaskRepositoryMappingGroupByArgs<ExtArgs>
-            result: $Utils.Optional<TaskRepositoryMappingGroupByOutputType>[]
-          }
-          count: {
-            args: Prisma.TaskRepositoryMappingCountArgs<ExtArgs>
-            result: $Utils.Optional<TaskRepositoryMappingCountAggregateOutputType> | number
           }
         }
       }
@@ -858,21 +748,9 @@ export namespace Prisma {
     other: {
       payload: any
       operations: {
-        $executeRaw: {
-          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
-          result: any
-        }
-        $executeRawUnsafe: {
-          args: [query: string, ...values: any[]],
-          result: any
-        }
-        $queryRaw: {
-          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
-          result: any
-        }
-        $queryRawUnsafe: {
-          args: [query: string, ...values: any[]],
-          result: any
+        $runCommandRaw: {
+          args: Prisma.InputJsonObject,
+          result: Prisma.JsonObject
         }
       }
     }
@@ -882,32 +760,32 @@ export namespace Prisma {
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
   export interface PrismaClientOptions {
     /**
+     * Overwrites the datasource url from your schema.prisma file
+     */
+    datasources?: Datasources
+    /**
+     * Overwrites the datasource url from your schema.prisma file
+     */
+    datasourceUrl?: string
+    /**
      * @default "colorless"
      */
     errorFormat?: ErrorFormat
     /**
      * @example
      * ```
-     * // Shorthand for `emit: 'stdout'`
+     * // Defaults to stdout
      * log: ['query', 'info', 'warn', 'error']
      * 
-     * // Emit as events only
+     * // Emit as events
      * log: [
-     *   { emit: 'event', level: 'query' },
-     *   { emit: 'event', level: 'info' },
-     *   { emit: 'event', level: 'warn' }
-     *   { emit: 'event', level: 'error' }
+     *   { emit: 'stdout', level: 'query' },
+     *   { emit: 'stdout', level: 'info' },
+     *   { emit: 'stdout', level: 'warn' }
+     *   { emit: 'stdout', level: 'error' }
      * ]
-     * 
-     * / Emit as events and log to stdout
-     * og: [
-     *  { emit: 'stdout', level: 'query' },
-     *  { emit: 'stdout', level: 'info' },
-     *  { emit: 'stdout', level: 'warn' }
-     *  { emit: 'stdout', level: 'error' }
-     * 
      * ```
-     * Read more in our [docs](https://pris.ly/d/logging).
+     * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
      */
     log?: (LogLevel | LogDefinition)[]
     /**
@@ -918,53 +796,9 @@ export namespace Prisma {
     transactionOptions?: {
       maxWait?: number
       timeout?: number
-      isolationLevel?: Prisma.TransactionIsolationLevel
     }
-    /**
-     * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`
-     */
-    adapter?: runtime.SqlDriverAdapterFactory
-    /**
-     * Prisma Accelerate URL allowing the client to connect through Accelerate instead of a direct database.
-     */
-    accelerateUrl?: string
-    /**
-     * Global configuration for omitting model fields by default.
-     * 
-     * @example
-     * ```
-     * const prisma = new PrismaClient({
-     *   omit: {
-     *     user: {
-     *       password: true
-     *     }
-     *   }
-     * })
-     * ```
-     */
-    omit?: Prisma.GlobalOmitConfig
-    /**
-     * SQL commenter plugins that add metadata to SQL queries as comments.
-     * Comments follow the sqlcommenter format: https://google.github.io/sqlcommenter/
-     * 
-     * @example
-     * ```
-     * const prisma = new PrismaClient({
-     *   adapter,
-     *   comments: [
-     *     traceContext(),
-     *     queryInsights(),
-     *   ],
-     * })
-     * ```
-     */
-    comments?: runtime.SqlCommenterPlugin[]
   }
-  export type GlobalOmitConfig = {
-    task?: TaskOmit
-    repository?: RepositoryOmit
-    taskRepositoryMapping?: TaskRepositoryMappingOmit
-  }
+
 
   /* Types for Logging */
   export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -973,15 +807,10 @@ export namespace Prisma {
     emit: 'stdout' | 'event'
   }
 
-  export type CheckIsLogLevel<T> = T extends LogLevel ? T : never;
-
-  export type GetLogType<T> = CheckIsLogLevel<
-    T extends LogDefinition ? T['level'] : T
-  >;
-
-  export type GetEvents<T extends any[]> = T extends Array<LogLevel | LogDefinition>
-    ? GetLogType<T[number]>
-    : never;
+  export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition ? T['emit'] extends 'event' ? T['level'] : never : never
+  export type GetEvents<T extends any> = T extends Array<LogLevel | LogDefinition> ?
+    GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
+    : never
 
   export type QueryEvent = {
     timestamp: Date
@@ -1010,7 +839,6 @@ export namespace Prisma {
     | 'createManyAndReturn'
     | 'update'
     | 'updateMany'
-    | 'updateManyAndReturn'
     | 'upsert'
     | 'delete'
     | 'deleteMany'
@@ -1021,6 +849,25 @@ export namespace Prisma {
     | 'runCommandRaw'
     | 'findRaw'
     | 'groupBy'
+
+  /**
+   * These options are being passed into the middleware as "params"
+   */
+  export type MiddlewareParams = {
+    model?: ModelName
+    action: PrismaAction
+    args: any
+    dataPath: string[]
+    runInTransaction: boolean
+  }
+
+  /**
+   * The `T` type makes sure, that the `return proceed` is not forgotten in the middleware implementation
+   */
+  export type Middleware<T = any> = (
+    params: MiddlewareParams,
+    next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
+  ) => $Utils.JsPromise<T>
 
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
@@ -1039,67 +886,6 @@ export namespace Prisma {
    */
 
 
-  /**
-   * Count Type TaskCountOutputType
-   */
-
-  export type TaskCountOutputType = {
-    repositories: number
-  }
-
-  export type TaskCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    repositories?: boolean | TaskCountOutputTypeCountRepositoriesArgs
-  }
-
-  // Custom InputTypes
-  /**
-   * TaskCountOutputType without action
-   */
-  export type TaskCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskCountOutputType
-     */
-    select?: TaskCountOutputTypeSelect<ExtArgs> | null
-  }
-
-  /**
-   * TaskCountOutputType without action
-   */
-  export type TaskCountOutputTypeCountRepositoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TaskRepositoryMappingWhereInput
-  }
-
-
-  /**
-   * Count Type RepositoryCountOutputType
-   */
-
-  export type RepositoryCountOutputType = {
-    tasks: number
-  }
-
-  export type RepositoryCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    tasks?: boolean | RepositoryCountOutputTypeCountTasksArgs
-  }
-
-  // Custom InputTypes
-  /**
-   * RepositoryCountOutputType without action
-   */
-  export type RepositoryCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the RepositoryCountOutputType
-     */
-    select?: RepositoryCountOutputTypeSelect<ExtArgs> | null
-  }
-
-  /**
-   * RepositoryCountOutputType without action
-   */
-  export type RepositoryCountOutputTypeCountTasksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TaskRepositoryMappingWhereInput
-  }
-
 
   /**
    * Models
@@ -1111,82 +897,84 @@ export namespace Prisma {
 
   export type AggregateTask = {
     _count: TaskCountAggregateOutputType | null
-    _avg: TaskAvgAggregateOutputType | null
-    _sum: TaskSumAggregateOutputType | null
     _min: TaskMinAggregateOutputType | null
     _max: TaskMaxAggregateOutputType | null
   }
 
-  export type TaskAvgAggregateOutputType = {
-    id: number | null
-  }
-
-  export type TaskSumAggregateOutputType = {
-    id: number | null
-  }
-
   export type TaskMinAggregateOutputType = {
-    id: number | null
-    display_id: string | null
+    id: string | null
+    displayId: string | null
+    title: string | null
     description: string | null
     status: string | null
-    created_at: Date | null
-    updated_at: Date | null
+    userId: string | null
+    projectId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type TaskMaxAggregateOutputType = {
-    id: number | null
-    display_id: string | null
+    id: string | null
+    displayId: string | null
+    title: string | null
     description: string | null
     status: string | null
-    created_at: Date | null
-    updated_at: Date | null
+    userId: string | null
+    projectId: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type TaskCountAggregateOutputType = {
     id: number
-    display_id: number
+    displayId: number
+    title: number
     description: number
     status: number
-    created_at: number
-    updated_at: number
+    repoIds: number
+    userId: number
+    projectId: number
+    createdAt: number
+    updatedAt: number
     _all: number
   }
 
 
-  export type TaskAvgAggregateInputType = {
-    id?: true
-  }
-
-  export type TaskSumAggregateInputType = {
-    id?: true
-  }
-
   export type TaskMinAggregateInputType = {
     id?: true
-    display_id?: true
+    displayId?: true
+    title?: true
     description?: true
     status?: true
-    created_at?: true
-    updated_at?: true
+    userId?: true
+    projectId?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type TaskMaxAggregateInputType = {
     id?: true
-    display_id?: true
+    displayId?: true
+    title?: true
     description?: true
     status?: true
-    created_at?: true
-    updated_at?: true
+    userId?: true
+    projectId?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type TaskCountAggregateInputType = {
     id?: true
-    display_id?: true
+    displayId?: true
+    title?: true
     description?: true
     status?: true
-    created_at?: true
-    updated_at?: true
+    repoIds?: true
+    userId?: true
+    projectId?: true
+    createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -1228,18 +1016,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: TaskAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: TaskSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: TaskMinAggregateInputType
@@ -1270,22 +1046,22 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: TaskCountAggregateInputType | true
-    _avg?: TaskAvgAggregateInputType
-    _sum?: TaskSumAggregateInputType
     _min?: TaskMinAggregateInputType
     _max?: TaskMaxAggregateInputType
   }
 
   export type TaskGroupByOutputType = {
-    id: number
-    display_id: string
-    description: string | null
+    id: string
+    displayId: string
+    title: string | null
+    description: string
     status: string
-    created_at: Date
-    updated_at: Date
+    repoIds: string[]
+    userId: string
+    projectId: string | null
+    createdAt: Date
+    updatedAt: Date
     _count: TaskCountAggregateOutputType | null
-    _avg: TaskAvgAggregateOutputType | null
-    _sum: TaskSumAggregateOutputType | null
     _min: TaskMinAggregateOutputType | null
     _max: TaskMaxAggregateOutputType | null
   }
@@ -1306,74 +1082,58 @@ export namespace Prisma {
 
   export type TaskSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    display_id?: boolean
+    displayId?: boolean
+    title?: boolean
     description?: boolean
     status?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    repositories?: boolean | Task$repositoriesArgs<ExtArgs>
-    _count?: boolean | TaskCountOutputTypeDefaultArgs<ExtArgs>
+    repoIds?: boolean
+    userId?: boolean
+    projectId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
   }, ExtArgs["result"]["task"]>
 
-  export type TaskSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    display_id?: boolean
-    description?: boolean
-    status?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }, ExtArgs["result"]["task"]>
-
-  export type TaskSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    display_id?: boolean
-    description?: boolean
-    status?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }, ExtArgs["result"]["task"]>
 
   export type TaskSelectScalar = {
     id?: boolean
-    display_id?: boolean
+    displayId?: boolean
+    title?: boolean
     description?: boolean
     status?: boolean
-    created_at?: boolean
-    updated_at?: boolean
+    repoIds?: boolean
+    userId?: boolean
+    projectId?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
   }
 
-  export type TaskOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "display_id" | "description" | "status" | "created_at" | "updated_at", ExtArgs["result"]["task"]>
-  export type TaskInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    repositories?: boolean | Task$repositoriesArgs<ExtArgs>
-    _count?: boolean | TaskCountOutputTypeDefaultArgs<ExtArgs>
-  }
-  export type TaskIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type TaskIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $TaskPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Task"
-    objects: {
-      repositories: Prisma.$TaskRepositoryMappingPayload<ExtArgs>[]
-    }
+    objects: {}
     scalars: $Extensions.GetPayloadResult<{
-      id: number
-      display_id: string
-      description: string | null
+      id: string
+      displayId: string
+      title: string | null
+      description: string
       status: string
-      created_at: Date
-      updated_at: Date
+      repoIds: string[]
+      userId: string
+      projectId: string | null
+      createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["task"]>
     composites: {}
   }
 
   type TaskGetPayload<S extends boolean | null | undefined | TaskDefaultArgs> = $Result.GetResult<Prisma.$TaskPayload, S>
 
-  type TaskCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<TaskFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+  type TaskCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<TaskFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: TaskCountAggregateInputType | true
     }
 
-  export interface TaskDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+  export interface TaskDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Task'], meta: { name: 'Task' } }
     /**
      * Find zero or one Task that matches the filter.
@@ -1386,10 +1146,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends TaskFindUniqueArgs>(args: SelectSubset<T, TaskFindUniqueArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends TaskFindUniqueArgs>(args: SelectSubset<T, TaskFindUniqueArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one Task that matches the filter or throw an error with `error.code='P2025'`
+     * Find one Task that matches the filter or throw an error with `error.code='P2025'` 
      * if no matches were found.
      * @param {TaskFindUniqueOrThrowArgs} args - Arguments to find a Task
      * @example
@@ -1400,7 +1160,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends TaskFindUniqueOrThrowArgs>(args: SelectSubset<T, TaskFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends TaskFindUniqueOrThrowArgs>(args: SelectSubset<T, TaskFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first Task that matches the filter.
@@ -1415,7 +1175,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends TaskFindFirstArgs>(args?: SelectSubset<T, TaskFindFirstArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends TaskFindFirstArgs>(args?: SelectSubset<T, TaskFindFirstArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
 
     /**
      * Find the first Task that matches the filter or
@@ -1431,7 +1191,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends TaskFindFirstOrThrowArgs>(args?: SelectSubset<T, TaskFindFirstOrThrowArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends TaskFindFirstOrThrowArgs>(args?: SelectSubset<T, TaskFindFirstOrThrowArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
 
     /**
      * Find zero or more Tasks that matches the filter.
@@ -1449,7 +1209,7 @@ export namespace Prisma {
      * const taskWithIdOnly = await prisma.task.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends TaskFindManyArgs>(args?: SelectSubset<T, TaskFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends TaskFindManyArgs>(args?: SelectSubset<T, TaskFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany">>
 
     /**
      * Create a Task.
@@ -1463,7 +1223,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends TaskCreateArgs>(args: SelectSubset<T, TaskCreateArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends TaskCreateArgs>(args: SelectSubset<T, TaskCreateArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "create">, never, ExtArgs>
 
     /**
      * Create many Tasks.
@@ -1480,30 +1240,6 @@ export namespace Prisma {
     createMany<T extends TaskCreateManyArgs>(args?: SelectSubset<T, TaskCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many Tasks and returns the data saved in the database.
-     * @param {TaskCreateManyAndReturnArgs} args - Arguments to create many Tasks.
-     * @example
-     * // Create many Tasks
-     * const task = await prisma.task.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Tasks and only return the `id`
-     * const taskWithIdOnly = await prisma.task.createManyAndReturn({
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends TaskCreateManyAndReturnArgs>(args?: SelectSubset<T, TaskCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-    /**
      * Delete a Task.
      * @param {TaskDeleteArgs} args - Arguments to delete one Task.
      * @example
@@ -1515,7 +1251,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends TaskDeleteArgs>(args: SelectSubset<T, TaskDeleteArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends TaskDeleteArgs>(args: SelectSubset<T, TaskDeleteArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "delete">, never, ExtArgs>
 
     /**
      * Update one Task.
@@ -1532,7 +1268,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends TaskUpdateArgs>(args: SelectSubset<T, TaskUpdateArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends TaskUpdateArgs>(args: SelectSubset<T, TaskUpdateArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "update">, never, ExtArgs>
 
     /**
      * Delete zero or more Tasks.
@@ -1568,36 +1304,6 @@ export namespace Prisma {
     updateMany<T extends TaskUpdateManyArgs>(args: SelectSubset<T, TaskUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Tasks and returns the data updated in the database.
-     * @param {TaskUpdateManyAndReturnArgs} args - Arguments to update many Tasks.
-     * @example
-     * // Update many Tasks
-     * const task = await prisma.task.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more Tasks and only return the `id`
-     * const taskWithIdOnly = await prisma.task.updateManyAndReturn({
-     *   select: { id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends TaskUpdateManyAndReturnArgs>(args: SelectSubset<T, TaskUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
-
-    /**
      * Create or update one Task.
      * @param {TaskUpsertArgs} args - Arguments to update or create a Task.
      * @example
@@ -1614,7 +1320,30 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends TaskUpsertArgs>(args: SelectSubset<T, TaskUpsertArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends TaskUpsertArgs>(args: SelectSubset<T, TaskUpsertArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+    /**
+     * Find zero or more Tasks that matches the filter.
+     * @param {TaskFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const task = await prisma.task.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+     */
+    findRaw(args?: TaskFindRawArgs): Prisma.PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a Task.
+     * @param {TaskAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const task = await prisma.task.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+     */
+    aggregateRaw(args?: TaskAggregateRawArgs): Prisma.PrismaPromise<JsonObject>
 
 
     /**
@@ -1754,9 +1483,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__TaskClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__TaskClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    repositories<T extends Task$repositoriesArgs<ExtArgs> = {}>(args?: Subset<T, Task$repositoriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1784,14 +1512,18 @@ export namespace Prisma {
 
   /**
    * Fields of the Task model
-   */
+   */ 
   interface TaskFieldRefs {
-    readonly id: FieldRef<"Task", 'Int'>
-    readonly display_id: FieldRef<"Task", 'String'>
+    readonly id: FieldRef<"Task", 'String'>
+    readonly displayId: FieldRef<"Task", 'String'>
+    readonly title: FieldRef<"Task", 'String'>
     readonly description: FieldRef<"Task", 'String'>
     readonly status: FieldRef<"Task", 'String'>
-    readonly created_at: FieldRef<"Task", 'DateTime'>
-    readonly updated_at: FieldRef<"Task", 'DateTime'>
+    readonly repoIds: FieldRef<"Task", 'String[]'>
+    readonly userId: FieldRef<"Task", 'String'>
+    readonly projectId: FieldRef<"Task", 'String'>
+    readonly createdAt: FieldRef<"Task", 'DateTime'>
+    readonly updatedAt: FieldRef<"Task", 'DateTime'>
   }
     
 
@@ -1804,14 +1536,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Task
      */
     select?: TaskSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
     /**
      * Filter, which Task to fetch.
      */
@@ -1827,14 +1551,6 @@ export namespace Prisma {
      */
     select?: TaskSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
-    /**
      * Filter, which Task to fetch.
      */
     where: TaskWhereUniqueInput
@@ -1848,14 +1564,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Task
      */
     select?: TaskSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
     /**
      * Filter, which Task to fetch.
      */
@@ -1901,14 +1609,6 @@ export namespace Prisma {
      */
     select?: TaskSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
-    /**
      * Filter, which Task to fetch.
      */
     where?: TaskWhereInput
@@ -1953,14 +1653,6 @@ export namespace Prisma {
      */
     select?: TaskSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
-    /**
      * Filter, which Tasks to fetch.
      */
     where?: TaskWhereInput
@@ -2000,14 +1692,6 @@ export namespace Prisma {
      */
     select?: TaskSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
-    /**
      * The data needed to create a Task.
      */
     data: XOR<TaskCreateInput, TaskUncheckedCreateInput>
@@ -2021,26 +1705,6 @@ export namespace Prisma {
      * The data used to create many Tasks.
      */
     data: TaskCreateManyInput | TaskCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Task createManyAndReturn
-   */
-  export type TaskCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Task
-     */
-    select?: TaskSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * The data used to create many Tasks.
-     */
-    data: TaskCreateManyInput | TaskCreateManyInput[]
-    skipDuplicates?: boolean
   }
 
   /**
@@ -2051,14 +1715,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Task
      */
     select?: TaskSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
     /**
      * The data needed to update a Task.
      */
@@ -2081,36 +1737,6 @@ export namespace Prisma {
      * Filter which Tasks to update
      */
     where?: TaskWhereInput
-    /**
-     * Limit how many Tasks to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * Task updateManyAndReturn
-   */
-  export type TaskUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Task
-     */
-    select?: TaskSelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * The data used to update Tasks.
-     */
-    data: XOR<TaskUpdateManyMutationInput, TaskUncheckedUpdateManyInput>
-    /**
-     * Filter which Tasks to update
-     */
-    where?: TaskWhereInput
-    /**
-     * Limit how many Tasks to update.
-     */
-    limit?: number
   }
 
   /**
@@ -2121,14 +1747,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Task
      */
     select?: TaskSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
     /**
      * The filter to search for the Task to update in case it exists.
      */
@@ -2152,14 +1770,6 @@ export namespace Prisma {
      */
     select?: TaskSelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
-    /**
      * Filter which Task to delete.
      */
     where: TaskWhereUniqueInput
@@ -2173,34 +1783,34 @@ export namespace Prisma {
      * Filter which Tasks to delete
      */
     where?: TaskWhereInput
-    /**
-     * Limit how many Tasks to delete.
-     */
-    limit?: number
   }
 
   /**
-   * Task.repositories
+   * Task findRaw
    */
-  export type Task$repositoriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type TaskFindRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
      */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
+    filter?: InputJsonValue
     /**
-     * Omit specific fields from the TaskRepositoryMapping
+     * Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
      */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
+    options?: InputJsonValue
+  }
+
+  /**
+   * Task aggregateRaw
+   */
+  export type TaskAggregateRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Choose, which related nodes to fetch as well
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
      */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    where?: TaskRepositoryMappingWhereInput
-    orderBy?: TaskRepositoryMappingOrderByWithRelationInput | TaskRepositoryMappingOrderByWithRelationInput[]
-    cursor?: TaskRepositoryMappingWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: TaskRepositoryMappingScalarFieldEnum | TaskRepositoryMappingScalarFieldEnum[]
+    pipeline?: InputJsonValue[]
+    /**
+     * Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
   }
 
   /**
@@ -2211,14 +1821,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Task
      */
     select?: TaskSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Task
-     */
-    omit?: TaskOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskInclude<ExtArgs> | null
   }
 
 
@@ -2228,76 +1830,58 @@ export namespace Prisma {
 
   export type AggregateRepository = {
     _count: RepositoryCountAggregateOutputType | null
-    _avg: RepositoryAvgAggregateOutputType | null
-    _sum: RepositorySumAggregateOutputType | null
     _min: RepositoryMinAggregateOutputType | null
     _max: RepositoryMaxAggregateOutputType | null
   }
 
-  export type RepositoryAvgAggregateOutputType = {
-    id: number | null
-  }
-
-  export type RepositorySumAggregateOutputType = {
-    id: number | null
-  }
-
   export type RepositoryMinAggregateOutputType = {
-    id: number | null
-    github_repo_id: string | null
-    repo_name: string | null
-    created_at: Date | null
-    updated_at: Date | null
+    id: string | null
+    githubRepoId: string | null
+    repoName: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type RepositoryMaxAggregateOutputType = {
-    id: number | null
-    github_repo_id: string | null
-    repo_name: string | null
-    created_at: Date | null
-    updated_at: Date | null
+    id: string | null
+    githubRepoId: string | null
+    repoName: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type RepositoryCountAggregateOutputType = {
     id: number
-    github_repo_id: number
-    repo_name: number
-    created_at: number
-    updated_at: number
+    githubRepoId: number
+    repoName: number
+    createdAt: number
+    updatedAt: number
     _all: number
   }
 
 
-  export type RepositoryAvgAggregateInputType = {
-    id?: true
-  }
-
-  export type RepositorySumAggregateInputType = {
-    id?: true
-  }
-
   export type RepositoryMinAggregateInputType = {
     id?: true
-    github_repo_id?: true
-    repo_name?: true
-    created_at?: true
-    updated_at?: true
+    githubRepoId?: true
+    repoName?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type RepositoryMaxAggregateInputType = {
     id?: true
-    github_repo_id?: true
-    repo_name?: true
-    created_at?: true
-    updated_at?: true
+    githubRepoId?: true
+    repoName?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type RepositoryCountAggregateInputType = {
     id?: true
-    github_repo_id?: true
-    repo_name?: true
-    created_at?: true
-    updated_at?: true
+    githubRepoId?: true
+    repoName?: true
+    createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -2339,18 +1923,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: RepositoryAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: RepositorySumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: RepositoryMinAggregateInputType
@@ -2381,21 +1953,17 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: RepositoryCountAggregateInputType | true
-    _avg?: RepositoryAvgAggregateInputType
-    _sum?: RepositorySumAggregateInputType
     _min?: RepositoryMinAggregateInputType
     _max?: RepositoryMaxAggregateInputType
   }
 
   export type RepositoryGroupByOutputType = {
-    id: number
-    github_repo_id: string
-    repo_name: string
-    created_at: Date
-    updated_at: Date
+    id: string
+    githubRepoId: string
+    repoName: string
+    createdAt: Date
+    updatedAt: Date
     _count: RepositoryCountAggregateOutputType | null
-    _avg: RepositoryAvgAggregateOutputType | null
-    _sum: RepositorySumAggregateOutputType | null
     _min: RepositoryMinAggregateOutputType | null
     _max: RepositoryMaxAggregateOutputType | null
   }
@@ -2416,69 +1984,43 @@ export namespace Prisma {
 
   export type RepositorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
-    github_repo_id?: boolean
-    repo_name?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    tasks?: boolean | Repository$tasksArgs<ExtArgs>
-    _count?: boolean | RepositoryCountOutputTypeDefaultArgs<ExtArgs>
+    githubRepoId?: boolean
+    repoName?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
   }, ExtArgs["result"]["repository"]>
 
-  export type RepositorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    github_repo_id?: boolean
-    repo_name?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }, ExtArgs["result"]["repository"]>
-
-  export type RepositorySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    id?: boolean
-    github_repo_id?: boolean
-    repo_name?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }, ExtArgs["result"]["repository"]>
 
   export type RepositorySelectScalar = {
     id?: boolean
-    github_repo_id?: boolean
-    repo_name?: boolean
-    created_at?: boolean
-    updated_at?: boolean
+    githubRepoId?: boolean
+    repoName?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
   }
 
-  export type RepositoryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "github_repo_id" | "repo_name" | "created_at" | "updated_at", ExtArgs["result"]["repository"]>
-  export type RepositoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    tasks?: boolean | Repository$tasksArgs<ExtArgs>
-    _count?: boolean | RepositoryCountOutputTypeDefaultArgs<ExtArgs>
-  }
-  export type RepositoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
-  export type RepositoryIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $RepositoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Repository"
-    objects: {
-      tasks: Prisma.$TaskRepositoryMappingPayload<ExtArgs>[]
-    }
+    objects: {}
     scalars: $Extensions.GetPayloadResult<{
-      id: number
-      github_repo_id: string
-      repo_name: string
-      created_at: Date
-      updated_at: Date
+      id: string
+      githubRepoId: string
+      repoName: string
+      createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["repository"]>
     composites: {}
   }
 
   type RepositoryGetPayload<S extends boolean | null | undefined | RepositoryDefaultArgs> = $Result.GetResult<Prisma.$RepositoryPayload, S>
 
-  type RepositoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<RepositoryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+  type RepositoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<RepositoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
       select?: RepositoryCountAggregateInputType | true
     }
 
-  export interface RepositoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+  export interface RepositoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
     [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Repository'], meta: { name: 'Repository' } }
     /**
      * Find zero or one Repository that matches the filter.
@@ -2491,10 +2033,10 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUnique<T extends RepositoryFindUniqueArgs>(args: SelectSubset<T, RepositoryFindUniqueArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findUnique<T extends RepositoryFindUniqueArgs>(args: SelectSubset<T, RepositoryFindUniqueArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
 
     /**
-     * Find one Repository that matches the filter or throw an error with `error.code='P2025'`
+     * Find one Repository that matches the filter or throw an error with `error.code='P2025'` 
      * if no matches were found.
      * @param {RepositoryFindUniqueOrThrowArgs} args - Arguments to find a Repository
      * @example
@@ -2505,7 +2047,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findUniqueOrThrow<T extends RepositoryFindUniqueOrThrowArgs>(args: SelectSubset<T, RepositoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findUniqueOrThrow<T extends RepositoryFindUniqueOrThrowArgs>(args: SelectSubset<T, RepositoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
 
     /**
      * Find the first Repository that matches the filter.
@@ -2520,7 +2062,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirst<T extends RepositoryFindFirstArgs>(args?: SelectSubset<T, RepositoryFindFirstArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    findFirst<T extends RepositoryFindFirstArgs>(args?: SelectSubset<T, RepositoryFindFirstArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
 
     /**
      * Find the first Repository that matches the filter or
@@ -2536,7 +2078,7 @@ export namespace Prisma {
      *   }
      * })
      */
-    findFirstOrThrow<T extends RepositoryFindFirstOrThrowArgs>(args?: SelectSubset<T, RepositoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    findFirstOrThrow<T extends RepositoryFindFirstOrThrowArgs>(args?: SelectSubset<T, RepositoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
 
     /**
      * Find zero or more Repositories that matches the filter.
@@ -2554,7 +2096,7 @@ export namespace Prisma {
      * const repositoryWithIdOnly = await prisma.repository.findMany({ select: { id: true } })
      * 
      */
-    findMany<T extends RepositoryFindManyArgs>(args?: SelectSubset<T, RepositoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+    findMany<T extends RepositoryFindManyArgs>(args?: SelectSubset<T, RepositoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findMany">>
 
     /**
      * Create a Repository.
@@ -2568,7 +2110,7 @@ export namespace Prisma {
      * })
      * 
      */
-    create<T extends RepositoryCreateArgs>(args: SelectSubset<T, RepositoryCreateArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    create<T extends RepositoryCreateArgs>(args: SelectSubset<T, RepositoryCreateArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
 
     /**
      * Create many Repositories.
@@ -2585,30 +2127,6 @@ export namespace Prisma {
     createMany<T extends RepositoryCreateManyArgs>(args?: SelectSubset<T, RepositoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Create many Repositories and returns the data saved in the database.
-     * @param {RepositoryCreateManyAndReturnArgs} args - Arguments to create many Repositories.
-     * @example
-     * // Create many Repositories
-     * const repository = await prisma.repository.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many Repositories and only return the `id`
-     * const repositoryWithIdOnly = await prisma.repository.createManyAndReturn({
-     *   select: { id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends RepositoryCreateManyAndReturnArgs>(args?: SelectSubset<T, RepositoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-    /**
      * Delete a Repository.
      * @param {RepositoryDeleteArgs} args - Arguments to delete one Repository.
      * @example
@@ -2620,7 +2138,7 @@ export namespace Prisma {
      * })
      * 
      */
-    delete<T extends RepositoryDeleteArgs>(args: SelectSubset<T, RepositoryDeleteArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    delete<T extends RepositoryDeleteArgs>(args: SelectSubset<T, RepositoryDeleteArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
 
     /**
      * Update one Repository.
@@ -2637,7 +2155,7 @@ export namespace Prisma {
      * })
      * 
      */
-    update<T extends RepositoryUpdateArgs>(args: SelectSubset<T, RepositoryUpdateArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    update<T extends RepositoryUpdateArgs>(args: SelectSubset<T, RepositoryUpdateArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
 
     /**
      * Delete zero or more Repositories.
@@ -2673,36 +2191,6 @@ export namespace Prisma {
     updateMany<T extends RepositoryUpdateManyArgs>(args: SelectSubset<T, RepositoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
 
     /**
-     * Update zero or more Repositories and returns the data updated in the database.
-     * @param {RepositoryUpdateManyAndReturnArgs} args - Arguments to update many Repositories.
-     * @example
-     * // Update many Repositories
-     * const repository = await prisma.repository.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more Repositories and only return the `id`
-     * const repositoryWithIdOnly = await prisma.repository.updateManyAndReturn({
-     *   select: { id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends RepositoryUpdateManyAndReturnArgs>(args: SelectSubset<T, RepositoryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
-
-    /**
      * Create or update one Repository.
      * @param {RepositoryUpsertArgs} args - Arguments to update or create a Repository.
      * @example
@@ -2719,7 +2207,30 @@ export namespace Prisma {
      *   }
      * })
      */
-    upsert<T extends RepositoryUpsertArgs>(args: SelectSubset<T, RepositoryUpsertArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+    upsert<T extends RepositoryUpsertArgs>(args: SelectSubset<T, RepositoryUpsertArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+    /**
+     * Find zero or more Repositories that matches the filter.
+     * @param {RepositoryFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const repository = await prisma.repository.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+     */
+    findRaw(args?: RepositoryFindRawArgs): Prisma.PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a Repository.
+     * @param {RepositoryAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const repository = await prisma.repository.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+     */
+    aggregateRaw(args?: RepositoryAggregateRawArgs): Prisma.PrismaPromise<JsonObject>
 
 
     /**
@@ -2859,9 +2370,8 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export interface Prisma__RepositoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+  export interface Prisma__RepositoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    tasks<T extends Repository$tasksArgs<ExtArgs> = {}>(args?: Subset<T, Repository$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2889,13 +2399,13 @@ export namespace Prisma {
 
   /**
    * Fields of the Repository model
-   */
+   */ 
   interface RepositoryFieldRefs {
-    readonly id: FieldRef<"Repository", 'Int'>
-    readonly github_repo_id: FieldRef<"Repository", 'String'>
-    readonly repo_name: FieldRef<"Repository", 'String'>
-    readonly created_at: FieldRef<"Repository", 'DateTime'>
-    readonly updated_at: FieldRef<"Repository", 'DateTime'>
+    readonly id: FieldRef<"Repository", 'String'>
+    readonly githubRepoId: FieldRef<"Repository", 'String'>
+    readonly repoName: FieldRef<"Repository", 'String'>
+    readonly createdAt: FieldRef<"Repository", 'DateTime'>
+    readonly updatedAt: FieldRef<"Repository", 'DateTime'>
   }
     
 
@@ -2908,14 +2418,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Repository
      */
     select?: RepositorySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
     /**
      * Filter, which Repository to fetch.
      */
@@ -2931,14 +2433,6 @@ export namespace Prisma {
      */
     select?: RepositorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
-    /**
      * Filter, which Repository to fetch.
      */
     where: RepositoryWhereUniqueInput
@@ -2952,14 +2446,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Repository
      */
     select?: RepositorySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
     /**
      * Filter, which Repository to fetch.
      */
@@ -3005,14 +2491,6 @@ export namespace Prisma {
      */
     select?: RepositorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
-    /**
      * Filter, which Repository to fetch.
      */
     where?: RepositoryWhereInput
@@ -3057,14 +2535,6 @@ export namespace Prisma {
      */
     select?: RepositorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
-    /**
      * Filter, which Repositories to fetch.
      */
     where?: RepositoryWhereInput
@@ -3104,14 +2574,6 @@ export namespace Prisma {
      */
     select?: RepositorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
-    /**
      * The data needed to create a Repository.
      */
     data: XOR<RepositoryCreateInput, RepositoryUncheckedCreateInput>
@@ -3125,26 +2587,6 @@ export namespace Prisma {
      * The data used to create many Repositories.
      */
     data: RepositoryCreateManyInput | RepositoryCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * Repository createManyAndReturn
-   */
-  export type RepositoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Repository
-     */
-    select?: RepositorySelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * The data used to create many Repositories.
-     */
-    data: RepositoryCreateManyInput | RepositoryCreateManyInput[]
-    skipDuplicates?: boolean
   }
 
   /**
@@ -3155,14 +2597,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Repository
      */
     select?: RepositorySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
     /**
      * The data needed to update a Repository.
      */
@@ -3185,36 +2619,6 @@ export namespace Prisma {
      * Filter which Repositories to update
      */
     where?: RepositoryWhereInput
-    /**
-     * Limit how many Repositories to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * Repository updateManyAndReturn
-   */
-  export type RepositoryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the Repository
-     */
-    select?: RepositorySelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * The data used to update Repositories.
-     */
-    data: XOR<RepositoryUpdateManyMutationInput, RepositoryUncheckedUpdateManyInput>
-    /**
-     * Filter which Repositories to update
-     */
-    where?: RepositoryWhereInput
-    /**
-     * Limit how many Repositories to update.
-     */
-    limit?: number
   }
 
   /**
@@ -3225,14 +2629,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Repository
      */
     select?: RepositorySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
     /**
      * The filter to search for the Repository to update in case it exists.
      */
@@ -3256,14 +2652,6 @@ export namespace Prisma {
      */
     select?: RepositorySelect<ExtArgs> | null
     /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
-    /**
      * Filter which Repository to delete.
      */
     where: RepositoryWhereUniqueInput
@@ -3277,34 +2665,34 @@ export namespace Prisma {
      * Filter which Repositories to delete
      */
     where?: RepositoryWhereInput
-    /**
-     * Limit how many Repositories to delete.
-     */
-    limit?: number
   }
 
   /**
-   * Repository.tasks
+   * Repository findRaw
    */
-  export type Repository$tasksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+  export type RepositoryFindRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
      */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
+    filter?: InputJsonValue
     /**
-     * Omit specific fields from the TaskRepositoryMapping
+     * Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
      */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
+    options?: InputJsonValue
+  }
+
+  /**
+   * Repository aggregateRaw
+   */
+  export type RepositoryAggregateRawArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
-     * Choose, which related nodes to fetch as well
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
      */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    where?: TaskRepositoryMappingWhereInput
-    orderBy?: TaskRepositoryMappingOrderByWithRelationInput | TaskRepositoryMappingOrderByWithRelationInput[]
-    cursor?: TaskRepositoryMappingWhereUniqueInput
-    take?: number
-    skip?: number
-    distinct?: TaskRepositoryMappingScalarFieldEnum | TaskRepositoryMappingScalarFieldEnum[]
+    pipeline?: InputJsonValue[]
+    /**
+     * Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     */
+    options?: InputJsonValue
   }
 
   /**
@@ -3315,1105 +2703,6 @@ export namespace Prisma {
      * Select specific fields to fetch from the Repository
      */
     select?: RepositorySelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the Repository
-     */
-    omit?: RepositoryOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: RepositoryInclude<ExtArgs> | null
-  }
-
-
-  /**
-   * Model TaskRepositoryMapping
-   */
-
-  export type AggregateTaskRepositoryMapping = {
-    _count: TaskRepositoryMappingCountAggregateOutputType | null
-    _avg: TaskRepositoryMappingAvgAggregateOutputType | null
-    _sum: TaskRepositoryMappingSumAggregateOutputType | null
-    _min: TaskRepositoryMappingMinAggregateOutputType | null
-    _max: TaskRepositoryMappingMaxAggregateOutputType | null
-  }
-
-  export type TaskRepositoryMappingAvgAggregateOutputType = {
-    task_id: number | null
-    repository_id: number | null
-  }
-
-  export type TaskRepositoryMappingSumAggregateOutputType = {
-    task_id: number | null
-    repository_id: number | null
-  }
-
-  export type TaskRepositoryMappingMinAggregateOutputType = {
-    task_id: number | null
-    repository_id: number | null
-    created_at: Date | null
-    updated_at: Date | null
-  }
-
-  export type TaskRepositoryMappingMaxAggregateOutputType = {
-    task_id: number | null
-    repository_id: number | null
-    created_at: Date | null
-    updated_at: Date | null
-  }
-
-  export type TaskRepositoryMappingCountAggregateOutputType = {
-    task_id: number
-    repository_id: number
-    created_at: number
-    updated_at: number
-    _all: number
-  }
-
-
-  export type TaskRepositoryMappingAvgAggregateInputType = {
-    task_id?: true
-    repository_id?: true
-  }
-
-  export type TaskRepositoryMappingSumAggregateInputType = {
-    task_id?: true
-    repository_id?: true
-  }
-
-  export type TaskRepositoryMappingMinAggregateInputType = {
-    task_id?: true
-    repository_id?: true
-    created_at?: true
-    updated_at?: true
-  }
-
-  export type TaskRepositoryMappingMaxAggregateInputType = {
-    task_id?: true
-    repository_id?: true
-    created_at?: true
-    updated_at?: true
-  }
-
-  export type TaskRepositoryMappingCountAggregateInputType = {
-    task_id?: true
-    repository_id?: true
-    created_at?: true
-    updated_at?: true
-    _all?: true
-  }
-
-  export type TaskRepositoryMappingAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which TaskRepositoryMapping to aggregate.
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of TaskRepositoryMappings to fetch.
-     */
-    orderBy?: TaskRepositoryMappingOrderByWithRelationInput | TaskRepositoryMappingOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the start position
-     */
-    cursor?: TaskRepositoryMappingWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` TaskRepositoryMappings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` TaskRepositoryMappings.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Count returned TaskRepositoryMappings
-    **/
-    _count?: true | TaskRepositoryMappingCountAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to average
-    **/
-    _avg?: TaskRepositoryMappingAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: TaskRepositoryMappingSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the minimum value
-    **/
-    _min?: TaskRepositoryMappingMinAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to find the maximum value
-    **/
-    _max?: TaskRepositoryMappingMaxAggregateInputType
-  }
-
-  export type GetTaskRepositoryMappingAggregateType<T extends TaskRepositoryMappingAggregateArgs> = {
-        [P in keyof T & keyof AggregateTaskRepositoryMapping]: P extends '_count' | 'count'
-      ? T[P] extends true
-        ? number
-        : GetScalarType<T[P], AggregateTaskRepositoryMapping[P]>
-      : GetScalarType<T[P], AggregateTaskRepositoryMapping[P]>
-  }
-
-
-
-
-  export type TaskRepositoryMappingGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    where?: TaskRepositoryMappingWhereInput
-    orderBy?: TaskRepositoryMappingOrderByWithAggregationInput | TaskRepositoryMappingOrderByWithAggregationInput[]
-    by: TaskRepositoryMappingScalarFieldEnum[] | TaskRepositoryMappingScalarFieldEnum
-    having?: TaskRepositoryMappingScalarWhereWithAggregatesInput
-    take?: number
-    skip?: number
-    _count?: TaskRepositoryMappingCountAggregateInputType | true
-    _avg?: TaskRepositoryMappingAvgAggregateInputType
-    _sum?: TaskRepositoryMappingSumAggregateInputType
-    _min?: TaskRepositoryMappingMinAggregateInputType
-    _max?: TaskRepositoryMappingMaxAggregateInputType
-  }
-
-  export type TaskRepositoryMappingGroupByOutputType = {
-    task_id: number
-    repository_id: number
-    created_at: Date
-    updated_at: Date
-    _count: TaskRepositoryMappingCountAggregateOutputType | null
-    _avg: TaskRepositoryMappingAvgAggregateOutputType | null
-    _sum: TaskRepositoryMappingSumAggregateOutputType | null
-    _min: TaskRepositoryMappingMinAggregateOutputType | null
-    _max: TaskRepositoryMappingMaxAggregateOutputType | null
-  }
-
-  type GetTaskRepositoryMappingGroupByPayload<T extends TaskRepositoryMappingGroupByArgs> = Prisma.PrismaPromise<
-    Array<
-      PickEnumerable<TaskRepositoryMappingGroupByOutputType, T['by']> &
-        {
-          [P in ((keyof T) & (keyof TaskRepositoryMappingGroupByOutputType))]: P extends '_count'
-            ? T[P] extends boolean
-              ? number
-              : GetScalarType<T[P], TaskRepositoryMappingGroupByOutputType[P]>
-            : GetScalarType<T[P], TaskRepositoryMappingGroupByOutputType[P]>
-        }
-      >
-    >
-
-
-  export type TaskRepositoryMappingSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    task_id?: boolean
-    repository_id?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    task?: boolean | TaskDefaultArgs<ExtArgs>
-    repository?: boolean | RepositoryDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["taskRepositoryMapping"]>
-
-  export type TaskRepositoryMappingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    task_id?: boolean
-    repository_id?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    task?: boolean | TaskDefaultArgs<ExtArgs>
-    repository?: boolean | RepositoryDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["taskRepositoryMapping"]>
-
-  export type TaskRepositoryMappingSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    task_id?: boolean
-    repository_id?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-    task?: boolean | TaskDefaultArgs<ExtArgs>
-    repository?: boolean | RepositoryDefaultArgs<ExtArgs>
-  }, ExtArgs["result"]["taskRepositoryMapping"]>
-
-  export type TaskRepositoryMappingSelectScalar = {
-    task_id?: boolean
-    repository_id?: boolean
-    created_at?: boolean
-    updated_at?: boolean
-  }
-
-  export type TaskRepositoryMappingOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"task_id" | "repository_id" | "created_at" | "updated_at", ExtArgs["result"]["taskRepositoryMapping"]>
-  export type TaskRepositoryMappingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    task?: boolean | TaskDefaultArgs<ExtArgs>
-    repository?: boolean | RepositoryDefaultArgs<ExtArgs>
-  }
-  export type TaskRepositoryMappingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    task?: boolean | TaskDefaultArgs<ExtArgs>
-    repository?: boolean | RepositoryDefaultArgs<ExtArgs>
-  }
-  export type TaskRepositoryMappingIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    task?: boolean | TaskDefaultArgs<ExtArgs>
-    repository?: boolean | RepositoryDefaultArgs<ExtArgs>
-  }
-
-  export type $TaskRepositoryMappingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    name: "TaskRepositoryMapping"
-    objects: {
-      task: Prisma.$TaskPayload<ExtArgs>
-      repository: Prisma.$RepositoryPayload<ExtArgs>
-    }
-    scalars: $Extensions.GetPayloadResult<{
-      task_id: number
-      repository_id: number
-      created_at: Date
-      updated_at: Date
-    }, ExtArgs["result"]["taskRepositoryMapping"]>
-    composites: {}
-  }
-
-  type TaskRepositoryMappingGetPayload<S extends boolean | null | undefined | TaskRepositoryMappingDefaultArgs> = $Result.GetResult<Prisma.$TaskRepositoryMappingPayload, S>
-
-  type TaskRepositoryMappingCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
-    Omit<TaskRepositoryMappingFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
-      select?: TaskRepositoryMappingCountAggregateInputType | true
-    }
-
-  export interface TaskRepositoryMappingDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
-    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['TaskRepositoryMapping'], meta: { name: 'TaskRepositoryMapping' } }
-    /**
-     * Find zero or one TaskRepositoryMapping that matches the filter.
-     * @param {TaskRepositoryMappingFindUniqueArgs} args - Arguments to find a TaskRepositoryMapping
-     * @example
-     * // Get one TaskRepositoryMapping
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.findUnique({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUnique<T extends TaskRepositoryMappingFindUniqueArgs>(args: SelectSubset<T, TaskRepositoryMappingFindUniqueArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find one TaskRepositoryMapping that matches the filter or throw an error with `error.code='P2025'`
-     * if no matches were found.
-     * @param {TaskRepositoryMappingFindUniqueOrThrowArgs} args - Arguments to find a TaskRepositoryMapping
-     * @example
-     * // Get one TaskRepositoryMapping
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findUniqueOrThrow<T extends TaskRepositoryMappingFindUniqueOrThrowArgs>(args: SelectSubset<T, TaskRepositoryMappingFindUniqueOrThrowArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first TaskRepositoryMapping that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingFindFirstArgs} args - Arguments to find a TaskRepositoryMapping
-     * @example
-     * // Get one TaskRepositoryMapping
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.findFirst({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirst<T extends TaskRepositoryMappingFindFirstArgs>(args?: SelectSubset<T, TaskRepositoryMappingFindFirstArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find the first TaskRepositoryMapping that matches the filter or
-     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingFindFirstOrThrowArgs} args - Arguments to find a TaskRepositoryMapping
-     * @example
-     * // Get one TaskRepositoryMapping
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     */
-    findFirstOrThrow<T extends TaskRepositoryMappingFindFirstOrThrowArgs>(args?: SelectSubset<T, TaskRepositoryMappingFindFirstOrThrowArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Find zero or more TaskRepositoryMappings that matches the filter.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingFindManyArgs} args - Arguments to filter and select certain fields only.
-     * @example
-     * // Get all TaskRepositoryMappings
-     * const taskRepositoryMappings = await prisma.taskRepositoryMapping.findMany()
-     * 
-     * // Get first 10 TaskRepositoryMappings
-     * const taskRepositoryMappings = await prisma.taskRepositoryMapping.findMany({ take: 10 })
-     * 
-     * // Only select the `task_id`
-     * const taskRepositoryMappingWithTask_idOnly = await prisma.taskRepositoryMapping.findMany({ select: { task_id: true } })
-     * 
-     */
-    findMany<T extends TaskRepositoryMappingFindManyArgs>(args?: SelectSubset<T, TaskRepositoryMappingFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
-
-    /**
-     * Create a TaskRepositoryMapping.
-     * @param {TaskRepositoryMappingCreateArgs} args - Arguments to create a TaskRepositoryMapping.
-     * @example
-     * // Create one TaskRepositoryMapping
-     * const TaskRepositoryMapping = await prisma.taskRepositoryMapping.create({
-     *   data: {
-     *     // ... data to create a TaskRepositoryMapping
-     *   }
-     * })
-     * 
-     */
-    create<T extends TaskRepositoryMappingCreateArgs>(args: SelectSubset<T, TaskRepositoryMappingCreateArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Create many TaskRepositoryMappings.
-     * @param {TaskRepositoryMappingCreateManyArgs} args - Arguments to create many TaskRepositoryMappings.
-     * @example
-     * // Create many TaskRepositoryMappings
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.createMany({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     *     
-     */
-    createMany<T extends TaskRepositoryMappingCreateManyArgs>(args?: SelectSubset<T, TaskRepositoryMappingCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Create many TaskRepositoryMappings and returns the data saved in the database.
-     * @param {TaskRepositoryMappingCreateManyAndReturnArgs} args - Arguments to create many TaskRepositoryMappings.
-     * @example
-     * // Create many TaskRepositoryMappings
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.createManyAndReturn({
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Create many TaskRepositoryMappings and only return the `task_id`
-     * const taskRepositoryMappingWithTask_idOnly = await prisma.taskRepositoryMapping.createManyAndReturn({
-     *   select: { task_id: true },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    createManyAndReturn<T extends TaskRepositoryMappingCreateManyAndReturnArgs>(args?: SelectSubset<T, TaskRepositoryMappingCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Delete a TaskRepositoryMapping.
-     * @param {TaskRepositoryMappingDeleteArgs} args - Arguments to delete one TaskRepositoryMapping.
-     * @example
-     * // Delete one TaskRepositoryMapping
-     * const TaskRepositoryMapping = await prisma.taskRepositoryMapping.delete({
-     *   where: {
-     *     // ... filter to delete one TaskRepositoryMapping
-     *   }
-     * })
-     * 
-     */
-    delete<T extends TaskRepositoryMappingDeleteArgs>(args: SelectSubset<T, TaskRepositoryMappingDeleteArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Update one TaskRepositoryMapping.
-     * @param {TaskRepositoryMappingUpdateArgs} args - Arguments to update one TaskRepositoryMapping.
-     * @example
-     * // Update one TaskRepositoryMapping
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.update({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    update<T extends TaskRepositoryMappingUpdateArgs>(args: SelectSubset<T, TaskRepositoryMappingUpdateArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-    /**
-     * Delete zero or more TaskRepositoryMappings.
-     * @param {TaskRepositoryMappingDeleteManyArgs} args - Arguments to filter TaskRepositoryMappings to delete.
-     * @example
-     * // Delete a few TaskRepositoryMappings
-     * const { count } = await prisma.taskRepositoryMapping.deleteMany({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-     * 
-     */
-    deleteMany<T extends TaskRepositoryMappingDeleteManyArgs>(args?: SelectSubset<T, TaskRepositoryMappingDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more TaskRepositoryMappings.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingUpdateManyArgs} args - Arguments to update one or more rows.
-     * @example
-     * // Update many TaskRepositoryMappings
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.updateMany({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: {
-     *     // ... provide data here
-     *   }
-     * })
-     * 
-     */
-    updateMany<T extends TaskRepositoryMappingUpdateManyArgs>(args: SelectSubset<T, TaskRepositoryMappingUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
-
-    /**
-     * Update zero or more TaskRepositoryMappings and returns the data updated in the database.
-     * @param {TaskRepositoryMappingUpdateManyAndReturnArgs} args - Arguments to update many TaskRepositoryMappings.
-     * @example
-     * // Update many TaskRepositoryMappings
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.updateManyAndReturn({
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * 
-     * // Update zero or more TaskRepositoryMappings and only return the `task_id`
-     * const taskRepositoryMappingWithTask_idOnly = await prisma.taskRepositoryMapping.updateManyAndReturn({
-     *   select: { task_id: true },
-     *   where: {
-     *     // ... provide filter here
-     *   },
-     *   data: [
-     *     // ... provide data here
-     *   ]
-     * })
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * 
-     */
-    updateManyAndReturn<T extends TaskRepositoryMappingUpdateManyAndReturnArgs>(args: SelectSubset<T, TaskRepositoryMappingUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
-
-    /**
-     * Create or update one TaskRepositoryMapping.
-     * @param {TaskRepositoryMappingUpsertArgs} args - Arguments to update or create a TaskRepositoryMapping.
-     * @example
-     * // Update or create a TaskRepositoryMapping
-     * const taskRepositoryMapping = await prisma.taskRepositoryMapping.upsert({
-     *   create: {
-     *     // ... data to create a TaskRepositoryMapping
-     *   },
-     *   update: {
-     *     // ... in case it already exists, update
-     *   },
-     *   where: {
-     *     // ... the filter for the TaskRepositoryMapping we want to update
-     *   }
-     * })
-     */
-    upsert<T extends TaskRepositoryMappingUpsertArgs>(args: SelectSubset<T, TaskRepositoryMappingUpsertArgs<ExtArgs>>): Prisma__TaskRepositoryMappingClient<$Result.GetResult<Prisma.$TaskRepositoryMappingPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
-
-
-    /**
-     * Count the number of TaskRepositoryMappings.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingCountArgs} args - Arguments to filter TaskRepositoryMappings to count.
-     * @example
-     * // Count the number of TaskRepositoryMappings
-     * const count = await prisma.taskRepositoryMapping.count({
-     *   where: {
-     *     // ... the filter for the TaskRepositoryMappings we want to count
-     *   }
-     * })
-    **/
-    count<T extends TaskRepositoryMappingCountArgs>(
-      args?: Subset<T, TaskRepositoryMappingCountArgs>,
-    ): Prisma.PrismaPromise<
-      T extends $Utils.Record<'select', any>
-        ? T['select'] extends true
-          ? number
-          : GetScalarType<T['select'], TaskRepositoryMappingCountAggregateOutputType>
-        : number
-    >
-
-    /**
-     * Allows you to perform aggregations operations on a TaskRepositoryMapping.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
-     * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
-     * const aggregations = await prisma.user.aggregate({
-     *   _avg: {
-     *     age: true,
-     *   },
-     *   where: {
-     *     email: {
-     *       contains: "prisma.io",
-     *     },
-     *   },
-     *   orderBy: {
-     *     age: "asc",
-     *   },
-     *   take: 10,
-     * })
-    **/
-    aggregate<T extends TaskRepositoryMappingAggregateArgs>(args: Subset<T, TaskRepositoryMappingAggregateArgs>): Prisma.PrismaPromise<GetTaskRepositoryMappingAggregateType<T>>
-
-    /**
-     * Group by TaskRepositoryMapping.
-     * Note, that providing `undefined` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {TaskRepositoryMappingGroupByArgs} args - Group by arguments.
-     * @example
-     * // Group by city, order by createdAt, get count
-     * const result = await prisma.user.groupBy({
-     *   by: ['city', 'createdAt'],
-     *   orderBy: {
-     *     createdAt: true
-     *   },
-     *   _count: {
-     *     _all: true
-     *   },
-     * })
-     * 
-    **/
-    groupBy<
-      T extends TaskRepositoryMappingGroupByArgs,
-      HasSelectOrTake extends Or<
-        Extends<'skip', Keys<T>>,
-        Extends<'take', Keys<T>>
-      >,
-      OrderByArg extends True extends HasSelectOrTake
-        ? { orderBy: TaskRepositoryMappingGroupByArgs['orderBy'] }
-        : { orderBy?: TaskRepositoryMappingGroupByArgs['orderBy'] },
-      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends MaybeTupleToUnion<T['by']>,
-      ByValid extends Has<ByFields, OrderFields>,
-      HavingFields extends GetHavingFields<T['having']>,
-      HavingValid extends Has<ByFields, HavingFields>,
-      ByEmpty extends T['by'] extends never[] ? True : False,
-      InputErrors extends ByEmpty extends True
-      ? `Error: "by" must not be empty.`
-      : HavingValid extends False
-      ? {
-          [P in HavingFields]: P extends ByFields
-            ? never
-            : P extends string
-            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
-            : [
-                Error,
-                'Field ',
-                P,
-                ` in "having" needs to be provided in "by"`,
-              ]
-        }[HavingFields]
-      : 'take' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "take", you also need to provide "orderBy"'
-      : 'skip' extends Keys<T>
-      ? 'orderBy' extends Keys<T>
-        ? ByValid extends True
-          ? {}
-          : {
-              [P in OrderFields]: P extends ByFields
-                ? never
-                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-            }[OrderFields]
-        : 'Error: If you provide "skip", you also need to provide "orderBy"'
-      : ByValid extends True
-      ? {}
-      : {
-          [P in OrderFields]: P extends ByFields
-            ? never
-            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
-        }[OrderFields]
-    >(args: SubsetIntersection<T, TaskRepositoryMappingGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetTaskRepositoryMappingGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-  /**
-   * Fields of the TaskRepositoryMapping model
-   */
-  readonly fields: TaskRepositoryMappingFieldRefs;
-  }
-
-  /**
-   * The delegate class that acts as a "Promise-like" for TaskRepositoryMapping.
-   * Why is this prefixed with `Prisma__`?
-   * Because we want to prevent naming conflicts as mentioned in
-   * https://github.com/prisma/prisma-client-js/issues/707
-   */
-  export interface Prisma__TaskRepositoryMappingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
-    readonly [Symbol.toStringTag]: "PrismaPromise"
-    task<T extends TaskDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TaskDefaultArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    repository<T extends RepositoryDefaultArgs<ExtArgs> = {}>(args?: Subset<T, RepositoryDefaultArgs<ExtArgs>>): Prisma__RepositoryClient<$Result.GetResult<Prisma.$RepositoryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-    /**
-     * Attaches callbacks for the resolution and/or rejection of the Promise.
-     * @param onfulfilled The callback to execute when the Promise is resolved.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of which ever callback is executed.
-     */
-    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
-    /**
-     * Attaches a callback for only the rejection of the Promise.
-     * @param onrejected The callback to execute when the Promise is rejected.
-     * @returns A Promise for the completion of the callback.
-     */
-    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
-    /**
-     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
-     * resolved value cannot be modified from the callback.
-     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
-     * @returns A Promise for the completion of the callback.
-     */
-    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
-  }
-
-
-
-
-  /**
-   * Fields of the TaskRepositoryMapping model
-   */
-  interface TaskRepositoryMappingFieldRefs {
-    readonly task_id: FieldRef<"TaskRepositoryMapping", 'Int'>
-    readonly repository_id: FieldRef<"TaskRepositoryMapping", 'Int'>
-    readonly created_at: FieldRef<"TaskRepositoryMapping", 'DateTime'>
-    readonly updated_at: FieldRef<"TaskRepositoryMapping", 'DateTime'>
-  }
-    
-
-  // Custom InputTypes
-  /**
-   * TaskRepositoryMapping findUnique
-   */
-  export type TaskRepositoryMappingFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * Filter, which TaskRepositoryMapping to fetch.
-     */
-    where: TaskRepositoryMappingWhereUniqueInput
-  }
-
-  /**
-   * TaskRepositoryMapping findUniqueOrThrow
-   */
-  export type TaskRepositoryMappingFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * Filter, which TaskRepositoryMapping to fetch.
-     */
-    where: TaskRepositoryMappingWhereUniqueInput
-  }
-
-  /**
-   * TaskRepositoryMapping findFirst
-   */
-  export type TaskRepositoryMappingFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * Filter, which TaskRepositoryMapping to fetch.
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of TaskRepositoryMappings to fetch.
-     */
-    orderBy?: TaskRepositoryMappingOrderByWithRelationInput | TaskRepositoryMappingOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for TaskRepositoryMappings.
-     */
-    cursor?: TaskRepositoryMappingWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` TaskRepositoryMappings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` TaskRepositoryMappings.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of TaskRepositoryMappings.
-     */
-    distinct?: TaskRepositoryMappingScalarFieldEnum | TaskRepositoryMappingScalarFieldEnum[]
-  }
-
-  /**
-   * TaskRepositoryMapping findFirstOrThrow
-   */
-  export type TaskRepositoryMappingFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * Filter, which TaskRepositoryMapping to fetch.
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of TaskRepositoryMappings to fetch.
-     */
-    orderBy?: TaskRepositoryMappingOrderByWithRelationInput | TaskRepositoryMappingOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for TaskRepositoryMappings.
-     */
-    cursor?: TaskRepositoryMappingWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` TaskRepositoryMappings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` TaskRepositoryMappings.
-     */
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of TaskRepositoryMappings.
-     */
-    distinct?: TaskRepositoryMappingScalarFieldEnum | TaskRepositoryMappingScalarFieldEnum[]
-  }
-
-  /**
-   * TaskRepositoryMapping findMany
-   */
-  export type TaskRepositoryMappingFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * Filter, which TaskRepositoryMappings to fetch.
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of TaskRepositoryMappings to fetch.
-     */
-    orderBy?: TaskRepositoryMappingOrderByWithRelationInput | TaskRepositoryMappingOrderByWithRelationInput[]
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for listing TaskRepositoryMappings.
-     */
-    cursor?: TaskRepositoryMappingWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take `±n` TaskRepositoryMappings from the position of the cursor.
-     */
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first `n` TaskRepositoryMappings.
-     */
-    skip?: number
-    distinct?: TaskRepositoryMappingScalarFieldEnum | TaskRepositoryMappingScalarFieldEnum[]
-  }
-
-  /**
-   * TaskRepositoryMapping create
-   */
-  export type TaskRepositoryMappingCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * The data needed to create a TaskRepositoryMapping.
-     */
-    data: XOR<TaskRepositoryMappingCreateInput, TaskRepositoryMappingUncheckedCreateInput>
-  }
-
-  /**
-   * TaskRepositoryMapping createMany
-   */
-  export type TaskRepositoryMappingCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to create many TaskRepositoryMappings.
-     */
-    data: TaskRepositoryMappingCreateManyInput | TaskRepositoryMappingCreateManyInput[]
-    skipDuplicates?: boolean
-  }
-
-  /**
-   * TaskRepositoryMapping createManyAndReturn
-   */
-  export type TaskRepositoryMappingCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelectCreateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * The data used to create many TaskRepositoryMappings.
-     */
-    data: TaskRepositoryMappingCreateManyInput | TaskRepositoryMappingCreateManyInput[]
-    skipDuplicates?: boolean
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingIncludeCreateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * TaskRepositoryMapping update
-   */
-  export type TaskRepositoryMappingUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * The data needed to update a TaskRepositoryMapping.
-     */
-    data: XOR<TaskRepositoryMappingUpdateInput, TaskRepositoryMappingUncheckedUpdateInput>
-    /**
-     * Choose, which TaskRepositoryMapping to update.
-     */
-    where: TaskRepositoryMappingWhereUniqueInput
-  }
-
-  /**
-   * TaskRepositoryMapping updateMany
-   */
-  export type TaskRepositoryMappingUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * The data used to update TaskRepositoryMappings.
-     */
-    data: XOR<TaskRepositoryMappingUpdateManyMutationInput, TaskRepositoryMappingUncheckedUpdateManyInput>
-    /**
-     * Filter which TaskRepositoryMappings to update
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * Limit how many TaskRepositoryMappings to update.
-     */
-    limit?: number
-  }
-
-  /**
-   * TaskRepositoryMapping updateManyAndReturn
-   */
-  export type TaskRepositoryMappingUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelectUpdateManyAndReturn<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * The data used to update TaskRepositoryMappings.
-     */
-    data: XOR<TaskRepositoryMappingUpdateManyMutationInput, TaskRepositoryMappingUncheckedUpdateManyInput>
-    /**
-     * Filter which TaskRepositoryMappings to update
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * Limit how many TaskRepositoryMappings to update.
-     */
-    limit?: number
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingIncludeUpdateManyAndReturn<ExtArgs> | null
-  }
-
-  /**
-   * TaskRepositoryMapping upsert
-   */
-  export type TaskRepositoryMappingUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * The filter to search for the TaskRepositoryMapping to update in case it exists.
-     */
-    where: TaskRepositoryMappingWhereUniqueInput
-    /**
-     * In case the TaskRepositoryMapping found by the `where` argument doesn't exist, create a new TaskRepositoryMapping with this data.
-     */
-    create: XOR<TaskRepositoryMappingCreateInput, TaskRepositoryMappingUncheckedCreateInput>
-    /**
-     * In case the TaskRepositoryMapping was found with the provided `where` argument, update it with this data.
-     */
-    update: XOR<TaskRepositoryMappingUpdateInput, TaskRepositoryMappingUncheckedUpdateInput>
-  }
-
-  /**
-   * TaskRepositoryMapping delete
-   */
-  export type TaskRepositoryMappingDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
-    /**
-     * Filter which TaskRepositoryMapping to delete.
-     */
-    where: TaskRepositoryMappingWhereUniqueInput
-  }
-
-  /**
-   * TaskRepositoryMapping deleteMany
-   */
-  export type TaskRepositoryMappingDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Filter which TaskRepositoryMappings to delete
-     */
-    where?: TaskRepositoryMappingWhereInput
-    /**
-     * Limit how many TaskRepositoryMappings to delete.
-     */
-    limit?: number
-  }
-
-  /**
-   * TaskRepositoryMapping without action
-   */
-  export type TaskRepositoryMappingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    /**
-     * Select specific fields to fetch from the TaskRepositoryMapping
-     */
-    select?: TaskRepositoryMappingSelect<ExtArgs> | null
-    /**
-     * Omit specific fields from the TaskRepositoryMapping
-     */
-    omit?: TaskRepositoryMappingOmit<ExtArgs> | null
-    /**
-     * Choose, which related nodes to fetch as well
-     */
-    include?: TaskRepositoryMappingInclude<ExtArgs> | null
   }
 
 
@@ -4421,23 +2710,17 @@ export namespace Prisma {
    * Enums
    */
 
-  export const TransactionIsolationLevel: {
-    ReadUncommitted: 'ReadUncommitted',
-    ReadCommitted: 'ReadCommitted',
-    RepeatableRead: 'RepeatableRead',
-    Serializable: 'Serializable'
-  };
-
-  export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
-
-
   export const TaskScalarFieldEnum: {
     id: 'id',
-    display_id: 'display_id',
+    displayId: 'displayId',
+    title: 'title',
     description: 'description',
     status: 'status',
-    created_at: 'created_at',
-    updated_at: 'updated_at'
+    repoIds: 'repoIds',
+    userId: 'userId',
+    projectId: 'projectId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
@@ -4445,23 +2728,13 @@ export namespace Prisma {
 
   export const RepositoryScalarFieldEnum: {
     id: 'id',
-    github_repo_id: 'github_repo_id',
-    repo_name: 'repo_name',
-    created_at: 'created_at',
-    updated_at: 'updated_at'
+    githubRepoId: 'githubRepoId',
+    repoName: 'repoName',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type RepositoryScalarFieldEnum = (typeof RepositoryScalarFieldEnum)[keyof typeof RepositoryScalarFieldEnum]
-
-
-  export const TaskRepositoryMappingScalarFieldEnum: {
-    task_id: 'task_id',
-    repository_id: 'repository_id',
-    created_at: 'created_at',
-    updated_at: 'updated_at'
-  };
-
-  export type TaskRepositoryMappingScalarFieldEnum = (typeof TaskRepositoryMappingScalarFieldEnum)[keyof typeof TaskRepositoryMappingScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -4480,31 +2753,9 @@ export namespace Prisma {
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
-  export const NullsOrder: {
-    first: 'first',
-    last: 'last'
-  };
-
-  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
-
-
   /**
-   * Field references
+   * Field references 
    */
-
-
-  /**
-   * Reference to a field of type 'Int'
-   */
-  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
-    
-
-
-  /**
-   * Reference to a field of type 'Int[]'
-   */
-  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
-    
 
 
   /**
@@ -4536,16 +2787,16 @@ export namespace Prisma {
 
 
   /**
-   * Reference to a field of type 'Float'
+   * Reference to a field of type 'Int'
    */
-  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
     
 
 
   /**
-   * Reference to a field of type 'Float[]'
+   * Reference to a field of type 'Int[]'
    */
-  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
     
   /**
    * Deep Input Types
@@ -4556,354 +2807,268 @@ export namespace Prisma {
     AND?: TaskWhereInput | TaskWhereInput[]
     OR?: TaskWhereInput[]
     NOT?: TaskWhereInput | TaskWhereInput[]
-    id?: IntFilter<"Task"> | number
-    display_id?: StringFilter<"Task"> | string
-    description?: StringNullableFilter<"Task"> | string | null
+    id?: StringFilter<"Task"> | string
+    displayId?: StringFilter<"Task"> | string
+    title?: StringNullableFilter<"Task"> | string | null
+    description?: StringFilter<"Task"> | string
     status?: StringFilter<"Task"> | string
-    created_at?: DateTimeFilter<"Task"> | Date | string
-    updated_at?: DateTimeFilter<"Task"> | Date | string
-    repositories?: TaskRepositoryMappingListRelationFilter
+    repoIds?: StringNullableListFilter<"Task">
+    userId?: StringFilter<"Task"> | string
+    projectId?: StringNullableFilter<"Task"> | string | null
+    createdAt?: DateTimeFilter<"Task"> | Date | string
+    updatedAt?: DateTimeFilter<"Task"> | Date | string
   }
 
   export type TaskOrderByWithRelationInput = {
     id?: SortOrder
-    display_id?: SortOrder
-    description?: SortOrderInput | SortOrder
+    displayId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
     status?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-    repositories?: TaskRepositoryMappingOrderByRelationAggregateInput
+    repoIds?: SortOrder
+    userId?: SortOrder
+    projectId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TaskWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
-    display_id?: string
+    id?: string
+    displayId?: string
     AND?: TaskWhereInput | TaskWhereInput[]
     OR?: TaskWhereInput[]
     NOT?: TaskWhereInput | TaskWhereInput[]
-    description?: StringNullableFilter<"Task"> | string | null
+    title?: StringNullableFilter<"Task"> | string | null
+    description?: StringFilter<"Task"> | string
     status?: StringFilter<"Task"> | string
-    created_at?: DateTimeFilter<"Task"> | Date | string
-    updated_at?: DateTimeFilter<"Task"> | Date | string
-    repositories?: TaskRepositoryMappingListRelationFilter
-  }, "id" | "display_id">
+    repoIds?: StringNullableListFilter<"Task">
+    userId?: StringFilter<"Task"> | string
+    projectId?: StringNullableFilter<"Task"> | string | null
+    createdAt?: DateTimeFilter<"Task"> | Date | string
+    updatedAt?: DateTimeFilter<"Task"> | Date | string
+  }, "id" | "displayId">
 
   export type TaskOrderByWithAggregationInput = {
     id?: SortOrder
-    display_id?: SortOrder
-    description?: SortOrderInput | SortOrder
+    displayId?: SortOrder
+    title?: SortOrder
+    description?: SortOrder
     status?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
+    repoIds?: SortOrder
+    userId?: SortOrder
+    projectId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: TaskCountOrderByAggregateInput
-    _avg?: TaskAvgOrderByAggregateInput
     _max?: TaskMaxOrderByAggregateInput
     _min?: TaskMinOrderByAggregateInput
-    _sum?: TaskSumOrderByAggregateInput
   }
 
   export type TaskScalarWhereWithAggregatesInput = {
     AND?: TaskScalarWhereWithAggregatesInput | TaskScalarWhereWithAggregatesInput[]
     OR?: TaskScalarWhereWithAggregatesInput[]
     NOT?: TaskScalarWhereWithAggregatesInput | TaskScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"Task"> | number
-    display_id?: StringWithAggregatesFilter<"Task"> | string
-    description?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    id?: StringWithAggregatesFilter<"Task"> | string
+    displayId?: StringWithAggregatesFilter<"Task"> | string
+    title?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    description?: StringWithAggregatesFilter<"Task"> | string
     status?: StringWithAggregatesFilter<"Task"> | string
-    created_at?: DateTimeWithAggregatesFilter<"Task"> | Date | string
-    updated_at?: DateTimeWithAggregatesFilter<"Task"> | Date | string
+    repoIds?: StringNullableListFilter<"Task">
+    userId?: StringWithAggregatesFilter<"Task"> | string
+    projectId?: StringNullableWithAggregatesFilter<"Task"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Task"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Task"> | Date | string
   }
 
   export type RepositoryWhereInput = {
     AND?: RepositoryWhereInput | RepositoryWhereInput[]
     OR?: RepositoryWhereInput[]
     NOT?: RepositoryWhereInput | RepositoryWhereInput[]
-    id?: IntFilter<"Repository"> | number
-    github_repo_id?: StringFilter<"Repository"> | string
-    repo_name?: StringFilter<"Repository"> | string
-    created_at?: DateTimeFilter<"Repository"> | Date | string
-    updated_at?: DateTimeFilter<"Repository"> | Date | string
-    tasks?: TaskRepositoryMappingListRelationFilter
+    id?: StringFilter<"Repository"> | string
+    githubRepoId?: StringFilter<"Repository"> | string
+    repoName?: StringFilter<"Repository"> | string
+    createdAt?: DateTimeFilter<"Repository"> | Date | string
+    updatedAt?: DateTimeFilter<"Repository"> | Date | string
   }
 
   export type RepositoryOrderByWithRelationInput = {
     id?: SortOrder
-    github_repo_id?: SortOrder
-    repo_name?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-    tasks?: TaskRepositoryMappingOrderByRelationAggregateInput
+    githubRepoId?: SortOrder
+    repoName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type RepositoryWhereUniqueInput = Prisma.AtLeast<{
-    id?: number
-    github_repo_id?: string
+    id?: string
+    githubRepoId?: string
     AND?: RepositoryWhereInput | RepositoryWhereInput[]
     OR?: RepositoryWhereInput[]
     NOT?: RepositoryWhereInput | RepositoryWhereInput[]
-    repo_name?: StringFilter<"Repository"> | string
-    created_at?: DateTimeFilter<"Repository"> | Date | string
-    updated_at?: DateTimeFilter<"Repository"> | Date | string
-    tasks?: TaskRepositoryMappingListRelationFilter
-  }, "id" | "github_repo_id">
+    repoName?: StringFilter<"Repository"> | string
+    createdAt?: DateTimeFilter<"Repository"> | Date | string
+    updatedAt?: DateTimeFilter<"Repository"> | Date | string
+  }, "id" | "githubRepoId">
 
   export type RepositoryOrderByWithAggregationInput = {
     id?: SortOrder
-    github_repo_id?: SortOrder
-    repo_name?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
+    githubRepoId?: SortOrder
+    repoName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: RepositoryCountOrderByAggregateInput
-    _avg?: RepositoryAvgOrderByAggregateInput
     _max?: RepositoryMaxOrderByAggregateInput
     _min?: RepositoryMinOrderByAggregateInput
-    _sum?: RepositorySumOrderByAggregateInput
   }
 
   export type RepositoryScalarWhereWithAggregatesInput = {
     AND?: RepositoryScalarWhereWithAggregatesInput | RepositoryScalarWhereWithAggregatesInput[]
     OR?: RepositoryScalarWhereWithAggregatesInput[]
     NOT?: RepositoryScalarWhereWithAggregatesInput | RepositoryScalarWhereWithAggregatesInput[]
-    id?: IntWithAggregatesFilter<"Repository"> | number
-    github_repo_id?: StringWithAggregatesFilter<"Repository"> | string
-    repo_name?: StringWithAggregatesFilter<"Repository"> | string
-    created_at?: DateTimeWithAggregatesFilter<"Repository"> | Date | string
-    updated_at?: DateTimeWithAggregatesFilter<"Repository"> | Date | string
-  }
-
-  export type TaskRepositoryMappingWhereInput = {
-    AND?: TaskRepositoryMappingWhereInput | TaskRepositoryMappingWhereInput[]
-    OR?: TaskRepositoryMappingWhereInput[]
-    NOT?: TaskRepositoryMappingWhereInput | TaskRepositoryMappingWhereInput[]
-    task_id?: IntFilter<"TaskRepositoryMapping"> | number
-    repository_id?: IntFilter<"TaskRepositoryMapping"> | number
-    created_at?: DateTimeFilter<"TaskRepositoryMapping"> | Date | string
-    updated_at?: DateTimeFilter<"TaskRepositoryMapping"> | Date | string
-    task?: XOR<TaskScalarRelationFilter, TaskWhereInput>
-    repository?: XOR<RepositoryScalarRelationFilter, RepositoryWhereInput>
-  }
-
-  export type TaskRepositoryMappingOrderByWithRelationInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-    task?: TaskOrderByWithRelationInput
-    repository?: RepositoryOrderByWithRelationInput
-  }
-
-  export type TaskRepositoryMappingWhereUniqueInput = Prisma.AtLeast<{
-    task_id_repository_id?: TaskRepositoryMappingTask_idRepository_idCompoundUniqueInput
-    AND?: TaskRepositoryMappingWhereInput | TaskRepositoryMappingWhereInput[]
-    OR?: TaskRepositoryMappingWhereInput[]
-    NOT?: TaskRepositoryMappingWhereInput | TaskRepositoryMappingWhereInput[]
-    task_id?: IntFilter<"TaskRepositoryMapping"> | number
-    repository_id?: IntFilter<"TaskRepositoryMapping"> | number
-    created_at?: DateTimeFilter<"TaskRepositoryMapping"> | Date | string
-    updated_at?: DateTimeFilter<"TaskRepositoryMapping"> | Date | string
-    task?: XOR<TaskScalarRelationFilter, TaskWhereInput>
-    repository?: XOR<RepositoryScalarRelationFilter, RepositoryWhereInput>
-  }, "task_id_repository_id">
-
-  export type TaskRepositoryMappingOrderByWithAggregationInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-    _count?: TaskRepositoryMappingCountOrderByAggregateInput
-    _avg?: TaskRepositoryMappingAvgOrderByAggregateInput
-    _max?: TaskRepositoryMappingMaxOrderByAggregateInput
-    _min?: TaskRepositoryMappingMinOrderByAggregateInput
-    _sum?: TaskRepositoryMappingSumOrderByAggregateInput
-  }
-
-  export type TaskRepositoryMappingScalarWhereWithAggregatesInput = {
-    AND?: TaskRepositoryMappingScalarWhereWithAggregatesInput | TaskRepositoryMappingScalarWhereWithAggregatesInput[]
-    OR?: TaskRepositoryMappingScalarWhereWithAggregatesInput[]
-    NOT?: TaskRepositoryMappingScalarWhereWithAggregatesInput | TaskRepositoryMappingScalarWhereWithAggregatesInput[]
-    task_id?: IntWithAggregatesFilter<"TaskRepositoryMapping"> | number
-    repository_id?: IntWithAggregatesFilter<"TaskRepositoryMapping"> | number
-    created_at?: DateTimeWithAggregatesFilter<"TaskRepositoryMapping"> | Date | string
-    updated_at?: DateTimeWithAggregatesFilter<"TaskRepositoryMapping"> | Date | string
+    id?: StringWithAggregatesFilter<"Repository"> | string
+    githubRepoId?: StringWithAggregatesFilter<"Repository"> | string
+    repoName?: StringWithAggregatesFilter<"Repository"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Repository"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Repository"> | Date | string
   }
 
   export type TaskCreateInput = {
-    display_id: string
-    description?: string | null
+    id?: string
+    displayId: string
+    title?: string | null
+    description: string
     status?: string
-    created_at?: Date | string
-    updated_at?: Date | string
-    repositories?: TaskRepositoryMappingCreateNestedManyWithoutTaskInput
+    repoIds?: TaskCreaterepoIdsInput | string[]
+    userId: string
+    projectId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type TaskUncheckedCreateInput = {
-    id?: number
-    display_id: string
-    description?: string | null
+    id?: string
+    displayId: string
+    title?: string | null
+    description: string
     status?: string
-    created_at?: Date | string
-    updated_at?: Date | string
-    repositories?: TaskRepositoryMappingUncheckedCreateNestedManyWithoutTaskInput
+    repoIds?: TaskCreaterepoIdsInput | string[]
+    userId: string
+    projectId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type TaskUpdateInput = {
-    display_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    displayId?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    repositories?: TaskRepositoryMappingUpdateManyWithoutTaskNestedInput
+    repoIds?: TaskUpdaterepoIdsInput | string[]
+    userId?: StringFieldUpdateOperationsInput | string
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TaskUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    display_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    displayId?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    repositories?: TaskRepositoryMappingUncheckedUpdateManyWithoutTaskNestedInput
+    repoIds?: TaskUpdaterepoIdsInput | string[]
+    userId?: StringFieldUpdateOperationsInput | string
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TaskCreateManyInput = {
-    id?: number
-    display_id: string
-    description?: string | null
+    id?: string
+    displayId: string
+    title?: string | null
+    description: string
     status?: string
-    created_at?: Date | string
-    updated_at?: Date | string
+    repoIds?: TaskCreaterepoIdsInput | string[]
+    userId: string
+    projectId?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type TaskUpdateManyMutationInput = {
-    display_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    displayId?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    repoIds?: TaskUpdaterepoIdsInput | string[]
+    userId?: StringFieldUpdateOperationsInput | string
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TaskUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    display_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
+    displayId?: StringFieldUpdateOperationsInput | string
+    title?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    repoIds?: TaskUpdaterepoIdsInput | string[]
+    userId?: StringFieldUpdateOperationsInput | string
+    projectId?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RepositoryCreateInput = {
-    github_repo_id: string
-    repo_name: string
-    created_at?: Date | string
-    updated_at?: Date | string
-    tasks?: TaskRepositoryMappingCreateNestedManyWithoutRepositoryInput
+    id?: string
+    githubRepoId: string
+    repoName: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type RepositoryUncheckedCreateInput = {
-    id?: number
-    github_repo_id: string
-    repo_name: string
-    created_at?: Date | string
-    updated_at?: Date | string
-    tasks?: TaskRepositoryMappingUncheckedCreateNestedManyWithoutRepositoryInput
+    id?: string
+    githubRepoId: string
+    repoName: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type RepositoryUpdateInput = {
-    github_repo_id?: StringFieldUpdateOperationsInput | string
-    repo_name?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    tasks?: TaskRepositoryMappingUpdateManyWithoutRepositoryNestedInput
+    githubRepoId?: StringFieldUpdateOperationsInput | string
+    repoName?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RepositoryUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    github_repo_id?: StringFieldUpdateOperationsInput | string
-    repo_name?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    tasks?: TaskRepositoryMappingUncheckedUpdateManyWithoutRepositoryNestedInput
+    githubRepoId?: StringFieldUpdateOperationsInput | string
+    repoName?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RepositoryCreateManyInput = {
-    id?: number
-    github_repo_id: string
-    repo_name: string
-    created_at?: Date | string
-    updated_at?: Date | string
+    id?: string
+    githubRepoId: string
+    repoName: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type RepositoryUpdateManyMutationInput = {
-    github_repo_id?: StringFieldUpdateOperationsInput | string
-    repo_name?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
+    githubRepoId?: StringFieldUpdateOperationsInput | string
+    repoName?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type RepositoryUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    github_repo_id?: StringFieldUpdateOperationsInput | string
-    repo_name?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingCreateInput = {
-    created_at?: Date | string
-    updated_at?: Date | string
-    task: TaskCreateNestedOneWithoutRepositoriesInput
-    repository: RepositoryCreateNestedOneWithoutTasksInput
-  }
-
-  export type TaskRepositoryMappingUncheckedCreateInput = {
-    task_id: number
-    repository_id: number
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskRepositoryMappingUpdateInput = {
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    task?: TaskUpdateOneRequiredWithoutRepositoriesNestedInput
-    repository?: RepositoryUpdateOneRequiredWithoutTasksNestedInput
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateInput = {
-    task_id?: IntFieldUpdateOperationsInput | number
-    repository_id?: IntFieldUpdateOperationsInput | number
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingCreateManyInput = {
-    task_id: number
-    repository_id: number
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskRepositoryMappingUpdateManyMutationInput = {
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateManyInput = {
-    task_id?: IntFieldUpdateOperationsInput | number
-    repository_id?: IntFieldUpdateOperationsInput | number
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type IntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
+    githubRepoId?: StringFieldUpdateOperationsInput | string
+    repoName?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -4934,6 +3099,15 @@ export namespace Prisma {
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
+    isSet?: boolean
+  }
+
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
+    isEmpty?: boolean
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
@@ -4947,70 +3121,41 @@ export namespace Prisma {
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type TaskRepositoryMappingListRelationFilter = {
-    every?: TaskRepositoryMappingWhereInput
-    some?: TaskRepositoryMappingWhereInput
-    none?: TaskRepositoryMappingWhereInput
-  }
-
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
-  }
-
-  export type TaskRepositoryMappingOrderByRelationAggregateInput = {
-    _count?: SortOrder
-  }
-
   export type TaskCountOrderByAggregateInput = {
     id?: SortOrder
-    display_id?: SortOrder
+    displayId?: SortOrder
+    title?: SortOrder
     description?: SortOrder
     status?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type TaskAvgOrderByAggregateInput = {
-    id?: SortOrder
+    repoIds?: SortOrder
+    userId?: SortOrder
+    projectId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TaskMaxOrderByAggregateInput = {
     id?: SortOrder
-    display_id?: SortOrder
+    displayId?: SortOrder
+    title?: SortOrder
     description?: SortOrder
     status?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
+    userId?: SortOrder
+    projectId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type TaskMinOrderByAggregateInput = {
     id?: SortOrder
-    display_id?: SortOrder
+    displayId?: SortOrder
+    title?: SortOrder
     description?: SortOrder
     status?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type TaskSumOrderByAggregateInput = {
-    id?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
+    userId?: SortOrder
+    projectId?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type StringWithAggregatesFilter<$PrismaModel = never> = {
@@ -5047,6 +3192,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
+    isSet?: boolean
   }
 
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -5065,94 +3211,30 @@ export namespace Prisma {
 
   export type RepositoryCountOrderByAggregateInput = {
     id?: SortOrder
-    github_repo_id?: SortOrder
-    repo_name?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type RepositoryAvgOrderByAggregateInput = {
-    id?: SortOrder
+    githubRepoId?: SortOrder
+    repoName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type RepositoryMaxOrderByAggregateInput = {
     id?: SortOrder
-    github_repo_id?: SortOrder
-    repo_name?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
+    githubRepoId?: SortOrder
+    repoName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type RepositoryMinOrderByAggregateInput = {
     id?: SortOrder
-    github_repo_id?: SortOrder
-    repo_name?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
+    githubRepoId?: SortOrder
+    repoName?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
-  export type RepositorySumOrderByAggregateInput = {
-    id?: SortOrder
-  }
-
-  export type TaskScalarRelationFilter = {
-    is?: TaskWhereInput
-    isNot?: TaskWhereInput
-  }
-
-  export type RepositoryScalarRelationFilter = {
-    is?: RepositoryWhereInput
-    isNot?: RepositoryWhereInput
-  }
-
-  export type TaskRepositoryMappingTask_idRepository_idCompoundUniqueInput = {
-    task_id: number
-    repository_id: number
-  }
-
-  export type TaskRepositoryMappingCountOrderByAggregateInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type TaskRepositoryMappingAvgOrderByAggregateInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-  }
-
-  export type TaskRepositoryMappingMaxOrderByAggregateInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type TaskRepositoryMappingMinOrderByAggregateInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-    created_at?: SortOrder
-    updated_at?: SortOrder
-  }
-
-  export type TaskRepositoryMappingSumOrderByAggregateInput = {
-    task_id?: SortOrder
-    repository_id?: SortOrder
-  }
-
-  export type TaskRepositoryMappingCreateNestedManyWithoutTaskInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutTaskInput, TaskRepositoryMappingUncheckedCreateWithoutTaskInput> | TaskRepositoryMappingCreateWithoutTaskInput[] | TaskRepositoryMappingUncheckedCreateWithoutTaskInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutTaskInput | TaskRepositoryMappingCreateOrConnectWithoutTaskInput[]
-    createMany?: TaskRepositoryMappingCreateManyTaskInputEnvelope
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-  }
-
-  export type TaskRepositoryMappingUncheckedCreateNestedManyWithoutTaskInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutTaskInput, TaskRepositoryMappingUncheckedCreateWithoutTaskInput> | TaskRepositoryMappingCreateWithoutTaskInput[] | TaskRepositoryMappingUncheckedCreateWithoutTaskInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutTaskInput | TaskRepositoryMappingCreateOrConnectWithoutTaskInput[]
-    createMany?: TaskRepositoryMappingCreateManyTaskInputEnvelope
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
+  export type TaskCreaterepoIdsInput = {
+    set: string[]
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -5161,127 +3243,16 @@ export namespace Prisma {
 
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
+    unset?: boolean
+  }
+
+  export type TaskUpdaterepoIdsInput = {
+    set?: string[]
+    push?: string | string[]
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
     set?: Date | string
-  }
-
-  export type TaskRepositoryMappingUpdateManyWithoutTaskNestedInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutTaskInput, TaskRepositoryMappingUncheckedCreateWithoutTaskInput> | TaskRepositoryMappingCreateWithoutTaskInput[] | TaskRepositoryMappingUncheckedCreateWithoutTaskInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutTaskInput | TaskRepositoryMappingCreateOrConnectWithoutTaskInput[]
-    upsert?: TaskRepositoryMappingUpsertWithWhereUniqueWithoutTaskInput | TaskRepositoryMappingUpsertWithWhereUniqueWithoutTaskInput[]
-    createMany?: TaskRepositoryMappingCreateManyTaskInputEnvelope
-    set?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    disconnect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    delete?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    update?: TaskRepositoryMappingUpdateWithWhereUniqueWithoutTaskInput | TaskRepositoryMappingUpdateWithWhereUniqueWithoutTaskInput[]
-    updateMany?: TaskRepositoryMappingUpdateManyWithWhereWithoutTaskInput | TaskRepositoryMappingUpdateManyWithWhereWithoutTaskInput[]
-    deleteMany?: TaskRepositoryMappingScalarWhereInput | TaskRepositoryMappingScalarWhereInput[]
-  }
-
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateManyWithoutTaskNestedInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutTaskInput, TaskRepositoryMappingUncheckedCreateWithoutTaskInput> | TaskRepositoryMappingCreateWithoutTaskInput[] | TaskRepositoryMappingUncheckedCreateWithoutTaskInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutTaskInput | TaskRepositoryMappingCreateOrConnectWithoutTaskInput[]
-    upsert?: TaskRepositoryMappingUpsertWithWhereUniqueWithoutTaskInput | TaskRepositoryMappingUpsertWithWhereUniqueWithoutTaskInput[]
-    createMany?: TaskRepositoryMappingCreateManyTaskInputEnvelope
-    set?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    disconnect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    delete?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    update?: TaskRepositoryMappingUpdateWithWhereUniqueWithoutTaskInput | TaskRepositoryMappingUpdateWithWhereUniqueWithoutTaskInput[]
-    updateMany?: TaskRepositoryMappingUpdateManyWithWhereWithoutTaskInput | TaskRepositoryMappingUpdateManyWithWhereWithoutTaskInput[]
-    deleteMany?: TaskRepositoryMappingScalarWhereInput | TaskRepositoryMappingScalarWhereInput[]
-  }
-
-  export type TaskRepositoryMappingCreateNestedManyWithoutRepositoryInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutRepositoryInput, TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput> | TaskRepositoryMappingCreateWithoutRepositoryInput[] | TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput | TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput[]
-    createMany?: TaskRepositoryMappingCreateManyRepositoryInputEnvelope
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-  }
-
-  export type TaskRepositoryMappingUncheckedCreateNestedManyWithoutRepositoryInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutRepositoryInput, TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput> | TaskRepositoryMappingCreateWithoutRepositoryInput[] | TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput | TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput[]
-    createMany?: TaskRepositoryMappingCreateManyRepositoryInputEnvelope
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-  }
-
-  export type TaskRepositoryMappingUpdateManyWithoutRepositoryNestedInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutRepositoryInput, TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput> | TaskRepositoryMappingCreateWithoutRepositoryInput[] | TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput | TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput[]
-    upsert?: TaskRepositoryMappingUpsertWithWhereUniqueWithoutRepositoryInput | TaskRepositoryMappingUpsertWithWhereUniqueWithoutRepositoryInput[]
-    createMany?: TaskRepositoryMappingCreateManyRepositoryInputEnvelope
-    set?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    disconnect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    delete?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    update?: TaskRepositoryMappingUpdateWithWhereUniqueWithoutRepositoryInput | TaskRepositoryMappingUpdateWithWhereUniqueWithoutRepositoryInput[]
-    updateMany?: TaskRepositoryMappingUpdateManyWithWhereWithoutRepositoryInput | TaskRepositoryMappingUpdateManyWithWhereWithoutRepositoryInput[]
-    deleteMany?: TaskRepositoryMappingScalarWhereInput | TaskRepositoryMappingScalarWhereInput[]
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateManyWithoutRepositoryNestedInput = {
-    create?: XOR<TaskRepositoryMappingCreateWithoutRepositoryInput, TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput> | TaskRepositoryMappingCreateWithoutRepositoryInput[] | TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput[]
-    connectOrCreate?: TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput | TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput[]
-    upsert?: TaskRepositoryMappingUpsertWithWhereUniqueWithoutRepositoryInput | TaskRepositoryMappingUpsertWithWhereUniqueWithoutRepositoryInput[]
-    createMany?: TaskRepositoryMappingCreateManyRepositoryInputEnvelope
-    set?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    disconnect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    delete?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    connect?: TaskRepositoryMappingWhereUniqueInput | TaskRepositoryMappingWhereUniqueInput[]
-    update?: TaskRepositoryMappingUpdateWithWhereUniqueWithoutRepositoryInput | TaskRepositoryMappingUpdateWithWhereUniqueWithoutRepositoryInput[]
-    updateMany?: TaskRepositoryMappingUpdateManyWithWhereWithoutRepositoryInput | TaskRepositoryMappingUpdateManyWithWhereWithoutRepositoryInput[]
-    deleteMany?: TaskRepositoryMappingScalarWhereInput | TaskRepositoryMappingScalarWhereInput[]
-  }
-
-  export type TaskCreateNestedOneWithoutRepositoriesInput = {
-    create?: XOR<TaskCreateWithoutRepositoriesInput, TaskUncheckedCreateWithoutRepositoriesInput>
-    connectOrCreate?: TaskCreateOrConnectWithoutRepositoriesInput
-    connect?: TaskWhereUniqueInput
-  }
-
-  export type RepositoryCreateNestedOneWithoutTasksInput = {
-    create?: XOR<RepositoryCreateWithoutTasksInput, RepositoryUncheckedCreateWithoutTasksInput>
-    connectOrCreate?: RepositoryCreateOrConnectWithoutTasksInput
-    connect?: RepositoryWhereUniqueInput
-  }
-
-  export type TaskUpdateOneRequiredWithoutRepositoriesNestedInput = {
-    create?: XOR<TaskCreateWithoutRepositoriesInput, TaskUncheckedCreateWithoutRepositoriesInput>
-    connectOrCreate?: TaskCreateOrConnectWithoutRepositoriesInput
-    upsert?: TaskUpsertWithoutRepositoriesInput
-    connect?: TaskWhereUniqueInput
-    update?: XOR<XOR<TaskUpdateToOneWithWhereWithoutRepositoriesInput, TaskUpdateWithoutRepositoriesInput>, TaskUncheckedUpdateWithoutRepositoriesInput>
-  }
-
-  export type RepositoryUpdateOneRequiredWithoutTasksNestedInput = {
-    create?: XOR<RepositoryCreateWithoutTasksInput, RepositoryUncheckedCreateWithoutTasksInput>
-    connectOrCreate?: RepositoryCreateOrConnectWithoutTasksInput
-    upsert?: RepositoryUpsertWithoutTasksInput
-    connect?: RepositoryWhereUniqueInput
-    update?: XOR<XOR<RepositoryUpdateToOneWithWhereWithoutTasksInput, RepositoryUpdateWithoutTasksInput>, RepositoryUncheckedUpdateWithoutTasksInput>
-  }
-
-  export type NestedIntFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntFilter<$PrismaModel> | number
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -5310,6 +3281,7 @@ export namespace Prisma {
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     not?: NestedStringNullableFilter<$PrismaModel> | string | null
+    isSet?: boolean
   }
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
@@ -5321,33 +3293,6 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
-  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | IntFieldRefInput<$PrismaModel>
-    in?: number[] | ListIntFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
-    lt?: number | IntFieldRefInput<$PrismaModel>
-    lte?: number | IntFieldRefInput<$PrismaModel>
-    gt?: number | IntFieldRefInput<$PrismaModel>
-    gte?: number | IntFieldRefInput<$PrismaModel>
-    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedIntFilter<$PrismaModel>
-    _min?: NestedIntFilter<$PrismaModel>
-    _max?: NestedIntFilter<$PrismaModel>
-  }
-
-  export type NestedFloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
@@ -5367,6 +3312,17 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
+  export type NestedIntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
+  }
+
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -5382,6 +3338,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedStringNullableFilter<$PrismaModel>
     _max?: NestedStringNullableFilter<$PrismaModel>
+    isSet?: boolean
   }
 
   export type NestedIntNullableFilter<$PrismaModel = never> = {
@@ -5393,6 +3350,7 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
+    isSet?: boolean
   }
 
   export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
@@ -5409,237 +3367,19 @@ export namespace Prisma {
     _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type TaskRepositoryMappingCreateWithoutTaskInput = {
-    created_at?: Date | string
-    updated_at?: Date | string
-    repository: RepositoryCreateNestedOneWithoutTasksInput
-  }
-
-  export type TaskRepositoryMappingUncheckedCreateWithoutTaskInput = {
-    repository_id: number
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskRepositoryMappingCreateOrConnectWithoutTaskInput = {
-    where: TaskRepositoryMappingWhereUniqueInput
-    create: XOR<TaskRepositoryMappingCreateWithoutTaskInput, TaskRepositoryMappingUncheckedCreateWithoutTaskInput>
-  }
-
-  export type TaskRepositoryMappingCreateManyTaskInputEnvelope = {
-    data: TaskRepositoryMappingCreateManyTaskInput | TaskRepositoryMappingCreateManyTaskInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type TaskRepositoryMappingUpsertWithWhereUniqueWithoutTaskInput = {
-    where: TaskRepositoryMappingWhereUniqueInput
-    update: XOR<TaskRepositoryMappingUpdateWithoutTaskInput, TaskRepositoryMappingUncheckedUpdateWithoutTaskInput>
-    create: XOR<TaskRepositoryMappingCreateWithoutTaskInput, TaskRepositoryMappingUncheckedCreateWithoutTaskInput>
-  }
-
-  export type TaskRepositoryMappingUpdateWithWhereUniqueWithoutTaskInput = {
-    where: TaskRepositoryMappingWhereUniqueInput
-    data: XOR<TaskRepositoryMappingUpdateWithoutTaskInput, TaskRepositoryMappingUncheckedUpdateWithoutTaskInput>
-  }
-
-  export type TaskRepositoryMappingUpdateManyWithWhereWithoutTaskInput = {
-    where: TaskRepositoryMappingScalarWhereInput
-    data: XOR<TaskRepositoryMappingUpdateManyMutationInput, TaskRepositoryMappingUncheckedUpdateManyWithoutTaskInput>
-  }
-
-  export type TaskRepositoryMappingScalarWhereInput = {
-    AND?: TaskRepositoryMappingScalarWhereInput | TaskRepositoryMappingScalarWhereInput[]
-    OR?: TaskRepositoryMappingScalarWhereInput[]
-    NOT?: TaskRepositoryMappingScalarWhereInput | TaskRepositoryMappingScalarWhereInput[]
-    task_id?: IntFilter<"TaskRepositoryMapping"> | number
-    repository_id?: IntFilter<"TaskRepositoryMapping"> | number
-    created_at?: DateTimeFilter<"TaskRepositoryMapping"> | Date | string
-    updated_at?: DateTimeFilter<"TaskRepositoryMapping"> | Date | string
-  }
-
-  export type TaskRepositoryMappingCreateWithoutRepositoryInput = {
-    created_at?: Date | string
-    updated_at?: Date | string
-    task: TaskCreateNestedOneWithoutRepositoriesInput
-  }
-
-  export type TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput = {
-    task_id: number
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskRepositoryMappingCreateOrConnectWithoutRepositoryInput = {
-    where: TaskRepositoryMappingWhereUniqueInput
-    create: XOR<TaskRepositoryMappingCreateWithoutRepositoryInput, TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput>
-  }
-
-  export type TaskRepositoryMappingCreateManyRepositoryInputEnvelope = {
-    data: TaskRepositoryMappingCreateManyRepositoryInput | TaskRepositoryMappingCreateManyRepositoryInput[]
-    skipDuplicates?: boolean
-  }
-
-  export type TaskRepositoryMappingUpsertWithWhereUniqueWithoutRepositoryInput = {
-    where: TaskRepositoryMappingWhereUniqueInput
-    update: XOR<TaskRepositoryMappingUpdateWithoutRepositoryInput, TaskRepositoryMappingUncheckedUpdateWithoutRepositoryInput>
-    create: XOR<TaskRepositoryMappingCreateWithoutRepositoryInput, TaskRepositoryMappingUncheckedCreateWithoutRepositoryInput>
-  }
-
-  export type TaskRepositoryMappingUpdateWithWhereUniqueWithoutRepositoryInput = {
-    where: TaskRepositoryMappingWhereUniqueInput
-    data: XOR<TaskRepositoryMappingUpdateWithoutRepositoryInput, TaskRepositoryMappingUncheckedUpdateWithoutRepositoryInput>
-  }
-
-  export type TaskRepositoryMappingUpdateManyWithWhereWithoutRepositoryInput = {
-    where: TaskRepositoryMappingScalarWhereInput
-    data: XOR<TaskRepositoryMappingUpdateManyMutationInput, TaskRepositoryMappingUncheckedUpdateManyWithoutRepositoryInput>
-  }
-
-  export type TaskCreateWithoutRepositoriesInput = {
-    display_id: string
-    description?: string | null
-    status?: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskUncheckedCreateWithoutRepositoriesInput = {
-    id?: number
-    display_id: string
-    description?: string | null
-    status?: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskCreateOrConnectWithoutRepositoriesInput = {
-    where: TaskWhereUniqueInput
-    create: XOR<TaskCreateWithoutRepositoriesInput, TaskUncheckedCreateWithoutRepositoriesInput>
-  }
-
-  export type RepositoryCreateWithoutTasksInput = {
-    github_repo_id: string
-    repo_name: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type RepositoryUncheckedCreateWithoutTasksInput = {
-    id?: number
-    github_repo_id: string
-    repo_name: string
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type RepositoryCreateOrConnectWithoutTasksInput = {
-    where: RepositoryWhereUniqueInput
-    create: XOR<RepositoryCreateWithoutTasksInput, RepositoryUncheckedCreateWithoutTasksInput>
-  }
-
-  export type TaskUpsertWithoutRepositoriesInput = {
-    update: XOR<TaskUpdateWithoutRepositoriesInput, TaskUncheckedUpdateWithoutRepositoriesInput>
-    create: XOR<TaskCreateWithoutRepositoriesInput, TaskUncheckedCreateWithoutRepositoriesInput>
-    where?: TaskWhereInput
-  }
-
-  export type TaskUpdateToOneWithWhereWithoutRepositoriesInput = {
-    where?: TaskWhereInput
-    data: XOR<TaskUpdateWithoutRepositoriesInput, TaskUncheckedUpdateWithoutRepositoriesInput>
-  }
-
-  export type TaskUpdateWithoutRepositoriesInput = {
-    display_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskUncheckedUpdateWithoutRepositoriesInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    display_id?: StringFieldUpdateOperationsInput | string
-    description?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type RepositoryUpsertWithoutTasksInput = {
-    update: XOR<RepositoryUpdateWithoutTasksInput, RepositoryUncheckedUpdateWithoutTasksInput>
-    create: XOR<RepositoryCreateWithoutTasksInput, RepositoryUncheckedCreateWithoutTasksInput>
-    where?: RepositoryWhereInput
-  }
-
-  export type RepositoryUpdateToOneWithWhereWithoutTasksInput = {
-    where?: RepositoryWhereInput
-    data: XOR<RepositoryUpdateWithoutTasksInput, RepositoryUncheckedUpdateWithoutTasksInput>
-  }
-
-  export type RepositoryUpdateWithoutTasksInput = {
-    github_repo_id?: StringFieldUpdateOperationsInput | string
-    repo_name?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type RepositoryUncheckedUpdateWithoutTasksInput = {
-    id?: IntFieldUpdateOperationsInput | number
-    github_repo_id?: StringFieldUpdateOperationsInput | string
-    repo_name?: StringFieldUpdateOperationsInput | string
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingCreateManyTaskInput = {
-    repository_id: number
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskRepositoryMappingUpdateWithoutTaskInput = {
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    repository?: RepositoryUpdateOneRequiredWithoutTasksNestedInput
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateWithoutTaskInput = {
-    repository_id?: IntFieldUpdateOperationsInput | number
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateManyWithoutTaskInput = {
-    repository_id?: IntFieldUpdateOperationsInput | number
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingCreateManyRepositoryInput = {
-    task_id: number
-    created_at?: Date | string
-    updated_at?: Date | string
-  }
-
-  export type TaskRepositoryMappingUpdateWithoutRepositoryInput = {
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    task?: TaskUpdateOneRequiredWithoutRepositoriesNestedInput
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateWithoutRepositoryInput = {
-    task_id?: IntFieldUpdateOperationsInput | number
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type TaskRepositoryMappingUncheckedUpdateManyWithoutRepositoryInput = {
-    task_id?: IntFieldUpdateOperationsInput | number
-    created_at?: DateTimeFieldUpdateOperationsInput | Date | string
-    updated_at?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
 
 
+  /**
+   * Aliases for legacy arg types
+   */
+    /**
+     * @deprecated Use TaskDefaultArgs instead
+     */
+    export type TaskArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = TaskDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use RepositoryDefaultArgs instead
+     */
+    export type RepositoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = RepositoryDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
