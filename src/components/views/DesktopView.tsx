@@ -52,7 +52,17 @@ import SettingsView from "./SettingsView";
 import DesignView from "./DesignView";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
-  const [activeSection, setActiveSection] = useState("My Workspace");
+  const [activeSection, setActiveSection] = useState(() => {
+    if (isPreview) return "My Workspace";
+    return localStorage.getItem("zync-active-section") || "My Workspace";
+  });
+  
+  useEffect(() => {
+    if (!isPreview) {
+      localStorage.setItem("zync-active-section", activeSection);
+    }
+  }, [activeSection, isPreview]);
+
   const { toast } = useToast();
   const navigate = useNavigate();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -909,6 +919,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={async () => {
                   if (isPreview) return;
+                  localStorage.removeItem("zync-active-section");
                   await signOut(auth);
                   navigate("/login");
               }} className="text-destructive focus:text-destructive">
