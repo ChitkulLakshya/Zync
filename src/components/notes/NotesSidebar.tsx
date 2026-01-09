@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Folder, Note, createFolder, createNote, shareFolder } from '../../api/notes';
-import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown, Share2, Users } from 'lucide-react';
+import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown, Share2, Users, PanelLeftClose, PanelLeftOpen, GripVertical } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -37,6 +37,60 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   const [newFolderMode, setNewFolderMode] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   
+  // Resizable & Collapsible State
+  const [width, setWidth] = useState(256);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Load Preferences
+  useEffect(() => {
+    const storedWidth = localStorage.getItem('zync-sidebar-width');
+    if (storedWidth) setWidth(parseInt(storedWidth));
+    const storedCollapsed = localStorage.getItem('zync-sidebar-collapsed');
+    if (storedCollapsed) setIsCollapsed(storedCollapsed === 'true');
+  }, []);
+
+  // Resize Logic
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+        if (!isResizing) return;
+        const newWidth = Math.min(Math.max(e.clientX - (sidebarRef.current?.getBoundingClientRect().left || 0), 160), 480);
+        setWidth(newWidth);
+    };
+    const handleMouseUp = () => {
+        if (isResizing) {
+            setIsResizing(false);
+            localStorage.setItem('zync-sidebar-width', width.toString());
+        }
+    };
+    if (isResizing) {
+        window.addEventListener('mousemove', handleMouseMove);
+        window.addEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = 'col-resize';
+    } else {
+        document.body.style.cursor = 'default';
+    }
+    return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+        document.body.style.cursor = 'default';
+    };
+  }, [isResizing, width]);
+
+  const toggleCollapse = () => {
+    if (hoverTimeoutRef.current) {
+        clearTimeout(hoverTimeoutRef.current);
+        hoverTimeoutRef.current = null;
+    }
+    const newState = !isCollapsed;
+    setIsCollapsed(newState);
+    localStorage.setItem('zync-sidebar-collapsed', newState.toString());
+    if (!newState) setIsHovered(false);
+  };
+  
   // Share Dialog State
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [folderToShare, setFolderToShare] = useState<Folder | null>(null);
@@ -54,7 +108,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
       await shareFolder(folderToShare._id, [selectedUserId]);
       toast.success(`Folder shared successfully`);
       setShareDialogOpen(false);
-      onRefresh(); // Refresh to update potentially (though collaborators update might not be visible immediately in sidebar unless we show icon)
+      onRefresh(); 
     } catch (error) {
       console.error("Failed to share folder", error);
       toast.error("Failed to share folder");
@@ -89,23 +143,61 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   
   // Group notes by folder
   const unorganizedNotes = notes.filter((n) => !n.folderId);
+
+  const effectiveCollapsed = isCollapsed && !isHovered;
+  const isFloating = isCollapsed && isHovered;
   
   return (
-    <div className={cn("w-64 bg-secondary/30 border-r border-border/50 h-full flex flex-col", className)}>
-      <div className="p-4 border-b border-border/50 flex justify-between items-center sticky top-0 bg-background/50 backdrop-blur-sm z-10 transition-colors">
-        <span className="font-semibold text-sm text-foreground">Library</span>
-        <button onClick={() => setNewFolderMode(true)} className="p-1 hover:bg-secondary rounded text-muted-foreground hover:text-foreground transition-colors">
-           <Plus size={16} />
-        </button>
+    <div 
+      ref={sidebarRef}
+      className={cn("relative h-full shrink-0 group/sidebar bg-gray-50 dark:bg-neutral-950 border-r border-gray-200 dark:border-gray-800", className)}
+      style={{ width: isCollapsed ? 64 : width }}
+    >
+      <div 
+         className={cn(
+             "h-full flex flex-col bg-gray-50 border-r border-gray-200 text-gray-700 dark:bg-neutral-950 dark:border-gray-800 dark:text-gray-300 overflow-hidden",
+             isFloating ? "absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r" : "w-full"
+         )}
+         style={{ width: isFloating ? width : '100%', transition: 'width 0.2s ease-out' }}
+         onMouseEnter={() => {
+             if (isCollapsed) {
+                 hoverTimeoutRef.current = setTimeout(() => {
+                     setIsHovered(true);
+                 }, 300);
+             }
+         }}
+         onMouseLeave={() => {
+             if (hoverTimeoutRef.current) {
+                 clearTimeout(hoverTimeoutRef.current);
+                 hoverTimeoutRef.current = null;
+             }
+             if (isCollapsed) {
+                 setIsHovered(false);
+             }
+         }}
+      >
+      <div className={cn("p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-gray-50/95 border-gray-200 dark:bg-neutral-950/95 dark:border-white/10", effectiveCollapsed ? "justify-center" : "justify-between")}>
+        {!effectiveCollapsed && <span className="font-semibold text-sm tracking-wide font-serif-elegant text-gray-700 dark:text-slate-100 truncate">Zync Notes</span>}
+        
+        <div className="flex items-center gap-1">
+            {!effectiveCollapsed && (
+                <button onClick={() => setNewFolderMode(true)} className="p-1 rounded hover:bg-black/5 text-gray-500 hover:text-black dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white" title="New Folder">
+                    <Plus size={16} />
+                </button>
+            )}
+            <button onClick={toggleCollapse} className="p-1 rounded hover:bg-black/5 text-gray-500 hover:text-black dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white" title={isCollapsed ? "Expand" : "Collapse"}>
+                {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
+            </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-2 scrollbar-hide space-y-1">
         {/* New Folder Input */}
-        {newFolderMode && (
-           <div className="flex items-center px-2 py-1 mb-2 bg-background border border-border rounded-md shadow-sm">
+        {newFolderMode && !effectiveCollapsed && (
+           <div className="flex items-center px-2 py-1 mb-2 rounded-sm shadow-sm border bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-600">
              <input 
                autoFocus
-               className="w-full text-sm outline-none bg-transparent px-1 py-0.5 text-foreground placeholder:text-muted-foreground"
+               className="w-full text-sm outline-none bg-transparent px-1 py-0.5 text-gray-900 placeholder:text-gray-400 dark:text-slate-200 dark:placeholder:text-slate-500"
                value={newFolderName}
                placeholder="Folder Name..."
                onChange={e => setNewFolderName(e.target.value)}
@@ -126,37 +218,64 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
              onCreateNote={() => handleCreateNote(folder._id)}
              onShare={() => handleShareClick(folder)}
              isOwner={folder.ownerId === userId}
+             isCollapsed={effectiveCollapsed}
            />
         ))}
 
         {/* Unorganized Notes */}
         <div className="mt-4">
-          <div className="px-2 text-xs font-bold text-muted-foreground/70 uppercase mb-2 tracking-wider">My Notes</div>
+          {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70">My Notes</div>}
+          {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
+          
           {unorganizedNotes.map(note => (
             <button
               key={note._id}
               onClick={() => onSelectNote(note)}
               className={cn(
-                "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm mb-1 transition-all",
+                "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
+                effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
                 selectedNoteId === note._id 
-                  ? "bg-white dark:bg-zinc-800 shadow-sm ring-1 ring-border/50 text-foreground font-medium" 
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                  ? (effectiveCollapsed 
+                        ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
+                        : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white" )
+                  : (effectiveCollapsed 
+                        ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
+                        : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
               )}
+              title={effectiveCollapsed ? (note.title || "Untitled") : undefined}
             >
-              <FileText size={14} className={cn("mr-2", selectedNoteId === note._id ? "text-primary" : "opacity-70")} />
-              <span className="truncate">{note.title || "Untitled"}</span>
+              <FileText size={16} className={cn(selectedNoteId === note._id ? "text-indigo-600 dark:text-primary" : "opacity-70", effectiveCollapsed ? "" : "mr-2")} />
+              {!effectiveCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
             </button>
           ))}
+          
           <button 
              onClick={() => handleCreateNote()}
-             className="w-full text-left flex items-center px-2 py-1.5 rounded-md text-xs text-muted-foreground/60 hover:text-foreground mt-1 transition-colors group"
+             className={cn(
+                 "w-full flex items-center rounded-md text-xs mt-1 group text-gray-500 hover:text-gray-900 dark:text-muted-foreground/60 dark:hover:text-foreground transition-all",
+                 effectiveCollapsed ? "justify-center py-2 hover:bg-black/5 dark:hover:bg-white/5" : "text-left px-2 py-1.5"
+             )}
+             title="New Note"
           >
-             <Plus size={12} className="mr-2 group-hover:scale-110 transition-transform" /> New Note
+             <Plus size={16} className={cn("group-hover:scale-110 transition-transform", effectiveCollapsed ? "" : "mr-2")} /> 
+             {!effectiveCollapsed && "New Note"}
           </button>
         </div>
       </div>
+      
+      {/* Search/Resize Handle */}
+      {!isCollapsed && (
+        <div 
+           className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-indigo-500/50 hover:w-1.5 transition-all z-20"
+           onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
+        />
+      )}
 
+      </div>
+
+      { /* ... Dialogs ... */ }
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        {/* ... Dialog Content ... (Keep existing) */}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Share Folder</DialogTitle>
@@ -208,57 +327,67 @@ interface FolderItemProps {
     onSelectNote: (note: Note) => void;
     onCreateNote: () => void;
     onShare: () => void;
+    isCollapsed: boolean;
 }
 
-const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare }) => {
+const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare, isCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   return (
     <div className="mb-1 select-none">
       <div 
-        className="flex items-center px-2 py-1.5 text-sm rounded-md cursor-pointer group transition-colors text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+             "flex items-center rounded-md cursor-pointer group text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground transition-all",
+             isCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm"
+        )}
+        onClick={() => !isCollapsed && setIsOpen(!isOpen)}
+        title={isCollapsed ? folder.name : undefined}
       >
-        <span className="mr-1 opacity-70">
-            {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-        </span>
-        <FolderIcon size={14} className={cn("mr-2 transition-colors", folder.collaborators?.length ? "text-blue-500" : "text-muted-foreground group-hover:text-primary")} />
-        <span className="font-medium flex-1 truncate">{folder.name}</span>
+        {!isCollapsed && (
+            <span className="mr-1 opacity-70">
+                {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+            </span>
+        )}
+        <FolderIcon size={isCollapsed ? 18 : 14} className={cn("transition-colors", isCollapsed ? "" : "mr-2", folder.collaborators?.length ? "text-blue-500" : "text-gray-400 group-hover:text-indigo-600 dark:text-muted-foreground dark:group-hover:text-primary")} />
         
-        <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-           {isOwner && (
-            <button 
-                onClick={(e) => { e.stopPropagation(); onShare(); }}
-                className="p-1 mr-1 hover:bg-background rounded text-muted-foreground hover:text-blue-500 transition-all shadow-sm"
-                title="Share folder"
-            >
-                <Share2 size={12} />
-            </button>
-           )}
-           <button 
-            onClick={(e) => { e.stopPropagation(); onCreateNote(); setIsOpen(true); }}
-            className="p-1 hover:bg-background rounded text-muted-foreground hover:text-primary transition-all shadow-sm"
-            title="New note"
-           >
-            <Plus size={12} />
-           </button>
-        </div>
+        {!isCollapsed && <span className="font-medium flex-1 truncate">{folder.name}</span>}
+        
+        {!isCollapsed && (
+            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+               {isOwner && (
+                <button 
+                    onClick={(e) => { e.stopPropagation(); onShare(); }}
+                    className="p-1 mr-1 hover:bg-background rounded text-muted-foreground hover:text-blue-500 shadow-sm"
+                    title="Share folder"
+                >
+                    <Share2 size={12} />
+                </button>
+               )}
+               <button 
+                onClick={(e) => { e.stopPropagation(); onCreateNote(); setIsOpen(true); }}
+                className="p-1 hover:bg-background rounded text-muted-foreground hover:text-primary shadow-sm"
+                title="New note"
+               >
+                <Plus size={12} />
+               </button>
+            </div>
+        )}
       </div>
       
-      {isOpen && (
+      {isOpen && !isCollapsed && (
         <div className="ml-4 pl-3 border-l border-border/40 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
           {notes.map((note) => (
             <button
               key={note._id}
               onClick={() => onSelectNote(note)}
               className={cn(
-                "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm transition-all",
+                "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm border-l-2",
                 selectedNoteId === note._id 
-                  ? "bg-white dark:bg-zinc-800 shadow-sm ring-1 ring-border/50 text-foreground font-medium" 
-                  : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                  ? "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-primary/10 dark:border-primary dark:text-primary dark:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)]" 
+                  : "border-transparent text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground"
               )}
             >
-              <FileText size={14} className={cn("mr-2", selectedNoteId === note._id ? "text-primary" : "opacity-70")} />
+              <FileText size={14} className={cn("mr-2", selectedNoteId === note._id ? "text-indigo-600 dark:text-primary" : "opacity-70")} />
               <span className="truncate">{note.title || "Untitled"}</span>
             </button>
           ))}

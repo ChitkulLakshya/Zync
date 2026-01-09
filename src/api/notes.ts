@@ -18,6 +18,7 @@ export interface Note {
   content: any;
   ownerId: string;
   folderId: string | null;
+  createdAt?: string;
   updatedAt: string;
   isPinned?: boolean;
 }

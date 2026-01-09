@@ -868,7 +868,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         <div className="p-4 border-t border-border/50">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md transition-colors">
+              <div className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md">
                 <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
                   {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
                 </div>
