@@ -130,7 +130,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/chitkul-lakshya/VS/Zync/backend/prisma/generated/client",
+      "value": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -144,7 +144,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/chitkul-lakshya/VS/Zync/backend/prisma/schema.prisma",
+    "sourceFilePath": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

@@ -35,7 +35,7 @@ import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { auth, rtdb, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import { 
   DropdownMenu,
@@ -45,7 +45,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
+// import { ref, onValue, onDisconnect, set, serverTimestamp as rtdbServerTimestamp } from "firebase/database";
 import { collection, query, where, onSnapshot, updateDoc, serverTimestamp } from "firebase/firestore";
 import ChatView from "./ChatView";
 import SettingsView from "./SettingsView";
@@ -238,47 +238,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   };
 
-  // Presence Logic
+  // Presence Logic (RTDB Removed)
+  /*
   useEffect(() => {
-    if (currentUser && !isPreview) {
-      const userStatusDatabaseRef = ref(rtdb, '/status/' + currentUser.uid);
-      const isOfflineForDatabase = {
-        state: 'offline',
-        last_changed: rtdbServerTimestamp(),
-      };
-      const isOnlineForDatabase = {
-        state: 'online',
-        last_changed: rtdbServerTimestamp(),
-      };
+    // RTDB Logic Removed
+  }, []);
+  */
 
-      const connectedRef = ref(rtdb, '.info/connected');
-      const unsubscribe = onValue(connectedRef, (snapshot) => {
-        if (snapshot.val() === false) {
-          return;
-        }
-        onDisconnect(userStatusDatabaseRef).set(isOfflineForDatabase).then(() => {
-          set(userStatusDatabaseRef, isOnlineForDatabase);
-        });
-      });
-
-      return () => {
-        unsubscribe();
-        set(userStatusDatabaseRef, isOfflineForDatabase);
-        onDisconnect(userStatusDatabaseRef).cancel();
-      };
-    }
-  }, [currentUser, isPreview]);
-
-  // Listen for all users' status
+  // Listen for all users' status (RTDB Removed)
+  /*
   useEffect(() => {
-    if (!isPreview) {
-      const allStatusRef = ref(rtdb, '/status');
-      const unsubscribe = onValue(allStatusRef, (snapshot) => {
-        setUserStatuses(snapshot.val() || {});
-      });
-      return () => unsubscribe();
-    }
-  }, [isPreview]);
+    // RTDB Logic Removed
+  }, []);
+  */
 
   // Global Message Delivery Listener
   useEffect(() => {
