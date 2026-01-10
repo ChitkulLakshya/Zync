@@ -3,10 +3,25 @@ const admin = require('firebase-admin');
 // Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
   try {
-    // Attempt to initialize with default credentials or service account
-    // For local dev, ensure GOOGLE_APPLICATION_CREDENTIALS is set
-    // or provide serviceAccountKey.json
-    admin.initializeApp();
+    // Attempt to initialize using GCP_SERVICE_ACCOUNT_KEY env var if present
+    if (process.env.GCP_SERVICE_ACCOUNT_KEY) {
+      // Handle potential string formatting issues from .env
+      let serviceAccount = process.env.GCP_SERVICE_ACCOUNT_KEY;
+      if (typeof serviceAccount === 'string') {
+        try {
+           serviceAccount = JSON.parse(serviceAccount);
+        } catch (e) {
+           console.error("Failed to parse GCP_SERVICE_ACCOUNT_KEY JSON", e);
+        }
+      }
+      
+      admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+      });
+    } else {
+      // Fallback to default credentials (file path or auto-discovery)
+      admin.initializeApp();
+    }
   } catch (error) {
     console.warn("Firebase Admin failed to initialize:", error.message);
   }

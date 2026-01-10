@@ -26,6 +26,7 @@ const AppContent = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/projects" element={<Dashboard />} />
             <Route path="/new-project" element={<NewProject />} />
             <Route path="/projects/:id" element={<ProjectDetails />} />
             <Route path="/design" element={<Design />} />

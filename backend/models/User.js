@@ -39,6 +39,7 @@ const userSchema = new mongoose.Schema({
       connected: { type: Boolean, default: false },
       username: String,
       accessToken: String,
+      id: Number, // GitHub User ID
       installationId: String, // App Installation ID
       encryptedAppId: String, // Encrypted App ID
       encryptedPrivateKey: String // Encrypted Private Key

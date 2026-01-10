@@ -25,6 +25,7 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.6.0",
     "groq-sdk": "^0.37.0",
+    "helmet": "^8.1.0",
     "mongoose": "^9.1.1",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.12",

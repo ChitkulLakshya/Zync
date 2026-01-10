@@ -21,7 +21,8 @@ import {
   Circle,
   Loader2,
   LogOut,
-  Trash2
+  Trash2,
+  Github
 } from "lucide-react";
 import { NotesView } from "@/components/notes/NotesView";
 import Workspace from "@/components/workspace/Workspace";
@@ -31,7 +32,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -50,6 +51,7 @@ import { collection, query, where, onSnapshot, updateDoc, serverTimestamp } from
 import ChatView from "./ChatView";
 import SettingsView from "./SettingsView";
 import DesignView from "./DesignView";
+import MyProjectsView from "./MyProjectsView"; // Import new view
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
@@ -65,7 +67,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const { toast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation(); // Get current URL location
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // Sync active section with URL path for /dashboard/projects
+  useEffect(() => {
+    if (location.pathname === '/dashboard/projects') {
+      setActiveSection("My Projects");
+    }
+  }, [location.pathname]);
+
   const [loading, setLoading] = useState(true);
   const [usersList, setUsersList] = useState<any[]>([]);
   const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
@@ -148,7 +159,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     const heartbeatInterval = setInterval(async () => {
       if (sessionId) {
         try {
-          await fetch(`${API_BASE_URL}/api/sessions/${sessionId}`, { method: 'PUT' });
+          const response = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}`, { method: 'PUT' });
+          
+          // Self-healing: If session is not found (404), it means server restarted or session invalid.
+          if (response.status === 404) {
+            console.warn("Session expired or server restarted, resetting session...");
+            localStorage.removeItem("currentSession");
+            setSessionId(null);
+            // Reload to trigger fresh session creation
+            window.location.reload();
+          }
         } catch (error) {
           console.error("Heartbeat failed", error);
         }
@@ -393,7 +413,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       { label: "Schedule" },
     ]},
     { icon: Star, label: "Design", active: activeSection === "Design" },
-    { icon: FolderOpen, label: "My Projects", active: activeSection === "My Projects" },
+    { icon: Github, label: "My Projects", active: activeSection === "My Projects" },
     { icon: CheckSquare, label: "Tasks", active: activeSection === "Tasks" },
     { icon: FileText, label: "Notes", active: activeSection === "Notes" },
     { icon: FolderOpen, label: "Files", active: activeSection === "Files" },
@@ -446,6 +466,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             currentUser={currentUser}
           />
         );
+
+      case "My Projects":
+          return <MyProjectsView currentUser={currentUser} />;
         
       case "Chat":
         return (
@@ -843,7 +866,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 <Button
                   variant={item.active ? "secondary" : "ghost"}
                   className={`w-full justify-start gap-3 ${item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  onClick={() => setActiveSection(item.label)}
+                  onClick={() => {
+                    if (item.label === "My Projects") {
+                      navigate('/dashboard/projects');
+                    } else {
+                      if (location.pathname === '/dashboard/projects') {
+                        navigate('/dashboard');
+                      }
+                      setActiveSection(item.label);
+                    }
+                  }}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
