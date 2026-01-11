@@ -14,28 +14,30 @@ import ProjectDetails from "./pages/ProjectDetails";
 import Design from "./pages/Design";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { useActivityTracker } from "./hooks/use-activity-tracker";
+import { useChatNotifications } from "./hooks/use-chat-notifications";
+import { useUserSync } from "./hooks/use-user-sync";
 
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-    useActivityTracker(); // Apply activity tracking globally
-    return (
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/dashboard/projects" element={<Dashboard />} />
-            <Route path="/new-project" element={<NewProject />} />
-            <Route path="/projects/:id" element={<ProjectDetails />} />
-            <Route path="/design" element={<Design />} />
-            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-    );
+  useActivityTracker(); // Apply activity tracking globally
+  useChatNotifications(); // Apply chat notifications globally
+  useUserSync(); // Sync user data (names) globally
+  return (
+    <Routes>
+      <Route path="/" element={<Index />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="/signup" element={<Signup />} />
+      <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard/projects" element={<Dashboard />} />
+      <Route path="/new-project" element={<NewProject />} />
+      <Route path="/projects/:id" element={<ProjectDetails />} />
+      <Route path="/design" element={<Design />} />
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
 };
 
 const App = () => (
@@ -44,7 +46,9 @@ const App = () => (
       <TooltipProvider>
         <Toaster />
         <Sonner />
-        <AppContent />
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
       </TooltipProvider>
     </ThemeProvider>
   </QueryClientProvider>
