@@ -48,7 +48,7 @@ interface Project {
 }
 
 interface Task {
-  _id: string; 
+  _id: string;
   id: string;
   title: string;
   description: string;
@@ -64,7 +64,7 @@ interface Task {
 }
 
 interface Step {
-  _id: string; 
+  _id: string;
   id: string;
   title: string;
   description: string;
@@ -77,31 +77,31 @@ interface Step {
 
 // Mock users for assignment - In real app, fetch from API
 const MOCK_USERS = [
-    { uid: "admin1", name: "Admin User", email: "admin@zync.com" },
-    { uid: "dev1", name: "Frontend Dev", email: "frontend@zync.com" },
-    { uid: "dev2", name: "Backend Dev", email: "backend@zync.com" },
-    { uid: auth.currentUser?.uid || "current", name: auth.currentUser?.displayName || "You", email: auth.currentUser?.email },
-].filter((v,i,a)=>a.findIndex(t=>(t.uid===v.uid))===i);
+  { uid: "admin1", name: "Admin User", email: "admin@zync.com" },
+  { uid: "dev1", name: "Frontend Dev", email: "frontend@zync.com" },
+  { uid: "dev2", name: "Backend Dev", email: "backend@zync.com" },
+  { uid: auth.currentUser?.uid || "current", name: auth.currentUser?.displayName || "You", email: auth.currentUser?.email },
+].filter((v, i, a) => a.findIndex(t => (t.uid === v.uid)) === i);
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(true); 
+  const [isAdmin, setIsAdmin] = useState(true);
 
   const fetchProject = async () => {
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/projects/${id}`);
-        if (!response.ok) throw new Error("Project not found");
-        const data = await response.json();
-        setProject(data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${id}`);
+      if (!response.ok) throw new Error("Project not found");
+      const data = await response.json();
+      setProject(data);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (id) fetchProject();
@@ -118,7 +118,7 @@ const ProjectDetails = () => {
     socket.on('taskUpdated', (data) => {
       console.log('Task Updated Event:', data);
       toast.success(`Task ${data.taskId} completed via commit!`);
-      
+
       setProject((prevProject) => {
         if (!prevProject) return null;
 
@@ -126,9 +126,9 @@ const ProjectDetails = () => {
           const newTasks = step.tasks.map(task => {
             // Check against both id (display ID) and _id (database ID)
             if (task.id === data.taskId || task._id === data.taskId) {
-              return { 
-                ...task, 
-                status: data.status 
+              return {
+                ...task,
+                status: data.status
               } as Task;
             }
             return task;
@@ -146,36 +146,36 @@ const ProjectDetails = () => {
   }, []);
 
   const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
-      if (!project) return;
-      
-      const newProject = { ...project };
-      const step = newProject.steps.find(s => s._id === stepId || s.id === stepId);
-      if (step) {
-          const task = step.tasks.find(t => t._id === taskId || t.id === taskId);
-          if (task) {
-              Object.assign(task, updates);
-              setProject(newProject);
-          }
+    if (!project) return;
+
+    const newProject = { ...project };
+    const step = newProject.steps.find(s => s._id === stepId || s.id === stepId);
+    if (step) {
+      const task = step.tasks.find(t => t._id === taskId || t.id === taskId);
+      if (task) {
+        Object.assign(task, updates);
+        setProject(newProject);
       }
+    }
 
-      try {
-          const realStepId = step?._id;
-          const realTaskId = step?.tasks.find(t => t.id === taskId || t._id === taskId)?._id; 
+    try {
+      const realStepId = step?._id;
+      const realTaskId = step?.tasks.find(t => t.id === taskId || t._id === taskId)?._id;
 
-          if(!realStepId || !realTaskId) return;
+      if (!realStepId || !realTaskId) return;
 
-          await fetch(`${API_BASE_URL}/api/projects/${project._id}/steps/${realStepId}/tasks/${realTaskId}`, {
-              method: 'PUT',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                  ...updates,
-                  assignedBy: auth.currentUser?.displayName || 'Admin'
-              })
-          });
-      } catch (error) {
-          console.error("Failed to update task", error);
-          fetchProject();
-      }
+      await fetch(`${API_BASE_URL}/api/projects/${project._id}/steps/${realStepId}/tasks/${realTaskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...updates,
+          assignedBy: auth.currentUser?.displayName || 'Admin'
+        })
+      });
+    } catch (error) {
+      console.error("Failed to update task", error);
+      fetchProject();
+    }
   };
 
   if (loading) {
@@ -210,8 +210,8 @@ const ProjectDetails = () => {
         </div>
       </header>
 
-      <main className="flex-1 p-6 overflow-hidden">
-        <Tabs defaultValue="architecture" className="h-full flex flex-col">
+      <main className="flex-1 p-6">
+        <Tabs defaultValue="architecture" className="flex flex-col">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 mb-6">
             <TabsTrigger value="architecture" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
               Architecture
@@ -227,7 +227,7 @@ const ProjectDetails = () => {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="architecture" className="flex-1 overflow-auto">
+          <TabsContent value="architecture" className="flex-1">
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
               {/* High Level */}
               <Card className="col-span-full">
@@ -339,117 +339,116 @@ const ProjectDetails = () => {
             </div>
           </TabsContent>
 
-          <TabsContent value="board" className="flex-1 overflow-auto h-full p-4">
-             <KanbanBoard 
-                steps={project.steps} 
-                onUpdateTask={handleTaskUpdate} 
-                users={MOCK_USERS}
-             />
+          <TabsContent value="board" className="flex-1 p-4">
+            <KanbanBoard
+              steps={project.steps}
+              onUpdateTask={handleTaskUpdate}
+              users={MOCK_USERS}
+            />
           </TabsContent>
 
-          <TabsContent value="steps" className="flex-1 overflow-auto">
-             <Card className="h-full">
-                 <CardHeader>
-                     <CardTitle>Development Plan</CardTitle>
-                     <CardDescription>Step-by-step implementation guide</CardDescription>
-                 </CardHeader>
-                 <CardContent>
-                     <div className="space-y-6">
-                         {project.steps.map((step, index) => (
-                             <div key={step.id || index} className="border rounded-lg p-4 bg-card/50">
-                                 <div className="flex items-center justify-between mb-4">
-                                     <div className="flex items-center gap-2">
-                                         <Badge variant="outline" className="bg-background">{index + 1}</Badge>
-                                         <h3 className="font-semibold">{step.title}</h3>
-                                     </div>
-                                     <Badge variant="secondary">{step.type}</Badge>
-                                 </div>
-                                 <p className="text-sm text-muted-foreground mb-4">{step.description}</p>
-                                 
-                                 <div className="space-y-3 pl-4 border-l-2 border-muted ml-2">
-                                     {step.tasks && step.tasks.map((task) => (
-                                         <div key={task.id || task._id} className="flex items-start gap-3 group">
-                                             <Checkbox 
-                                                id={task.id} 
-                                                checked={task.status === "Completed"}
-                                                onCheckedChange={(checked) => handleTaskUpdate(step._id, task._id, { status: checked ? "Completed" : "Pending" })}
-                                                disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
-                                             />
-                                             <div className="flex-1 space-y-1">
-                                                <div className="flex items-center justify-between">
-                                                     <label
-                                                         htmlFor={task.id}
-                                                         className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === "Completed" ? "line-through text-muted-foreground" : ""}`}
-                                                     >
-                                                         {task.title}
-                                                     </label>
-                                                </div>
-                                                 <p className="text-xs text-muted-foreground">{task.description}</p>
-                                                 
-                                                 {task.commitInfo && (
-                                                     <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
-                                                         <GitCommit className="w-3 h-3 text-primary" />
-                                                         <span className="font-mono text-primary truncate max-w-[200px]">{task.commitInfo.message}</span>
-                                                         <span className="text-muted-foreground">- {task.commitInfo.author}</span>
-                                                         {task.commitInfo.url && (
-                                                            <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-primary">
-                                                                <ExternalLink className="w-3 h-3" />
-                                                            </a>
-                                                         )}
-                                                     </div>
-                                                 )}
+          <TabsContent value="steps" className="flex-1">
+            <Card className="h-full">
+              <CardHeader>
+                <CardTitle>Development Plan</CardTitle>
+                <CardDescription>Step-by-step implementation guide</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {project.steps.map((step, index) => (
+                    <div key={step.id || index} className="border rounded-lg p-4 bg-card/50">
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="bg-background">{index + 1}</Badge>
+                          <h3 className="font-semibold">{step.title}</h3>
+                        </div>
+                        <Badge variant="secondary">{step.type}</Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-4">{step.description}</p>
 
-                                                 <div className="flex items-center gap-4 mt-2">
-                                                     {/* Assignment Dropdown */}
-                                                     <Select 
-                                                        value={task.assignedTo || "unassigned"} 
-                                                        onValueChange={(val) => handleTaskUpdate(step._id, task._id, { 
-                                                            assignedTo: val === "unassigned" ? null : val,
-                                                            assignedToName: val === "unassigned" ? null : MOCK_USERS.find(u => u.uid === val)?.name
-                                                        })}
-                                                        disabled={!isAdmin}
-                                                     >
-                                                        <SelectTrigger className="w-[140px] h-7 text-xs">
-                                                            <SelectValue placeholder="Assignee" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="unassigned">Unassigned</SelectItem>
-                                                            {MOCK_USERS.map(user => (
-                                                                <SelectItem key={user.uid} value={user.uid}>{user.name}</SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                     </Select>
-                                                     
-                                                     {/* Status Dropdown */}
-                                                     <Select 
-                                                        value={task.status} 
-                                                        onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
-                                                     >
-                                                        <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${
-                                                            task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' : 
-                                                            task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
-                                                        }`}>
-                                                            <SelectValue />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            <SelectItem value="Pending">Pending</SelectItem>
-                                                            <SelectItem value="In Progress">In Progress</SelectItem>
-                                                            <SelectItem value="Completed">Completed</SelectItem>
-                                                        </SelectContent>
-                                                     </Select>
-                                                 </div>
-                                             </div>
-                                         </div>
-                                     ))}
-                                     {(!step.tasks || step.tasks.length === 0) && (
-                                         <div className="text-sm text-muted-foreground italic">No specific tasks generated for this step.</div>
-                                     )}
-                                 </div>
-                             </div>
-                         ))}
-                     </div>
-                 </CardContent>
-             </Card>
+                      <div className="space-y-3 pl-4 border-l-2 border-muted ml-2">
+                        {step.tasks && step.tasks.map((task) => (
+                          <div key={task.id || task._id} className="flex items-start gap-3 group">
+                            <Checkbox
+                              id={task.id}
+                              checked={task.status === "Completed"}
+                              onCheckedChange={(checked) => handleTaskUpdate(step._id, task._id, { status: checked ? "Completed" : "Pending" })}
+                              disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
+                            />
+                            <div className="flex-1 space-y-1">
+                              <div className="flex items-center justify-between">
+                                <label
+                                  htmlFor={task.id}
+                                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === "Completed" ? "line-through text-muted-foreground" : ""}`}
+                                >
+                                  {task.title}
+                                </label>
+                              </div>
+                              <p className="text-xs text-muted-foreground">{task.description}</p>
+
+                              {task.commitInfo && (
+                                <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
+                                  <GitCommit className="w-3 h-3 text-primary" />
+                                  <span className="font-mono text-primary truncate max-w-[200px]">{task.commitInfo.message}</span>
+                                  <span className="text-muted-foreground">- {task.commitInfo.author}</span>
+                                  {task.commitInfo.url && (
+                                    <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-primary">
+                                      <ExternalLink className="w-3 h-3" />
+                                    </a>
+                                  )}
+                                </div>
+                              )}
+
+                              <div className="flex items-center gap-4 mt-2">
+                                {/* Assignment Dropdown */}
+                                <Select
+                                  value={task.assignedTo || "unassigned"}
+                                  onValueChange={(val) => handleTaskUpdate(step._id, task._id, {
+                                    assignedTo: val === "unassigned" ? null : val,
+                                    assignedToName: val === "unassigned" ? null : MOCK_USERS.find(u => u.uid === val)?.name
+                                  })}
+                                  disabled={!isAdmin}
+                                >
+                                  <SelectTrigger className="w-[140px] h-7 text-xs">
+                                    <SelectValue placeholder="Assignee" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                                    {MOCK_USERS.map(user => (
+                                      <SelectItem key={user.uid} value={user.uid}>{user.name}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+
+                                {/* Status Dropdown */}
+                                <Select
+                                  value={task.status}
+                                  onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
+                                >
+                                  <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
+                                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                                    }`}>
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Pending">Pending</SelectItem>
+                                    <SelectItem value="In Progress">In Progress</SelectItem>
+                                    <SelectItem value="Completed">Completed</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                        {(!step.tasks || step.tasks.length === 0) && (
+                          <div className="text-sm text-muted-foreground italic">No specific tasks generated for this step.</div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="team">
