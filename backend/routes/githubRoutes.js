@@ -1,190 +1,114 @@
 const express = require('express');
 const router = express.Router();
-const verifyToken = require('../middleware/authMiddleware');
+const verifyToken = require('../middleware/authMiddleware'); // Your Firebase Auth middleware
 const User = require('../models/User');
-const { encrypt } = require('../utils/encryption');
-const { getUserInstallationId, getInstallationRepositories, checkGithubConfig } = require('../utils/githubService');
 const axios = require('axios');
+const CryptoJS = require("crypto-js"); // Make sure to npm install crypto-js
 
-// POST /api/github/callback - Exchange OAuth code for access token
-router.post('/callback', verifyToken, async (req, res) => {
-  const { code } = req.body;
-  const userId = req.user.uid;
+// Helper to encrypt tokens
+const encryptToken = (token) => {
+  return CryptoJS.AES.encrypt(token, process.env.ENCRYPTION_KEY).toString();
+};
 
-  if (!code) {
-    return res.status(400).json({ message: 'Authorization code is required' });
+// Helper to decrypt tokens (for use in /repos)
+const decryptToken = (ciphertext) => {
+  const bytes = CryptoJS.AES.decrypt(ciphertext, process.env.ENCRYPTION_KEY);
+  return bytes.toString(CryptoJS.enc.Utf8);
+};
+
+// 1. CONNECT ROUTE (Matches your Firebase Frontend)
+// POST /api/github/connect
+router.post('/connect', verifyToken, async (req, res) => {
+  const { accessToken, username } = req.body; // Receive token directly
+  const userId = req.user.uid; // Extracted from verifyToken middleware
+
+  if (!accessToken) {
+    return res.status(400).json({ message: 'Access Token is required' });
   }
 
   try {
-    // Exchange code for access token
-    const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
-      client_id: process.env.VITE_GITHUB_CLIENT_ID,
-      client_secret: process.env.VITE_GITHUB_CLIENT_SECRET,
-      code,
-    }, {
-      headers: { Accept: 'application/json' }
-    });
-
-    const { access_token, error, error_description } = tokenResponse.data;
-
-    if (error || !access_token) {
-      console.error('GitHub Token Error:', error, error_description);
-      return res.status(400).json({ message: 'Failed to authenticate with GitHub', details: error_description });
+    // Optional: Verify the token is valid by fetching the user profile from GitHub
+    // This ensures we don't save a garbage token
+    let githubUsername = username;
+    if (!githubUsername) {
+      const userResponse = await axios.get('https://api.github.com/user', {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      });
+      githubUsername = userResponse.data.login;
     }
 
-    // Fetch GitHub User Profile
-    const userResponse = await axios.get('https://api.github.com/user', {
-      headers: { Authorization: `Bearer ${access_token}` }
-    });
-    const githubUser = userResponse.data;
+    // Encrypt the token before saving
+    const encryptedToken = encryptToken(accessToken);
 
     // Update User in MongoDB
-    // Ensure we update strictly defined fields
     await User.findOneAndUpdate(
-      { uid: userId },
+      { uid: userId }, // Find by Firebase UID
       {
         $set: {
           'integrations.github.connected': true,
-          'integrations.github.accessToken': access_token,
-          'integrations.github.username': githubUser.login,
-          'integrations.github.id': githubUser.id,
+          'integrations.github.accessToken': encryptedToken, // Save Encrypted!
+          'integrations.github.username': githubUsername,
+          'integrations.github.connectedAt': new Date()
         }
-      }
+      },
+      { new: true, upsert: true }
     );
 
-    res.json({ message: 'GitHub connected successfully', username: githubUser.login });
+    res.json({ message: 'GitHub connected successfully', username: githubUsername });
 
   } catch (error) {
-    console.error('GitHub Callback Exception:', error.response?.data || error.message);
-    res.status(500).json({ message: 'Internal Server Error during GitHub connection' });
+    console.error('GitHub Connect Error:', error.message);
+    res.status(500).json({ message: 'Failed to connect GitHub account' });
   }
 });
 
-// POST /api/github/settings - Save GitHub App Credentials
-router.post('/settings', verifyToken, async (req, res) => {
-  const { appId, privateKey } = req.body;
-  const userId = req.user.uid;
-
-  if (!appId || !privateKey) {
-    return res.status(400).json({ message: 'App ID and Private Key are required' });
-  }
-
-  try {
-    const encryptedAppId = encrypt(appId);
-    const encryptedPrivateKey = encrypt(privateKey);
-
-    await User.findOneAndUpdate(
-      { uid: userId },
-      {
-        $set: {
-          'integrations.github.encryptedAppId': encryptedAppId,
-          'integrations.github.encryptedPrivateKey': encryptedPrivateKey
-        }
-      }
-    );
-
-    res.json({ message: 'GitHub settings saved successfully' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Server error saving settings' });
-  }
-});
-
-// GET /api/github/settings - Check if configured
-router.get('/settings', verifyToken, async (req, res) => {
-  try {
-    const userId = req.user.uid;
-    const user = await User.findOne({ uid: userId });
-    
-    // Check if both fields exist
-    const isConfigured = !!(user?.integrations?.github?.encryptedAppId && user?.integrations?.github?.encryptedPrivateKey);
-    
-    res.json({ configured: isConfigured });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// GET /api/github/repos - Fetch repos for current user
+// 2. GET REPOS ROUTE
+// GET /api/github/repos
 router.get('/repos', verifyToken, async (req, res) => {
   try {
     const userId = req.user.uid;
     const user = await User.findOne({ uid: userId });
 
-    // Method 1: OAuth Access Token (Priority)
-    if (user?.integrations?.github?.accessToken) {
-        try {
-            const reposResponse = await axios.get('https://api.github.com/user/repos', {
-                params: {
-                    sort: 'updated',
-                    per_page: 20,
-                    affiliation: 'owner,collaborator'
-                },
-                headers: { 
-                    Authorization: `Bearer ${user.integrations.github.accessToken}`,
-                    Accept: 'application/vnd.github.v3+json'
-                }
-            });
-            return res.json({ repos: reposResponse.data, connected: true, method: 'oauth' });
-        } catch (error) {
-            console.error('Error fetching repos with access token:', error.response?.data || error.message);
-            // If 401, token might be expired. Continue to other methods or return error.
-            if (error.response?.status === 401) {
-                // Optionally mark disconnected
-            }
-        }
-    }
-
-    // Method 2: Legacy/Manual App Configuration
-    // Ensure user has configured their app first
-    const isConfigured = await checkGithubConfig(userId);
-    if (!isConfigured) {
-       return res.status(400).json({ 
-         message: 'GitHub not connected. Please connect your account.',
-         configured: false
-       });
-    }
-
-    const installationId = await getUserInstallationId(userId);
-
-    if (!installationId) {
+    if (!user || !user.integrations?.github?.accessToken) {
       return res.status(400).json({ 
-        message: 'GitHub App not installed. Please install your Zync GitHub App.',
+        message: 'GitHub not connected', 
         connected: false 
       });
     }
 
-    const repos = await getInstallationRepositories(userId, installationId); // Pass userId to decrypt keys
-    res.json({ repos, connected: true, method: 'app' });
+    // Decrypt the token
+    const decryptedToken = decryptToken(user.integrations.github.accessToken);
+
+    // Fetch Repos from GitHub
+    const reposResponse = await axios.get('https://api.github.com/user/repos', {
+      params: {
+        sort: 'updated',
+        per_page: 20,
+        visibility: 'all', // Get private and public
+        affiliation: 'owner,collaborator'
+      },
+      headers: { 
+        Authorization: `Bearer ${decryptedToken}`,
+        Accept: 'application/vnd.github.v3+json'
+      }
+    });
+
+    res.json({ 
+      repos: reposResponse.data, 
+      connected: true, 
+      username: user.integrations.github.username 
+    });
 
   } catch (error) {
-    console.error('Error fetching repos:', error);
+    console.error('Error fetching repos:', error.message);
+    
+    // Handle Token Expiry (401)
+    if (error.response?.status === 401) {
+      return res.status(401).json({ message: 'GitHub token expired. Please reconnect.', connected: false });
+    }
+
     res.status(500).json({ message: 'Failed to fetch repositories' });
   }
 });
 
-// POST /api/github/save-installation - Save installation ID after App callback
-router.post('/save-installation', verifyToken, async (req, res) => {
-  const { installationId } = req.body;
-  const userId = req.user.uid;
-
-  if (!installationId) return res.status(400).json({ message: 'Installation ID required' });
-
-  try {
-    await User.findOneAndUpdate(
-      { uid: userId },
-      { 
-        $set: { 
-          'integrations.github.connected': true,
-          'integrations.github.installationId': installationId.toString()
-        } 
-      }
-    );
-    res.json({ message: 'GitHub connected successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
 module.exports = router;
-

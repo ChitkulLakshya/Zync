@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const { encrypt } = require('../utils/encryption');
 const { sendEmail } = require('../utils/emailService');
 
 // Helper to send email
@@ -60,6 +61,44 @@ router.post('/sync', async (req, res) => {
   } catch (error) {
     console.error('Error syncing user:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Link GitHub Account
+router.post('/sync-github', verifyToken, async (req, res) => {
+  const { accessToken, username, firebaseUid } = req.body;
+  // Use uid from token if available, else from body (for your bypassed auth setup)
+  const uid = req.user?.uid || firebaseUid;
+
+  if (!accessToken) {
+    return res.status(400).json({ message: 'GitHub Access Token is required' });
+  }
+
+  try {
+    const encryptedToken = encrypt(accessToken);
+    
+    // Update user with encrypted token and mark GitHub as connected
+    const user = await User.findOneAndUpdate(
+      { uid }, 
+      {
+        $set: {
+          'integrations.github.connected': true,
+          'integrations.github.accessToken': encryptedToken,
+          'integrations.github.username': username
+        }
+      },
+      { new: true }
+    );
+
+    if (!user) {
+         // Fallback if findOneAndUpdate fails to find user (shouldn't happen if synced)
+         return res.status(404).json({ message: 'User not found in database. Please refresh.' });
+    }
+
+    res.json({ message: 'GitHub account linked successfully', user });
+  } catch (error) {
+    console.error('Error syncing GitHub data:', error);
+    res.status(500).json({ message: 'Server error updating GitHub integration' });
   }
 });
 
