@@ -1,31 +1,35 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-  uid: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  email: {
-    type: String,
-    required: true,
-  },
-  displayName: {
-    type: String,
-  },
+  uid: { type: String, required: true, unique: true }, // Firebase UID
+  email: { type: String, required: true },
   firstName: String,
   lastName: String,
   username: String,
   country: String,
   countryCode: String,
-  birthday: Date,
   phoneNumber: String,
-  isPhoneVerified: {
-    type: Boolean,
-    default: false
+  birthday: Date,
+  isPhoneVerified: { type: Boolean, default: false },
+  
+  // Integration Fields
+  integrations: {
+    github: {
+      connected: { type: Boolean, default: false },
+      accessToken: { type: String }, // Will be stored Encrypted
+      username: { type: String },
+      id: { type: Number }, // GitHub User ID
+      connectedAt: { type: Date }
+    },
+    google: {
+      connected: { type: Boolean, default: false },
+      email: String
+    }
   },
-  phoneVerificationCode: String,
-  phoneVerificationCodeExpires: Date,
+  
+  photoURL: { type: String },
+  status: { type: String, default: 'offline' },
+  lastSeen: { type: Date, default: Date.now },
   preferences: {
     theme: { type: String, default: 'system' },
     notifications: {
@@ -33,31 +37,6 @@ const userSchema = new mongoose.Schema({
       inApp: { type: Boolean, default: true }
     },
     language: { type: String, default: 'en' }
-  },
-  integrations: {
-    github: {
-      connected: { type: Boolean, default: false },
-      username: String,
-      accessToken: String,
-      id: Number, // GitHub User ID
-      installationId: String, // App Installation ID
-      encryptedAppId: String, // Encrypted App ID
-      encryptedPrivateKey: String // Encrypted Private Key
-    },
-    google: {
-      connected: { type: Boolean, default: false }
-    }
-  },
-  photoURL: {
-    type: String,
-  },
-  status: {
-    type: String,
-    default: 'offline', // online, offline, away
-  },
-  lastSeen: {
-    type: Date,
-    default: Date.now,
   }
 }, { timestamps: true });
 
