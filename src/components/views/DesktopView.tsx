@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
 import { API_BASE_URL } from "@/lib/utils";
-import { 
-  Search, 
-  Bell, 
-  Plus, 
-  ChevronDown, 
-  Home, 
-  FolderKanban, 
-  Calendar, 
-  CheckSquare, 
-  FileText, 
-  FolderOpen, 
-  Clock, 
-  Users, 
+import {
+  Search,
+  Bell,
+  Plus,
+  ChevronDown,
+  Home,
+  FolderKanban,
+  Calendar,
+  CheckSquare,
+  FileText,
+  FolderOpen,
+  Clock,
+  Users,
   Settings,
   MoreHorizontal,
   Star,
@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -58,12 +58,28 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     if (isPreview) return "My Workspace";
     return localStorage.getItem("zync-active-section") || "My Workspace";
   });
-  
+
   useEffect(() => {
     if (!isPreview) {
       localStorage.setItem("zync-active-section", activeSection);
     }
   }, [activeSection, isPreview]);
+
+  useEffect(() => {
+    const handleOpenChat = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      setActiveSection("Chat");
+      if (customEvent.detail) {
+        // logic to look up full user if needed, or use the partial data
+        // For now, we use the partial data which is enough for ChatView to query messages
+        // We might want to fetch the full user details in ChatView or here if they are missing
+        setSelectedChatUser(customEvent.detail);
+      }
+    };
+
+    window.addEventListener("zync-open-chat", handleOpenChat);
+    return () => window.removeEventListener("zync-open-chat", handleOpenChat);
+  }, []);
 
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -119,7 +135,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ userId: currentUser.uid })
             });
-            
+
             if (response.ok) {
               const data = await response.json();
               setSessionId(data._id);
@@ -148,11 +164,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     const timerInterval = setInterval(() => {
       const now = new Date();
       const diff = Math.floor((now.getTime() - sessionStartTime.getTime()) / 1000);
-      
+
       const hours = Math.floor(diff / 3600).toString().padStart(2, '0');
       const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
       const seconds = (diff % 60).toString().padStart(2, '0');
-      
+
       setElapsedTime(`${hours}:${minutes}:${seconds}`);
     }, 1000);
 
@@ -160,7 +176,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       if (sessionId) {
         try {
           const response = await fetch(`${API_BASE_URL}/api/sessions/${sessionId}`, { method: 'PUT' });
-          
+
           // Self-healing: If session is not found (404), it means server restarted or session invalid.
           if (response.status === 404) {
             console.warn("Session expired or server restarted, resetting session...");
@@ -179,19 +195,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     const handleBeforeUnload = () => {
       if (sessionId) {
         const url = `${API_BASE_URL}/api/sessions/${sessionId}`;
-        
+
         // Use sendBeacon for reliable execution during unload
         // sendBeacon sends a POST request by default
         const blob = new Blob([JSON.stringify({})], { type: 'application/json' });
         const success = navigator.sendBeacon(url, blob);
-        
+
         if (!success) {
-           // Fallback if sendBeacon fails or data is too large (unlikely here)
-           fetch(url, { 
-             method: 'POST', 
-             keepalive: true,
-             headers: { 'Content-Type': 'application/json' }
-           });
+          // Fallback if sendBeacon fails or data is too large (unlikely here)
+          fetch(url, {
+            method: 'POST',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json' }
+          });
         }
       }
     };
@@ -353,7 +369,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!projectName || !projectDescription) {
       toast({
         title: "Missing fields",
@@ -386,7 +402,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       }
 
       const data = await response.json();
-      
+
       toast({
         title: "Project Created!",
         description: "AI has generated your project architecture.",
@@ -408,10 +424,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const sidebarItems = [
     { icon: Home, label: "Dashboard", active: activeSection === "Dashboard" },
-    { icon: FolderKanban, label: "My Workspace", active: activeSection === "My Workspace", children: [
-      { label: "Roadmap" },
-      { label: "Schedule" },
-    ]},
+    {
+      icon: FolderKanban, label: "My Workspace", active: activeSection === "My Workspace", children: [
+        { label: "Roadmap" },
+        { label: "Schedule" },
+      ]
+    },
     { icon: Star, label: "Design", active: activeSection === "Design" },
     { icon: Github, label: "My Projects", active: activeSection === "My Projects" },
     { icon: CheckSquare, label: "Tasks", active: activeSection === "Tasks" },
@@ -434,8 +452,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     { _id: 4, displayName: "Emily Davis", email: "emily@zync.io", status: "away", avatar: "ED" },
   ];
 
-  const displayUsers = isPreview 
-    ? mockUsers 
+  const displayUsers = isPreview
+    ? mockUsers
     : usersList.filter(user => user.uid !== currentUser?.uid);
 
   const handleCreateMeeting = () => {
@@ -456,20 +474,20 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     switch (activeSection) {
       case "My Workspace":
         return (
-          <Workspace 
-            onNavigate={setActiveSection} 
+          <Workspace
+            onNavigate={setActiveSection}
             onSelectProject={(id) => navigate(`/projects/${id}`)}
             onOpenNote={(noteId) => {
-                setActiveNoteId(noteId);
-                setActiveSection("Notes");
+              setActiveNoteId(noteId);
+              setActiveSection("Notes");
             }}
             currentUser={currentUser}
           />
         );
 
       case "My Projects":
-          return <MyProjectsView currentUser={currentUser} />;
-        
+        return <MyProjectsView currentUser={currentUser} />;
+
       case "Chat":
         return (
           <div className="flex h-full w-full">
@@ -484,13 +502,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </div>
               <div className="flex-1 overflow-y-auto">
                 {displayUsers.map((user) => {
-                  const status = !isPreview && userStatuses[user.uid] 
-                    ? userStatuses[user.uid].state 
+                  const status = !isPreview && userStatuses[user.uid]
+                    ? userStatuses[user.uid].state
                     : user.status;
                   const isSelected = selectedChatUser?.uid === user.uid;
-                  
+
                   return (
-                    <div 
+                    <div
                       key={user._id || user.id}
                       className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-secondary/50 transition-colors ${isSelected ? 'bg-secondary/50' : ''}`}
                       onClick={() => setSelectedChatUser(user)}
@@ -500,10 +518,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                           <AvatarImage src={user.photoURL} />
                           <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
-                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
-                          status === "online" ? "bg-green-500" : 
+                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
                           status === "away" ? "bg-yellow-500" : "bg-gray-400"
-                        }`} />
+                          }`} />
                       </div>
                       <div className="flex-1 overflow-hidden">
                         <div className="font-medium truncate">{user.displayName || user.name}</div>
@@ -518,12 +535,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             {/* Chat Area */}
             <div className="flex-1 flex flex-col">
               {selectedChatUser ? (
-                <ChatView 
+                <ChatView
                   selectedUser={{
                     ...selectedChatUser,
                     status: userStatuses[selectedChatUser.uid]?.state || selectedChatUser.status || 'offline'
-                  }} 
-                  // No onBack prop needed for desktop split view
+                  }}
+                // No onBack prop needed for desktop split view
                 />
               ) : (
                 <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-background/50">
@@ -546,41 +563,41 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {displayUsers.map((user) => {
-                const status = !isPreview && userStatuses[user.uid] 
-                  ? userStatuses[user.uid].state 
+                const status = !isPreview && userStatuses[user.uid]
+                  ? userStatuses[user.uid].state
                   : user.status;
 
                 return (
-                <Card key={user._id || user.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <div className="relative">
-                      <Avatar>
-                        <AvatarImage src={user.photoURL} />
-                        <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-                      <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
-                        status === "online" ? "bg-green-500" : 
-                        status === "away" ? "bg-yellow-500" : "bg-gray-400"
-                      }`} />
-                    </div>
-                    <div className="flex flex-col">
-                      <CardTitle className="text-base">{user.displayName || user.name}</CardTitle>
-                      <CardDescription className="text-xs">{user.email}</CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <Badge variant={status === "online" ? "default" : "secondary"} className="capitalize">
-                        {status}
-                      </Badge>
-                      <Button size="sm" variant="ghost" onClick={() => handleChat(user)}>
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Chat
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              )})}
+                  <Card key={user._id || user.id} className="hover:shadow-md transition-shadow">
+                    <CardHeader className="flex flex-row items-center gap-4">
+                      <div className="relative">
+                        <Avatar>
+                          <AvatarImage src={user.photoURL} />
+                          <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
+                        </Avatar>
+                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
+                          status === "away" ? "bg-yellow-500" : "bg-gray-400"
+                          }`} />
+                      </div>
+                      <div className="flex flex-col">
+                        <CardTitle className="text-base">{user.displayName || user.name}</CardTitle>
+                        <CardDescription className="text-xs">{user.email}</CardDescription>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between">
+                        <Badge variant={status === "online" ? "default" : "secondary"} className="capitalize">
+                          {status}
+                        </Badge>
+                        <Button size="sm" variant="ghost" onClick={() => handleChat(user)}>
+                          <MessageSquare className="w-4 h-4 mr-2" />
+                          Chat
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
           </div>
         );
@@ -613,7 +630,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                         className="h-12 text-lg"
                       />
                     </div>
-                    
+
                     <div className="space-y-4">
                       <Label htmlFor="description" className="text-base">Project Description</Label>
                       <Textarea
@@ -681,9 +698,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                       const durationSeconds = log.duration || Math.round((end.getTime() - start.getTime()) / 1000);
                       const hours = Math.floor(durationSeconds / 3600);
                       const minutes = Math.floor((durationSeconds % 3600) / 60);
-                      
-                      const formattedDuration = hours > 0 
-                        ? `${hours} hr ${minutes} min` 
+
+                      const formattedDuration = hours > 0
+                        ? `${hours} hr ${minutes} min`
                         : `${minutes} min`;
 
                       return (
@@ -730,12 +747,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <DesignView />;
 
       case "Notes":
-        return <NotesView 
-          user={currentUser ? { 
-            uid: currentUser.uid, 
-            displayName: currentUser.displayName || undefined, 
-            email: currentUser.email || undefined 
-          } : null} 
+        return <NotesView
+          user={currentUser ? {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName || undefined,
+            email: currentUser.email || undefined
+          } : null}
           users={usersList}
           initialNoteId={activeNoteId}
         />;
@@ -781,7 +798,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Tasks grid */}
                   <div className="flex-1 grid grid-cols-5">
                     {[...Array(5)].map((_, colIndex) => (
@@ -842,7 +859,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
 
   return (
-    <div className="flex min-h-screen bg-background text-foreground">
+    <div className={`flex bg-background text-foreground ${activeSection === "Chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
 
       {/* Sidebar */}
       <div className="w-64 bg-secondary/30 border-r border-border/50 flex flex-col sticky top-0 h-screen">
@@ -854,10 +871,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           <span className="font-bold text-lg">Zync</span>
           <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" />
         </div>
-        
+
         <div className="flex-1 overflow-y-auto py-4">
           <div className="px-3 mb-2">
-            <Button 
+            <Button
               className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={() => setActiveSection("New Project")}
             >
@@ -928,10 +945,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={async () => {
-                  if (isPreview) return;
-                  localStorage.removeItem("zync-active-section");
-                  await signOut(auth);
-                  navigate("/login");
+                if (isPreview) return;
+                localStorage.removeItem("zync-active-section");
+                await signOut(auth);
+                navigate("/login");
               }} className="text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Sign out</span>
@@ -942,7 +959,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col">
+      <div className={`flex-1 flex flex-col ${activeSection === "Chat" ? "overflow-hidden" : ""}`}>
 
         {/* Global Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background shrink-0">

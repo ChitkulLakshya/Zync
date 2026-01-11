@@ -7,12 +7,12 @@ const { sendEmail } = require('../utils/emailService');
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {
-    return sendEmail({
-        to: email,
-        subject: 'Phone Verification Code',
-        text: `Your verification code is: ${code}`,
-        html: `<b>Your verification code is: ${code}</b>`
-    });
+  return sendEmail({
+    to: email,
+    subject: 'Phone Verification Code',
+    text: `Your verification code is: ${code}`,
+    html: `<b>Your verification code is: ${code}</b>`
+  });
 };
 
 /* GET Current User Profile */
@@ -29,7 +29,7 @@ router.get('/me', verifyToken, async (req, res) => {
 
 // Sync user (create or update)
 router.post('/sync', async (req, res) => {
-  const { uid, email, displayName, photoURL, phoneNumber } = req.body;
+  const { uid, email, displayName, photoURL, phoneNumber, firstName, lastName } = req.body;
 
   try {
     let user = await User.findOne({ uid });
@@ -40,6 +40,11 @@ router.post('/sync', async (req, res) => {
       user.displayName = displayName;
       user.photoURL = photoURL;
       if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+
+      // Update names only if they are not already set (preserve manual edits)
+      if (!user.firstName && firstName) user.firstName = firstName;
+      if (!user.lastName && lastName) user.lastName = lastName;
+
       user.status = 'online';
       user.lastSeen = Date.now();
       await user.save();
@@ -49,6 +54,8 @@ router.post('/sync', async (req, res) => {
         uid,
         email,
         displayName,
+        firstName,
+        lastName,
         photoURL,
         phoneNumber,
         status: 'online',
@@ -76,10 +83,10 @@ router.post('/sync-github', verifyToken, async (req, res) => {
 
   try {
     const encryptedToken = encrypt(accessToken);
-    
+
     // Update user with encrypted token and mark GitHub as connected
     const user = await User.findOneAndUpdate(
-      { uid }, 
+      { uid },
       {
         $set: {
           'integrations.github.connected': true,
@@ -91,8 +98,8 @@ router.post('/sync-github', verifyToken, async (req, res) => {
     );
 
     if (!user) {
-         // Fallback if findOneAndUpdate fails to find user (shouldn't happen if synced)
-         return res.status(404).json({ message: 'User not found in database. Please refresh.' });
+      // Fallback if findOneAndUpdate fails to find user (shouldn't happen if synced)
+      return res.status(404).json({ message: 'User not found in database. Please refresh.' });
     }
 
     res.json({ message: 'GitHub account linked successfully', user });
@@ -172,7 +179,7 @@ router.post('/verify-phone/request', async (req, res) => {
 
     // Generate 6-digit code
     const code = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Save code and temp phone number to user
     user.phoneVerificationCode = code;
     user.phoneVerificationCodeExpires = Date.now() + 10 * 60 * 1000; // 10 mins

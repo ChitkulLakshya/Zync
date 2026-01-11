@@ -1,30 +1,33 @@
 import { useState, useEffect, useRef } from "react";
-import { 
-  collection, 
-  query, 
-  where, 
-  orderBy, 
-  onSnapshot, 
-  addDoc, 
-  serverTimestamp, 
-  updateDoc, 
+import {
+  collection,
+  query,
+  where,
+  orderBy,
+  onSnapshot,
+  addDoc,
+  serverTimestamp,
+  updateDoc,
   doc,
-  getDocs
+  getDocs,
+  writeBatch
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { 
-  Send, 
-  Check, 
-  CheckCheck, 
-  Paperclip, 
-  Smile, 
-  X, 
-  File as FileIcon, 
-  Image as ImageIcon 
+import { useToast } from "@/hooks/use-toast";
+import {
+  Send,
+  Check,
+  CheckCheck,
+  Paperclip,
+  Smile,
+  X,
+  File as FileIcon,
+  Image as ImageIcon,
+  Trash2
 } from "lucide-react";
 import { format } from "date-fns";
 import EmojiPicker from 'emoji-picker-react';
@@ -37,6 +40,7 @@ interface ChatViewProps {
 }
 
 const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
+  const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -60,7 +64,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
         ...doc.data()
       }));
       setMessages(msgs);
-      
+
       // Mark unseen messages as seen
       msgs.forEach(async (msg: any) => {
         if (msg.receiverId === currentUser.uid && !msg.seen) {
@@ -76,11 +80,37 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
     return () => unsubscribe();
   }, [currentUser, selectedUser]);
 
+  const prevMessagesLengthRef = useRef(messages.length);
+  const isNearBottomRef = useRef(true); // Default to true for initial load
+
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+    // Determine if we should scroll
+    const isNewMessage = messages.length > prevMessagesLengthRef.current;
+
+    // Check if the last message is from the current user
+    const lastMessage = messages[messages.length - 1];
+    const isMyMessage = lastMessage?.senderId === currentUser?.uid;
+
+    if (isNewMessage) {
+      if (isMyMessage || isNearBottomRef.current) {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      }
+    } else if (messages.length === 0) {
+      // Reset or empty
+    } else {
+      // Messages updated but length same (e.g. seen status)
+      // Do nothing (don't scroll)
     }
-  }, [messages, file]);
+
+    prevMessagesLengthRef.current = messages.length;
+  }, [messages, currentUser]);
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    // Consider near bottom if within 100px
+    const isNear = scrollHeight - scrollTop - clientHeight < 100;
+    isNearBottomRef.current = isNear;
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -113,14 +143,14 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
         });
 
         if (!response.ok) {
-           throw new Error('Upload failed');
+          throw new Error('Upload failed');
         }
 
         const data = await response.json();
         fileUrl = data.fileUrl; // Relative path
         originalName = data.originalname;
         fileSize = data.size;
-        
+
         if (file.type.startsWith('image/')) {
           messageType = 'image';
         } else {
@@ -129,7 +159,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
       } catch (error) {
         console.error("Upload error", error);
         setIsUploading(false);
-        return; 
+        return;
       }
     }
 
@@ -140,6 +170,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
       chatId,
       text: newMessage,
       senderId: currentUser.uid,
+      senderName: currentUser.displayName || "Unknown User",
       receiverId: selectedUser.uid,
       timestamp: serverTimestamp(),
       seen: false,
@@ -147,7 +178,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
       delivered: false,
       deliveredAt: null,
       type: messageType,
-      fileUrl: fileUrl, 
+      fileUrl: fileUrl,
       fileName: originalName,
       fileSize: fileSize
     });
@@ -156,6 +187,41 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
     setFile(null);
     if (fileInputRef.current) fileInputRef.current.value = "";
     setIsUploading(false);
+  };
+
+  const handleClearChat = async () => {
+    if (!currentUser || !selectedUser) return;
+
+    if (confirm("Are you sure you want to clear this chat history? This cannot be undone.")) {
+      try {
+        const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+        const messagesRef = collection(db, "messages");
+        const q = query(messagesRef, where("chatId", "==", chatId));
+
+        const snapshot = await getDocs(q);
+
+        // Firestore batch limit is 500. We chunk it to be safe.
+        const CHUNK_SIZE = 400;
+        const chunks = [];
+
+        for (let i = 0; i < snapshot.docs.length; i += CHUNK_SIZE) {
+          chunks.push(snapshot.docs.slice(i, i + CHUNK_SIZE));
+        }
+
+        for (const chunk of chunks) {
+          const batch = writeBatch(db);
+          chunk.forEach((doc) => {
+            batch.delete(doc.ref);
+          });
+          await batch.commit();
+        }
+
+        toast({ title: "Success", description: "Chat history cleared from database." });
+      } catch (error) {
+        console.error("Error clearing chat:", error);
+        alert("Failed to clear chat");
+      }
+    }
   };
 
   // Helper to get full URL
@@ -179,62 +245,69 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
             <AvatarImage src={selectedUser.photoURL} />
             <AvatarFallback>{selectedUser.displayName?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
-          <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
-            selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"
-          }`} />
+          <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"
+            }`} />
         </div>
         <div>
           <div className="font-semibold">{selectedUser.displayName || selectedUser.name}</div>
           <div className="text-xs text-muted-foreground capitalize">{selectedUser.status}</div>
         </div>
+        <div className="ml-auto">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleClearChat}
+            className="text-muted-foreground hover:text-destructive"
+            title="Clear Chat"
+          >
+            <Trash2 className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4">
+      <ScrollArea className="flex-1 p-4" onScroll={handleScroll}>
         <div className="space-y-4 pb-4">
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid;
             const isImage = msg.type === 'image';
             const isFile = msg.type === 'file';
-            
+
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                  isMe ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-                }`}>
-                  
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                  }`}>
+
                   {isImage && (
-                     <div className="mb-2 rounded-lg overflow-hidden max-w-sm">
-                       <img 
-                         src={getFullUrl(msg.fileUrl)} 
-                         alt="Attached image" 
-                         className="w-full h-auto object-cover"
-                         loading="lazy"
-                       />
-                     </div>
+                    <div className="mb-2 rounded-lg overflow-hidden max-w-sm">
+                      <img
+                        src={getFullUrl(msg.fileUrl)}
+                        alt="Attached image"
+                        className="w-full h-auto object-cover"
+                        loading="lazy"
+                      />
+                    </div>
                   )}
 
                   {isFile && (
                     <div className="mb-2">
-                      <a 
-                        href={getFullUrl(msg.fileUrl)} 
-                        target="_blank" 
+                      <a
+                        href={getFullUrl(msg.fileUrl)}
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-2 p-2 rounded-md ${
-                          isMe ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" : "bg-background/50 hover:bg-background/80"
-                        } transition-colors`}
+                        className={`flex items-center gap-2 p-2 rounded-md ${isMe ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" : "bg-background/50 hover:bg-background/80"
+                          } transition-colors`}
                       >
-                         <FileIcon className="w-4 h-4" />
-                         <span className="text-sm underline break-all">{msg.fileName || 'Download File'}</span>
+                        <FileIcon className="w-4 h-4" />
+                        <span className="text-sm underline break-all">{msg.fileName || 'Download File'}</span>
                       </a>
                     </div>
                   )}
 
                   {msg.text && <p className="text-sm break-words whitespace-pre-wrap">{msg.text}</p>}
-                  
-                  <div className={`text-[10px] mt-1 flex items-center gap-1 ${
-                    isMe ? "text-primary-foreground/70" : "text-muted-foreground"
-                  }`}>
+
+                  <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                    }`}>
                     {msg.timestamp?.seconds ? format(new Date(msg.timestamp.seconds * 1000), "hh:mm a") : "Sending..."}
                     {isMe && (
                       <span>
@@ -264,23 +337,23 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
 
       {/* Input Area */}
       <div className="p-4 border-t border-border/50 bg-background">
-        
+
         {/* File Preview */}
         {file && (
           <div className="mb-2 p-2 bg-secondary/30 rounded-lg flex items-center justify-between">
             <div className="flex items-center gap-2 overflow-hidden">
-               {file.type.startsWith('image/') ? (
-                 <ImageIcon className="w-4 h-4 text-purple-500" />
-               ) : (
-                 <FileIcon className="w-4 h-4 text-blue-500" />
-               )}
-               <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-               <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
+              {file.type.startsWith('image/') ? (
+                <ImageIcon className="w-4 h-4 text-purple-500" />
+              ) : (
+                <FileIcon className="w-4 h-4 text-blue-500" />
+              )}
+              <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+              <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-6 w-6" 
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
               onClick={() => {
                 setFile(null);
                 if (fileInputRef.current) fileInputRef.current.value = "";
@@ -292,17 +365,17 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
         )}
 
         <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
-          <input 
-            type="file" 
+          <input
+            type="file"
             ref={fileInputRef}
-            className="hidden" 
+            className="hidden"
             onChange={handleFileSelect}
-            // accept="image/*,.pdf,.doc,.docx,.txt" // backend validates too
+          // accept="image/*,.pdf,.doc,.docx,.txt" // backend validates too
           />
-          
-          <Button 
-            type="button" 
-            variant="ghost" 
+
+          <Button
+            type="button"
+            variant="ghost"
             size="icon"
             onClick={() => fileInputRef.current?.click()}
             className="mb-0.5"
