@@ -51,7 +51,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
       // We assume there's an endpoint to get the full user profile or we use the generic one
       const response = await fetch(`${API_BASE_URL}/api/users/me`, {
         headers: {
-            'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`
         }
       });
       if (response.ok) {
@@ -97,10 +97,10 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
 
           // Refresh user data
           await fetchUserData();
-          
+
           // Clear query params
           setSearchParams({});
-          
+
         } catch (error: any) {
           console.error("Connection error:", error);
           toast({
@@ -120,7 +120,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   // Fetch Repositories
   useEffect(() => {
     const fetchRepos = async () => {
-        // user data integration check
+      // user data integration check
       if (userData?.integrations?.github?.connected) {
         setLoading(true);
         try {
@@ -130,12 +130,12 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
               "Authorization": `Bearer ${token}`
             }
           });
-          
+
           if (response.ok) {
             const data = await response.json();
             setRepos(data.repos || data); // Handle both wrapped and direct array
           } else {
-             console.error("Failed to fetch repos");
+            console.error("Failed to fetch repos");
           }
         } catch (error) {
           console.error("Error fetching repos:", error);
@@ -146,7 +146,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     };
 
     if (userData) {
-        fetchRepos();
+      fetchRepos();
     }
   }, [userData]);
 
@@ -160,11 +160,11 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   };
 
   if (!userData) { // Initial loading
-       return (
-        <div className="flex h-full items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-       );
+    return (
+      <div className="flex h-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
   }
 
   const isConnected = userData?.integrations?.github?.connected;
@@ -182,97 +182,97 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center space-y-6">
         <div className="rounded-full bg-secondary/30 p-8">
-            <Github className="h-16 w-16" />
+          <Github className="h-16 w-16" />
         </div>
         <div className="max-w-md space-y-2">
-            <h2 className="text-2xl font-bold">Connect to GitHub</h2>
-            <p className="text-muted-foreground">
-                Link your GitHub account to access your repositories directly within Zync.
-            </p>
+          <h2 className="text-2xl font-bold">Connect to GitHub</h2>
+          <p className="text-muted-foreground">
+            Link your GitHub account to access your repositories directly within Zync.
+          </p>
         </div>
         <Button size="lg" onClick={handleConnect} className="gap-2">
-            <Github className="h-5 w-5" />
-            Connect GitHub
+          <Github className="h-5 w-5" />
+          Connect GitHub
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="p-6 h-full flex flex-col space-y-6">
+    <div className="p-6 flex flex-col space-y-6">
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-            <h2 className="text-2xl font-bold tracking-tight">My Projects</h2>
-            <p className="text-muted-foreground">
-                Manage your GitHub repositories and projects.
-            </p>
+          <h2 className="text-2xl font-bold tracking-tight">My Projects</h2>
+          <p className="text-muted-foreground">
+            Manage your GitHub repositories and projects.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-            <Badge variant="outline" className="gap-1 bg-green-500/10 text-green-500 border-green-500/20">
-                <Github className="h-3 w-3" />
-                Connected as {userData.integrations.github.username}
-            </Badge>
+          <Badge variant="outline" className="gap-1 bg-green-500/10 text-green-500 border-green-500/20">
+            <Github className="h-3 w-3" />
+            Connected as {userData.integrations.github.username}
+          </Badge>
         </div>
       </div>
 
       {loading ? (
         <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
-             {repos.map((repo) => (
-                <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-colors">
-                    <CardHeader className="pb-2">
-                        <div className="flex items-start justify-between">
-                            <CardTitle className="text-lg font-medium truncate pr-2">
-                                <a href={repo.html_url} target="_blank" rel="noreferrer" className="hover:underline">
-                                    {repo.name}
-                                </a>
-                            </CardTitle>
-                            <Badge variant="secondary" className="capitalize text-xs font-normal">
-                                {repo.visibility}
-                            </Badge>
-                        </div>
-                        <CardDescription className="line-clamp-2 h-10">
-                            {repo.description || "No description provided"}
-                        </CardDescription>
-                    </CardHeader>
-                    <CardContent className="flex-1 py-2">
-                        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                            {repo.language && (
-                                <span className="flex items-center gap-1">
-                                    <span className="w-2 h-2 rounded-full bg-primary" />
-                                    {repo.language}
-                                </span>
-                            )}
-                            <span className="flex items-center gap-1">
-                                <Star className="h-3 w-3" />
-                                {repo.stargazers_count}
-                            </span>
-                            <span className="flex items-center gap-1">
-                                <GitFork className="h-3 w-3" />
-                                {repo.forks_count}
-                            </span>
-                        </div>
-                    </CardContent>
-                    <CardFooter className="pt-2 border-t bg-muted/20">
-                         <div className="text-xs text-muted-foreground w-full flex justify-between items-center">
-                            <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
-                                <a href={repo.html_url} target="_blank" rel="noreferrer">
-                                    <ExternalLink className="h-3 w-3" />
-                                </a>
-                            </Button>
-                         </div>
-                    </CardFooter>
-                </Card>
-             ))}
-             {repos.length === 0 && (
-                <div className="col-span-full text-center py-12 text-muted-foreground">
-                    No repositories found.
+          {repos.map((repo) => (
+            <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-colors">
+              <CardHeader className="pb-2">
+                <div className="flex items-start justify-between">
+                  <CardTitle className="text-lg font-medium truncate pr-2">
+                    <a href={repo.html_url} target="_blank" rel="noreferrer" className="hover:underline">
+                      {repo.name}
+                    </a>
+                  </CardTitle>
+                  <Badge variant="secondary" className="capitalize text-xs font-normal">
+                    {repo.visibility}
+                  </Badge>
                 </div>
-             )}
+                <CardDescription className="line-clamp-2 h-10">
+                  {repo.description || "No description provided"}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="flex-1 py-2">
+                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                  {repo.language && (
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                      {repo.language}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Star className="h-3 w-3" />
+                    {repo.stargazers_count}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <GitFork className="h-3 w-3" />
+                    {repo.forks_count}
+                  </span>
+                </div>
+              </CardContent>
+              <CardFooter className="pt-2 border-t bg-muted/20">
+                <div className="text-xs text-muted-foreground w-full flex justify-between items-center">
+                  <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
+                  <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                    <a href={repo.html_url} target="_blank" rel="noreferrer">
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </Button>
+                </div>
+              </CardFooter>
+            </Card>
+          ))}
+          {repos.length === 0 && (
+            <div className="col-span-full text-center py-12 text-muted-foreground">
+              No repositories found.
+            </div>
+          )}
         </div>
       )}
     </div>

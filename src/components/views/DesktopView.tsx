@@ -537,7 +537,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case "People":
         return (
-          <div className="flex-1 w-full p-6 space-y-6 overflow-y-auto h-full">
+          <div className="flex-1 w-full p-6 space-y-6 h-full">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-bold tracking-tight">People</h2>
               <Button variant="outline">
@@ -586,12 +586,14 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         );
 
 
+
       case "New Project":
         return (
-          <div className="flex-1 overflow-y-auto p-8">
+          <div className="flex-1 p-8">
             <div className="max-w-3xl mx-auto space-y-8">
               <div>
                 <h2 className="text-3xl font-bold tracking-tight">Create New Project</h2>
+
                 <p className="text-muted-foreground mt-2 text-lg">
                   Describe your project idea, and our AI will generate a complete architecture and development plan for you.
                 </p>
@@ -645,8 +647,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case "Activity log":
         return (
-          <div className="p-6 h-full overflow-y-auto">
+          <div className="p-6 h-full">
             <h2 className="text-2xl font-bold mb-6">Activity Log</h2>
+
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
                 <div className="space-y-1.5">
@@ -745,9 +748,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return (
           <div className="flex-1 flex flex-col h-full">
             {/* Timeline */}
-            <div className="flex-1 flex overflow-hidden">
+            <div className="flex-1 flex flex-col">
               {/* Schedule Grid */}
-              <div className="flex-1 overflow-auto">
+              <div className="flex-1">
+
                 {/* Date Header */}
                 <div className="flex border-b border-border/50 sticky top-0 bg-background z-10">
                   <div className="w-40 p-3 text-sm text-muted-foreground border-r border-border/50">September 2021</div>
@@ -838,9 +842,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
 
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
+    <div className="flex min-h-screen bg-background text-foreground">
+
       {/* Sidebar */}
-      <div className="w-64 bg-secondary/30 border-r border-border/50 flex flex-col">
+      <div className="w-64 bg-secondary/30 border-r border-border/50 flex flex-col sticky top-0 h-screen">
+
         <div className="p-4 flex items-center gap-2 border-b border-border/50">
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
             Z
@@ -936,7 +942,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col">
+
         {/* Global Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background shrink-0">
           <div className="flex items-center gap-4">
