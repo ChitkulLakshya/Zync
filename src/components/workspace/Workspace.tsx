@@ -308,7 +308,7 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
               <Card key={project._id} className="group hover:shadow-lg transition-all duration-200 cursor-pointer border-l-4 border-l-primary" onClick={() => onSelectProject(project._id)}>
                 <CardHeader className="pb-3">
