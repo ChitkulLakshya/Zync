@@ -182,16 +182,88 @@ router.put('/:uid', async (req, res) => {
   }
 });
 
-// Delete user
-router.delete('/:uid', async (req, res) => {
+// Request Account Deletion (Send Code)
+router.post('/delete/request', verifyToken, async (req, res) => {
+  const { uid } = req.body;
+
+  // Security check: Ensure the requester is the user they claim to be
+  if (req.user.uid !== uid) {
+    return res.status(403).json({ message: 'Unauthorized' });
+  }
+
   try {
-    await User.findOneAndDelete({ uid: req.params.uid });
-    // Here you would also delete related data (tasks, projects, etc.)
-    res.status(200).json({ message: 'User deleted' });
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Generate 6-digit code
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Save code
+    user.deleteConfirmationCode = code;
+    user.deleteConfirmationExpires = Date.now() + 10 * 60 * 1000; // 10 mins
+    await user.save();
+
+    // Send email
+    await resend.emails.send({
+      from: 'Zync Security <security@resend.dev>',
+      to: user.email,
+      subject: 'Account Deletion Verification Code',
+      html: `
+        <h2>Confirm Account Deletion</h2>
+        <p>You have requested to delete your Zync account. This action is irreversible.</p>
+        <p><b>Verification Code: ${code}</b></p>
+        <p>If you did not request this, please ignore this email and secure your account.</p>
+      `
+    });
+
+    res.status(200).json({ message: 'Verification code sent to email' });
   } catch (error) {
+    console.error('Error requesting deletion:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+// Confirm Account Deletion
+router.post('/delete/confirm', verifyToken, async (req, res) => {
+  const { uid, code } = req.body;
+
+  // Security check
+  if (req.user.uid !== uid) {
+    return res.status(403).json({ message: 'Unauthorized' });
+  }
+
+  try {
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    if (user.deleteConfirmationCode !== code) {
+      return res.status(400).json({ message: 'Invalid code' });
+    }
+
+    if (user.deleteConfirmationExpires < Date.now()) {
+      return res.status(400).json({ message: 'Code expired' });
+    }
+
+    await User.findOneAndDelete({ uid });
+    // TODO: also trigger Firebase Authentication deletion via Admin SDK if possible, 
+    // but the frontend handles the client-side firebase auth deletion.
+
+    res.status(200).json({ message: 'User deleted' });
+  } catch (error) {
+    console.error('Error confirming deletion:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// DELETE route (Legacy removed or kept for admin usage?)
+// For now, removing the direct public delete endpoint or restricting it to admin only would be wise,
+// but to avoid breaking other flows completely, I'll comment it out or leave it for admins if needed.
+// For this task, we replace the user-initiated delete flow.
+/*
+router.delete('/:uid', async (req, res) => {
+  // ...
+});
+*/
 
 // Request Phone Verification
 router.post('/verify-phone/request', async (req, res) => {

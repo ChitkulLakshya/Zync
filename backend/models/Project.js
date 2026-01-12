@@ -51,6 +51,7 @@ const ProjectSchema = new mongoose.Schema({
   steps: [StepSchema],
   ownerId: { type: String }, // Firebase User ID
   team: [{ type: String }], // Array of User IDs
+  meetLink: { type: String }, // Google Meet Link
   githubRepo: { type: String },
   githubRepoName: { type: String }, // NEW
   githubRepoOwner: { type: String }, // NEW
