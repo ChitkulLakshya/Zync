@@ -20,8 +20,17 @@ import { useTheme } from "next-themes";
 // Country list truncated for brevity (keep your existing list)
 const countries = [
   { name: "United States", code: "US", dial_code: "+1", flag: "🇺🇸" },
+  { name: "United Kingdom", code: "GB", dial_code: "+44", flag: "🇬🇧" },
+  { name: "Canada", code: "CA", dial_code: "+1", flag: "🇨🇦" },
+  { name: "Australia", code: "AU", dial_code: "+61", flag: "🇦🇺" },
   { name: "India", code: "IN", dial_code: "+91", flag: "🇮🇳" },
-  // ... add rest of your countries here
+  { name: "Germany", code: "DE", dial_code: "+49", flag: "🇩🇪" },
+  { name: "France", code: "FR", dial_code: "+33", flag: "🇫🇷" },
+  { name: "Japan", code: "JP", dial_code: "+81", flag: "🇯🇵" },
+  { name: "China", code: "CN", dial_code: "+86", flag: "🇨🇳" },
+  { name: "Brazil", code: "BR", dial_code: "+55", flag: "🇧🇷" },
+  { name: "South Korea", code: "KR", dial_code: "+82", flag: "🇰🇷" },
+  { name: "Russia", code: "RU", dial_code: "+7", flag: "🇷🇺" },
 ];
 
 const SettingsView = () => {
