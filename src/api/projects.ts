@@ -2,11 +2,12 @@ import { API_BASE_URL } from '../lib/utils';
 const API_URL = `${API_BASE_URL}/api/projects`;
 
 export interface Project {
-  _id: string;
-  name: string;
-  description: string;
-  ownerId: string;
-  steps: any[];
+    _id: string;
+    name: string;
+    description: string;
+    ownerId: string;
+    steps: any[];
+    createdAt: string;
 }
 
 export interface TaskSearchResult {

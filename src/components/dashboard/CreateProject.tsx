@@ -4,6 +4,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+import { useToast } from "@/hooks/use-toast";
 
 interface CreateProjectProps {
   onProjectCreated: (projectData: any) => void;
@@ -14,31 +17,53 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     if (!projectName || !projectDescription) return;
-    
+
     setIsGenerating(true);
-    
-    // Simulate AI Generation
-    setTimeout(() => {
-      setIsGenerating(false);
-      onProjectCreated({
-        name: projectName,
-        description: projectDescription,
-        // Mock generated data
-        architecture: {
-          frontend: "React + Vite + Tailwind",
-          backend: "Node.js + Express",
-          database: "MongoDB"
+
+    try {
+      const user = auth.currentUser;
+      const ownerId = user ? user.uid : "anonymous";
+
+      const response = await fetch(`${API_BASE_URL}/api/projects/generate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-        tasks: [
-          { id: 1, title: "Setup Project Structure", status: "pending" },
-          { id: 2, title: "Configure Database", status: "pending" },
-          { id: 3, title: "Implement Authentication", status: "pending" }
-        ]
+        body: JSON.stringify({
+          name: projectName,
+          description: projectDescription,
+          ownerId,
+        }),
       });
-    }, 2000);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to generate project");
+      }
+
+      const data = await response.json();
+
+      toast({
+        title: "Project Generated!",
+        description: "Your architecture and tasks are ready.",
+      });
+
+      onProjectCreated(data);
+
+    } catch (error: any) {
+      console.error("Generation error:", error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Something went wrong. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -63,19 +88,19 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 Project Name
               </label>
-              <Input 
-                placeholder="e.g., E-commerce Platform" 
+              <Input
+                placeholder="e.g., E-commerce Platform"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
                 What are you building?
               </label>
-              <Textarea 
-                placeholder="Describe your project features, goals, and requirements..." 
+              <Textarea
+                placeholder="Describe your project features, goals, and requirements..."
                 className="min-h-[150px] resize-none"
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
@@ -83,9 +108,9 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
             </div>
           </CardContent>
           <CardFooter className="flex justify-end">
-            <Button 
-              size="lg" 
-              onClick={handleGenerate} 
+            <Button
+              size="lg"
+              onClick={handleGenerate}
               disabled={!projectName || !projectDescription || isGenerating}
               className="w-full sm:w-auto"
             >

@@ -5,9 +5,17 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Github, Loader2, Link as LinkIcon, ExternalLink, Star, GitFork } from "lucide-react";
+import { Github, Loader2, Link as LinkIcon, ExternalLink, Star, GitFork, Search } from "lucide-react";
 import { API_BASE_URL } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface MongoUser {
   uid: string;
@@ -36,12 +44,13 @@ interface Repository {
   };
 }
 
-
-
 const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   const [loading, setLoading] = useState(false);
   const [repos, setRepos] = useState<Repository[]>([]);
-  const [userData, setUserData] = useState<MongoUser | null>(null); // Extended user data from MongoDB
+  const [userData, setUserData] = useState<MongoUser | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState("updated");
+
   const { toast } = useToast();
 
   // Fetch full user data including integrations
@@ -49,7 +58,6 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     try {
       if (!currentUser?.uid) return;
       const token = await currentUser.getIdToken();
-      // We assume there's an endpoint to get the full user profile or we use the generic one
       const response = await fetch(`${API_BASE_URL}/api/users/me`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -58,6 +66,9 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
       if (response.ok) {
         const data = await response.json();
         setUserData(data);
+      } else {
+        // Silent failure or retry?
+        console.warn("Failed to fetch user data for GitHub check");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -70,12 +81,9 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     }
   }, [currentUser]);
 
-
-
   // Fetch Repositories
   useEffect(() => {
     const fetchRepos = async () => {
-      // user data integration check
       if (userData?.integrations?.github?.connected) {
         setLoading(true);
         try {
@@ -88,12 +96,21 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
 
           if (response.ok) {
             const data = await response.json();
-            setRepos(data.repos || data); // Handle both wrapped and direct array
+            setRepos(data.repos || data);
           } else {
-            console.error("Failed to fetch repos");
+            toast({
+              title: "Error",
+              description: "Failed to fetch repositories. Please try again.",
+              variant: "destructive"
+            });
           }
         } catch (error) {
           console.error("Error fetching repos:", error);
+          toast({
+            title: "Network Error",
+            description: "Could not connect to GitHub API.",
+            variant: "destructive"
+          });
         } finally {
           setLoading(false);
         }
@@ -103,19 +120,46 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     if (userData) {
       fetchRepos();
     }
-  }, [userData]);
-
+  }, [userData, currentUser, toast]);
 
   const handleConnect = () => {
-    // If user is logged in with GitHub via Firebase, they should already have the token saved
-    // If not, redirect them to login with GitHub
     toast({
       title: "GitHub Connection",
-      description: "Please sign out and sign in again with GitHub to connect your repositories.",
+      description: "Please sign out and sign in again with GitHub to connect your repositories, or check Settings.",
     });
   };
 
-  if (!userData) { // Initial loading
+  const getFilteredAndSortedRepos = (filterType: string) => {
+    let result = repos.filter(repo => {
+      // Tab Filter
+      if (filterType === "all") return true;
+      if (filterType === "collaborator") return userData?.integrations?.github?.username && repo.owner.login !== userData.integrations.github.username;
+      return repo.visibility === filterType;
+    });
+
+    // Search Filter
+    if (searchTerm) {
+      const lower = searchTerm.toLowerCase();
+      result = result.filter(r =>
+        r.name.toLowerCase().includes(lower) ||
+        r.description?.toLowerCase().includes(lower) ||
+        r.language?.toLowerCase().includes(lower)
+      );
+    }
+
+    // Sort
+    result.sort((a, b) => {
+      if (sortBy === "stars") return b.stargazers_count - a.stargazers_count;
+      if (sortBy === "forks") return b.forks_count - a.forks_count;
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      // Default: Updated
+      return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+    });
+
+    return result;
+  };
+
+  if (!userData) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -147,7 +191,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
 
   return (
     <div className="p-6 flex flex-col space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
           <h2 className="text-2xl font-bold tracking-tight">My Projects</h2>
           <p className="text-muted-foreground">
@@ -157,13 +201,36 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="gap-1 bg-green-500/10 text-green-500 border-green-500/20">
             <Github className="h-3 w-3" />
-            Connected as {userData.integrations.github.username}
+            Connected as {userData.integrations?.github?.username || "GitHub User"}
           </Badge>
         </div>
       </div>
 
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search repositories..."
+            className="pl-9"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updated">Last Updated</SelectItem>
+            <SelectItem value="stars">Most Stars</SelectItem>
+            <SelectItem value="forks">Most Forks</SelectItem>
+            <SelectItem value="name">Name (A-Z)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       {loading ? (
-        <div className="flex-1 flex items-center justify-center">
+        <div className="flex-1 flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
@@ -176,16 +243,12 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           </TabsList>
 
           {["all", "public", "private", "collaborator"].map((filterType) => {
-            const filteredRepos = repos.filter(repo => {
-              if (filterType === "all") return true;
-              if (filterType === "collaborator") return repo.owner.login !== userData.integrations.github.username;
-              return repo.visibility === filterType;
-            });
+            const displayRepos = getFilteredAndSortedRepos(filterType);
 
             return (
               <TabsContent key={filterType} value={filterType} className="mt-0">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
-                  {filteredRepos.map((repo) => (
+                  {displayRepos.map((repo) => (
                     <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-all hover:shadow-lg min-h-[280px]">
                       <CardHeader className="pb-4">
                         <div className="flex items-start justify-between gap-4">
@@ -241,15 +304,17 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                       </CardFooter>
                     </Card>
                   ))}
-                  {filteredRepos.length === 0 && (
+                  {displayRepos.length === 0 && (
                     <div className="col-span-full text-center py-16 text-muted-foreground">
                       <div className="flex flex-col items-center gap-4">
                         <Github className="h-12 w-12 text-muted-foreground/50" />
                         <h3 className="text-xl font-medium">No repositories found</h3>
                         <p>
-                          {filterType === "all"
-                            ? "It looks like you haven't created any repositories yet."
-                            : `No ${filterType} repositories found.`}
+                          {searchTerm
+                            ? `No ${filterType} repositories match your search.`
+                            : filterType === "all"
+                              ? "It looks like you haven't created any repositories yet."
+                              : `No ${filterType} repositories found.`}
                         </p>
                       </div>
                     </div>

@@ -66,6 +66,9 @@ import DesignView from "./DesignView";
 import MyProjectsView from "./MyProjectsView";
 import CalendarView from "./CalendarView";
 import DashboardView from "./DashboardView";
+import PeopleView from "./PeopleView";
+import ChatLayout from "./ChatLayout";
+import CreateProject from "@/components/dashboard/CreateProject";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
@@ -486,65 +489,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   }, [activeSection, isPreview]);
 
-  // New Project State
-  const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
+
+
   const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleCreateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!projectName || !projectDescription) {
-      toast({
-        title: "Missing fields",
-        description: "Please fill in both project name and description.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsGenerating(true);
-
-    try {
-      const user = auth.currentUser;
-      const ownerId = user ? user.uid : "anonymous";
-
-      const response = await fetch(`${API_BASE_URL}/api/projects/generate`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          name: projectName,
-          description: projectDescription,
-          ownerId,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to generate project");
-      }
-
-      const data = await response.json();
-
-      toast({
-        title: "Project Created!",
-        description: "AI has generated your project architecture.",
-      });
-
-      navigate(`/projects/${data._id}`);
-
-    } catch (error) {
-      console.error(error);
-      toast({
-        title: "Error",
-        description: "Something went wrong while generating the project.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsGenerating(false);
-    }
-  };
 
   const sidebarItems = [
     { icon: Home, label: "Dashboard", active: activeSection === "Dashboard" },
@@ -683,176 +630,30 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case "Chat":
         return (
-          <div className="flex h-full w-full">
-            {/* Chat Sidebar (User List) */}
-            <div className="w-80 border-r border-border/50 flex flex-col bg-secondary/10">
-              <div className="p-4 border-b border-border/50">
-                <h2 className="text-lg font-semibold mb-4">Messages</h2>
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search people..." className="pl-8" />
-                </div>
-              </div>
-              <div className="flex-1 overflow-y-auto">
-                {displayUsers.map((user) => {
-                  const status = !isPreview && userStatuses[user.uid]
-                    ? userStatuses[user.uid].state
-                    : user.status;
-                  const isSelected = selectedChatUser?.uid === user.uid;
-
-                  return (
-                    <div
-                      key={user._id || user.id}
-                      className={`flex items-center gap-3 p-3 cursor-pointer hover:bg-secondary/50 transition-colors ${isSelected ? 'bg-secondary/50' : ''}`}
-                      onClick={() => setSelectedChatUser(user)}
-                    >
-                      <div className="relative">
-                        <Avatar>
-                          <AvatarImage src={user.photoURL} />
-                          <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
-                          status === "away" ? "bg-yellow-500" : "bg-gray-400"
-                          }`} />
-                      </div>
-                      <div className="flex-1 overflow-hidden">
-                        <div className="font-medium truncate">{user.displayName || user.name}</div>
-                        <div className="text-xs text-muted-foreground truncate">{user.email}</div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Chat Area */}
-            <div className="flex-1 flex flex-col">
-              {selectedChatUser ? (
-                <ChatView
-                  selectedUser={{
-                    ...selectedChatUser,
-                    status: userStatuses[selectedChatUser.uid]?.state || selectedChatUser.status || 'offline'
-                  }}
-                // No onBack prop needed for desktop split view
-                />
-              ) : (
-                <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-background/50">
-                  <MessageSquare className="w-12 h-12 mb-4 opacity-20" />
-                  <p>Select a user to start chatting</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <ChatLayout
+            users={displayUsers}
+            selectedUser={selectedChatUser}
+            userStatuses={userStatuses}
+            onSelectUser={setSelectedChatUser}
+            isPreview={isPreview}
+          />
         );
 
       case "People":
         return (
-          <div className="flex-1 w-full p-6 space-y-6 h-full">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold tracking-tight">People</h2>
-              <Button variant="outline">
-                <Plus className="mr-2 h-4 w-4" /> Invite Member
-              </Button>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {displayUsers.map((user) => {
-                const status = !isPreview && userStatuses[user.uid]
-                  ? userStatuses[user.uid].state
-                  : user.status;
-
-                return (
-                  <Card key={user._id || user.id} className="hover:shadow-md transition-shadow">
-                    <CardHeader className="flex flex-row items-center gap-4">
-                      <div className="relative">
-                        <Avatar>
-                          <AvatarImage src={user.photoURL} />
-                          <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
-                          status === "away" ? "bg-yellow-500" : "bg-gray-400"
-                          }`} />
-                      </div>
-                      <div className="flex flex-col">
-                        <CardTitle className="text-base">{user.displayName || user.name}</CardTitle>
-                        <CardDescription className="text-xs">{user.email}</CardDescription>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="flex items-center justify-between">
-                        <Badge variant={status === "online" ? "default" : "secondary"} className="capitalize">
-                          {status}
-                        </Badge>
-                        <Button size="sm" variant="ghost" onClick={() => handleChat(user)}>
-                          <MessageSquare className="w-4 h-4 mr-2" />
-                          Chat
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
-              })}
-            </div>
-          </div>
+          <PeopleView
+            users={displayUsers}
+            userStatuses={userStatuses}
+            onChat={handleChat}
+            isPreview={isPreview}
+          />
         );
 
 
 
       case "New Project":
         return (
-          <div className="flex-1 p-8">
-            <div className="max-w-3xl mx-auto space-y-8">
-              <div>
-                <h2 className="text-3xl font-bold tracking-tight">Create New Project</h2>
-
-                <p className="text-muted-foreground mt-2 text-lg">
-                  Describe your project idea, and our AI will generate a complete architecture and development plan for you.
-                </p>
-              </div>
-
-              <Card className="border-none shadow-none bg-transparent p-0">
-                <CardContent className="p-0">
-                  <form onSubmit={handleCreateProject} className="space-y-8">
-                    <div className="space-y-4">
-                      <Label htmlFor="name" className="text-base">Project Name</Label>
-                      <Input
-                        id="name"
-                        placeholder="e.g., E-commerce Platform, Task Manager"
-                        value={projectName}
-                        onChange={(e) => setProjectName(e.target.value)}
-                        disabled={isGenerating}
-                        className="h-12 text-lg"
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <Label htmlFor="description" className="text-base">Project Description</Label>
-                      <Textarea
-                        id="description"
-                        placeholder="Describe your project in detail. What features does it have? Who is it for?"
-                        className="min-h-[300px] text-lg p-4 resize-none"
-                        value={projectDescription}
-                        onChange={(e) => setProjectDescription(e.target.value)}
-                        disabled={isGenerating}
-                      />
-                    </div>
-
-                    <div className="flex justify-end">
-                      <Button type="submit" size="lg" className="px-8" disabled={isGenerating}>
-                        {isGenerating ? (
-                          <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                            Generating Architecture...
-                          </>
-                        ) : (
-                          "Generate Project Plan"
-                        )}
-                      </Button>
-                    </div>
-                  </form>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+          <CreateProject onProjectCreated={(data) => navigate(`/projects/${data._id}`)} />
         );
 
       case "Activity log":

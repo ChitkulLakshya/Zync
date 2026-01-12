@@ -11,7 +11,7 @@ import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 import NewProject from "./pages/NewProject";
 import ProjectDetails from "./pages/ProjectDetails";
-import Design from "./pages/Design";
+
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { useActivityTracker } from "./hooks/use-activity-tracker";
 import { useChatNotifications } from "./hooks/use-chat-notifications";
@@ -44,7 +44,7 @@ const AppContent = () => {
       <Route path="/dashboard/new-project" element={<Dashboard />} />
       <Route path="/new-project" element={<NewProject />} />
       <Route path="/projects/:id" element={<ProjectDetails />} />
-      <Route path="/design" element={<Design />} />
+
       <Route path="/privacy-policy" element={<PrivacyPolicy />} />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route path="*" element={<NotFound />} />
