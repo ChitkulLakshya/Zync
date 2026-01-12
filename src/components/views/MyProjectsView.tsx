@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Github, Loader2, Link as LinkIcon, ExternalLink, Star, GitFork } from "lucide-react";
 import { API_BASE_URL } from "@/lib/utils";
@@ -29,6 +30,10 @@ interface Repository {
   language: string;
   visibility: string;
   updated_at: string;
+  owner: {
+    login: string;
+    avatar_url: string;
+  };
 }
 
 const VITE_GITHUB_CLIENT_ID = import.meta.env.VITE_VITE_GITHUB_CLIENT_ID;
@@ -233,6 +238,15 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                   <Badge variant="secondary" className="capitalize text-sm font-normal px-3 py-1">
                     {repo.visibility}
                   </Badge>
+                </div>
+                <div className="flex items-center gap-2 mt-4">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={repo.owner.avatar_url} alt={repo.owner.login} />
+                    <AvatarFallback>{repo.owner.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-xs text-muted-foreground">
+                    {repo.owner.login}
+                  </span>
                 </div>
                 <CardDescription className="line-clamp-3 text-base mt-2">
                   {repo.description || "No description provided"}
