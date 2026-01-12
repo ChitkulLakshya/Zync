@@ -52,6 +52,7 @@ import ChatView from "./ChatView";
 import SettingsView from "./SettingsView";
 import DesignView from "./DesignView";
 import MyProjectsView from "./MyProjectsView"; // Import new view
+import CalendarView from "./CalendarView";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
@@ -427,9 +428,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     {
       icon: FolderKanban, label: "My Workspace", active: activeSection === "My Workspace", children: [
         { label: "Roadmap" },
-        { label: "Schedule" },
+        // { label: "Schedule" }, // Moved to top level
       ]
     },
+    { icon: Calendar, label: "Calendar", active: activeSection === "Calendar" },
     { icon: Star, label: "Design", active: activeSection === "Design" },
     { icon: Github, label: "My Projects", active: activeSection === "My Projects" },
     { icon: CheckSquare, label: "Tasks", active: activeSection === "Tasks" },
@@ -487,6 +489,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case "My Projects":
         return <MyProjectsView currentUser={currentUser} />;
+
+      case "Calendar":
+        return <CalendarView />;
 
       case "Chat":
         return (

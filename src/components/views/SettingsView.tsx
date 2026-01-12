@@ -79,7 +79,7 @@ const SettingsView = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileForm)
       });
-      
+
       if (res.ok) {
         toast({ title: "Success", description: "Profile updated successfully" });
       } else {
@@ -110,21 +110,21 @@ const SettingsView = () => {
         const result = await linkWithPopup(auth.currentUser, provider);
         const credential = GithubAuthProvider.credentialFromResult(result);
         accessToken = credential?.accessToken;
-        
+
         const details = getAdditionalUserInfo(result);
         githubUsername = details?.username || (details?.profile as any)?.login;
 
       } catch (linkError: any) {
         console.warn("Firebase Link Warning:", linkError.code);
-        
+
         // 2. Handle "Credential Already In Use" or other errors
         // We catch this specifically to still allow the integration (saving the token)
         // even if the Firebase account linking itself fails (e.g. reused GitHub account).
         if (linkError.code === 'auth/credential-already-in-use') {
-           const credential = GithubAuthProvider.credentialFromError(linkError);
-           accessToken = credential?.accessToken;
+          const credential = GithubAuthProvider.credentialFromError(linkError);
+          accessToken = credential?.accessToken;
         } else {
-           throw linkError;
+          throw linkError;
         }
       }
 
@@ -132,28 +132,28 @@ const SettingsView = () => {
 
       // 3. If Username is missing (e.g. from error flow), fetch it
       if (!githubUsername) {
-         try {
-            const ghResponse = await fetch('https://api.github.com/user', {
-               headers: { Authorization: `Bearer ${accessToken}` }
-            });
-            if (ghResponse.ok) {
-               const ghData = await ghResponse.json();
-               githubUsername = ghData.login;
-            }
-         } catch (e) {
-            console.warn("Could not fetch username fallback", e);
-         }
+        try {
+          const ghResponse = await fetch('https://api.github.com/user', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          });
+          if (ghResponse.ok) {
+            const ghData = await ghResponse.json();
+            githubUsername = ghData.login;
+          }
+        } catch (e) {
+          console.warn("Could not fetch username fallback", e);
+        }
       }
 
       // 4. Send Token to Backend
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/github/connect`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}` 
+          'Authorization': `Bearer ${idToken}`
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           accessToken,
           username: githubUsername || 'GitHub User' // Fallback
         })
@@ -178,10 +178,10 @@ const SettingsView = () => {
 
     } catch (error: any) {
       console.error(error);
-      toast({ 
-        variant: "destructive", 
-        title: "Connection Failed", 
-        description: error.message 
+      toast({
+        variant: "destructive",
+        title: "Connection Failed",
+        description: error.message
       });
     } finally {
       setLoading(false);
@@ -196,7 +196,7 @@ const SettingsView = () => {
     if (!newEmail) return;
     setShowEmailVerify(true);
     toast({ title: "Demo Code Sent", description: "Check console for code (123456)" });
-    console.log("DEMO CODE: 123456"); 
+    console.log("DEMO CODE: 123456");
   };
 
   const handleDeleteAccount = async () => {
@@ -218,7 +218,7 @@ const SettingsView = () => {
           <p className="text-muted-foreground">Manage your account settings and preferences.</p>
         </div>
 
-        <Tabs defaultValue="integrations" className="space-y-6">
+        <Tabs defaultValue="profile" className="space-y-6">
           <TabsList>
             <TabsTrigger value="profile">My Profile</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
@@ -238,17 +238,17 @@ const SettingsView = () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>First Name</Label>
-                      <Input value={profileForm.firstName} onChange={e => setProfileForm({...profileForm, firstName: e.target.value})} />
+                      <Input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} />
                     </div>
                     <div className="space-y-2">
                       <Label>Last Name</Label>
-                      <Input value={profileForm.lastName} onChange={e => setProfileForm({...profileForm, lastName: e.target.value})} />
+                      <Input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <Label>Username</Label>
-                    <Input value={profileForm.username} onChange={e => setProfileForm({...profileForm, username: e.target.value})} />
+                    <Input value={profileForm.username} onChange={e => setProfileForm({ ...profileForm, username: e.target.value })} />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -292,8 +292,8 @@ const SettingsView = () => {
                     <div className="space-y-2">
                       <Label>Phone Number</Label>
                       <div className="flex gap-2">
-                         <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
-                         <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({...profileForm, phoneNumber: e.target.value.replace(/\D/g, '')})} />
+                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
+                        <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
                       </div>
                     </div>
                   </div>
@@ -321,19 +321,19 @@ const SettingsView = () => {
                     <div>
                       <p className="font-medium">GitHub</p>
                       <p className="text-sm text-muted-foreground">
-                        {userData?.integrations?.github?.connected 
-                          ? `Connected as ${userData.integrations.github.username}` 
+                        {userData?.integrations?.github?.connected
+                          ? `Connected as ${userData.integrations.github.username}`
                           : "Connect repositories to Zync."}
                       </p>
                     </div>
                   </div>
-                  <Button 
+                  <Button
                     variant={userData?.integrations?.github?.connected ? "secondary" : "outline"}
-                    onClick={handleGithubConnect} 
+                    onClick={handleGithubConnect}
                     disabled={userData?.integrations?.github?.connected || loading}
                   >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 
-                     userData?.integrations?.github?.connected ? "Connected" : "Connect"}
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> :
+                      userData?.integrations?.github?.connected ? "Connected" : "Connect"}
                   </Button>
                 </div>
 
