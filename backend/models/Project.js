@@ -4,19 +4,19 @@ const TaskSchema = new mongoose.Schema({
   id: { type: String, default: () => new mongoose.Types.ObjectId().toString() },
   title: { type: String, required: true },
   description: { type: String },
-  status: { 
-    type: String, 
-    enum: ['Pending', 'Backlog', 'Ready', 'In Progress', 'In Review', 'Completed', 'Done'], 
-    default: 'Backlog' 
+  status: {
+    type: String,
+    enum: ['Pending', 'Backlog', 'Ready', 'In Progress', 'In Review', 'Completed', 'Done'],
+    default: 'Backlog'
   },
   assignedTo: { type: String, default: null }, // User UID
   assignedToName: { type: String, default: null },
   createdAt: { type: Date, default: Date.now },
   commitInfo: {
-      message: String,
-      url: String,
-      author: String,
-      timestamp: Date
+    message: String,
+    url: String,
+    author: String,
+    timestamp: Date
   }
 });
 
@@ -24,12 +24,12 @@ const StepSchema = new mongoose.Schema({
   id: { type: String, required: true },
   title: { type: String, required: true },
   description: { type: String },
-  status: { 
-    type: String, 
-    enum: ['Pending', 'Backlog', 'In Progress', 'Completed', 'Done'], 
-    default: 'Pending' 
+  status: {
+    type: String,
+    enum: ['Pending', 'Backlog', 'In Progress', 'Completed', 'Done'],
+    default: 'Pending'
   },
-  assignedTo: { type: String, default: null }, 
+  assignedTo: { type: String, default: null },
   type: { type: String, enum: ['Frontend', 'Backend', 'Database', 'Design', 'Other'], default: 'Other' },
   page: { type: String, default: 'General' },
   tasks: [TaskSchema] // Embedded tasks
@@ -52,6 +52,9 @@ const ProjectSchema = new mongoose.Schema({
   ownerId: { type: String }, // Firebase User ID
   team: [{ type: String }], // Array of User IDs
   githubRepo: { type: String },
+  githubRepoName: { type: String }, // NEW
+  githubRepoOwner: { type: String }, // NEW
+  isTrackingActive: { type: Boolean, default: false }, // NEW
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

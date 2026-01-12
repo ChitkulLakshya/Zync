@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   phoneNumber: String,
   birthday: Date,
   isPhoneVerified: { type: Boolean, default: false },
-  
+
   // Integration Fields
   integrations: {
     github: {
@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema({
       accessToken: { type: String }, // Will be stored Encrypted
       username: { type: String },
       id: { type: Number }, // GitHub User ID
+      installationId: { type: String }, // GitHub App Installation ID
       connectedAt: { type: Date }
     },
     google: {
@@ -26,7 +27,7 @@ const userSchema = new mongoose.Schema({
       email: String
     }
   },
-  
+
   photoURL: { type: String },
   status: { type: String, default: 'offline' },
   lastSeen: { type: Date, default: Date.now },
