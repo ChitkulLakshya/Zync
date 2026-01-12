@@ -39,14 +39,15 @@ router.post('/', verifyToken, async (req, res) => {
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
-    
+
     // Clean and parse JSON
     const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     let generatedData;
     try {
-        generatedData = JSON.parse(jsonString);
+      generatedData = JSON.parse(jsonString);
     } catch (e) {
-        return res.status(500).json({ message: 'Failed to parse AI response', error: e.message });
+      console.error("JSON Parse Error. Raw response:", responseText);
+      return res.status(500).json({ message: 'Failed to parse AI response', error: e.message, raw: responseText });
     }
 
     if (!generatedData.tasks || !Array.isArray(generatedData.tasks)) {

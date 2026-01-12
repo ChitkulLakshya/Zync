@@ -50,7 +50,36 @@ const Login = () => {
     setLoading(true);
     try {
       const provider = new GithubAuthProvider();
-      await signInWithPopup(auth, provider);
+      provider.addScope('repo'); // Request repo access
+      provider.addScope('user'); // Request user profile
+
+      const result = await signInWithPopup(auth, provider);
+
+      // Get GitHub access token from credential
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const githubToken = credential?.accessToken;
+
+      // Save the GitHub token to backend if available
+      if (githubToken && result.user) {
+        try {
+          const firebaseToken = await result.user.getIdToken();
+          await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/github/connect`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${firebaseToken}`
+            },
+            body: JSON.stringify({
+              accessToken: githubToken,
+              username: result.user.displayName || result.user.email?.split('@')[0] || 'unknown'
+            })
+          });
+        } catch (e) {
+          console.warn('Failed to save GitHub token to backend:', e);
+          // Non-fatal - login still succeeds
+        }
+      }
+
       toast({
         title: "Success",
         description: "Logged in with GitHub successfully",
@@ -124,7 +153,7 @@ const Login = () => {
               {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />

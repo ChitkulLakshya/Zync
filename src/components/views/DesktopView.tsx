@@ -63,13 +63,14 @@ import { collection, query, where, onSnapshot, updateDoc, serverTimestamp } from
 import ChatView from "./ChatView";
 import SettingsView from "./SettingsView";
 import DesignView from "./DesignView";
-import MyProjectsView from "./MyProjectsView"; // Import new view
+import MyProjectsView from "./MyProjectsView";
 import CalendarView from "./CalendarView";
+import DashboardView from "./DashboardView";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
     if (isPreview) return "My Workspace";
-    return localStorage.getItem("zync-active-section") || "My Workspace";
+    return localStorage.getItem("zync-active-section") || "Dashboard";
   });
 
   useEffect(() => {
@@ -78,37 +79,121 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   }, [activeSection, isPreview]);
 
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation(); // Get current URL location
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
+
+  // Handle custom chat open event
   useEffect(() => {
     const handleOpenChat = (e: Event) => {
       const customEvent = e as CustomEvent;
       setActiveSection("Chat");
+      navigate('/dashboard/chat');
       if (customEvent.detail) {
-        // logic to look up full user if needed, or use the partial data
-        // For now, we use the partial data which is enough for ChatView to query messages
-        // We might want to fetch the full user details in ChatView or here if they are missing
         setSelectedChatUser(customEvent.detail);
       }
     };
 
     window.addEventListener("zync-open-chat", handleOpenChat);
     return () => window.removeEventListener("zync-open-chat", handleOpenChat);
-  }, []);
+  }, [navigate]);
 
-  const { toast } = useToast();
-  const navigate = useNavigate();
-  const location = useLocation(); // Get current URL location
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // Map URL paths to section names
+  const pathToSection: Record<string, string> = {
+    '/dashboard': 'Dashboard',
+    '/dashboard/home': 'Dashboard',
+    '/dashboard/workspace': 'My Workspace',
+    '/dashboard/projects': 'My Projects',
+    '/dashboard/calendar': 'Calendar',
+    '/dashboard/design': 'Design',
+    '/dashboard/tasks': 'Tasks',
+    '/dashboard/notes': 'Notes',
+    '/dashboard/files': 'Files',
+    '/dashboard/activity': 'Activity log',
+    '/dashboard/people': 'People',
+    '/dashboard/meet': 'Meet',
+    '/dashboard/settings': 'Settings',
+    '/dashboard/chat': 'Chat',
+    '/dashboard/new-project': 'New Project',
+  };
 
-  // Sync active section with URL path for /dashboard/projects
+  // Map section names to URL paths
+  const sectionToPath: Record<string, string> = {
+    'Dashboard': '/dashboard',
+    'My Workspace': '/dashboard/workspace',
+    'My Projects': '/dashboard/projects',
+    'Calendar': '/dashboard/calendar',
+    'Design': '/dashboard/design',
+    'Tasks': '/dashboard/tasks',
+    'Notes': '/dashboard/notes',
+    'Files': '/dashboard/files',
+    'Activity log': '/dashboard/activity',
+    'People': '/dashboard/people',
+    'Meet': '/dashboard/meet',
+    'Settings': '/dashboard/settings',
+    'Chat': '/dashboard/chat',
+    'New Project': '/dashboard/new-project',
+  };
+
+  // Sync active section with URL path
   useEffect(() => {
-    if (location.pathname === '/dashboard/projects') {
-      setActiveSection("My Projects");
+    const section = pathToSection[location.pathname];
+    if (section && section !== activeSection) {
+      setActiveSection(section);
     }
   }, [location.pathname]);
 
+  // Update URL when section changes (only if not caused by URL change)
+  const handleSectionChange = (section: string) => {
+    setActiveSection(section);
+    const path = sectionToPath[section];
+    if (path && location.pathname !== path) {
+      navigate(path);
+    }
+  };
+
+  // Handle GitHub App Installation Callback (works on any dashboard section)
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const installationId = params.get('installation_id');
+
+    if (installationId && currentUser) {
+      const connectGitHub = async () => {
+        try {
+          const token = await currentUser.getIdToken();
+          await fetch(`${API_BASE_URL}/api/github/install`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ installationId })
+          });
+
+          toast({
+            title: "GitHub Connected",
+            description: "App installation verified successfully."
+          });
+
+          // Remove query params and stay on current path
+          navigate(location.pathname, { replace: true });
+        } catch (error) {
+          console.error("Failed to save installation ID", error);
+          toast({
+            title: "Connection Failed",
+            description: "Failed to save GitHub installation.",
+            variant: "destructive"
+          });
+        }
+      };
+      connectGitHub();
+    }
+  }, [location.search, currentUser, navigate, toast]);
+
   const [loading, setLoading] = useState(true);
   const [usersList, setUsersList] = useState<any[]>([]);
-  const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
   const [userStatuses, setUserStatuses] = useState<Record<string, any>>({});
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
 
@@ -557,19 +642,22 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const handleChat = (user: any) => {
     setSelectedChatUser(user);
-    setActiveSection("Chat");
+    handleSectionChange("Chat");
   };
 
   const renderContent = () => {
     switch (activeSection) {
+      case "Dashboard":
+        return <DashboardView currentUser={currentUser} />;
+
       case "My Workspace":
         return (
           <Workspace
-            onNavigate={setActiveSection}
+            onNavigate={handleSectionChange}
             onSelectProject={(id) => navigate(`/projects/${id}`)}
             onOpenNote={(noteId) => {
               setActiveNoteId(noteId);
-              setActiveSection("Notes");
+              handleSectionChange("Notes");
             }}
             currentUser={currentUser}
           />
@@ -1049,7 +1137,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     <CardDescription>Connect your GitHub account to see your profile stats here.</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <Button onClick={() => setActiveSection("Settings")}>
+                    <Button onClick={() => handleSectionChange("Settings")}>
                       <Github className="mr-2 h-4 w-4" />
                       Go to Settings to Connect
                     </Button>
@@ -1081,7 +1169,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           <div className="px-3 mb-2">
             <Button
               className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => setActiveSection("New Project")}
+              onClick={() => handleSectionChange("New Project")}
             >
               <Plus className="w-4 h-4" />
               Create new project
@@ -1094,16 +1182,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 <Button
                   variant={item.active ? "secondary" : "ghost"}
                   className={`w-full justify-start gap-3 ${item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  onClick={() => {
-                    if (item.label === "My Projects") {
-                      navigate('/dashboard/projects');
-                    } else {
-                      if (location.pathname === '/dashboard/projects') {
-                        navigate('/dashboard');
-                      }
-                      setActiveSection(item.label);
-                    }
-                  }}
+                  onClick={() => handleSectionChange(item.label)}
                 >
                   <item.icon className="w-4 h-4" />
                   {item.label}
@@ -1147,7 +1226,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <DropdownMenuContent align="end" className="w-56">
               <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setActiveSection("Settings")}>
+              <DropdownMenuItem onClick={() => handleSectionChange("Settings")}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Settings</span>
               </DropdownMenuItem>
@@ -1175,7 +1254,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             {(activeSection === "My Workspace" || activeSection === "Dashboard") ? (
               <>
                 <span className="font-semibold text-foreground">Tools</span>
-                <Button size="sm" variant="hero" onClick={() => setActiveSection("New Project")}>+ Add new</Button>
+                <Button size="sm" variant="hero" onClick={() => handleSectionChange("New Project")}>+ Add new</Button>
                 <div className="flex gap-2">
                   <span className="px-3 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full cursor-pointer">Week view</span>
                   <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full cursor-pointer">Today</span>
