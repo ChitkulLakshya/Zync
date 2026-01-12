@@ -398,7 +398,7 @@ router.get('/stats', verifyToken, async (req, res) => {
     const user = await User.findOne({ uid });
 
     if (!user || !user.integrations?.github?.connected || !user.integrations?.github?.accessToken) {
-      return res.status(400).json({ message: 'GitHub account not connected' });
+      return res.json({ connected: false, message: 'GitHub account not connected' });
     }
 
     const accessToken = decryptToken(user.integrations.github.accessToken);
@@ -437,7 +437,7 @@ router.get('/events', verifyToken, async (req, res) => {
     const user = await User.findOne({ uid });
 
     if (!user || !user.integrations?.github?.connected || !user.integrations?.github?.accessToken) {
-      return res.status(400).json({ message: 'GitHub account not connected' });
+      return res.json({ connected: false, message: 'GitHub account not connected' });
     }
 
     const accessToken = decryptToken(user.integrations.github.accessToken);
@@ -482,7 +482,7 @@ router.get('/contributions', verifyToken, async (req, res) => {
     const user = await User.findOne({ uid });
 
     if (!user || !user.integrations?.github?.connected || !user.integrations?.github?.accessToken) {
-      return res.status(400).json({ message: 'GitHub account not connected' });
+      return res.json({ connected: false, message: 'GitHub account not connected' });
     }
 
     const accessToken = decryptToken(user.integrations.github.accessToken);
