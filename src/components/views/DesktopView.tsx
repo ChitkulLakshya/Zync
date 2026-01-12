@@ -604,6 +604,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     try {
       // Call Backend to Generate Link & Invite
       if (invitedUserIds.length > 0 && currentUser) {
+        // Anti-Popup Blocker: Open a placeholder window immediately
+        const newWindow = window.open("", "_blank");
+        if (newWindow) {
+          newWindow.document.write("Loading your Google Meet...");
+        }
+
         const idToken = await currentUser.getIdToken();
         const res = await fetch(`${API_BASE_URL}/api/meet/invite`, {
           method: 'POST',
@@ -620,11 +626,17 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
         const data = await res.json();
         if (data.meetingUrl) {
-          // Open the generated Google Meet link
-          window.open(data.meetingUrl, "_blank");
+          // Update the placeholder window with the real URL
+          if (newWindow) {
+            newWindow.location.href = data.meetingUrl;
+          } else {
+            // Fallback if blocked entirely
+            window.open(data.meetingUrl, "_blank");
+          }
           toast({ title: "Meeting Started", description: "Google Meet link opened and invites sent." });
           setInvitedUserIds([]);
         } else {
+          if (newWindow) newWindow.close();
           throw new Error(data.message || "Failed to generate meeting");
         }
       }

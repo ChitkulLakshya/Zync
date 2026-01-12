@@ -8,10 +8,15 @@ const oauth2Client = new google.auth.OAuth2(
 
 const createInstantMeet = async () => {
     try {
+        console.log('Using Client ID:', process.env.GOOGLE_CLIENT_ID);
+        console.log('Using Redirect URI:', process.env.GOOGLE_REDIRECT_URI || "http://localhost:3000");
+        console.log('Using Refresh Token:', process.env.GOOGLE_REFRESH_TOKEN ? "Present" : "Missing");
+
         // Set credentials using the stored Refresh Token
         oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN });
 
         const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+        console.log('Requesting new Google Calendar event...');
 
         const event = {
             summary: 'Zync Instant Meeting', // Creating a generic event
@@ -40,13 +45,20 @@ const createInstantMeet = async () => {
             conferenceDataVersion: 1,
         });
 
+        console.log('Google API Response Status:', response.status);
+
         if (response.data.hangoutLink) {
+            console.log('Generated Hangout Link:', response.data.hangoutLink);
             return response.data.hangoutLink;
         } else {
+            console.error('No hangoutLink in response data:', response.data);
             throw new Error('Failed to generate Google Meet link.');
         }
     } catch (error) {
-        console.error('Error creating Google Meet:', error);
+        console.error('Error in createInstantMeet:', error);
+        if (error.response) {
+            console.error('Google API Error Details:', JSON.stringify(error.response.data, null, 2));
+        }
         throw error;
     }
 };
