@@ -109,21 +109,26 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
 
                 if (statsRes && statsRes.ok) {
                     const statsData = await statsRes.json();
-                    setStats(statsData);
+                    if (statsData.connected === false) {
+                        setError("GitHub not connected. Sign in with GitHub to see your activity.");
+                        setStats(null);
+                    } else {
+                        setStats(statsData);
+                    }
                 }
 
                 if (eventsRes && eventsRes.ok) {
                     const eventsData = await eventsRes.json();
-                    setEvents(eventsData);
+                    if (eventsData.connected !== false) {
+                        setEvents(eventsData);
+                    }
                 }
 
                 if (contribRes.ok) {
                     const contribData = await contribRes.json();
-                    setContributions(contribData);
-                }
-
-                if ((statsRes && !statsRes.ok) && (eventsRes && !eventsRes.ok)) {
-                    setError("GitHub not connected. Sign in with GitHub to see your activity.");
+                    if (contribData.connected !== false) {
+                        setContributions(contribData);
+                    }
                 }
             } catch (err) {
                 console.error("Error fetching GitHub data:", err);
