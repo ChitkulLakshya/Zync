@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Workspace from "@/components/workspace/Workspace";
 import CalendarView from "./CalendarView";
+import ChatView from "./ChatView";
 import { NotesView } from "@/components/notes/NotesView";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,7 @@ import { useToast } from "@/hooks/use-toast";
 const MobileView = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
   const [usersList, setUsersList] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -208,11 +210,30 @@ const MobileView = () => {
                       <Badge variant={user.status === "online" ? "default" : "secondary"}>
                         {user.status || 'offline'}
                       </Badge>
+                      <Button size="icon" variant="ghost" className="h-8 w-8 text-primary" onClick={() => {
+                        setSelectedChatUser(user);
+                        setActiveTab("chat");
+                      }}>
+                        <MessageSquare className="w-4 h-4" />
+                      </Button>
                     </CardContent>
                   </Card>
                 ))
               )}
             </div>
+          </div>
+        )}
+
+        {/* Chat View */}
+        {activeTab === "chat" && selectedChatUser && (
+          <div className="h-full z-50 fixed inset-0 bg-background">
+            <ChatView
+              selectedUser={selectedChatUser}
+              onBack={() => {
+                setActiveTab("people");
+                setSelectedChatUser(null);
+              }}
+            />
           </div>
         )}
 
