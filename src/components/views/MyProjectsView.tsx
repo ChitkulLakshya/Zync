@@ -220,48 +220,48 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
           {repos.map((repo) => (
-            <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-colors">
-              <CardHeader className="pb-2">
-                <div className="flex items-start justify-between">
-                  <CardTitle className="text-lg font-medium truncate pr-2">
+            <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-all hover:shadow-lg min-h-[280px]">
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between gap-4">
+                  <CardTitle className="text-xl md:text-2xl font-semibold truncate pr-2">
                     <a href={repo.html_url} target="_blank" rel="noreferrer" className="hover:underline">
                       {repo.name}
                     </a>
                   </CardTitle>
-                  <Badge variant="secondary" className="capitalize text-xs font-normal">
+                  <Badge variant="secondary" className="capitalize text-sm font-normal px-3 py-1">
                     {repo.visibility}
                   </Badge>
                 </div>
-                <CardDescription className="line-clamp-2 h-10">
+                <CardDescription className="line-clamp-3 text-base mt-2">
                   {repo.description || "No description provided"}
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 py-2">
-                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+              <CardContent className="flex-1 py-4">
+                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                   {repo.language && (
-                    <span className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-primary" />
+                    <span className="flex items-center gap-2">
+                      <span className="w-3 h-3 rounded-full bg-primary" />
                       {repo.language}
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Star className="h-3 w-3" />
+                  <span className="flex items-center gap-2">
+                    <Star className="h-4 w-4" />
                     {repo.stargazers_count}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <GitFork className="h-3 w-3" />
+                  <span className="flex items-center gap-2">
+                    <GitFork className="h-4 w-4" />
                     {repo.forks_count}
                   </span>
                 </div>
               </CardContent>
-              <CardFooter className="pt-2 border-t bg-muted/20">
-                <div className="text-xs text-muted-foreground w-full flex justify-between items-center">
+              <CardFooter className="pt-4 border-t bg-muted/10">
+                <div className="text-sm text-muted-foreground w-full flex justify-between items-center">
                   <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
-                  <Button variant="ghost" size="icon" className="h-6 w-6" asChild>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
                     <a href={repo.html_url} target="_blank" rel="noreferrer">
-                      <ExternalLink className="h-3 w-3" />
+                      <ExternalLink className="h-4 w-4" />
                     </a>
                   </Button>
                 </div>
@@ -269,8 +269,12 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
             </Card>
           ))}
           {repos.length === 0 && (
-            <div className="col-span-full text-center py-12 text-muted-foreground">
-              No repositories found.
+            <div className="col-span-full text-center py-16 text-muted-foreground">
+              <div className="flex flex-col items-center gap-4">
+                <Github className="h-12 w-12 text-muted-foreground/50" />
+                <h3 className="text-xl font-medium">No repositories found</h3>
+                <p>It looks like you haven't created any repositories yet.</p>
+              </div>
             </div>
           )}
         </div>
