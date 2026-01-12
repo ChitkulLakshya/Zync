@@ -131,7 +131,11 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
+<<<<<<< Updated upstream
       "value": "/home/chitkul-lakshya/VS/Zync/backend/prisma/generated/client",
+=======
+      "value": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/generated/client",
+>>>>>>> Stashed changes
       "fromEnvVar": null
     },
     "config": {
@@ -145,7 +149,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
+<<<<<<< Updated upstream
     "sourceFilePath": "/home/chitkul-lakshya/VS/Zync/backend/prisma/schema.prisma",
+=======
+    "sourceFilePath": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/schema.prisma",
+>>>>>>> Stashed changes
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

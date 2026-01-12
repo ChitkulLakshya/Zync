@@ -188,6 +188,36 @@ const SettingsView = () => {
     }
   };
 
+  const handleGithubDisconnect = async () => {
+    if (!window.confirm("Are you sure you want to unlink your GitHub account?")) return;
+    setLoading(true);
+    try {
+      const idToken = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/github/disconnect`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${idToken}`,
+          'Content-Type': 'application/json'
+        },
+      });
+
+      if (!res.ok) throw new Error("Failed to disconnect");
+
+      toast({ title: "Disconnected", description: "GitHub account unlinked." });
+      setUserData((prev: any) => ({
+        ...prev,
+        integrations: {
+          ...prev?.integrations,
+          github: { ...prev?.integrations?.github, connected: false, username: null }
+        }
+      }));
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // --- Security Functions ---
   const [newEmail, setNewEmail] = useState("");
   const [showEmailVerify, setShowEmailVerify] = useState(false);
@@ -371,12 +401,12 @@ const SettingsView = () => {
                     </div>
                   </div>
                   <Button
-                    variant={userData?.integrations?.github?.connected ? "secondary" : "outline"}
-                    onClick={handleGithubConnect}
-                    disabled={userData?.integrations?.github?.connected || loading}
+                    variant={userData?.integrations?.github?.connected ? "destructive" : "secondary"}
+                    onClick={userData?.integrations?.github?.connected ? handleGithubDisconnect : handleGithubConnect}
+                    disabled={loading}
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> :
-                      userData?.integrations?.github?.connected ? "Connected" : "Connect"}
+                      userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
                   </Button>
                 </div>
 

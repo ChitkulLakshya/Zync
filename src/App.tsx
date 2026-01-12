@@ -29,7 +29,19 @@ const AppContent = () => {
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/dashboard/workspace" element={<Dashboard />} />
       <Route path="/dashboard/projects" element={<Dashboard />} />
+      <Route path="/dashboard/calendar" element={<Dashboard />} />
+      <Route path="/dashboard/design" element={<Dashboard />} />
+      <Route path="/dashboard/tasks" element={<Dashboard />} />
+      <Route path="/dashboard/notes" element={<Dashboard />} />
+      <Route path="/dashboard/files" element={<Dashboard />} />
+      <Route path="/dashboard/activity" element={<Dashboard />} />
+      <Route path="/dashboard/people" element={<Dashboard />} />
+      <Route path="/dashboard/meet" element={<Dashboard />} />
+      <Route path="/dashboard/settings" element={<Dashboard />} />
+      <Route path="/dashboard/chat" element={<Dashboard />} />
+      <Route path="/dashboard/new-project" element={<Dashboard />} />
       <Route path="/new-project" element={<NewProject />} />
       <Route path="/projects/:id" element={<ProjectDetails />} />
       <Route path="/design" element={<Design />} />

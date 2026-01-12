@@ -39,7 +39,7 @@ const Signup = () => {
     setLoading(true);
     try {
       const result = await createUserWithEmailAndPassword(auth, email, password);
-      
+
       // Collect phone number as unverified metadata
       await fetch(`${API_BASE_URL}/api/users/sync`, {
         method: "POST",
@@ -73,7 +73,36 @@ const Signup = () => {
     setLoading(true);
     try {
       const provider = new GithubAuthProvider();
-      await signInWithPopup(auth, provider);
+      provider.addScope('repo'); // Request repo access
+      provider.addScope('user'); // Request user profile
+
+      const result = await signInWithPopup(auth, provider);
+
+      // Get GitHub access token from credential
+      const credential = GithubAuthProvider.credentialFromResult(result);
+      const githubToken = credential?.accessToken;
+
+      // Save the GitHub token to backend if available
+      if (githubToken && result.user) {
+        try {
+          const firebaseToken = await result.user.getIdToken();
+          await fetch(`${API_BASE_URL}/api/github/connect`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${firebaseToken}`
+            },
+            body: JSON.stringify({
+              accessToken: githubToken,
+              username: result.user.displayName || result.user.email?.split('@')[0] || 'unknown'
+            })
+          });
+        } catch (e) {
+          console.warn('Failed to save GitHub token to backend:', e);
+          // Non-fatal - signup still succeeds
+        }
+      }
+
       toast({
         title: "Success",
         description: "Signed up with GitHub successfully",
@@ -159,7 +188,7 @@ const Signup = () => {
               {loading ? "Creating account..." : "Sign Up"}
             </Button>
           </form>
-          
+
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />

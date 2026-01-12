@@ -1,6 +1,5 @@
 /// <reference types="vite/client" />
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,17 +36,13 @@ interface Repository {
   };
 }
 
-const VITE_GITHUB_CLIENT_ID = import.meta.env.VITE_VITE_GITHUB_CLIENT_ID;
+
 
 const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
-  const [connecting, setConnecting] = useState(false);
   const [repos, setRepos] = useState<Repository[]>([]);
   const [userData, setUserData] = useState<MongoUser | null>(null); // Extended user data from MongoDB
   const { toast } = useToast();
-
-  const code = searchParams.get("code");
 
   // Fetch full user data including integrations
   const fetchUserData = async () => {
@@ -75,53 +70,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     }
   }, [currentUser]);
 
-  // Handle OAuth Callback
-  useEffect(() => {
-    const handleCallback = async () => {
-      if (code && currentUser) {
-        setConnecting(true);
-        try {
-          // Exchange code for token (force refresh to ensure validity)
-          const token = await currentUser.getIdToken(true);
-          const response = await fetch(`${API_BASE_URL}/api/github/callback`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ code })
-          });
 
-          const data = await response.json();
-
-          if (!response.ok) throw new Error(data.message || "Failed to connect");
-
-          toast({
-            title: "GitHub Connected",
-            description: `Successfully linked account: ${data.username}`,
-          });
-
-          // Refresh user data
-          await fetchUserData();
-
-          // Clear query params
-          setSearchParams({});
-
-        } catch (error: any) {
-          console.error("Connection error:", error);
-          toast({
-            title: "Connection Failed",
-            description: error.message,
-            variant: "destructive",
-          });
-        } finally {
-          setConnecting(false);
-        }
-      }
-    };
-
-    handleCallback();
-  }, [code, currentUser]);
 
   // Fetch Repositories
   useEffect(() => {
@@ -158,11 +107,12 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
 
 
   const handleConnect = () => {
-    // Generate GitHub OAuth URL
-    // scope: repo,user
-    const currentUrl = window.location.origin + "/dashboard/projects";
-    const githubUrl = `https://github.com/login/oauth/authorize?client_id=${VITE_GITHUB_CLIENT_ID}&scope=repo,user&redirect_uri=${encodeURIComponent(currentUrl)}`;
-    window.location.href = githubUrl;
+    // If user is logged in with GitHub via Firebase, they should already have the token saved
+    // If not, redirect them to login with GitHub
+    toast({
+      title: "GitHub Connection",
+      description: "Please sign out and sign in again with GitHub to connect your repositories.",
+    });
   };
 
   if (!userData) { // Initial loading
@@ -174,15 +124,6 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   }
 
   const isConnected = userData?.integrations?.github?.connected;
-
-  if (connecting) {
-    return (
-      <div className="flex h-full flex-col items-center justify-center space-y-4">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-        <h2 className="text-xl font-semibold">Linking your GitHub account...</h2>
-      </div>
-    );
-  }
 
   if (!isConnected) {
     return (

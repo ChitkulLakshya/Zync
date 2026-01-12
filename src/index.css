@@ -74,6 +74,13 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 220 15% 22%;
     --sidebar-ring: 199 89% 48%;
+
+    /* GitHub Contribution Graph - Light Mode */
+    --level-0: #ebedf0;
+    --level-1: #9be9a8;
+    --level-2: #40c463;
+    --level-3: #30a14e;
+    --level-4: #216e39;
   }
 
   .dark {
@@ -117,6 +124,13 @@
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 222 47% 12%;
     --sidebar-ring: 199 89% 48%;
+
+    /* GitHub Contribution Graph - Dark Mode */
+    --level-0: #161b22;
+    --level-1: #0e4429;
+    --level-2: #006d32;
+    --level-3: #26a641;
+    --level-4: #39d353;
   }
 }
 
@@ -176,9 +190,12 @@
 
 /* Animations */
 @keyframes float {
-  0%, 100% {
+
+  0%,
+  100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
@@ -189,6 +206,7 @@
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -199,6 +217,7 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
@@ -209,6 +228,7 @@
     opacity: 0;
     transform: translateX(-30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -220,6 +240,7 @@
     opacity: 0;
     transform: translateX(30px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -231,6 +252,7 @@
     opacity: 0;
     transform: scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -238,9 +260,12 @@
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 20px hsl(199 89% 48% / 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px hsl(199 89% 48% / 0.5);
   }
@@ -248,12 +273,12 @@
 
 /* Editor Overrides */
 .zync-editor-overrides .bn-editor {
-    @apply bg-transparent;
-    padding-inline: 0 !important;
+  @apply bg-transparent;
+  padding-inline: 0 !important;
 }
 
 .zync-editor-overrides .bn-block-content {
-    /* Ensure font integration */
+  /* Ensure font integration */
 }
 
 /* Custom Scrollbar for Editor */
@@ -276,71 +301,80 @@
 
 /* Dark Mode Fixes for BlockNote */
 .dark .zync-editor-overrides .bn-editor {
-    /* Ensure text is readable */
-    --bn-colors-editor-text: var(--foreground);
-    --bn-colors-editor-background: transparent;
+  /* Ensure text is readable */
+  --bn-colors-editor-text: var(--foreground);
+  --bn-colors-editor-background: transparent;
 }
 
 /* Fix for the white formatting toolbar/side menu in dark mode */
 .dark .mantine-Paper-root,
-.dark .mantine-Menu-dropdown, 
+.dark .mantine-Menu-dropdown,
 .dark .mantine-Popover-dropdown {
-    background-color: hsl(var(--popover)) !important;
-    border-color: hsl(var(--border)) !important;
-    color: hsl(var(--foreground)) !important;
+  background-color: hsl(var(--popover)) !important;
+  border-color: hsl(var(--border)) !important;
+  color: hsl(var(--foreground)) !important;
 }
 
 .dark .mantine-ActionIcon-root:hover {
-    background-color: hsl(var(--secondary)) !important;
+  background-color: hsl(var(--secondary)) !important;
 }
 
 /* Specific BlockNote overrides */
 .zync-editor-overrides .bn-block-content[data-content-type="heading"] {
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-    font-family: inherit;
-    font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-family: inherit;
+  font-weight: 700;
 }
 
 .zync-editor-overrides .bn-block-content[data-content-type="paragraph"] {
-    margin-bottom: 0.5em; /* Better spacing for paragraphs */
-    line-height: 1.75;
+  margin-bottom: 0.5em;
+  /* Better spacing for paragraphs */
+  line-height: 1.75;
 }
 
 /* Hide the default side menu trigger if it clashes, or style it */
 .dark .bn-side-menu-trigger {
-    color: hsl(var(--muted-foreground));
+  color: hsl(var(--muted-foreground));
 }
 
 .dark .bn-side-menu {
-    background-color: hsl(var(--card));
-    border: 1px solid hsl(var(--border));
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
 }
 
 /* Make slash menu dark */
 .dark .bn-slash-menu {
-    background-color: hsl(var(--popover));
-    border: 1px solid hsl(var(--border));
-    color: hsl(var(--foreground));
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  color: hsl(var(--foreground));
 }
 
 .dark .bn-slash-menu-item[data-hovered="true"] {
-    background-color: hsl(var(--secondary));
+  background-color: hsl(var(--secondary));
 }
 
 /* Center the placeholder text in the editor */
 .zync-editor-overrides .bn-editor[data-is-empty-placeholder="true"]::before {
-    color: var(--muted-foreground) !important;
-    opacity: 0.5;
-    text-align: center;
-    width: 100%;
+  color: var(--muted-foreground) !important;
+  opacity: 0.5;
+  text-align: center;
+  width: 100%;
 }
 
 /* Wave Animation */
 @keyframes wave-flow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .animate-wave-flow {
@@ -357,7 +391,9 @@
 }
 
 @keyframes blink {
-  50% { opacity: 0; }
+  50% {
+    opacity: 0;
+  }
 }
 
 /* Glowing text */
@@ -374,7 +410,7 @@
 .bg-geometric-elegant {
   background-color: #f3f4f6;
   opacity: 0.8;
-  background-image:  linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(150deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(150deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff), linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff);
+  background-image: linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(150deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(150deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff), linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff);
   background-size: 40px 70px;
   background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
 }
@@ -387,7 +423,8 @@
 
 /* Navy Sidebar */
 .bg-navy-900 {
-  background-color: #0f172a; /* Slate 900 */
+  background-color: #0f172a;
+  /* Slate 900 */
 }
 
 /* Make editor content match formal aesthetic */
@@ -397,29 +434,35 @@
 
 /* Ensure placeholder is elegant and serif */
 .zync-editor-overrides .bn-editor[data-is-empty-placeholder="true"]::before {
-    font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', serif !important;
-    font-style: italic;
-    color: #94a3b8 !important; /* Slate 400 */
+  font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', serif !important;
+  font-style: italic;
+  color: #94a3b8 !important;
+  /* Slate 400 */
 }
 
 /* Dark Mode Support for Custom Surfaces */
 .dark .bg-geometric-elegant {
   background-color: #000000;
-  opacity: 0.5; /* Reduce opacity as requested */
+  opacity: 0.5;
+  /* Reduce opacity as requested */
   /* We keep the pattern but the background color changes */
 }
 
 .dark .bg-paper-texture {
-  background-color: #171717; /* neutral-900 */
-  border-color: #262626; /* neutral-800 */
+  background-color: #171717;
+  /* neutral-900 */
+  border-color: #262626;
+  /* neutral-800 */
 }
 
 /* Update placeholder color for dark mode */
 .dark .zync-editor-overrides .bn-editor[data-is-empty-placeholder="true"]::before {
-    color: #525252 !important; /* neutral-600 */
+  color: #525252 !important;
+  /* neutral-600 */
 }
 
 /* Update editor text color for dark mode */
 .dark .zync-editor-overrides .bn-editor * {
-    color: #e5e5e5; /* neutral-200 */
+  color: #e5e5e5;
+  /* neutral-200 */
 }
