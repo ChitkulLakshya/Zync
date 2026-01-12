@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema({
   phoneNumber: String,
   birthday: Date,
   isPhoneVerified: { type: Boolean, default: false },
+  role: { type: String, enum: ['user', 'admin'], default: 'user' }, // Added Admin Role
 
   // Integration Fields
   integrations: {

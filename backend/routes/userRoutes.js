@@ -4,6 +4,9 @@ const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const { encrypt } = require('../utils/encryption');
 const { sendEmail } = require('../utils/emailService');
+const { Resend } = require('resend');
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {
@@ -62,6 +65,26 @@ router.post('/sync', async (req, res) => {
         lastSeen: Date.now(),
       });
       await user.save();
+
+      // Send Notification Email to Admin
+      if (process.env.RESEND_API_KEY) {
+        try {
+          await resend.emails.send({
+            from: 'Zync <onboarding@resend.dev>', // or your custom domain
+            to: 'ChitkulLakshya@gmail.com',
+            subject: '🚀 New User Joined Zync!',
+            html: `
+              <h1>New User Alert!</h1>
+              <p><strong>Name:</strong> ${displayName || 'N/A'}</p>
+              <p><strong>Email:</strong> ${email}</p>
+              <p><strong>UID:</strong> ${uid}</p>
+            `
+          });
+          console.log(`Notification email sent for new user: ${email}`);
+        } catch (emailError) {
+          console.error("Failed to send admin notification:", emailError);
+        }
+      }
     }
 
     res.status(200).json(user);

@@ -1,4 +1,5 @@
 const express = require('express');
+require('dotenv').config(); // Load env BEFORE other imports
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');

@@ -88,7 +88,7 @@ const CalendarView = () => {
                         events={events}
                         startAccessor="start"
                         endAccessor="end"
-                        style={{ height: 'calc(100vh - 100px)' }}
+                        style={{ height: '100%', minHeight: '500px' }}
                         views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
                         defaultView={Views.MONTH}
                         selectable
