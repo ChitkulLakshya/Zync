@@ -10,7 +10,7 @@ import {
   Calendar,
   CheckSquare,
   FileText,
-  FolderOpen,
+
   Clock,
   Users,
   Settings,
@@ -110,7 +110,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     '/dashboard/design': 'Design',
     '/dashboard/tasks': 'Tasks',
     '/dashboard/notes': 'Notes',
-    '/dashboard/files': 'Files',
+
     '/dashboard/activity': 'Activity log',
     '/dashboard/people': 'People',
     '/dashboard/meet': 'Meet',
@@ -128,7 +128,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     'Design': '/dashboard/design',
     'Tasks': '/dashboard/tasks',
     'Notes': '/dashboard/notes',
-    'Files': '/dashboard/files',
+
     'Activity log': '/dashboard/activity',
     'People': '/dashboard/people',
     'Meet': '/dashboard/meet',
@@ -559,7 +559,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     { icon: Github, label: "My Projects", active: activeSection === "My Projects" },
     { icon: CheckSquare, label: "Tasks", active: activeSection === "Tasks" },
     { icon: FileText, label: "Notes", active: activeSection === "Notes" },
-    { icon: FolderOpen, label: "Files", active: activeSection === "Files" },
+
     { icon: Clock, label: "Activity log", active: activeSection === "Activity log" },
     { icon: Users, label: "People", active: activeSection === "People" },
     { icon: Video, label: "Meet", active: activeSection === "Meet" },
