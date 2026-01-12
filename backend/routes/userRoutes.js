@@ -6,7 +6,7 @@ const { encrypt } = require('../utils/encryption');
 const { sendEmail } = require('../utils/emailService');
 const { Resend } = require('resend');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {

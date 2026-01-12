@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { API_BASE_URL } from "@/lib/utils";
-import { FolderGit2, Plus, ArrowRight, Loader2, Calendar, User, Trash2, Pin, FileText } from "lucide-react";
+import { FolderGit2, Plus, ArrowRight, Loader2, Calendar, User, Trash2, Pin, FileText, Unlink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -100,6 +100,13 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
     try {
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : null;
+      console.log("Fetching repos with token:", token ? token.substring(0, 10) + "..." : "null", "User:", user?.uid);
+
+      if (!token) {
+        toast({ title: "Authentication Error", description: "You are not signed in.", variant: "destructive" });
+        setLoadingRepos(false);
+        return;
+      }
 
       const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
         headers: {
@@ -150,7 +157,7 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
         },
         body: JSON.stringify({
           githubRepoName: repo.name,
-          githubRepoOwner: repo.owner,
+          githubRepoOwner: repo.owner.login,
           isTrackingActive: true
         })
       });
@@ -174,6 +181,40 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
       });
     } finally {
       setLinkingRepo(false);
+    }
+  }
+
+
+  const handleUnlinkRepo = async (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
+    if (!confirm(`Unlink ${project.githubRepoName} from this project?`)) return;
+
+    try {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : null;
+
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          githubRepoName: null,
+          githubRepoOwner: null,
+          isTrackingActive: false
+        })
+      });
+
+      if (response.ok) {
+        const updatedProject = await response.json();
+        setProjects(projects.map(p => p._id === updatedProject._id ? updatedProject : p));
+        toast({ title: "Success", description: "Repository unlinked." });
+      } else {
+        throw new Error("Failed to unlink");
+      }
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to unlink repository.", variant: "destructive" });
     }
   };
 
@@ -348,9 +389,21 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
                     </Button>
                   )}
                   {project.githubRepoName && (
-                    <div className="flex items-center gap-2 mt-3 p-2 bg-secondary/30 rounded-md text-xs">
-                      <Github className="w-3 h-3" />
+                    <div className="flex items-center gap-2 mt-3 p-2 bg-secondary/30 rounded-md text-xs group/repo relative pr-8">
+                      <Github className="w-3 h-3 flex-shrink-0" />
                       <span className="truncate flex-1">{project.githubRepoOwner}/{project.githubRepoName}</span>
+
+                      {project.ownerId === currentUser?.uid && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6 absolute right-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                          onClick={(e) => handleUnlinkRepo(e, project)}
+                          title="Unlink Repository"
+                        >
+                          <Unlink className="w-3 h-3" />
+                        </Button>
+                      )}
                     </div>
                   )}
                 </CardContent>

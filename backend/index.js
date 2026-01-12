@@ -108,8 +108,14 @@ mongoose.connect(process.env.MONGO_URI, {
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
 })
-  .then(() => console.log('✅ MongoDB connected'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .then((conn) => {
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log(`Pp Database Name: ${conn.connection.name}`);
+  })
+  .catch((err) => {
+    console.error(`Error: ${err.message}`);
+    process.exit(1);
+  });
 
 app.get('/', (req, res) => {
   res.send('API is running...');

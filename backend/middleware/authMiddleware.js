@@ -9,12 +9,12 @@ if (!admin.apps.length) {
       let serviceAccount = process.env.GCP_SERVICE_ACCOUNT_KEY;
       if (typeof serviceAccount === 'string') {
         try {
-           serviceAccount = JSON.parse(serviceAccount);
+          serviceAccount = JSON.parse(serviceAccount);
         } catch (e) {
-           console.error("Failed to parse GCP_SERVICE_ACCOUNT_KEY JSON", e);
+          console.error("Failed to parse GCP_SERVICE_ACCOUNT_KEY JSON", e);
         }
       }
-      
+
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
@@ -34,6 +34,7 @@ const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('Middleware 401: Auth header missing or invalid:', authHeader);
     return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
 
