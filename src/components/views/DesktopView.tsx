@@ -346,6 +346,32 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     return () => unsubscribe();
   }, [isPreview]);
 
+  // ... existing state ...
+  const [userData, setUserData] = useState<any>(null);
+  const [githubProfile, setGithubProfile] = useState<any>(null);
+
+  // Fetch Full User Data (including integrations)
+  useEffect(() => {
+    if (currentUser?.uid) {
+      fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`)
+        .then(res => res.json())
+        .then(data => {
+          setUserData(data);
+          // If connected to GitHub, fetch public profile
+          if (data?.integrations?.github?.connected && data?.integrations?.github?.username) {
+            const username = data.integrations.github.username;
+            fetch(`https://api.github.com/users/${username}`)
+              .then(ghRes => ghRes.json())
+              .then(ghData => setGithubProfile(ghData))
+              .catch(err => console.error("Failed to fetch GitHub profile:", err));
+          }
+        })
+        .catch(err => console.error("Error fetching user details:", err));
+    }
+  }, [currentUser, activeSection]); // Re-fetch when section changes or user loads
+
+  // ... existing effects ...
+
   useEffect(() => {
     if ((activeSection === "People" || activeSection === "Notes" || activeSection === "Chat") && !isPreview) {
       const fetchUsers = async () => {
@@ -668,9 +694,84 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         );
 
       case "Activity log":
+        // Calculate Streak and Total Time
+        const sortedLogs = [...activityLogs].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+
+        let currentStreak = 0;
+        let totalSeconds = 0;
+
+        // Calculate Total Time
+        activityLogs.forEach(log => {
+          const start = new Date(log.startTime);
+          const end = new Date(log.endTime);
+          totalSeconds += (log.duration || Math.round((end.getTime() - start.getTime()) / 1000));
+        });
+
+        // Simple Streak Calculation (Consecutive Days)
+        if (sortedLogs.length > 0) {
+          currentStreak = 1;
+          let lastDate = new Date(sortedLogs[0].startTime).setHours(0, 0, 0, 0);
+
+          for (let i = 1; i < sortedLogs.length; i++) {
+            const currentDate = new Date(sortedLogs[i].startTime).setHours(0, 0, 0, 0);
+            const diffTime = Math.abs(lastDate - currentDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 1) {
+              currentStreak++;
+              lastDate = currentDate;
+            } else if (diffDays === 0) {
+              continue; // Same day
+            } else {
+              break; // Streak broken
+            }
+          }
+        }
+
+        const totalHours = Math.floor(totalSeconds / 3600);
+        const totalMinutes = Math.floor((totalSeconds % 3600) / 60);
+
         return (
-          <div className="p-6 h-full">
-            <h2 className="text-2xl font-bold mb-6">Activity Log</h2>
+          <div className="p-6 h-full space-y-6 overflow-y-auto">
+            <h2 className="text-2xl font-bold">Activity Log</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Current Session */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Current Session</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{elapsedTime}</div>
+                  <p className="text-xs text-muted-foreground">Active right now</p>
+                </CardContent>
+              </Card>
+
+              {/* Usage Streak */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Usage Streak</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center gap-2">
+                    <div className="text-2xl font-bold">{currentStreak} Days</div>
+                    <span className="text-2xl">🔥</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Keep it up!</p>
+                </CardContent>
+              </Card>
+
+              {/* Total Time */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Total Time Spent</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{totalHours}h {totalMinutes}m</div>
+                  <p className="text-xs text-muted-foreground">Lifetime usage</p>
+                </CardContent>
+              </Card>
+            </div>
 
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-7">
@@ -763,103 +864,88 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         />;
 
       case "Settings":
-        return <SettingsView />;
-
       default:
-        // Default Schedule View
+        // Dashboard View (GitHub Profile)
         return (
-          <div className="flex-1 flex flex-col h-full">
-            {/* Timeline */}
-            <div className="flex-1 flex flex-col">
-              {/* Schedule Grid */}
-              <div className="flex-1">
+          <div className="flex-1 p-8 overflow-y-auto">
+            <h2 className="text-3xl font-bold tracking-tight mb-6">Dashboard</h2>
 
-                {/* Date Header */}
-                <div className="flex border-b border-border/50 sticky top-0 bg-background z-10">
-                  <div className="w-40 p-3 text-sm text-muted-foreground border-r border-border/50">September 2021</div>
-                  {["1 Mon", "2 Tue", "3 Wed", "4 Thu", "5 Fri"].map((day, i) => (
-                    <div key={day} className={`flex-1 p-3 text-center text-sm font-medium border-r border-border/50 ${i === 1 ? "bg-primary/5" : ""}`}>
-                      <span className={i === 1 ? "text-primary" : "text-muted-foreground"}>{day}</span>
-                    </div>
-                  ))}
-                </div>
+            <div className="w-full max-w-full">
+              {userData?.integrations?.github?.connected && githubProfile ? (
+                <Card className="overflow-hidden border-border/50 shadow-lg min-h-[500px]">
+                  <CardContent className="px-12 pb-12 pt-12">
+                    <div className="flex flex-col md:flex-row gap-10 items-start">
+                      {/* Avatar */}
+                      <Avatar className="w-64 h-64 border-4 border-background shadow-xl">
+                        <AvatarImage src={githubProfile.avatar_url} alt={githubProfile.login} />
+                        <AvatarFallback className="text-6xl">{githubProfile.login?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                      </Avatar>
 
-                {/* Time slots with tasks */}
-                <div className="flex">
-                  <div className="w-40 border-r border-border/50">
-                    {/* User row */}
-                    <div className="flex items-center gap-2 px-3 py-3 border-b border-border/50">
-                      <div className="w-6 h-6 rounded-full bg-task-teal flex items-center justify-center text-[10px] text-primary-foreground">OC</div>
-                      <div>
-                        <div className="text-xs font-medium text-foreground">Oliver Campbell</div>
-                        <div className="text-[10px] text-muted-foreground">3.50h</div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-3 border-b border-border/50">
-                      <div className="w-6 h-6 rounded-full bg-task-pink flex items-center justify-center text-[10px] text-primary-foreground">CR</div>
-                      <div>
-                        <div className="text-xs font-medium text-foreground">Charlie Rogers</div>
-                        <div className="text-[10px] text-muted-foreground">4.20h</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Tasks grid */}
-                  <div className="flex-1 grid grid-cols-5">
-                    {[...Array(5)].map((_, colIndex) => (
-                      <div key={colIndex} className={`border-r border-border/50 p-2 space-y-2 ${colIndex === 1 ? "bg-primary/5" : ""}`}>
-                        {tasks.slice(colIndex * 2, colIndex * 2 + 3).map((task) => (
-                          <div
-                            key={task.id}
-                            className={`p-2 rounded-lg border ${task.color} cursor-pointer hover:shadow-md transition-shadow`}
-                          >
-                            <div className="text-xs font-medium text-foreground line-clamp-2">{task.title}</div>
-                            <div className="flex items-center gap-1 mt-1">
-                              <span className="text-[10px] text-muted-foreground">{task.time}</span>
-                              <span className="text-[10px] text-muted-foreground">•</span>
-                              <span className="text-[10px] text-muted-foreground">{task.due}</span>
-                            </div>
+                      <div className="flex-1 space-y-8">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-5xl font-bold tracking-tight mb-2">{githubProfile.name || githubProfile.login}</h3>
+                            <p className="text-muted-foreground text-2xl">@{githubProfile.login}</p>
                           </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                          <Button onClick={() => window.open(githubProfile.html_url, '_blank')} variant="outline" className="gap-2">
+                            <Github className="w-4 h-4" />
+                            View on GitHub
+                          </Button>
+                        </div>
 
-              {/* Waiting List */}
-              <div className="w-64 border-l border-border/50 bg-secondary/30">
-                <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-foreground">Waiting list</span>
-                    <span className="w-5 h-5 rounded-full bg-muted text-xs flex items-center justify-center text-muted-foreground">15</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <Plus className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                    <Search className="w-4 h-4 text-muted-foreground cursor-pointer" />
-                  </div>
-                </div>
-                <div className="p-3 space-y-2 overflow-y-auto max-h-[500px]">
-                  {waitingList.map((item, i) => (
-                    <div key={i} className="bg-card rounded-lg p-3 border border-border/50 cursor-pointer hover:shadow-md transition-shadow">
-                      <div className="flex items-start gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${item.color} mt-1.5 shrink-0`} />
-                        <div className="flex-1">
-                          <div className="text-xs font-medium text-foreground line-clamp-2">{item.title}</div>
-                          <div className="flex items-center gap-1 mt-1">
-                            <span className="text-[10px] text-muted-foreground">{item.time}</span>
-                            <span className="text-[10px] text-muted-foreground">•</span>
-                            <span className="text-[10px] text-muted-foreground">{item.due}</span>
+                        {githubProfile.bio && (
+                          <p className="text-2xl text-foreground/80 max-w-6xl leading-relaxed">{githubProfile.bio}</p>
+                        )}
+
+                        <div className="flex items-center gap-12 pt-8">
+                          <div className="flex items-center gap-3">
+                            <Users className="w-6 h-6 text-muted-foreground" />
+                            <span className="font-bold text-lg">{githubProfile.followers}</span> <span className="text-muted-foreground text-lg">Followers</span>
                           </div>
+                          <div className="flex items-center gap-3">
+                            <Users className="w-6 h-6 text-muted-foreground" />
+                            <span className="font-bold text-lg">{githubProfile.following}</span> <span className="text-muted-foreground text-lg">Following</span>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <FolderKanban className="w-6 h-6 text-muted-foreground" />
+                            <span className="font-bold text-lg">{githubProfile.public_repos}</span> <span className="text-muted-foreground text-lg">Public Repos</span>
+                          </div>
+                        </div>
+
+                        {/* Additional Info */}
+                        <div className="flex gap-8 text-lg text-muted-foreground pt-4">
+                          {githubProfile.location && (
+                            <div className="flex items-center gap-2">📍 {githubProfile.location}</div>
+                          )}
+                          {githubProfile.company && (
+                            <div className="flex items-center gap-2">🏢 {githubProfile.company}</div>
+                          )}
+                          {githubProfile.blog && (
+                            <div className="flex items-center gap-2">🔗 <a href={githubProfile.blog.startsWith('http') ? githubProfile.blog : `https://${githubProfile.blog}`} target="_blank" rel="noreferrer" className="hover:underline">{githubProfile.blog}</a></div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>GitHub Integration</CardTitle>
+                    <CardDescription>Connect your GitHub account to see your profile stats here.</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <Button onClick={() => setActiveSection("Settings")}>
+                      <Github className="mr-2 h-4 w-4" />
+                      Go to Settings to Connect
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </div>
         );
+
     }
   };
 
@@ -929,9 +1015,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                  {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
-                </div>
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={currentUser?.photoURL || undefined} />
+                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
+                    {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
+                  </AvatarFallback>
+                </Avatar>
                 <div className="flex-1 overflow-hidden">
                   <div className="text-sm font-medium truncate">
                     {isPreview ? "John Doe" : (currentUser?.displayName || currentUser?.email?.split('@')[0] || "User")}

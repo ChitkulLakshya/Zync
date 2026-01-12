@@ -45,11 +45,16 @@ const noteRoutes = require('./routes/noteRoutes');
 app.use(
   helmet({
     contentSecurityPolicy: {
-      useDefaults: true,
+      useDefaults: false, // Disable defaults to ensure our overrides take full effect
       directives: {
-        "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'"], // Allows dev tools & libraries
-        "connect-src": ["'self'", "https://github.com", "https://api.github.com", "http://localhost:*", "https://*.firebaseio.com"], 
-        "img-src": ["'self'", "data:", "https://avatars.githubusercontent.com", "https://*.googleusercontent.com"], 
+        "default-src": ["'self'"],
+        "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://apis.google.com", "https://www.googleapis.com", "https://www.gstatic.com"],
+        "connect-src": ["'self'", "https://github.com", "https://api.github.com", "http://localhost:*", "https://*.firebaseio.com", "ws://localhost:*", "wss://*.glitch.me", "https://*.googleapis.com"],
+        "img-src": ["'self'", "data:", "https://avatars.githubusercontent.com", "https://*.googleusercontent.com", "blob:"],
+        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        "worker-src": ["'self'", "blob:"],
+        "frame-src": ["'self'", "https://github.com", "https://*.firebaseapp.com", "https://*.google.com"],
+        "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
       },
     },
     crossOriginEmbedderPolicy: false, // Prevents blocking of some resources
@@ -91,7 +96,7 @@ app.use('/api/github-app', githubAppWebhook);
 // ==========================================
 mongoose.connect(process.env.MONGO_URI, {
   // These options help prevent "buffering timed out" and "ECONNRESET" errors
-  serverSelectionTimeoutMS: 5000, 
+  serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
 })
   .then(() => console.log('✅ MongoDB connected'))
@@ -108,7 +113,7 @@ server.listen(PORT, '0.0.0.0', () => {
 // Global Error Handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     message: 'Internal Server Error',
     error: process.env.NODE_ENV === 'development' ? err.message : undefined
   });

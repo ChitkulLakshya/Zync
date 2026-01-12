@@ -60,9 +60,9 @@ router.post('/connect', verifyToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({ 
-      message: 'GitHub connected successfully', 
-      username: updatedUser.integrations.github.username 
+    res.json({
+      message: 'GitHub connected successfully',
+      username: updatedUser.integrations.github.username
     });
 
   } catch (error) {
@@ -94,9 +94,9 @@ router.get('/repos', verifyToken, async (req, res) => {
       console.error("Decryption failed:", err);
       return res.status(500).json({ message: 'Failed to decrypt access token' });
     }
-    
+
     if (!accessToken) {
-       return res.status(500).json({ message: 'Invalid stored token' });
+      return res.status(500).json({ message: 'Invalid stored token' });
     }
 
     // 3. Fetch Repositories from GitHub
@@ -108,7 +108,7 @@ router.get('/repos', verifyToken, async (req, res) => {
       params: {
         sort: 'updated',
         visibility: 'all',
-        per_page: 100 
+        per_page: 100
       }
     });
 
@@ -122,14 +122,103 @@ router.get('/repos', verifyToken, async (req, res) => {
       // Disconnect GitHub in DB
       await User.findOneAndUpdate(
         { uid },
-        { 
-          $set: { 'integrations.github.connected': false } 
+        {
+          $set: { 'integrations.github.connected': false }
         }
       );
       return res.status(401).json({ message: 'GitHub token expired. Please reconnect.' });
     }
 
     res.status(500).json({ message: 'Failed to fetch repositories' });
+  }
+});
+
+// POST /install - Save Installation ID from Callback
+router.post('/install', verifyToken, async (req, res) => {
+  const { installationId } = req.body;
+  const uid = req.user.uid;
+
+  if (!installationId) {
+    return res.status(400).json({ message: 'Installation ID required' });
+  }
+
+  try {
+    const updatedUser = await User.findOneAndUpdate(
+      { uid },
+      {
+        $set: {
+          'integrations.github.installationId': installationId.toString(),
+          'integrations.github.connected': true,
+          'integrations.github.connectedAt': new Date()
+        }
+      },
+      { new: true }
+    );
+
+    res.json({ message: 'GitHub App Installation Connected', user: updatedUser });
+  } catch (error) {
+    console.error('Error saving installation ID:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// GET /user-repos - Fetch all repos accessible to the GitHub App Installation
+router.get('/user-repos', verifyToken, async (req, res) => {
+  const uid = req.user.uid;
+
+  try {
+    const user = await User.findOne({ uid });
+
+    // Check if App is installed
+    if (!user || !user.integrations?.github?.installationId) {
+      return res.status(400).json({
+        message: 'GitHub App not installed',
+        notInstalled: true
+      });
+    }
+
+    const installationId = user.integrations.github.installationId;
+    const appId = process.env.GITHUB_APP_ID;
+    const privateKey = process.env.GITHUB_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    if (!appId || !privateKey) {
+      console.error('Missing GITHUB_APP_ID or GITHUB_PRIVATE_KEY');
+      return res.status(500).json({ message: 'Server configuration error' });
+    }
+
+    // Initialize Octokit App
+    const { App } = await import('octokit');
+    const app = new App({
+      appId,
+      privateKey,
+    });
+
+    // Get Installation Octokit (Authenticated as the App for this Installation)
+    const octokit = await app.getInstallationOctokit(installationId);
+
+    // Fetch Repositories (paginated)
+    const response = await octokit.request('GET /installation/repositories', {
+      per_page: 100
+    });
+
+    const repos = response.data.repositories.map(repo => ({
+      id: repo.id,
+      name: repo.name,
+      full_name: repo.full_name,
+      private: repo.private,
+      owner: repo.owner.login,
+      html_url: repo.html_url
+    }));
+
+    res.json(repos);
+
+  } catch (error) {
+    console.error('Error fetching installation repos:', error);
+    res.status(500).json({
+      message: 'Failed to fetch repositories',
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 });
 

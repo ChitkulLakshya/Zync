@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { auth } from "@/lib/firebase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { API_BASE_URL } from "@/lib/utils";
 import { FolderGit2, Plus, ArrowRight, Loader2, Calendar, User, Trash2, Pin, FileText } from "lucide-react";
@@ -7,6 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { fetchNotes, Note } from '../../api/notes';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Github, Loader2 as Spinner, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Project {
   _id: string;
@@ -14,6 +27,9 @@ interface Project {
   description: string;
   ownerId: string;
   createdAt: string;
+  githubRepoName?: string;
+  githubRepoOwner?: string;
+  isTrackingActive?: boolean;
 }
 
 interface WorkspaceProps {
@@ -28,6 +44,142 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
   const [pinnedNotes, setPinnedNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  // GitHub Linking State
+  const [repoModalOpen, setRepoModalOpen] = useState(false);
+  const [selectedProjectForLink, setSelectedProjectForLink] = useState<Project | null>(null);
+  const [repos, setRepos] = useState<any[]>([]);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [linkingRepo, setLinkingRepo] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle GitHub Installation Callback
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const installationId = params.get('installation_id');
+
+    if (installationId && currentUser) {
+      const connectGitHub = async () => {
+        try {
+          const user = auth.currentUser;
+          const token = user ? await user.getIdToken() : null;
+
+          await fetch(`${API_BASE_URL}/api/github/install`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ installationId })
+          });
+
+          toast({
+            title: "GitHub Connected",
+            description: "App installation verified successfully."
+          });
+
+          // Remove query param
+          navigate(location.pathname, { replace: true });
+        } catch (error) {
+          console.error("Failed to save installation ID", error);
+        }
+      };
+      connectGitHub();
+    }
+  }, [location.search, currentUser, navigate]);
+
+  const handleOpenLinkModal = async (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
+    setSelectedProjectForLink(project);
+    setRepoModalOpen(true);
+    setLoadingRepos(true);
+    setSearchTerm("");
+
+    try {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : null;
+
+      const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 400) {
+        // Not connected or App not installed
+        const data = await response.json();
+        if (data.notInstalled) {
+          // Redirect to App Installation
+          window.location.href = `https://github.com/apps/zync-meet/installations/new`;
+          return;
+        }
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setRepos(data);
+      } else {
+        throw new Error("Failed to fetch repos");
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch repositories. Please ensure Zync is installed on your GitHub.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
+  const handleLinkRepo = async (repo: any) => {
+    if (!selectedProjectForLink) return;
+    setLinkingRepo(true);
+    try {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : null;
+
+      const response = await fetch(`${API_BASE_URL}/api/projects/${selectedProjectForLink._id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          githubRepoName: repo.name,
+          githubRepoOwner: repo.owner,
+          isTrackingActive: true
+        })
+      });
+
+      if (response.ok) {
+        const updatedProject = await response.json();
+        setProjects(projects.map(p => p._id === updatedProject._id ? updatedProject : p));
+        setRepoModalOpen(false);
+        toast({
+          title: "Success",
+          description: `Linked ${repo.full_name} to project.`
+        });
+      } else {
+        throw new Error("Failed to link");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to link repository.",
+        variant: "destructive"
+      });
+    } finally {
+      setLinkingRepo(false);
+    }
+  };
+
+  const filteredRepos = repos.filter(repo =>
+    repo.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const deleteProject = async (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation(); // Prevent card click
@@ -184,6 +336,23 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
                       <span>By {project.ownerId === currentUser?.uid ? 'You' : 'Team'}</span>
                     </div>
                   </div>
+                  {!project.githubRepoName && project.ownerId === currentUser?.uid && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full mt-3 gap-2 border-dashed hover:border-solid hover:bg-secondary/50"
+                      onClick={(e) => handleOpenLinkModal(e, project)}
+                    >
+                      <Github className="w-3 h-3" />
+                      Link GitHub
+                    </Button>
+                  )}
+                  {project.githubRepoName && (
+                    <div className="flex items-center gap-2 mt-3 p-2 bg-secondary/30 rounded-md text-xs">
+                      <Github className="w-3 h-3" />
+                      <span className="truncate flex-1">{project.githubRepoOwner}/{project.githubRepoName}</span>
+                    </div>
+                  )}
                 </CardContent>
                 <CardFooter className="pt-3 border-t bg-secondary/10 flex gap-2">
                   <Button
@@ -209,6 +378,59 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
           </div>
         )}
       </div>
+
+      {/* GitHub Link Modal */}
+      <Dialog open={repoModalOpen} onOpenChange={setRepoModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Link GitHub Repository</DialogTitle>
+            <DialogDescription>
+              Select a repository to link to <strong>{selectedProjectForLink?.name}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search repositories..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="h-[200px] overflow-y-auto border rounded-md p-2 space-y-1">
+              {loadingRepos ? (
+                <div className="flex h-full items-center justify-center">
+                  <Spinner className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : repos.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
+                  <p>No repositories found.</p>
+                  <a href="https://github.com/apps/zync-meet/installations/new" target="_blank" rel="noreferrer" className="text-primary hover:underline mt-2 block">
+                    Install Zync App on GitHub
+                  </a>
+                </div>
+              ) : (
+                filteredRepos.map(repo => (
+                  <div
+                    key={repo.id}
+                    onClick={() => handleLinkRepo(repo)}
+                    className="flex items-center justify-between p-2 hover:bg-secondary rounded-md cursor-pointer transition-colors"
+                  >
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="font-medium text-sm truncate">{repo.name}</span>
+                      <span className="text-xs text-muted-foreground truncate">{repo.full_name}</span>
+                    </div>
+                    {selectedProjectForLink?.githubRepoName === repo.name && <Badge>Linked</Badge>}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

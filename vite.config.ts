@@ -19,6 +19,9 @@ export default defineConfig(({ mode }) => ({
         ws: true,
       },
     },
+    headers: {
+      'Content-Security-Policy': "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://apis.google.com https://www.googleapis.com https://www.gstatic.com; frame-src 'self' https://*.firebaseapp.com https://*.google.com; connect-src 'self' http://localhost:* ws://localhost:* https://*.googleapis.com https://*.firebaseio.com https://*.ws.pusherapp.com; object-src 'none';"
+    }
   },
   plugins: [react()],
   resolve: {
