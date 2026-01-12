@@ -42,8 +42,8 @@ const CalendarView = () => {
 
             setLoading(true);
             try {
-                // Fetch US Holidays for the current year
-                const calendarId = 'en.usa#holiday@group.v.calendar.google.com';
+                // Fetch Indian Holidays for the current year
+                const calendarId = 'en.indian#holiday@group.v.calendar.google.com';
                 const year = new Date().getFullYear();
                 const timeMin = new Date(year, 0, 1).toISOString();
                 const timeMax = new Date(year, 11, 31).toISOString();
