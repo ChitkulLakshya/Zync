@@ -46,51 +46,80 @@ const Login = () => {
     }
   };
 
+  // Helper to handle account linking
+  const handleAccountLinking = async (error: any) => {
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      const pendingCred = GithubAuthProvider.credentialFromError(error) || GoogleAuthProvider.credentialFromError(error);
+      const email = error.customData?.email;
+
+      if (!email || !pendingCred) {
+        toast({ title: "Error", description: "Could not link accounts automatically.", variant: "destructive" });
+        return;
+      }
+
+      try {
+        // Get existing providers
+        const { fetchSignInMethodsForEmail } = await import("firebase/auth");
+        const { linkWithCredential } = await import("firebase/auth");
+
+        const methods = await fetchSignInMethodsForEmail(auth, email);
+
+        if (methods.length > 0) {
+          const providerId = methods[0];
+          let provider: any;
+          if (providerId === 'google.com') provider = new GoogleAuthProvider();
+          else if (providerId === 'github.com') provider = new GithubAuthProvider();
+
+          if (provider) {
+            const confirmLink = window.confirm(`You already have an account with ${providerId}. Sign in with it to link your new credential?`);
+            if (!confirmLink) return;
+
+            // Sign in with existing provider
+            const result = await signInWithPopup(auth, provider);
+
+            // Link the new credential
+            await linkWithCredential(result.user, pendingCred);
+
+            toast({ title: "Success", description: "Accounts linked successfully!" });
+            // Navigation will happen via onAuthStateChanged
+          }
+        }
+      } catch (linkError: any) {
+        console.error("Linking failed", linkError);
+        toast({ title: "Linking Error", description: linkError.message, variant: "destructive" });
+      }
+    } else {
+      toast({ variant: "destructive", title: "Error", description: error.message });
+    }
+  };
+
   const handleGithubLogin = async () => {
     setLoading(true);
     try {
       const provider = new GithubAuthProvider();
-      provider.addScope('repo'); // Request repo access
-      provider.addScope('user'); // Request user profile
+      provider.addScope('repo');
+      provider.addScope('read:user');
 
       const result = await signInWithPopup(auth, provider);
 
-      // Get GitHub access token from credential
+      // Get GitHub access token and sync
       const credential = GithubAuthProvider.credentialFromResult(result);
       const githubToken = credential?.accessToken;
 
-      // Save the GitHub token to backend if available
       if (githubToken && result.user) {
         try {
           const firebaseToken = await result.user.getIdToken();
           await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/github/connect`, {
             method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${firebaseToken}`
-            },
-            body: JSON.stringify({
-              accessToken: githubToken,
-              username: result.user.displayName || result.user.email?.split('@')[0] || 'unknown'
-            })
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${firebaseToken}` },
+            body: JSON.stringify({ accessToken: githubToken, username: result.user.displayName || 'unknown' })
           });
-        } catch (e) {
-          console.warn('Failed to save GitHub token to backend:', e);
-          // Non-fatal - login still succeeds
-        }
+        } catch (e) { console.warn('Failed to save GitHub token:', e); }
       }
 
-      toast({
-        title: "Success",
-        description: "Logged in with GitHub successfully",
-      });
-      // Navigation handled by onAuthStateChanged
+      toast({ title: "Success", description: "Logged in with GitHub successfully" });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      await handleAccountLinking(error);
     } finally {
       setLoading(false);
     }
@@ -101,17 +130,9 @@ const Login = () => {
     try {
       const provider = new GoogleAuthProvider();
       await signInWithPopup(auth, provider);
-      toast({
-        title: "Success",
-        description: "Logged in with Google successfully",
-      });
-      // Navigation handled by onAuthStateChanged
+      toast({ title: "Success", description: "Logged in with Google successfully" });
     } catch (error: any) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message,
-      });
+      await handleAccountLinking(error);
     } finally {
       setLoading(false);
     }
