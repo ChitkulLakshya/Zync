@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Github, Loader2, Link as LinkIcon, ExternalLink, Star, GitFork } from "lucide-react";
 import { API_BASE_URL } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -225,73 +226,98 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
-          {repos.map((repo) => (
-            <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-all hover:shadow-lg min-h-[280px]">
-              <CardHeader className="pb-4">
-                <div className="flex items-start justify-between gap-4">
-                  <CardTitle className="text-xl md:text-2xl font-semibold truncate pr-2">
-                    <a href={repo.html_url} target="_blank" rel="noreferrer" className="hover:underline">
-                      {repo.name}
-                    </a>
-                  </CardTitle>
-                  <Badge variant="secondary" className="capitalize text-sm font-normal px-3 py-1">
-                    {repo.visibility}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-2 mt-4">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={repo.owner.avatar_url} alt={repo.owner.login} />
-                    <AvatarFallback>{repo.owner.login.slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <span className="text-xs text-muted-foreground">
-                    {repo.owner.login}
-                  </span>
-                </div>
-                <CardDescription className="line-clamp-3 text-base mt-2">
-                  {repo.description || "No description provided"}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex-1 py-4">
-                <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                  {repo.language && (
-                    <span className="flex items-center gap-2">
-                      <span className="w-3 h-3 rounded-full bg-primary" />
-                      {repo.language}
-                    </span>
+        <Tabs defaultValue="all" className="w-full space-y-6">
+          <TabsList>
+            <TabsTrigger value="all">All</TabsTrigger>
+            <TabsTrigger value="public">Public</TabsTrigger>
+            <TabsTrigger value="private">Private</TabsTrigger>
+            <TabsTrigger value="collaborator">Collaborators</TabsTrigger>
+          </TabsList>
+
+          {["all", "public", "private", "collaborator"].map((filterType) => {
+            const filteredRepos = repos.filter(repo => {
+              if (filterType === "all") return true;
+              if (filterType === "collaborator") return repo.owner.login !== userData.integrations.github.username;
+              return repo.visibility === filterType;
+            });
+
+            return (
+              <TabsContent key={filterType} value={filterType} className="mt-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-8">
+                  {filteredRepos.map((repo) => (
+                    <Card key={repo.id} className="flex flex-col h-full hover:border-primary/50 transition-all hover:shadow-lg min-h-[280px]">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <CardTitle className="text-xl md:text-2xl font-semibold truncate pr-2">
+                            <a href={repo.html_url} target="_blank" rel="noreferrer" className="hover:underline">
+                              {repo.name}
+                            </a>
+                          </CardTitle>
+                          <Badge variant="secondary" className="capitalize text-sm font-normal px-3 py-1">
+                            {repo.visibility}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2 mt-4">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={repo.owner.avatar_url} alt={repo.owner.login} />
+                            <AvatarFallback>{repo.owner.login.slice(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-muted-foreground">
+                            {repo.owner.login}
+                          </span>
+                        </div>
+                        <CardDescription className="line-clamp-3 text-base mt-2">
+                          {repo.description || "No description provided"}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="flex-1 py-4">
+                        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                          {repo.language && (
+                            <span className="flex items-center gap-2">
+                              <span className="w-3 h-3 rounded-full bg-primary" />
+                              {repo.language}
+                            </span>
+                          )}
+                          <span className="flex items-center gap-2">
+                            <Star className="h-4 w-4" />
+                            {repo.stargazers_count}
+                          </span>
+                          <span className="flex items-center gap-2">
+                            <GitFork className="h-4 w-4" />
+                            {repo.forks_count}
+                          </span>
+                        </div>
+                      </CardContent>
+                      <CardFooter className="pt-4 border-t bg-muted/10">
+                        <div className="text-sm text-muted-foreground w-full flex justify-between items-center">
+                          <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
+                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                            <a href={repo.html_url} target="_blank" rel="noreferrer">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        </div>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                  {filteredRepos.length === 0 && (
+                    <div className="col-span-full text-center py-16 text-muted-foreground">
+                      <div className="flex flex-col items-center gap-4">
+                        <Github className="h-12 w-12 text-muted-foreground/50" />
+                        <h3 className="text-xl font-medium">No repositories found</h3>
+                        <p>
+                          {filterType === "all"
+                            ? "It looks like you haven't created any repositories yet."
+                            : `No ${filterType} repositories found.`}
+                        </p>
+                      </div>
+                    </div>
                   )}
-                  <span className="flex items-center gap-2">
-                    <Star className="h-4 w-4" />
-                    {repo.stargazers_count}
-                  </span>
-                  <span className="flex items-center gap-2">
-                    <GitFork className="h-4 w-4" />
-                    {repo.forks_count}
-                  </span>
                 </div>
-              </CardContent>
-              <CardFooter className="pt-4 border-t bg-muted/10">
-                <div className="text-sm text-muted-foreground w-full flex justify-between items-center">
-                  <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
-                  <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                    <a href={repo.html_url} target="_blank" rel="noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-          {repos.length === 0 && (
-            <div className="col-span-full text-center py-16 text-muted-foreground">
-              <div className="flex flex-col items-center gap-4">
-                <Github className="h-12 w-12 text-muted-foreground/50" />
-                <h3 className="text-xl font-medium">No repositories found</h3>
-                <p>It looks like you haven't created any repositories yet.</p>
-              </div>
-            </div>
-          )}
-        </div>
+              </TabsContent>
+            );
+          })}
+        </Tabs>
       )}
     </div>
   );
