@@ -70,9 +70,9 @@ router.get('/repos', verifyToken, async (req, res) => {
     const user = await User.findOne({ uid: userId });
 
     if (!user || !user.integrations?.github?.accessToken) {
-      return res.status(400).json({ 
-        message: 'GitHub not connected', 
-        connected: false 
+      return res.status(400).json({
+        message: 'GitHub not connected',
+        connected: false
       });
     }
 
@@ -87,21 +87,21 @@ router.get('/repos', verifyToken, async (req, res) => {
         visibility: 'all', // Get private and public
         affiliation: 'owner,collaborator'
       },
-      headers: { 
+      headers: {
         Authorization: `Bearer ${decryptedToken}`,
         Accept: 'application/vnd.github.v3+json'
       }
     });
 
-    res.json({ 
-      repos: reposResponse.data, 
-      connected: true, 
-      username: user.integrations.github.username 
+    res.json({
+      repos: reposResponse.data,
+      connected: true,
+      username: user.integrations.github.username
     });
 
   } catch (error) {
     console.error('Error fetching repos:', error.message);
-    
+
     // Handle Token Expiry (401)
     if (error.response?.status === 401) {
       return res.status(401).json({ message: 'GitHub token expired. Please reconnect.', connected: false });

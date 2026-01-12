@@ -1,0 +1,116 @@
+import { useState, useEffect } from "react";
+import { fetchProjects, Project } from "@/api/projects";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CheckSquare, Loader2, FolderKanban } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+interface TasksViewProps {
+    currentUser: any;
+}
+
+interface FlattenedTask {
+    id: string; // or index if no ID
+    title: string;
+    status: string; // "pending" | "in-progress" | "completed"
+    projectName: string;
+    projectId: string;
+    stepName: string;
+}
+
+const TasksView = ({ currentUser }: TasksViewProps) => {
+    const [loading, setLoading] = useState(true);
+    const [tasks, setTasks] = useState<FlattenedTask[]>([]);
+
+    useEffect(() => {
+        const loadTasks = async () => {
+            if (!currentUser?.uid) return;
+            setLoading(true);
+            try {
+                const projects = await fetchProjects(currentUser.uid);
+
+                const allTasks: FlattenedTask[] = projects.flatMap((p: Project) =>
+                    p.steps.flatMap((step: any) =>
+                        (step.tasks || []).map((t: any, idx: number) => ({
+                            id: t.id || `${p._id}-${step.id || step.name}-${idx}`,
+                            title: t.title || t.name || t,
+                            status: t.status || "pending",
+                            projectName: p.name,
+                            projectId: p._id,
+                            stepName: step.title || step.name
+                        }))
+                    )
+                );
+
+                setTasks(allTasks);
+            } catch (error) {
+                console.error("Failed to fetch tasks", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadTasks();
+    }, [currentUser]);
+
+    if (loading) {
+        return (
+            <div className="flex w-full h-full items-center justify-center">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+        );
+    }
+
+    return (
+        <div className="flex-1 p-8 h-full flex flex-col">
+            <div className="mb-6">
+                <h2 className="text-3xl font-bold tracking-tight">My Tasks</h2>
+                <p className="text-muted-foreground mt-1">
+                    All tasks across your projects.
+                </p>
+            </div>
+
+            {tasks.length === 0 ? (
+                <Card className="border-dashed">
+                    <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                        <CheckSquare className="w-12 h-12 text-muted-foreground/50 mb-4" />
+                        <h3 className="text-xl font-medium">No tasks found</h3>
+                        <p className="text-muted-foreground">Create a project to generate tasks.</p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <ScrollArea className="flex-1 pr-4">
+                    <div className="grid gap-4">
+                        {tasks.map((task) => (
+                            <Card key={task.id} className="hover:bg-secondary/10 transition-colors">
+                                <CardContent className="p-4 flex items-start gap-4">
+                                    <div className="mt-1">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-muted-foreground'}`}>
+                                            {task.status === 'completed' && <CheckSquare className="w-3 h-3 text-white" />}
+                                        </div>
+                                    </div>
+                                    <div className="flex-1">
+                                        <h4 className={`text-base font-medium ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>{task.title}</h4>
+                                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                            <Badge variant="outline" className="text-xs font-normal gap-1">
+                                                <FolderKanban className="w-3 h-3" />
+                                                {task.projectName}
+                                            </Badge>
+                                            <span>•</span>
+                                            <span>{task.stepName}</span>
+                                        </div>
+                                    </div>
+                                    <Badge variant={task.status === 'completed' ? 'default' : 'secondary'} className="capitalize">
+                                        {task.status}
+                                    </Badge>
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                </ScrollArea>
+            )}
+        </div>
+    );
+};
+
+export default TasksView;
