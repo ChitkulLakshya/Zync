@@ -1,11 +1,18 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // use SSL
     auth: {
         user: process.env.GMAIL_USER,
         pass: process.env.GMAIL_PASS
-    }
+    },
+    // CRITICAL: Force IPv4 to prevent connection timeouts on Render/Docker environments
+    family: 4,
+    // Add timeouts to fail faster causing less hangs
+    connectionTimeout: 10000,
+    socketTimeout: 10000
 });
 
 const sendZyncEmail = async (to, subject, html, text) => {
