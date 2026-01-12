@@ -9,6 +9,10 @@ const { Server } = require("socket.io");
 require('dotenv').config();
 
 const app = express();
+
+// Handle Favicon (Ignore)
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
@@ -77,6 +81,9 @@ app.use(express.json({
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 // Register Routes
 app.use('/api/projects', projectRoutes);
 app.use('/api/generate-project', generationRoutes);
@@ -90,6 +97,7 @@ app.use('/api/notes', noteRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/github-app', githubAppWebhook);
+app.use('/api/meet', require('./routes/meetRoutes'));
 
 
 // ==========================================

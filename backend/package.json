@@ -25,6 +25,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "firebase-admin": "^13.6.0",
+    "googleapis": "^170.0.0",
     "groq-sdk": "^0.37.0",
     "helmet": "^8.1.0",
     "mongoose": "^9.1.1",

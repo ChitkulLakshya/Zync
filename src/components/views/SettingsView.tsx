@@ -192,6 +192,11 @@ const SettingsView = () => {
   const [newEmail, setNewEmail] = useState("");
   const [showEmailVerify, setShowEmailVerify] = useState(false);
 
+  // Deletion State
+  const [deleteStep, setDeleteStep] = useState<'initial' | 'verifying'>('initial');
+  const [deleteCode, setDeleteCode] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const handleEmailChange = async () => {
     if (!newEmail) return;
     setShowEmailVerify(true);
@@ -200,13 +205,51 @@ const SettingsView = () => {
   };
 
   const handleDeleteAccount = async () => {
-    if (!window.confirm("Are you sure? This is permanent.")) return;
+    setDeleteLoading(true);
     try {
-      await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, { method: "DELETE" });
-      await deleteUser(currentUser!);
-      window.location.href = "/login";
+      if (deleteStep === 'initial') {
+        // Step 1: Request Code
+        const idToken = await currentUser?.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/users/delete/request`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ uid: currentUser?.uid })
+        });
+
+        if (!res.ok) throw new Error("Failed to send verification code");
+
+        toast({ title: "Verification Sent", description: "Check your email for the confirmation code." });
+        setDeleteStep('verifying');
+
+      } else {
+        // Step 2: Confirm Deletion
+        const idToken = await currentUser?.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/users/delete/confirm`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
+          },
+          body: JSON.stringify({ uid: currentUser?.uid, code: deleteCode })
+        });
+
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.message || "Failed to verify code");
+        }
+
+        // 3. Cleanup Firebase Auth
+        await deleteUser(currentUser!);
+        window.location.href = "/login";
+      }
+
     } catch (error: any) {
-      toast({ title: "Error", description: "Please re-login and try again.", variant: "destructive" });
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -377,9 +420,45 @@ const SettingsView = () => {
             <Card className="border-destructive/50">
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2">Danger Zone</CardTitle>
+                <CardDescription>
+                  Permanently remove your Personal Account and all of its contents from the Zync platform. This action is not reversible, so please continue with caution.
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button variant="destructive" onClick={handleDeleteAccount}>Delete Account</Button>
+                {deleteStep === 'initial' ? (
+                  <div className="space-y-4">
+                    <div className="bg-destructive/10 p-4 rounded-md text-sm text-destructive font-medium border border-destructive/20">
+                      <AlertTriangle className="w-4 h-4 inline mr-2" />
+                      Warning: Deleting your account is irreversible.
+                    </div>
+                    <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleteLoading}>
+                      {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                      Request Account Deletion
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4 max-w-sm">
+                    <div className="space-y-2">
+                      <Label>Verification Code</Label>
+                      <p className="text-sm text-muted-foreground">Please check your email <b>{currentUser?.email}</b> for the 6-digit confirmation code.</p>
+                      <Input
+                        value={deleteCode}
+                        onChange={(e) => setDeleteCode(e.target.value)}
+                        placeholder="123456"
+                        maxLength={6}
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleteLoading || deleteCode.length !== 6}>
+                        {deleteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Confirm Deletion
+                      </Button>
+                      <Button variant="ghost" onClick={() => setDeleteStep('initial')} disabled={deleteLoading}>
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

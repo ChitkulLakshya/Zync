@@ -13,6 +13,10 @@ const userSchema = new mongoose.Schema({
   isPhoneVerified: { type: Boolean, default: false },
   role: { type: String, enum: ['user', 'admin'], default: 'user' }, // Added Admin Role
 
+  // Deletion Verification
+  deleteConfirmationCode: String,
+  deleteConfirmationExpires: Date,
+
   // Integration Fields
   integrations: {
     github: {
