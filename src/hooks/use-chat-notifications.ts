@@ -8,6 +8,7 @@ export const useChatNotifications = () => {
     const navigate = useNavigate();
     // Use a ref to track the initial load time to avoid notifying for old messages
     const startTimeRef = useRef(Timestamp.now());
+    const notifiedIds = useRef(new Set());
 
     useEffect(() => {
         const unsubscribeAuth = auth.onAuthStateChanged((user) => {
@@ -42,12 +43,18 @@ export const useChatNotifications = () => {
 
                         if (messageTime && messageTime.toMillis() > startTimeRef.current.toMillis()) {
 
+                            // Prevent Duplicate Notifications for the same message ID
+                            const msgId = change.doc.id;
+                            if (notifiedIds.current.has(msgId)) return;
+                            notifiedIds.current.add(msgId);
+
                             // Check if user is already on Chat view
                             const activeSection = localStorage.getItem("zync-active-section");
 
                             if (activeSection !== "Chat") {
                                 toast(message.senderName || "New Message", {
                                     description: message.text ? (message.text.length > 50 ? message.text.substring(0, 50) + "..." : message.text) : "Sent a file/image",
+                                    duration: 3000, // Duration: 3 seconds
                                     action: {
                                         label: "Open Chat",
                                         onClick: () => {
