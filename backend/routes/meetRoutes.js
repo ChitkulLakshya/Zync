@@ -3,11 +3,10 @@ const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Project = require('../models/Project');
-const { Resend } = require('resend');
 const { getFirestore } = require('firebase-admin/firestore');
 const { createInstantMeet } = require('../services/googleMeet');
+const { sendZyncEmail } = require('../services/mailer');
 
-const resend = new Resend(process.env.RESEND_API_KEY);
 const db = getFirestore();
 
 // Send Meeting Invites
@@ -51,22 +50,43 @@ router.post('/invite', verifyToken, async (req, res) => {
 
         // Process each receiver
         for (const receiver of receivers) {
-            // 1. Send Email
+            // 1. Send Email (Using Nodemailer / Gmail)
             if (receiver.email) {
                 try {
-                    await resend.emails.send({
-                        from: 'Zync Meetings <meetings@resend.dev>',
-                        to: receiver.email,
-                        subject: `${sender.displayName || 'A colleague'} invited you to a meeting`,
-                        html: `
-              <h2>Video Meeting Invitation</h2>
-              <p><b>${sender.displayName || 'User'}</b> has invited you to join a Google Meet on Zync.</p>
-              <p>
-                <a href="${meetingUrl}" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Join Google Meet</a>
-              </p>
-              <p>Or click: <a href="${meetingUrl}">${meetingUrl}</a></p>
-            `
-                    });
+                    const senderName = sender.displayName || 'A colleague';
+                    const emailSubject = `Zync Meeting Invitation: ${senderName} invited you`;
+
+                    // Plain Text Version
+                    const textContent = `You have been invited to a video meeting on Zync.\n\n` +
+                        `Host: ${senderName}\n` +
+                        `Join URL: ${meetingUrl}\n\n` +
+                        `See you there!\n\n` +
+                        `--\nZync HQ, Hyderabad, India`;
+
+                    await sendZyncEmail(
+                        receiver.email,
+                        emailSubject,
+                        `
+              <div style="font-family: Arial, sans-serif; color: #333; max-width: 600px; margin: 0 auto; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
+                <div style="background-color: #007bff; padding: 20px; text-align: center;">
+                  <h2 style="color: white; margin: 0;">Zync Meeting Invitation</h2>
+                </div>
+                <div style="padding: 20px;">
+                  <p style="font-size: 16px;">Hello,</p>
+                  <p style="font-size: 16px;"><b>${senderName}</b> has invited you to join a Google Meet video call.</p>
+                  <div style="text-align: center; margin: 30px 0;">
+                    <a href="${meetingUrl}" style="background-color: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; font-size: 16px;">Join Meeting</a>
+                  </div>
+                  <p style="font-size: 14px; color: #666;">Or copy this link: <a href="${meetingUrl}" style="color: #007bff;">${meetingUrl}</a></p>
+                </div>
+                <div style="background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #888;">
+                  <p>Zync HQ, Hyderabad, India</p>
+                  <p>You received this email because you are a workspace member of Zync.</p>
+                </div>
+              </div>
+            `,
+                        textContent
+                    );
                     results.emailsSent++;
                 } catch (emailErr) {
                     console.error(`Failed to email ${receiver.email}:`, emailErr);
