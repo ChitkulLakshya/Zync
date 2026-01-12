@@ -1,0 +1,194 @@
+/* CalendarView.css */
+
+/* General Calendar Background and Text */
+.rbc-calendar {
+    color: hsl(var(--foreground));
+    font-family: inherit;
+}
+
+/* Header (Toolbar) */
+.rbc-toolbar {
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Toolbar Buttons - Default State (Outline/Ghost-like) */
+.rbc-toolbar button {
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border));
+    background-color: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
+    /* Remove color transition for instant active state */
+    cursor: pointer;
+}
+
+/* Hover State - "Float" effect */
+.rbc-toolbar button:hover {
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border-color: hsl(var(--accent));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Active/Focus State - Force Immediate Blue */
+.rbc-toolbar button:active,
+.rbc-toolbar button:focus,
+.rbc-toolbar button.rbc-active,
+.rbc-toolbar button.rbc-active:hover,
+.rbc-toolbar button.rbc-active:focus {
+    background-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    border-color: hsl(var(--primary)) !important;
+    box-shadow: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
+    transform: none !important;
+    /* Reset float on click for tactile feedback */
+    transition: none !important;
+    /* Instant change, no gray fade */
+    outline: none !important;
+    opacity: 1 !important;
+}
+
+/* Active Hover - Lift slightly but keep blue */
+.rbc-toolbar button.rbc-active:hover {
+    background-color: hsl(var(--primary)) !important;
+    filter: brightness(1.1);
+    transform: translateY(-2px) !important;
+    transition: transform 0.2s !important;
+    /* Only animate movement */
+}
+
+.rbc-toolbar button:focus-visible {
+    outline: 2px solid hsl(var(--ring)) !important;
+    outline-offset: 2px;
+}
+
+.rbc-toolbar-label {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
+}
+
+/* Grid and Headers */
+.rbc-header {
+    padding: 10px 0;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--border)) !important;
+}
+
+.rbc-header+.rbc-header {
+    border-left: 1px solid hsl(var(--border)) !important;
+}
+
+.rbc-month-view {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--card));
+}
+
+.rbc-month-row+.rbc-month-row {
+    border-top: 1px solid hsl(var(--border));
+}
+
+.rbc-day-bg+.rbc-day-bg {
+    border-left: 1px solid hsl(var(--border));
+}
+
+/* Off-range days */
+.rbc-off-range-bg {
+    background-color: hsl(var(--muted) / 0.3);
+}
+
+/* Date Cell Text */
+.rbc-date-cell {
+    padding: 8px;
+    font-size: 0.875rem;
+    color: hsl(var(--foreground));
+}
+
+.rbc-off-range .rbc-date-cell {
+    color: hsl(var(--muted-foreground));
+}
+
+/* Today Highlight */
+.rbc-today {
+    background-color: hsl(var(--accent) / 0.1);
+}
+
+/* Events */
+.rbc-event {
+    background-color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.rbc-event.rbc-selected {
+    background-color: hsl(var(--primary));
+    filter: brightness(1.1);
+}
+
+.rbc-event:focus {
+    outline: none;
+}
+
+/* Agenda View */
+.rbc-agenda-view table.rbc-agenda-table {
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card));
+}
+
+.rbc-agenda-view table.rbc-agenda-table tbody>tr>td {
+    border-top: 1px solid hsl(var(--border));
+    padding: 10px;
+}
+
+.rbc-agenda-time-cell {
+    color: hsl(var(--muted-foreground));
+}
+
+.rbc-agenda-date-cell {
+    color: hsl(var(--foreground));
+    font-weight: 500;
+}
+
+.rbc-agenda-event-cell {
+    color: hsl(var(--foreground));
+}
+
+/* Time View / Week View */
+.rbc-time-view {
+    border: 1px solid hsl(var(--border));
+    border-radius: var(--radius);
+    background-color: hsl(var(--card));
+}
+
+.rbc-timeslot-group {
+    border-bottom: 1px solid hsl(var(--border));
+}
+
+.rbc-time-content {
+    border-top: 1px solid hsl(var(--border));
+}
+
+.rbc-day-slot .rbc-time-slot {
+    border-top: 1px solid hsl(var(--border) / 0.5);
+}
+
+.rbc-label {
+    color: hsl(var(--muted-foreground));
+    padding: 5px;
+}
+
+/* Current Time Indicator */
+.rbc-current-time-indicator {
+    background-color: hsl(var(--destructive));
+}
