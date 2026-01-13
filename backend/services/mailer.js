@@ -1,18 +1,16 @@
 const nodemailer = require('nodemailer');
 
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // use STARTTLS
+    service: 'gmail',
     auth: {
+        type: 'OAuth2',
         user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS
+        clientId: process.env.GOOGLE_CLIENT_ID,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+        refreshToken: process.env.GOOGLE_REFRESH_TOKEN
     },
     // CRITICAL: Force IPv4 to prevent connection timeouts on Render/Docker environments
     family: 4,
-    // Add timeouts to fail faster causing less hangs
-    connectionTimeout: 10000,
-    socketTimeout: 10000
 });
 
 const sendZyncEmail = async (to, subject, html, text) => {
