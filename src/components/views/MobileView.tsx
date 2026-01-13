@@ -17,6 +17,7 @@ import {
 import Workspace from "@/components/workspace/Workspace";
 import CalendarView from "./CalendarView";
 import ChatView from "./ChatView";
+import TasksView from "./TasksView";
 import { NotesView } from "@/components/notes/NotesView";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -34,13 +35,9 @@ const MobileView = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  // Mock Tasks for Mobile View
-  const tasks = [
-    { title: "Review PR #234", time: "9:00 AM", duration: "30min", color: "bg-green-500/10 border-green-500/20", done: true },
-    { title: "Team standup meeting", time: "10:00 AM", duration: "30min", color: "bg-blue-500/10 border-blue-500/20", done: false },
-    { title: "Fix authentication bug", time: "11:30 AM", duration: "2h", color: "bg-orange-500/10 border-orange-500/20", done: false },
-    { title: "Design review with Sarah", time: "2:00 PM", duration: "1h", color: "bg-pink-500/10 border-pink-500/20", done: false },
-  ];
+
+
+
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -238,33 +235,8 @@ const MobileView = () => {
         )}
 
         {activeTab === "tasks" && (
-          <div className="p-4 space-y-4">
-            <h2 className="text-2xl font-bold tracking-tight">My Tasks</h2>
-            <div className="space-y-3">
-              {tasks.map((task, i) => (
-                <div
-                  key={i}
-                  className={`p-4 rounded-xl border ${task.color} ${task.done ? "opacity-60" : "bg-card"}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className={`font-medium ${task.done ? "line-through text-muted-foreground" : ""}`}>
-                        {task.title}
-                      </div>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span className="text-xs text-muted-foreground">{task.time}</span>
-                        <Badge variant="outline" className="text-[10px] h-5">{task.duration}</Badge>
-                      </div>
-                    </div>
-                    {task.done && (
-                      <div className="w-6 h-6 rounded-full bg-green-500/20 text-green-600 flex items-center justify-center">
-                        <span className="text-xs">✓</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+          <div className="h-full overflow-hidden">
+            <TasksView currentUser={currentUser} />
           </div>
         )}
 
