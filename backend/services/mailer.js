@@ -18,13 +18,13 @@ const transporter = nodemailer.createTransport({
 const sendZyncEmail = async (to, subject, html, text) => {
     try {
         const info = await transporter.sendMail({
-            from: '"Lakshya from Zync" <lakshya2543@gmail.com>',
+            from: `"Zync Platform" <${process.env.GMAIL_USER}>`,
             to: to,
             subject: subject,
             html: html,
             text: text, // Plain text fallback
             headers: {
-                'List-Unsubscribe': '<mailto:lakshya2543@gmail.com>'
+                'List-Unsubscribe': `<mailto:${process.env.GMAIL_USER}>`
             }
         });
         console.log('Email sent successfully to:', to);
