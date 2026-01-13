@@ -4,8 +4,7 @@ const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Project = require('../models/Project');
 const { getFirestore } = require('firebase-admin/firestore');
-const { createInstantMeet } = require('../services/googleMeet');
-const { sendZyncEmail } = require('../services/mailer');
+const { createInstantMeet, send_zync_email } = require('../services/googleMeet');
 
 // const db = getFirestore(); // Moved inside handler to prevent startup crash if init fails
 
@@ -63,7 +62,7 @@ router.post('/invite', verifyToken, async (req, res) => {
                                 `See you there!\n\n` +
                                 `--\nZync HQ, Hyderabad, India`;
 
-                            await sendZyncEmail(
+                            await send_zync_email(
                                 receiver.email,
                                 emailSubject,
                                 `
@@ -84,8 +83,7 @@ router.post('/invite', verifyToken, async (req, res) => {
                           <p>You received this email because you are a workspace member of Zync.</p>
                         </div>
                       </div>
-                    `,
-                                textContent
+                    `
                             );
                         } catch (emailErr) {
                             console.error(`Failed to email ${receiver.email}:`, emailErr);
