@@ -899,7 +899,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <DropdownMenuTrigger asChild>
               <div className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md">
                 <Avatar className="w-8 h-8">
-                  <AvatarImage src={currentUser?.photoURL || undefined} />
+                  <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
                   <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
                     {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
                   </AvatarFallback>
