@@ -81,8 +81,7 @@ app.use(express.json({
 // Serve static files from uploads directory
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Register Routes
 app.use('/api/projects', projectRoutes);
@@ -104,6 +103,7 @@ app.use('/api/meet', require('./routes/meetRoutes'));
 // 2. ROBUST DATABASE CONNECTION
 // ==========================================
 mongoose.connect(process.env.MONGO_URI, {
+  dbName: 'zync-production', // Force connection to specific database
   // These options help prevent "buffering timed out" and "ECONNRESET" errors
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,

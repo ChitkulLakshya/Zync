@@ -2,6 +2,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Search, MessageSquare } from "lucide-react";
 import ChatView from "./ChatView";
+import { getFullUrl } from "@/lib/utils";
 
 interface ChatLayoutProps {
     users: any[];
@@ -38,7 +39,7 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
                             >
                                 <div className="relative">
                                     <Avatar>
-                                        <AvatarImage src={user.photoURL} />
+                                        <AvatarImage src={getFullUrl(user.photoURL)} />
                                         <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
                                     <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
