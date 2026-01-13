@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Search, MessageSquare } from "lucide-react";
+import { getUserName, getUserInitials } from "@/lib/utils";
 import ChatView from "./ChatView";
 import { getFullUrl } from "@/lib/utils";
 
@@ -46,14 +47,14 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
                                     <div className="relative">
                                         <Avatar>
                                             <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer" />
-                                            <AvatarFallback>{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
+                                            <AvatarFallback>{user.avatar || getUserInitials(user)}</AvatarFallback>
                                         </Avatar>
                                         <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
                                             status === "away" ? "bg-yellow-500" : "bg-gray-400"
                                             }`} />
                                     </div>
                                     <div className="flex-1 overflow-hidden">
-                                        <div className="font-medium truncate">{user.firstName && user.lastName ? `${user.firstName} ${user.lastName}` : (user.displayName || user.name)}</div>
+                                        <div className="font-medium truncate">{getUserName(user)}</div>
                                         <div className="text-xs text-muted-foreground truncate">{user.email}</div>
                                     </div>
                                 </div>
