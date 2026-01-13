@@ -254,25 +254,35 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
   // Load projects
   useEffect(() => {
     const loadData = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       try {
         const ownerQuery = currentUser ? `?ownerId=${currentUser.uid}` : '';
         const [projectsRes, notes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/projects${ownerQuery}`),
+          fetch(`${API_BASE_URL}/api/projects${ownerQuery}`, { signal: controller.signal }),
           currentUser ? fetchNotes(currentUser.uid) : Promise.resolve([])
         ]);
 
         if (projectsRes.ok) {
           const data = await projectsRes.json();
           setProjects(data);
+        } else {
+          console.error("Projects fetch failed:", projectsRes.status);
+          toast({ title: "Connection Error", description: "Could not fetch projects. Server might be down.", variant: "destructive" });
         }
 
         if (notes && Array.isArray(notes)) {
           setPinnedNotes(notes.filter(n => n.isPinned));
         }
 
-      } catch (error) {
+      } catch (error: any) {
         console.error("Failed to fetch data:", error);
+        if (error.name === 'AbortError') {
+          toast({ title: "Timeout", description: "Server is taking too long to respond.", variant: "destructive" });
+        }
       } finally {
+        clearTimeout(timeoutId);
         setLoading(false);
       }
     };

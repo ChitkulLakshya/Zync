@@ -50,14 +50,22 @@ const MobileView = () => {
   useEffect(() => {
     if (activeTab === "people") {
       const fetchUsers = async () => {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+
         try {
-          const response = await fetch(`${API_BASE_URL}/api/users`);
+          const response = await fetch(`${API_BASE_URL}/api/users`, { signal: controller.signal });
           if (response.ok) {
             const data = await response.json();
             setUsersList(data);
+          } else {
+            console.warn("Mobile Users Fetch failed");
+            toast({ title: "Error", description: "Failed to load users.", variant: "destructive" });
           }
         } catch (error) {
           console.error("Error fetching users:", error);
+        } finally {
+          clearTimeout(timeoutId);
         }
       };
       fetchUsers();
