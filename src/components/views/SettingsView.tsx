@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { GithubAuthProvider, linkWithPopup, getAdditionalUserInfo } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { updateProfile } from "firebase/auth";
-import { updateEmail, deleteUser } from "firebase/auth";
+import { updateEmail, deleteUser, updateProfile } from "firebase/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -97,6 +96,13 @@ const SettingsView = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profileForm)
       });
+
+      // Sync with Firebase Auth Profile to prevent overwrite by use-user-sync
+      if (currentUser && profileForm.displayName) {
+        await updateProfile(currentUser, {
+          displayName: profileForm.displayName
+        });
+      }
 
       if (res.ok) {
         toast({ title: "Success", description: "Profile updated successfully" });
