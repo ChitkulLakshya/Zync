@@ -963,9 +963,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
             <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
             {!isPreview && <ThemeToggle />}
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-              {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
-            </div>
           </div>
         </div>
 

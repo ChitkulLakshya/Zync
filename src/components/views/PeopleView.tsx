@@ -69,6 +69,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             ? userStatuses[user.uid].state
                             : user.status;
 
+                        // Name Composition Logic
+                        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
+                        const displayName = fullName || user.displayName || user.name || user.email;
+
                         return (
                             <Card key={user._id || user.id} className="hover:shadow-md transition-shadow min-h-[320px] flex flex-col items-center justify-center text-center p-6">
                                 <CardHeader className="flex flex-col items-center justify-center gap-4 w-full p-0 pb-4">
@@ -76,7 +80,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                         <Avatar className="h-24 w-24 ring-4 ring-background border shadow-sm">
                                             <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
                                             <AvatarFallback className="text-3xl bg-primary/10 text-primary">
-                                                {(user.displayName || user.name || user.email || "?").substring(0, 2).toUpperCase()}
+                                                {(displayName || "?").substring(0, 2).toUpperCase()}
                                             </AvatarFallback>
                                         </Avatar>
                                         <span className={`absolute bottom-1 right-1 w-5 h-5 rounded-full border-4 border-background ${status === "online" ? "bg-green-500" :
@@ -84,7 +88,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                             }`} />
                                     </div>
                                     <div className="flex flex-col items-center w-full space-y-1">
-                                        <CardTitle className="text-xl font-semibold truncate w-full px-2">{user.displayName || user.name}</CardTitle>
+                                        <CardTitle className="text-xl font-semibold truncate w-full px-2">{displayName}</CardTitle>
                                         <CardDescription className="text-sm truncate w-full px-2">{user.email}</CardDescription>
                                     </div>
                                 </CardHeader>
