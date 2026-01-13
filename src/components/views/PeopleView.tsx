@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Plus, MessageSquare, Loader2 } from "lucide-react";
-import { getFullUrl, API_BASE_URL } from "@/lib/utils";
+import { getFullUrl, API_BASE_URL, getUserName, getUserInitials } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 
 interface PeopleViewProps {
@@ -69,9 +69,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             ? userStatuses[user.uid].state
                             : user.status;
 
-                        // Name Composition Logic
-                        const fullName = [user.firstName, user.lastName].filter(Boolean).join(' ');
-                        const displayName = fullName || user.displayName || user.name || user.email;
+                        // Name Resolution Logic
+                        const displayName = getUserName(user);
 
                         return (
                             <Card key={user._id || user.id} className="hover:shadow-md transition-shadow min-h-[320px] flex flex-col items-center justify-center text-center p-6">
@@ -80,7 +79,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                         <Avatar className="h-24 w-24 ring-4 ring-background border shadow-sm">
                                             <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
                                             <AvatarFallback className="text-3xl bg-primary/10 text-primary">
-                                                {(displayName || "?").substring(0, 2).toUpperCase()}
+                                                {getUserInitials(user)}
                                             </AvatarFallback>
                                         </Avatar>
                                         <span className={`absolute bottom-1 right-1 w-5 h-5 rounded-full border-4 border-background ${status === "online" ? "bg-green-500" :

@@ -15,16 +15,17 @@ import {
   Users,
   Settings,
   MoreHorizontal,
-  Star,
   Video,
   MessageSquare,
   Circle,
   Loader2,
   LogOut,
-  Trash2,
+  Star,
   Github,
+  Trash2,
   Send
 } from "lucide-react";
+import { getUserName, getUserInitials } from "@/lib/utils";
 import { NotesView } from "@/components/notes/NotesView";
 import TasksView from "./TasksView";
 import ActivityLogView from "./ActivityLogView";
@@ -704,10 +705,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
                               <AvatarImage src={getFullUrl(user.photoURL)} />
-                              <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                              <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col text-left">
-                              <span className="font-medium text-sm">{user.displayName || user.email}</span>
+                              <span className="font-medium text-sm">{getUserName(user)}</span>
                               <span className="text-xs text-muted-foreground">{user.email}</span>
                             </div>
                           </div>
@@ -901,12 +902,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 <Avatar className="w-8 h-8">
                   <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
                   <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-                    {isPreview ? "JD" : (currentUser?.displayName ? currentUser.displayName.substring(0, 2).toUpperCase() : currentUser?.email?.substring(0, 2).toUpperCase() || "U")}
+                    {isPreview ? "JD" : getUserInitials(userData || currentUser)}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 overflow-hidden">
                   <div className="text-sm font-medium truncate">
-                    {isPreview ? "John Doe" : (currentUser?.displayName || currentUser?.email?.split('@')[0] || "User")}
+                    {isPreview ? "John Doe" : getUserName(userData || currentUser)}
                   </div>
                   <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
                 </div>
@@ -963,12 +964,15 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
             <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
             {!isPreview && <ThemeToggle />}
-          </div>
-        </div>
+            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+              {isPreview ? "JD" : getUserInitials(userData || currentUser)}
+            </div>
+          </div >
+        </div >
 
         {renderContent()}
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
