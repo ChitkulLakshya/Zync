@@ -52,13 +52,29 @@ const CalendarView = () => {
                     const response = await fetch(url);
                     if (response.ok) {
                         const data = await response.json();
-                        holidayEvents = data.items.map((item: any) => ({
-                            title: item.summary,
-                            start: new Date(item.start.date || item.start.dateTime),
-                            end: new Date(item.end.date || item.end.dateTime),
-                            allDay: !!item.start.date,
-                            resource: { type: 'holiday', data: item }
-                        }));
+                        holidayEvents = data.items.map((item: any) => {
+                            // Fix: Parse YYYY-MM-DD as local midnight to avoid timezone shifts
+                            // Google API returns 'end' date as exclusive (next day) for all-day events
+                            let start: Date, end: Date;
+
+                            if (item.start.date) {
+                                // It's an all-day event (YYYY-MM-DD)
+                                start = new Date(item.start.date + 'T00:00:00');
+                                end = new Date(item.end.date + 'T00:00:00');
+                            } else {
+                                // It's a timed event (ISO string)
+                                start = new Date(item.start.dateTime);
+                                end = new Date(item.end.dateTime);
+                            }
+
+                            return {
+                                title: item.summary,
+                                start,
+                                end,
+                                allDay: !!item.start.date,
+                                resource: { type: 'holiday', data: item }
+                            };
+                        });
                     }
                 }
 
@@ -108,7 +124,8 @@ const CalendarView = () => {
                 opacity: 0.9,
                 color: 'white',
                 border: '0px',
-                display: 'block'
+                display: 'block',
+                margin: '2px 4px'
             }
         };
     };

@@ -35,10 +35,6 @@ const MobileView = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-
-
-
-
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
