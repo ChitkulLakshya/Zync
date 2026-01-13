@@ -621,6 +621,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               handleSectionChange("Notes");
             }}
             currentUser={currentUser}
+            usersList={usersList}
           />
         );
 

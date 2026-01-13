@@ -115,12 +115,39 @@ router.post('/generate', async (req, res) => {
   }
 });
 
-// Get all projects for a user
+// Get all projects for a user (owned or part of team)
 router.get('/', async (req, res) => {
   try {
     const { ownerId } = req.query;
-    const projects = await Project.find({ ownerId }).sort({ createdAt: -1 });
+    // Find projects where user is owner OR is in the team array
+    const projects = await Project.find({
+      $or: [
+        { ownerId },
+        { team: ownerId }
+      ]
+    }).sort({ createdAt: -1 });
     res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Add user to project team (Join Project)
+router.post('/:id/team', async (req, res) => {
+  try {
+    const { userId } = req.body; // User to add
+    const project = await Project.findById(req.params.id);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    if (!project.team.includes(userId) && project.ownerId !== userId) {
+      project.team.push(userId);
+      await project.save();
+    }
+
+    res.json(project);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }

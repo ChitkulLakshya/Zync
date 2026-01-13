@@ -3,7 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { API_BASE_URL } from "@/lib/utils";
+import { API_BASE_URL, getFullUrl } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FolderGit2, Plus, ArrowRight, Loader2, Calendar, User, Trash2, Pin, FileText, Unlink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -37,9 +38,10 @@ interface WorkspaceProps {
   onSelectProject: (id: string) => void;
   onOpenNote?: (id: string) => void;
   currentUser: any;
+  usersList?: any[];
 }
 
-const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: WorkspaceProps) => {
+const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, usersList = [] }: WorkspaceProps) => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [pinnedNotes, setPinnedNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
@@ -374,7 +376,24 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser }: Wor
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
-                      <span>By {project.ownerId === currentUser?.uid ? 'You' : 'Team'}</span>
+                      {project.ownerId === currentUser?.uid ? (
+                        <span>By You</span>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <span>By</span>
+                          <div className="flex items-center gap-1 bg-secondary/50 pr-2 pl-1 py-0.5 rounded-full">
+                            <Avatar className="w-4 h-4">
+                              <AvatarImage src={getFullUrl(usersList?.find(u => u.uid === project.ownerId)?.photoURL)} />
+                              <AvatarFallback className="text-[8px]">
+                                {usersList?.find(u => u.uid === project.ownerId)?.displayName?.substring(0, 2) || '??'}
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="font-medium text-xs">
+                              {usersList?.find(u => u.uid === project.ownerId)?.displayName || 'Unknown'}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   {!project.githubRepoName && project.ownerId === currentUser?.uid && (
