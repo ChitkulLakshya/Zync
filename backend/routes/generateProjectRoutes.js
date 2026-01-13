@@ -1,11 +1,9 @@
-
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const mongoose = require('mongoose');
 const Project = require('../models/Project');
-const User = require('../models/User'); // If needed to validate owner
-// const verifyToken = require('../middleware/authMiddleware'); // Verify token if you want strict auth
+const User = require('../models/User');
 
 // Use Secondary Key as requested
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || process.env.GEMINI_API_KEY);
