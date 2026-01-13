@@ -49,6 +49,7 @@ const SettingsView = () => {
   const [profileForm, setProfileForm] = useState({
     firstName: "",
     lastName: "",
+    displayName: "",
     username: "",
     country: "",
     countryCode: "",
@@ -71,6 +72,7 @@ const SettingsView = () => {
           setProfileForm({
             firstName: data.firstName || "",
             lastName: data.lastName || "",
+            displayName: data.displayName || "",
             username: data.username || "",
             country: data.country || "",
             countryCode: data.countryCode || "+1",
@@ -367,7 +369,6 @@ const SettingsView = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleProfileUpdate} className="space-y-4">
-
                   {/* Avatar Upload */}
                   <div className="flex flex-col items-center justify-center mb-6">
                     <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -389,6 +390,15 @@ const SettingsView = () => {
                     <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
                   </div>
 
+                  <div className="space-y-2">
+                    <Label>Display Name</Label>
+                    <Input
+                      value={profileForm.displayName}
+                      onChange={e => setProfileForm({ ...profileForm, displayName: e.target.value })}
+                      placeholder="e.g. John Doe"
+                    />
+                    <p className="text-[0.8rem] text-muted-foreground">This is how your name will appear to other users.</p>
+                  </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>First Name</Label>
