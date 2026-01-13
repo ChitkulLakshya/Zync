@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { API_BASE_URL } from "@/lib/utils";
+import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import {
   Search,
   Bell,
@@ -644,7 +644,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       case "People":
         return (
           <PeopleView
-            users={displayUsers}
+
             userStatuses={userStatuses}
             onChat={handleChat}
             isPreview={isPreview}
@@ -702,7 +702,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                         <div key={user.uid} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={user.photoURL} />
+                              <AvatarImage src={getFullUrl(user.photoURL)} />
                               <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                             </Avatar>
                             <div className="flex flex-col text-left">

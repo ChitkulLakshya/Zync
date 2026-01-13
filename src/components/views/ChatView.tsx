@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import EmojiPicker from 'emoji-picker-react';
-import { API_BASE_URL } from "@/lib/utils";
+import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ChatViewProps {
@@ -224,12 +224,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
     }
   };
 
-  // Helper to get full URL
-  const getFullUrl = (path: string) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    return `${API_BASE_URL}${path}`;
-  };
+
 
   return (
     <div className="flex flex-col h-full bg-background relative">
@@ -242,7 +237,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
         )}
         <div className="relative">
           <Avatar>
-            <AvatarImage src={selectedUser.photoURL} />
+            <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
             <AvatarFallback>{selectedUser.displayName?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
           </Avatar>
           <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"

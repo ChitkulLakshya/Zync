@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { GithubAuthProvider, linkWithPopup, getAdditionalUserInfo } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { updateProfile } from "firebase/auth";
 import { updateEmail, deleteUser } from "firebase/auth";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,12 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Github, Mail, AlertTriangle, Check, ChevronsUpDown, Camera } from "lucide-react";
+import { Loader2, Github, Mail, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn, API_BASE_URL, getFullUrl } from "@/lib/utils";
+import { cn, API_BASE_URL } from "@/lib/utils";
 import { useTheme } from "next-themes";
 
 // Country list truncated for brevity (keep your existing list)
@@ -40,10 +38,7 @@ const SettingsView = () => {
   const { setTheme, theme } = useTheme();
   const [loading, setLoading] = useState(false);
   const [userData, setUserData] = useState<any>(null);
-
-
   const currentUser = auth.currentUser;
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form States
   const [profileForm, setProfileForm] = useState({
@@ -54,8 +49,7 @@ const SettingsView = () => {
     countryCode: "",
     birthday: "",
     phoneNumber: "",
-    email: "",
-    photoURL: ""
+    email: ""
   });
 
   const [isPhoneVerified, setIsPhoneVerified] = useState(true);
@@ -76,8 +70,7 @@ const SettingsView = () => {
             countryCode: data.countryCode || "+1",
             birthday: data.birthday ? new Date(data.birthday).toISOString().split('T')[0] : "",
             phoneNumber: data.phoneNumber || "",
-            email: currentUser.email || "",
-            photoURL: data.photoURL || currentUser.photoURL || ""
+            email: currentUser.email || ""
           });
           setIsPhoneVerified(data.isPhoneVerified || false);
         })
@@ -105,49 +98,6 @@ const SettingsView = () => {
       toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      const formData = new FormData();
-      formData.append('file', file);
-
-      setLoading(true);
-      try {
-        const response = await fetch(`${API_BASE_URL}/api/upload`, {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!response.ok) throw new Error('Upload failed');
-
-        const data = await response.json();
-        const fileUrl = data.fileUrl; // This is a relative path like /uploads/filename.jpg
-
-        // Update local state
-        setProfileForm(prev => ({ ...prev, photoURL: fileUrl }));
-
-        // Save to backend immediately
-        await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photoURL: fileUrl })
-        });
-
-        // Update Firebase Profile
-        if (auth.currentUser) {
-          await updateProfile(auth.currentUser, { photoURL: fileUrl }); // Note: Firebase usually expects a full URL, but we'll handle this in the app
-        }
-
-        toast({ title: "Success", description: "Profile photo updated" });
-      } catch (error) {
-        console.error("Upload error:", error);
-        toast({ title: "Error", description: "Failed to upload photo", variant: "destructive" });
-      } finally {
-        setLoading(false);
-      }
     }
   };
 
@@ -367,28 +317,6 @@ const SettingsView = () => {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleProfileUpdate} className="space-y-4">
-
-                  {/* Avatar Upload */}
-                  <div className="flex flex-col items-center justify-center mb-6">
-                    <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                      <Avatar className="w-24 h-24 border-2 border-border">
-                        <AvatarImage src={getFullUrl(profileForm.photoURL)} />
-                        <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera className="w-8 h-8 text-white" />
-                      </div>
-                    </div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
-                  </div>
-
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>First Name</Label>

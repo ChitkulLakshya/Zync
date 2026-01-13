@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { API_BASE_URL } from "@/lib/utils";
+import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 const MobileView = () => {
@@ -112,7 +112,7 @@ const MobileView = () => {
         <Sheet>
           <SheetTrigger>
             <Avatar className="w-8 h-8 cursor-pointer ring-2 ring-primary/20">
-              <AvatarImage src={currentUser?.photoURL || ""} />
+              <AvatarImage src={getFullUrl(currentUser?.photoURL)} />
               <AvatarFallback>{currentUser?.displayName?.charAt(0) || "U"}</AvatarFallback>
             </Avatar>
           </SheetTrigger>
@@ -120,7 +120,7 @@ const MobileView = () => {
             <div className="flex flex-col gap-6 mt-8">
               <div className="flex items-center gap-4">
                 <Avatar className="w-16 h-16">
-                  <AvatarImage src={currentUser?.photoURL || ""} />
+                  <AvatarImage src={getFullUrl(currentUser?.photoURL)} />
                   <AvatarFallback>{currentUser?.displayName?.charAt(0) || "U"}</AvatarFallback>
                 </Avatar>
                 <div>
@@ -200,7 +200,7 @@ const MobileView = () => {
                   <Card key={user._id || user.uid} className="hover:bg-secondary/20 transition-colors">
                     <CardContent className="p-4 flex items-center gap-4">
                       <Avatar>
-                        <AvatarImage src={user.photoURL} />
+                        <AvatarImage src={getFullUrl(user.photoURL)} />
                         <AvatarFallback>{(user.displayName || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <div className="flex-1 overflow-hidden">
