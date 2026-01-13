@@ -28,7 +28,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
       const user = auth.currentUser;
       const ownerId = user ? user.uid : "anonymous";
 
-      const response = await fetch(`${API_BASE_URL}/api/projects/generate`, {
+      const response = await fetch(`${API_BASE_URL}/api/generate-project`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

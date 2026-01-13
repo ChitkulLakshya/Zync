@@ -475,7 +475,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   // ... existing effects ...
 
   useEffect(() => {
-    if ((activeSection === "People" || activeSection === "Notes" || activeSection === "Chat" || activeSection === "Meet") && !isPreview) {
+    if ((activeSection === "People" || activeSection === "Notes" || activeSection === "Chat" || activeSection === "Meet" || activeSection === "Tasks") && !isPreview) {
       const fetchUsers = async () => {
         try {
           const response = await fetch(`${API_BASE_URL}/api/users`);
@@ -738,7 +738,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <DesignView />;
 
       case "Tasks":
-        return <TasksView currentUser={currentUser} />;
+        return <TasksView currentUser={currentUser} users={usersList} />;
 
       case "Notes":
         return <NotesView

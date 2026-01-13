@@ -7,7 +7,7 @@ const User = require('../models/User');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || process.env.GEMINI_API_KEY || "DUMMY_KEY_TO_PREVENT_CRASH");
 const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 router.post('/generate', async (req, res) => {

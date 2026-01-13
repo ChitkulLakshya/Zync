@@ -1,81 +1,123 @@
+
 const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const prisma = require('../lib/prisma');
-const verifyToken = require('../middleware/authMiddleware');
+const mongoose = require('mongoose');
+const Project = require('../models/Project');
+const User = require('../models/User'); // If needed to validate owner
+// const verifyToken = require('../middleware/authMiddleware'); // Verify token if you want strict auth
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const GEMINI_MODEL = "gemini-2.5-flash"; // Or use env
+// Use Secondary Key as requested
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || process.env.GEMINI_API_KEY);
+const GEMINI_MODEL = "gemini-2.0-flash-exp";
 
-router.post('/', verifyToken, async (req, res) => {
-  const { idea, repoIds } = req.body; // repoIds is String[]
-  const userId = req.user.uid;
+router.post('/', async (req, res) => {
+  const { name, description, ownerId } = req.body;
 
-  if (!idea) {
-    return res.status(400).json({ message: 'Idea is required' });
+  if (!name || !description) {
+    return res.status(400).json({ message: 'Project Name and Description are required' });
   }
 
   try {
-    // 1. Generate Tasks with Gemini
-    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
-    const prompt = `
-      You are a technical project manager. Break down the following software project idea into a list of specific, actionable technical tasks.
-      
-      Project Idea: "${idea}"
+    // 1. Generate Architecture & Tasks with Gemini
+    const model = genAI.getGenerativeModel({
+      model: GEMINI_MODEL,
+      generationConfig: { responseMimeType: "application/json" }
+    });
 
-      Return a STRICT JSON object containing an array of tasks under the key "tasks".
-      Each task object must have:
-      - "displayId": A unique short string ID (e.g., "TASK-01", "TASK-02").
-      - "title": Short summary (max 10 words).
-      - "description": Detailed technical instruction.
+    const prompt = `
+      You are a Senior Software Architect and Project Manager. 
+      Create a comprehensive technical Implementation Plan for a software project.
       
-      Example format:
+      Project Name: "${name}"
+      Project Description: "${description}"
+
+      You must return a STRICT JSON object with the following structure:
       {
-        "tasks": [
-          { "displayId": "TASK-01", "title": "Setup React", "description": "Initialize Vite project." }
+        "architecture": {
+           "highLevel": "Description of the system architecture",
+           "frontend": { "tech": "Stack details", "components": ["List of core components"] },
+           "backend": { "tech": "Stack details", "services": ["List of services/endpoints"] },
+           "database": { "tech": "DB choice", "schema": ["Key collections/tables"] },
+           "flow": "Description of data flow"
+        },
+        "steps": [
+           {
+             "id": "STEP-01",
+             "title": "Phase 1: Foundation",
+             "description": "Setting up the environment",
+             "status": "Pending",
+             "type": "Backend", 
+             "tasks": [
+                { "title": "Setup Repository", "description": "Initialize Git", "status": "Pending", "assignedTo": null },
+                { "title": "Configure Database", "description": "Setup connection", "status": "Pending", "assignedTo": null }
+             ]
+           },
+           {
+             "id": "STEP-02",
+             "title": "Test Board",
+             "description": "QA and Testing Phase",
+             "status": "Pending",
+             "type": "Other", 
+             "tasks": [
+                { "title": "Unit Tests", "description": "Write core unit tests", "status": "Pending", "assignedTo": null },
+                { "title": "Integration Tests", "description": "Test API endpoints", "status": "Pending", "assignedTo": null }
+             ]
+           }
+        ],
+        "team": [
+            "Suggested Role 1", "Suggested Role 2"
         ]
       }
+      
+      Make the tasks specific, actionable, and technical. Include a "Test Board" step/phase explicitly.
     `;
 
     const result = await model.generateContent(prompt);
     const responseText = result.response.text();
 
-    // Clean and parse JSON
-    const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     let generatedData;
     try {
-      generatedData = JSON.parse(jsonString);
+      generatedData = JSON.parse(responseText);
     } catch (e) {
-      console.error("JSON Parse Error. Raw response:", responseText);
-      return res.status(500).json({ message: 'Failed to parse AI response', error: e.message, raw: responseText });
+      console.error("Failed to parse AI JSON:", responseText);
+      // Fallback or cleanup json
+      const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+      generatedData = JSON.parse(cleanJson);
     }
 
-    if (!generatedData.tasks || !Array.isArray(generatedData.tasks)) {
-      return res.status(500).json({ message: 'Invalid AI response format' });
-    }
-
-    // 2. Save to MongoDB using Prisma
-    // We can use createMany, but if we want to ensure uniqueness or validation, loop is okay.
-    // MongoDB supports createMany in Prisma.
-
-    const tasksToCreate = generatedData.tasks.map(t => ({
-      displayId: t.displayId,
-      title: t.title,
-      description: t.description,
-      status: 'pending',
-      repoIds: repoIds || [], // Array of GitHub Repo IDs
-      userId: userId
+    // 2. Create Mongoose Project
+    // Map generated steps to Mongoose Schema structure
+    const steps = (generatedData.steps || []).map(step => ({
+      id: step.id || new mongoose.Types.ObjectId().toString(),
+      title: step.title,
+      description: step.description,
+      status: 'Pending',
+      type: step.type || 'Other',
+      tasks: (step.tasks || []).map(t => ({
+        title: t.title,
+        description: t.description,
+        status: 'Pending',
+        assignedTo: null // Ready for user assignment
+      }))
     }));
 
-    await prisma.task.createMany({
-      data: tasksToCreate
+    const newProject = new Project({
+      name,
+      description,
+      ownerId: ownerId || 'anonymous',
+      architecture: generatedData.architecture || {},
+      steps: steps,
+      team: [] // We can invite people later
     });
 
-    res.status(201).json({ message: 'Tasks generated successfully', count: tasksToCreate.length, tasks: tasksToCreate });
+    await newProject.save();
+
+    res.status(201).json(newProject);
 
   } catch (error) {
     console.error('Project Generation Error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Server error generating project', error: error.message });
   }
 });
 
