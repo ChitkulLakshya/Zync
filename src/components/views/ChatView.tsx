@@ -337,7 +337,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
                     </div>
                   )}
 
-                  {msg.text && <p className="text-sm break-words whitespace-pre-wrap">{msg.text}</p>}
+                  {msg.text && <p className="text-sm break-all whitespace-pre-wrap">{msg.text}</p>}
 
                   <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"
                     }`}>
