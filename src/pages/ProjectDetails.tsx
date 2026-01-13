@@ -7,14 +7,22 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban } from "lucide-react";
-import { API_BASE_URL } from "@/lib/utils";
+import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import KanbanBoard from "@/components/workspace/KanbanBoard";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Project {
   _id: string;
@@ -89,6 +97,25 @@ const ProjectDetails = () => {
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(true);
+  const [users, setUsers] = useState<any[]>([]);
+
+  // Assignment State
+  const [selectedTaskForAssignment, setSelectedTaskForAssignment] = useState<{ stepId: string, task: Task } | null>(null);
+  const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/users`);
+      if (response.ok) {
+        const data = await response.json();
+        setUsers(data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   const fetchProject = async () => {
     try {
@@ -104,7 +131,10 @@ const ProjectDetails = () => {
   };
 
   useEffect(() => {
-    if (id) fetchProject();
+    if (id) {
+      fetchProject();
+      fetchUsers();
+    }
   }, [id]);
 
   useEffect(() => {
@@ -149,18 +179,21 @@ const ProjectDetails = () => {
     if (!project) return;
 
     const newProject = { ...project };
-    const step = newProject.steps.find(s => s._id === stepId || s.id === stepId);
-    if (step) {
-      const task = step.tasks.find(t => t._id === taskId || t.id === taskId);
-      if (task) {
-        Object.assign(task, updates);
-        setProject(newProject);
-      }
-    }
+    const stepIndex = newProject.steps.findIndex(s => s._id === stepId || s.id === stepId);
+    if (stepIndex === -1) return;
+
+    const step = newProject.steps[stepIndex];
+    const taskIndex = step.tasks.findIndex(t => t._id === taskId || t.id === taskId);
+    if (taskIndex === -1) return;
+
+    // Optimistic Update
+    const updatedTask = { ...step.tasks[taskIndex], ...updates };
+    step.tasks[taskIndex] = updatedTask;
+    setProject({ ...newProject });
 
     try {
-      const realStepId = step?._id;
-      const realTaskId = step?.tasks.find(t => t.id === taskId || t._id === taskId)?._id;
+      const realStepId = step._id;
+      const realTaskId = step.tasks[taskIndex]._id;
 
       if (!realStepId || !realTaskId) return;
 
@@ -174,8 +207,33 @@ const ProjectDetails = () => {
       });
     } catch (error) {
       console.error("Failed to update task", error);
-      fetchProject();
+      fetchProject(); // Revert on failure by refetching
+      toast.error("Failed to update task");
     }
+  };
+
+  const openAssignmentDialog = (stepId: string, task: Task) => {
+    setSelectedTaskForAssignment({ stepId, task });
+    setSelectedUserId(task.assignedTo || null);
+    setIsAssignmentDialogOpen(true);
+  };
+
+  const handleAssignSubmit = async () => {
+    if (!selectedTaskForAssignment || !project) return;
+    setIsSubmittingAssignment(true);
+
+    const { stepId, task } = selectedTaskForAssignment;
+    const assignedUser = users.find(u => u.uid === selectedUserId);
+    const assignedToName = assignedUser ? (assignedUser.displayName || assignedUser.email) : undefined;
+
+    await handleTaskUpdate(stepId, task._id || task.id, {
+      assignedTo: selectedUserId,
+      assignedToName: assignedToName
+    });
+
+    setIsSubmittingAssignment(false);
+    setIsAssignmentDialogOpen(false);
+    toast.success(selectedUserId ? `Assigned to ${assignedToName}` : "Task Unassigned");
   };
 
   if (loading) {
@@ -343,7 +401,7 @@ const ProjectDetails = () => {
             <KanbanBoard
               steps={project.steps}
               onUpdateTask={handleTaskUpdate}
-              users={MOCK_USERS}
+              users={users}
             />
           </TabsContent>
 
@@ -400,25 +458,31 @@ const ProjectDetails = () => {
                               )}
 
                               <div className="flex items-center gap-4 mt-2">
-                                {/* Assignment Dropdown */}
-                                <Select
-                                  value={task.assignedTo || "unassigned"}
-                                  onValueChange={(val) => handleTaskUpdate(step._id, task._id, {
-                                    assignedTo: val === "unassigned" ? null : val,
-                                    assignedToName: val === "unassigned" ? null : MOCK_USERS.find(u => u.uid === val)?.name
-                                  })}
-                                  disabled={!isAdmin}
+                                {/* Assignment using Dialog */}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-7 text-xs border border-dashed gap-2"
+                                  onClick={() => openAssignmentDialog(step._id, task)}
                                 >
-                                  <SelectTrigger className="w-[140px] h-7 text-xs">
-                                    <SelectValue placeholder="Assignee" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                                    {MOCK_USERS.map(user => (
-                                      <SelectItem key={user.uid} value={user.uid}>{user.name}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
+                                  {task.assignedTo ? (
+                                    <>
+                                      <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                        {(() => {
+                                          const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                          return assignedUser ? (
+                                            <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                          ) : (
+                                            <div className="w-full h-full bg-primary/20" />
+                                          )
+                                        })()}
+                                      </div>
+                                      <span>{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                    </>
+                                  ) : (
+                                    <><span>Assign</span></>
+                                  )}
+                                </Button>
 
                                 {/* Status Dropdown */}
                                 <Select
@@ -426,7 +490,7 @@ const ProjectDetails = () => {
                                   onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
                                 >
                                   <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
-                                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                                    task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
                                     }`}>
                                     <SelectValue />
                                   </SelectTrigger>
@@ -451,21 +515,121 @@ const ProjectDetails = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="team">
+          <TabsContent value="team" className="flex-1">
             <Card>
               <CardHeader>
-                <CardTitle>Team Management</CardTitle>
-                <CardDescription>Assign tasks and manage team members</CardDescription>
+                <CardTitle>Team Assignments</CardTitle>
+                <CardDescription>Manage task assignments for {project.name}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="text-center py-10 text-muted-foreground">
-                  Team management features coming soon.
-                </div>
+                <ScrollArea className="h-[600px] pr-4">
+                  <div className="space-y-4">
+                    {project.steps.flatMap(step =>
+                      (step.tasks || []).map(task => ({ ...task, stepName: step.title, stepId: step._id }))
+                    ).map((task, idx) => (
+                      <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{task.title}</span>
+                            <Badge variant="outline">{task.stepName}</Badge>
+                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-1">{task.description}</p>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2 min-w-[150px] justify-end">
+                            {task.assignedTo ? (
+                              <>
+                                <Avatar className="h-6 w-6">
+                                  {(() => {
+                                    const u = users.find((user) => user.uid === task.assignedTo);
+                                    return <AvatarImage src={getFullUrl(u?.photoURL)} />;
+                                  })()}
+                                  <AvatarFallback>{task.assignedToName?.substring(0, 2) || "U"}</AvatarFallback>
+                                </Avatar>
+                                <span className="text-sm">{task.assignedToName || "Unknown"}</span>
+                              </>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Unassigned</span>
+                            )}
+                          </div>
+                          <Button size="sm" variant="outline" onClick={() => openAssignmentDialog(task.stepId, task)}>
+                            {task.assignedTo ? "Reassign" : "Assign User"}
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Assignment Dialog */}
+      <Dialog open={isAssignmentDialogOpen} onOpenChange={setIsAssignmentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Assign Task</DialogTitle>
+            <DialogDescription>
+              Select a team member to assign "<strong>{selectedTaskForAssignment?.task.title}</strong>" to.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[300px] overflow-y-auto">
+            <div className="space-y-2">
+              <div
+                className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedUserId === null ? "bg-primary/10 border-primary" : "hover:bg-muted"}`}
+                onClick={() => setSelectedUserId(null)}
+              >
+                <Checkbox
+                  checked={selectedUserId === null}
+                  onCheckedChange={() => setSelectedUserId(null)}
+                  id="unassign"
+                />
+                <div className="flex-1">
+                  <label htmlFor="unassign" className="text-sm font-medium leading-none cursor-pointer">
+                    Unassigned
+                  </label>
+                </div>
+              </div>
+
+              {users.map((user) => (
+                <div
+                  key={user.uid}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedUserId === user.uid ? "bg-primary/10 border-primary" : "hover:bg-muted"}`}
+                  onClick={() => setSelectedUserId(user.uid)}
+                >
+                  <Checkbox
+                    checked={selectedUserId === user.uid}
+                    onCheckedChange={() => setSelectedUserId(user.uid)}
+                    id={user.uid}
+                  />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={getFullUrl(user.photoURL)} />
+                    <AvatarFallback>{user.displayName?.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <label htmlFor={user.uid} className="text-sm font-medium leading-none cursor-pointer">
+                      {user.displayName || user.email}
+                    </label>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAssignmentDialogOpen(false)} disabled={isSubmittingAssignment}>
+              Cancel
+            </Button>
+            <Button onClick={handleAssignSubmit} disabled={isSubmittingAssignment}>
+              {isSubmittingAssignment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Confirm Assignment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
