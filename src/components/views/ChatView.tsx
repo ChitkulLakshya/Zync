@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import EmojiPicker from 'emoji-picker-react';
-import { API_BASE_URL, getFullUrl } from "@/lib/utils";
+import { API_BASE_URL, getFullUrl, getUserName, getUserInitials } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface ChatViewProps {
@@ -240,13 +240,13 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
         <div className="relative">
           <Avatar>
             <AvatarImage src={getFullUrl(selectedUser.photoURL)} referrerPolicy="no-referrer" />
-            <AvatarFallback>{selectedUser.displayName?.substring(0, 2).toUpperCase() || "U"}</AvatarFallback>
-          </Avatar>
+            <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
+          </Avatar >
           <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"
             }`} />
-        </div>
+        </div >
         <div>
-          <div className="font-semibold">{selectedUser.displayName || selectedUser.name}</div>
+          <div className="font-semibold">{getUserName(selectedUser)}</div>
           <div className="text-xs text-muted-foreground capitalize">{selectedUser.status}</div>
         </div>
         <div className="ml-auto">
@@ -260,10 +260,10 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-      </div>
+      </div >
 
       {/* Messages Area */}
-      <ScrollArea className="flex-1 p-4" onScroll={handleScroll}>
+      < ScrollArea className="flex-1 p-4" onScroll={handleScroll} >
         <div className="space-y-4 pb-4">
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid;
@@ -366,36 +366,38 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
           })}
           <div ref={scrollRef} />
         </div>
-      </ScrollArea>
+      </ScrollArea >
 
       {/* Input Area */}
-      <div className="p-4 border-t border-border/50 bg-background">
+      < div className="p-4 border-t border-border/50 bg-background" >
 
         {/* File Preview */}
-        {file && (
-          <div className="mb-2 p-2 bg-secondary/30 rounded-lg flex items-center justify-between">
-            <div className="flex items-center gap-2 overflow-hidden">
-              {file.type.startsWith('image/') ? (
-                <ImageIcon className="w-4 h-4 text-purple-500" />
-              ) : (
-                <FileIcon className="w-4 h-4 text-blue-500" />
-              )}
-              <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-              <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
+        {
+          file && (
+            <div className="mb-2 p-2 bg-secondary/30 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2 overflow-hidden">
+                {file.type.startsWith('image/') ? (
+                  <ImageIcon className="w-4 h-4 text-purple-500" />
+                ) : (
+                  <FileIcon className="w-4 h-4 text-blue-500" />
+                )}
+                <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+                <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={() => {
+                  setFile(null);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }}
+              >
+                <X className="w-3 h-3" />
+              </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6"
-              onClick={() => {
-                setFile(null);
-                if (fileInputRef.current) fileInputRef.current.value = "";
-              }}
-            >
-              <X className="w-3 h-3" />
-            </Button>
-          </div>
-        )}
+          )
+        }
 
         <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
           <input
@@ -439,8 +441,8 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
             {isUploading ? <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" /> : <Send className="w-4 h-4" />}
           </Button>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 

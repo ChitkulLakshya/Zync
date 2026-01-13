@@ -12,3 +12,17 @@ export function getFullUrl(path: string | undefined | null) {
   if (path.startsWith('http') || path.startsWith('blob:')) return path;
   return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 }
+
+export function getUserName(user: any) {
+  if (!user) return "User";
+  return user.displayName ||
+    (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null) ||
+    user.name ||
+    user.email?.split('@')[0] ||
+    "User";
+}
+
+export function getUserInitials(user: any) {
+  const name = getUserName(user);
+  return name.substring(0, 2).toUpperCase();
+}
