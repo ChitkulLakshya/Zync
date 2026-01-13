@@ -37,11 +37,16 @@ router.post('/sync', async (req, res) => {
   try {
     let user = await User.findOne({ uid });
 
+    let finalDisplayName = displayName;
+    if (!finalDisplayName && email) {
+      finalDisplayName = email.split('@')[0];
+    }
+
     if (user) {
       // Update existing user
       user.email = email;
-      user.displayName = displayName;
-      user.photoURL = photoURL;
+      if (finalDisplayName) user.displayName = finalDisplayName;
+      if (photoURL) user.photoURL = photoURL;
       if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
 
       // Update names only if they are not already set (preserve manual edits)
@@ -56,7 +61,7 @@ router.post('/sync', async (req, res) => {
       user = new User({
         uid,
         email,
-        displayName,
+        displayName: finalDisplayName,
         firstName,
         lastName,
         photoURL,

@@ -63,7 +63,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                     <p className="text-sm text-muted-foreground">Invite people to see them here.</p>
                 </div>
             ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     {users.map((user) => {
                         const status = !isPreview && userStatuses[user.uid]
                             ? userStatuses[user.uid].state
@@ -74,8 +74,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                 <CardHeader className="flex flex-col items-center justify-center gap-4 w-full p-0 pb-4">
                                     <div className="relative">
                                         <Avatar className="h-24 w-24 ring-4 ring-background border shadow-sm">
-                                            <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" />
-                                            <AvatarFallback className="text-3xl">{user.avatar || (user.displayName || user.name || "U").substring(0, 2).toUpperCase()}</AvatarFallback>
+                                            <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
+                                            <AvatarFallback className="text-3xl bg-primary/10 text-primary">
+                                                {(user.displayName || user.name || user.email || "?").substring(0, 2).toUpperCase()}
+                                            </AvatarFallback>
                                         </Avatar>
                                         <span className={`absolute bottom-1 right-1 w-5 h-5 rounded-full border-4 border-background ${status === "online" ? "bg-green-500" :
                                             status === "away" ? "bg-yellow-500" : "bg-gray-400"

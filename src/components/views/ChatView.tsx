@@ -27,7 +27,9 @@ import {
   X,
   File as FileIcon,
   Image as ImageIcon,
-  Trash2
+  Trash2,
+  FolderKanban,
+  Plus
 } from "lucide-react";
 import { format } from "date-fns";
 import EmojiPicker from 'emoji-picker-react';
@@ -267,11 +269,47 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
             const isMe = msg.senderId === currentUser?.uid;
             const isImage = msg.type === 'image';
             const isFile = msg.type === 'file';
+            const isProjectInvite = msg.type === 'project-invite';
 
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
                 <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
                   }`}>
+
+                  {isProjectInvite && (
+                    <div className={`mb-2 p-3 rounded-lg border flex flex-col gap-2 ${isMe ? "bg-primary-foreground/10 border-primary-foreground/20" : "bg-background/50 border-border"}`}>
+                      <div className="flex items-center gap-2">
+                        <FolderKanban className="w-5 h-5 opacity-70" />
+                        <div>
+                          <p className="text-sm font-semibold">{msg.projectName || 'Project Invite'}</p>
+                          <p className="text-[10px] opacity-70">Collaborate on this project</p>
+                        </div>
+                      </div>
+                      {!isMe && (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="w-full h-8 gap-2 text-xs"
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`${API_BASE_URL}/api/projects/${msg.projectId}/team`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ userId: currentUser?.uid })
+                              });
+                              if (res.ok) {
+                                toast({ title: "Joined Project", description: `You have been added to ${msg.projectName}` });
+                              } else {
+                                toast({ title: "Error", description: "Failed to join project", variant: "destructive" });
+                              }
+                            } catch (e) { console.error(e); }
+                          }}
+                        >
+                          <Plus className="w-3 h-3" /> Add to Workspace
+                        </Button>
+                      )}
+                    </div>
+                  )}
 
                   {isImage && (
                     <div className="mb-2 rounded-lg overflow-hidden max-w-sm">

@@ -11,7 +11,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban } from "lucide-react";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import KanbanBoard from "@/components/workspace/KanbanBoard";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
@@ -104,6 +105,49 @@ const ProjectDetails = () => {
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
+
+  // Share State
+  const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
+  const [selectedShareUser, setSelectedShareUser] = useState<string | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
+
+  const handleShareProject = async () => {
+    if (!selectedShareUser || !project || !auth.currentUser) return;
+    setIsSharing(true);
+    try {
+      const receiver = users.find(u => u.uid === selectedShareUser);
+      if (!receiver) throw new Error("User not found");
+
+      const chatId = [auth.currentUser.uid, receiver.uid].sort().join("_");
+      await addDoc(collection(db, "messages"), {
+        chatId,
+        senderId: auth.currentUser.uid,
+        senderName: auth.currentUser.displayName || "Unknown",
+        receiverId: receiver.uid,
+        text: `Start collaborating on project "${project.name}"`,
+        type: 'project-invite',
+        projectId: project._id,
+        projectName: project.name,
+        projectOwnerId: project.ownerId,
+        timestamp: serverTimestamp(),
+        seen: false,
+        delivered: false
+      });
+
+      setIsShareDialogOpen(false);
+      toast.success(`Invite sent to ${receiver.displayName}`);
+
+      // Redirect to Chat
+      const event = new CustomEvent('zync-open-chat', { detail: receiver });
+      window.dispatchEvent(event);
+
+    } catch (error) {
+      console.error("Share failed", error);
+      toast.error("Failed to share project");
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   const fetchUsers = async () => {
     try {
@@ -248,6 +292,8 @@ const ProjectDetails = () => {
     return <div>Project not found</div>;
   }
 
+  const isOwner = project.ownerId === auth.currentUser?.uid;
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
@@ -261,9 +307,11 @@ const ProjectDetails = () => {
             <p className="text-sm text-muted-foreground">Project Architecture & Plan</p>
           </div>
           <div className="ml-auto flex gap-2">
-            <Button variant="outline" size="sm">
-              <Share2 className="mr-2 h-4 w-4" /> Share
-            </Button>
+            {isOwner && (
+              <Button variant="outline" size="sm" onClick={() => setIsShareDialogOpen(true)}>
+                <Share2 className="mr-2 h-4 w-4" /> Share
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -280,9 +328,11 @@ const ProjectDetails = () => {
             <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
               Task Board
             </TabsTrigger>
-            <TabsTrigger value="team" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
-              Team & Assignments
-            </TabsTrigger>
+            {isOwner && (
+              <TabsTrigger value="team" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
+                Team & Assignments
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="architecture" className="flex-1">
@@ -459,30 +509,52 @@ const ProjectDetails = () => {
 
                               <div className="flex items-center gap-4 mt-2">
                                 {/* Assignment using Dialog */}
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-7 text-xs border border-dashed gap-2"
-                                  onClick={() => openAssignmentDialog(step._id, task)}
-                                >
-                                  {task.assignedTo ? (
-                                    <>
-                                      <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
-                                        {(() => {
-                                          const assignedUser = users.find(u => u.uid === task.assignedTo);
-                                          return assignedUser ? (
-                                            <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
-                                          ) : (
-                                            <div className="w-full h-full bg-primary/20" />
-                                          )
-                                        })()}
-                                      </div>
-                                      <span>{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
-                                    </>
-                                  ) : (
-                                    <><span>Assign</span></>
-                                  )}
-                                </Button>
+                                {isOwner ? (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 text-xs border border-dashed gap-2"
+                                    onClick={() => openAssignmentDialog(step._id, task)}
+                                  >
+                                    {task.assignedTo ? (
+                                      <>
+                                        <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                          {(() => {
+                                            const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                            return assignedUser ? (
+                                              <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                            ) : (
+                                              <div className="w-full h-full bg-primary/20" />
+                                            )
+                                          })()}
+                                        </div>
+                                        <span>{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                      </>
+                                    ) : (
+                                      <><span>Assign</span></>
+                                    )}
+                                  </Button>
+                                ) : (
+                                  <div className="flex items-center gap-2 px-2 h-7 text-xs border border-transparent">
+                                    {task.assignedTo ? (
+                                      <>
+                                        <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                          {(() => {
+                                            const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                            return assignedUser ? (
+                                              <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                            ) : (
+                                              <div className="w-full h-full bg-primary/20" />
+                                            )
+                                          })()}
+                                        </div>
+                                        <span className="text-muted-foreground">{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-muted-foreground italic">Unassigned</span>
+                                    )}
+                                  </div>
+                                )}
 
                                 {/* Status Dropdown */}
                                 <Select
@@ -515,54 +587,56 @@ const ProjectDetails = () => {
             </Card>
           </TabsContent>
 
-          <TabsContent value="team" className="flex-1">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Assignments</CardTitle>
-                <CardDescription>Manage task assignments for {project.name}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ScrollArea className="h-[600px] pr-4">
-                  <div className="space-y-4">
-                    {project.steps.flatMap(step =>
-                      (step.tasks || []).map(task => ({ ...task, stepName: step.title, stepId: step._id }))
-                    ).map((task, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{task.title}</span>
-                            <Badge variant="outline">{task.stepName}</Badge>
+          {isOwner && (
+            <TabsContent value="team" className="flex-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Team Assignments</CardTitle>
+                  <CardDescription>Manage task assignments for {project.name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ScrollArea className="h-[600px] pr-4">
+                    <div className="space-y-4">
+                      {project.steps.flatMap(step =>
+                        (step.tasks || []).map(task => ({ ...task, stepName: step.title, stepId: step._id }))
+                      ).map((task, idx) => (
+                        <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium">{task.title}</span>
+                              <Badge variant="outline">{task.stepName}</Badge>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-1">{task.description}</p>
                           </div>
-                          <p className="text-sm text-muted-foreground line-clamp-1">{task.description}</p>
-                        </div>
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2 min-w-[150px] justify-end">
-                            {task.assignedTo ? (
-                              <>
-                                <Avatar className="h-6 w-6">
-                                  {(() => {
-                                    const u = users.find((user) => user.uid === task.assignedTo);
-                                    return <AvatarImage src={getFullUrl(u?.photoURL)} />;
-                                  })()}
-                                  <AvatarFallback>{task.assignedToName?.substring(0, 2) || "U"}</AvatarFallback>
-                                </Avatar>
-                                <span className="text-sm">{task.assignedToName || "Unknown"}</span>
-                              </>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Unassigned</span>
-                            )}
+                          <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 min-w-[150px] justify-end">
+                              {task.assignedTo ? (
+                                <>
+                                  <Avatar className="h-6 w-6">
+                                    {(() => {
+                                      const u = users.find((user) => user.uid === task.assignedTo);
+                                      return <AvatarImage src={getFullUrl(u?.photoURL)} />;
+                                    })()}
+                                    <AvatarFallback>{task.assignedToName?.substring(0, 2) || "U"}</AvatarFallback>
+                                  </Avatar>
+                                  <span className="text-sm">{task.assignedToName || "Unknown"}</span>
+                                </>
+                              ) : (
+                                <span className="text-sm text-muted-foreground">Unassigned</span>
+                              )}
+                            </div>
+                            <Button size="sm" variant="outline" onClick={() => openAssignmentDialog(task.stepId, task)}>
+                              {task.assignedTo ? "Reassign" : "Assign User"}
+                            </Button>
                           </div>
-                          <Button size="sm" variant="outline" onClick={() => openAssignmentDialog(task.stepId, task)}>
-                            {task.assignedTo ? "Reassign" : "Assign User"}
-                          </Button>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </main>
 
@@ -625,6 +699,54 @@ const ProjectDetails = () => {
             <Button onClick={handleAssignSubmit} disabled={isSubmittingAssignment}>
               {isSubmittingAssignment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm Assignment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Share Dialog */}
+      <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Project</DialogTitle>
+            <DialogDescription>
+              Select a user to invite to <strong>{project.name}</strong>. They will receive an invite in their chat.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 max-h-[300px] overflow-y-auto">
+            <div className="space-y-2">
+              {users.filter(u => u.uid !== auth.currentUser?.uid).map((user) => (
+                <div
+                  key={user.uid}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedShareUser === user.uid ? "bg-primary/10 border-primary" : "hover:bg-muted"}`}
+                  onClick={() => setSelectedShareUser(user.uid)}
+                >
+                  <Checkbox
+                    checked={selectedShareUser === user.uid}
+                    onCheckedChange={() => setSelectedShareUser(user.uid)}
+                    id={`share-${user.uid}`}
+                  />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={getFullUrl(user.photoURL)} />
+                    <AvatarFallback>{user.displayName?.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <label htmlFor={`share-${user.uid}`} className="text-sm font-medium leading-none cursor-pointer">
+                      {user.displayName || user.email}
+                    </label>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsShareDialogOpen(false)} disabled={isSharing}>
+              Cancel
+            </Button>
+            <Button onClick={handleShareProject} disabled={isSharing || !selectedShareUser}>
+              {isSharing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Send Invite
             </Button>
           </DialogFooter>
         </DialogContent>
