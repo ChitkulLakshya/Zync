@@ -3,19 +3,19 @@ const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const { encrypt } = require('../utils/encryption');
-const { sendEmail } = require('../utils/emailService');
-const { Resend } = require('resend');
-
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+// const { sendEmail } = require('../utils/emailService'); // Replaced by mailer
+const { sendZyncEmail } = require('../services/mailer');
+// const { Resend } = require('resend'); // Removed
+// const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {
-  return sendEmail({
-    to: email,
-    subject: 'Phone Verification Code',
-    text: `Your verification code is: ${code}`,
-    html: `<b>Your verification code is: ${code}</b>`
-  });
+  return sendZyncEmail(
+    email,
+    'Phone Verification Code',
+    `<b>Your verification code is: ${code}</b>`,
+    `Your verification code is: ${code}`
+  );
 };
 
 /* GET Current User Profile */
@@ -72,23 +72,22 @@ router.post('/sync', async (req, res) => {
       await user.save();
 
       // Send Notification Email to Admin
-      if (process.env.RESEND_API_KEY) {
-        try {
-          await resend.emails.send({
-            from: 'Zync <onboarding@resend.dev>', // or your custom domain
-            to: 'ChitkulLakshya@gmail.com',
-            subject: '🚀 New User Joined Zync!',
-            html: `
-              <h1>New User Alert!</h1>
-              <p><strong>Name:</strong> ${displayName || 'N/A'}</p>
-              <p><strong>Email:</strong> ${email}</p>
-              <p><strong>UID:</strong> ${uid}</p>
-            `
-          });
-          console.log(`Notification email sent for new user: ${email}`);
-        } catch (emailError) {
-          console.error("Failed to send admin notification:", emailError);
-        }
+      // Always attempt to send if GMAIL_USER is configured (implied by sendZyncEmail existence)
+      try {
+        await sendZyncEmail(
+          'ChitkulLakshya@gmail.com',
+          '🚀 New User Joined Zync!',
+          `
+            <h1>New User Alert!</h1>
+            <p><strong>Name:</strong> ${displayName || 'N/A'}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>UID:</strong> ${uid}</p>
+          `,
+          `New User Alert! Name: ${displayName || 'N/A'}, Email: ${email}`
+        );
+        console.log(`Notification email sent for new user: ${email}`);
+      } catch (emailError) {
+        console.error("Failed to send admin notification:", emailError);
       }
     }
 
@@ -209,17 +208,17 @@ router.post('/delete/request', verifyToken, async (req, res) => {
     await user.save();
 
     // Send email
-    await resend.emails.send({
-      from: 'Zync Security <security@resend.dev>',
-      to: user.email,
-      subject: 'Account Deletion Verification Code',
-      html: `
+    await sendZyncEmail(
+      user.email,
+      'Account Deletion Verification Code',
+      `
         <h2>Confirm Account Deletion</h2>
         <p>You have requested to delete your Zync account. This action is irreversible.</p>
         <p><b>Verification Code: ${code}</b></p>
         <p>If you did not request this, please ignore this email and secure your account.</p>
-      `
-    });
+      `,
+      `Verification Code: ${code}`
+    );
 
     res.status(200).json({ message: 'Verification code sent to email' });
   } catch (error) {

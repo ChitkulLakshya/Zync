@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const Project = require('../models/Project');
-const { sendEmail } = require('../utils/emailService');
+const { sendZyncEmail } = require('../services/mailer');
 const User = require('../models/User');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');
@@ -237,11 +237,27 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
         const user = await User.findOne({ uid: assignedTo });
 
         if (user && user.email) {
-          await sendEmail({
-            to: user.email,
-            subject: `New Task Assigned: ${task.title}`,
-            text: `You have been assigned a new task in project "${project.name}".\n\nStep: ${step.title}\nTask: ${task.title}\nAssigned By: ${assignedBy || 'Admin'}`
-          });
+          const subject = `New Task Assigned: ${task.title}`;
+          const text = `You have been assigned a new task in project "${project.name}".\n\nStep: ${step.title}\nTask: ${task.title}\nAssigned By: ${assignedBy || 'Admin'}`;
+          const html = `
+            <div style="font-family: Arial, sans-serif; color: #333;">
+              <h2>New Task Assignment</h2>
+              <p>You have been assigned a new task in project <strong>${project.name}</strong>.</p>
+              <div style="background: #f4f4f4; padding: 15px; border-radius: 5px; margin: 15px 0;">
+                <p><strong>Task:</strong> ${task.title}</p>
+                <p><strong>Step:</strong> ${step.title}</p>
+                <p><strong>Assigned By:</strong> ${assignedBy || 'Admin'}</p>
+              </div>
+              <p>Please log in to Zync to view more details.</p>
+            </div>
+          `;
+
+          await sendZyncEmail(
+            user.email,
+            subject,
+            html,
+            text
+          );
         }
       }
     }
