@@ -1,4 +1,6 @@
 # Zync ⚡
+
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue) ![Version](https://img.shields.io/badge/version-1.0.0-orange) ![Tech](https://img.shields.io/badge/stack-MERN%20%2B%20Firebase-blueviolet)
 > **The Intelligent All-in-One Workspace for Teams and Developers.**
 
 Zync is a production-grade collaboration platform designed to unify project management, real-time communication, and developer workflows. It distinguishes itself by integrating **AI agents** for project planning and **automated git operations** for task tracking, bridging the gap between planning (Jira/Linear) and execution (GitHub).
