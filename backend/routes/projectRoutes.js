@@ -123,7 +123,8 @@ router.get('/', async (req, res) => {
     const projects = await Project.find({
       $or: [
         { ownerId },
-        { team: ownerId }
+        { team: ownerId },
+        { 'steps.tasks.assignedTo': ownerId }
       ]
     }).sort({ createdAt: -1 });
     res.json(projects);
@@ -252,12 +253,17 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
             </div>
           `;
 
-          await sendZyncEmail(
-            user.email,
-            subject,
-            html,
-            text
-          );
+          try {
+            await sendZyncEmail(
+              user.email,
+              subject,
+              html,
+              text
+            );
+          } catch (emailError) {
+            console.error("Failed to send assignment email:", emailError);
+            // Don't crash the request, just log it
+          }
         }
       }
     }
