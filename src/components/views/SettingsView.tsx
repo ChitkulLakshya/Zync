@@ -727,37 +727,7 @@ const SettingsView = () => {
                   </Button>
                 </div>
 
-                {/* Dribbble Connection */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className="w-8 h-8 flex items-center justify-center font-bold text-xl text-pink-500">D</div>
-                    <div>
-                      <p className="font-medium">Dribbble</p>
-                      <p className="text-sm text-muted-foreground">
-                        {localStorage.getItem('dribbble_token')
-                          ? "Connected to Dribbble"
-                          : "Connect to fetch your designs."}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant={localStorage.getItem('dribbble_token') ? "destructive" : "secondary"}
-                    onClick={() => {
-                      if (localStorage.getItem('dribbble_token')) {
-                        if (window.confirm("Disconnect from Dribbble?")) {
-                          localStorage.removeItem('dribbble_token');
-                          toast({ title: "Disconnected", description: "Dribbble account unlinked." });
-                          window.location.reload();
-                        }
-                      } else {
-                        // Redirect to backend auth flow
-                        window.location.href = `https://dribbble.com/oauth/authorize?client_id=Z2LzX0DtUkUiTUl1T3ybs-UyTF8YFmYkmMZj1QuWMyU&redirect_uri=${API_BASE_URL}/api/dribbble/callback`;
-                      }
-                    }}
-                  >
-                    {localStorage.getItem('dribbble_token') ? "Unlink" : "Connect"}
-                  </Button>
-                </div>
+
 
                 {/* Google Connection (Placeholder) */}
                 <div className="flex items-center justify-between p-4 border rounded-lg opacity-60">
