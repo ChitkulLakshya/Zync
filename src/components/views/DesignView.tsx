@@ -72,13 +72,19 @@ const DesignView = () => {
       // Use the unified endpoint which returns { ok: true, items: [...] } 
       // OR direct array depending on how getInspiration is structured.
       // Based on previous code, getInspiration returns { ok: true, count, items: [] }
-      const response = await fetch(`${API_BASE_URL}/api/design/search?q=${encodeURIComponent(query)}`);
-      
+      const dToken = localStorage.getItem('dribbble_token');
+      const headers: HeadersInit = {};
+      if (dToken) headers['x-dribbble-token'] = dToken;
+
+      const response = await fetch(`${API_BASE_URL}/api/design/search?q=${encodeURIComponent(query)}`, {
+        headers
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch designs: ${response.statusText}`);
       }
       const data = await response.json();
-      
+
       // Handle both { ok: true, items: [...] } and plain array formats
       let results: DesignItem[] = [];
       if (data.items && Array.isArray(data.items)) {
@@ -87,14 +93,14 @@ const DesignView = () => {
         results = data;
       }
       setItems(results);
-      
+
       if (results.length === 0) {
         toast({
           title: "No results",
           description: "No designs found. Try a different search term.",
         });
       }
-      
+
       // Reset scroll on new search
       if (scrollRef.current) scrollRef.current.scrollTop = 0;
 
@@ -111,8 +117,8 @@ const DesignView = () => {
   };
 
   return (
-    <div 
-      ref={scrollRef} 
+    <div
+      ref={scrollRef}
       className="h-full space-y-6 p-6 overflow-y-auto scroll-smooth"
       onScroll={handleScroll}
     >
@@ -150,14 +156,14 @@ const DesignView = () => {
                   alt={item.title}
                   className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                   loading="lazy"
-                  style={{ display: "block" }} 
+                  style={{ display: "block" }}
                 />
               ) : (
                 <div className="w-full h-48 bg-muted flex items-center justify-center text-muted-foreground">
                   No Image
                 </div>
               )}
-              
+
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
                 <div className="text-white font-medium line-clamp-2 mb-2">{item.title}</div>
                 <div className="flex justify-between items-center">
@@ -173,9 +179,9 @@ const DesignView = () => {
       </div>
 
       {!loading && items.length === 0 && (
-         <div className="text-center py-12 text-muted-foreground">
-           Search for something to see results.
-         </div>
+        <div className="text-center py-12 text-muted-foreground">
+          Search for something to see results.
+        </div>
       )}
     </div>
   );

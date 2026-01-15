@@ -34,25 +34,25 @@ async function fetchUnsplash(query = 'web design', page = 1, per_page = 50) {
 
 async function fetchPinterest(boardId, token, query, page_size = 40) {
   if (!boardId) return [];
-  
+
   // Ensure token and secret are available
   let t = token || process.env.PINTEREST_TOKEN;
   const appSecret = process.env.PINTEREST_APP_SECRET;
 
   if (!t) throw new Error('PINTEREST_TOKEN missing');
-  
+
   // Clean token
   t = t.trim();
 
   // Note: For basic board fetch, Bearer token is sufficient. 
-  
+
   const endpoint = `${PINTEREST_BASE}/boards/${boardId}/pins`;
   // Mask the ID in logs
   const maskedId = typeof boardId === 'string' ? boardId.slice(0, 3) + '...' : '***';
   console.log('Pinterest Request URL (Masked):', `${PINTEREST_BASE}/boards/${maskedId}/pins`);
-  
+
   const resp = await axios.get(endpoint, {
-    headers: { 
+    headers: {
       'Authorization': `Bearer ${t}`,
       'Content-Type': 'application/json'
     },
@@ -60,14 +60,14 @@ async function fetchPinterest(boardId, token, query, page_size = 40) {
   });
 
   let data = resp.data?.items || resp.data?.results || [];
-  
+
   // Filter locally by query if provided (simple case-insensitive match)
   if (query && query.trim() !== 'web design') {
     const qLower = query.toLowerCase();
     data = data.filter(p => {
-       const title = (p.note || p.title || '').toLowerCase();
-       const desc = (p.description || '').toLowerCase();
-       return title.includes(qLower) || desc.includes(qLower);
+      const title = (p.note || p.title || '').toLowerCase();
+      const desc = (p.description || '').toLowerCase();
+      return title.includes(qLower) || desc.includes(qLower);
     });
   }
 
@@ -75,11 +75,11 @@ async function fetchPinterest(boardId, token, query, page_size = 40) {
     // Attempt multiple paths for image: v5 media.images['600x'], or fallback
     let imgUrl = null;
     if (p.media && p.media.images) {
-       imgUrl = p.media.images['600x']?.url || p.media.images['400x300']?.url || p.media.images['1200x']?.url;
+      imgUrl = p.media.images['600x']?.url || p.media.images['400x300']?.url || p.media.images['1200x']?.url;
     } else if (p.image) {
-       imgUrl = p.image.url || p.image.original?.url;
+      imgUrl = p.image.url || p.image.original?.url;
     }
-    
+
     return {
       id: `pinterest_${p.id}`,
       source: 'pinterest',
@@ -107,7 +107,7 @@ async function fetchBehance(query = 'web design', limit = 30) {
       // 1. Try custom covers if RSS parser captured them (unlikely without custom fields, but harmless)
       if (item.covers && item.covers['404']) image = item.covers['404'];
       else if (item.covers && item.covers.original) image = item.covers.original;
-      
+
       // 2. Regex fallback (standard RSS)
       if (!image) {
         const content = item.content || item.description || '';
@@ -140,10 +140,10 @@ async function fetchBehance(query = 'web design', limit = 30) {
 // Express controller
 async function getInspiration(req, res) {
   // Simple checkLog to verify keys safely
-  console.log("Pinterest Config Loaded:", { 
-    id: !!process.env.PINTEREST_APP_ID, 
+  console.log("Pinterest Config Loaded:", {
+    id: !!process.env.PINTEREST_APP_ID,
     secret: !!process.env.PINTEREST_APP_SECRET,
-    token: !!process.env.PINTEREST_TOKEN, 
+    token: !!process.env.PINTEREST_TOKEN,
     board: !!process.env.PINTEREST_BOARD_ID
   });
 
@@ -165,8 +165,33 @@ async function getInspiration(req, res) {
         }
       })(),
       fetchBehance(q, 50),
+      (async () => {
+        const dToken = req.header('x-dribbble-token');
+        if (!dToken) return [];
+        try {
+          // Dribbble V2: Fetch authenticated user's shots
+          // Note: Public search is not available in V2 without approved scopes/partnership.
+          // We fallback to user's shots for the MVP.
+          const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
+            headers: { Authorization: `Bearer ${dToken}` },
+            params: { per_page: 30 }
+          });
+
+          return resp.data.map(shot => ({
+            id: `dribbble_${shot.id}`,
+            source: 'dribbble',
+            title: shot.title,
+            image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser || PLACEHOLDER_IMG,
+            link: shot.html_url,
+            creator: 'Dribbble User' // Dribbble V2 shots endpoint doesn't always return user info in list
+          }));
+        } catch (e) {
+          console.error('Dribbble error', e.response?.data || e.message);
+          return [];
+        }
+      })()
     ]);
-    
+
     console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}`);
 
     // Unified list

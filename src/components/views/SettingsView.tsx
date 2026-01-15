@@ -255,6 +255,27 @@ const SettingsView = () => {
     }
   }, [currentUser]);
 
+  // Capture Dribbble Token from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const dToken = params.get('dribbble_token');
+    const dUser = params.get('dribbble_user'); // Optional
+
+    if (dToken) {
+      localStorage.setItem('dribbble_token', dToken);
+      if (dUser) localStorage.setItem('dribbble_user', dUser);
+
+      toast({ title: "Connected!", description: "Dribbble account linked successfully." });
+
+      // Clear URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (params.get('error') === 'dribbble_auth_failed') {
+      toast({ title: "Connection Failed", description: "Could not connect to Dribbble.", variant: "destructive" });
+    }
+  }, []);
+
   // --- Profile Update Logic ---
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -674,6 +695,38 @@ const SettingsView = () => {
                   >
                     {loading ? <Loader2 className="w-4 h-4 animate-spin" /> :
                       userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
+                  </Button>
+                </div>
+
+                {/* Dribbble Connection */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 flex items-center justify-center font-bold text-xl text-pink-500">D</div>
+                    <div>
+                      <p className="font-medium">Dribbble</p>
+                      <p className="text-sm text-muted-foreground">
+                        {localStorage.getItem('dribbble_token')
+                          ? "Connected to Dribbble"
+                          : "Connect to fetch your designs."}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant={localStorage.getItem('dribbble_token') ? "destructive" : "secondary"}
+                    onClick={() => {
+                      if (localStorage.getItem('dribbble_token')) {
+                        if (window.confirm("Disconnect from Dribbble?")) {
+                          localStorage.removeItem('dribbble_token');
+                          toast({ title: "Disconnected", description: "Dribbble account unlinked." });
+                          window.location.reload();
+                        }
+                      } else {
+                        // Redirect to backend auth flow
+                        window.location.href = `https://dribbble.com/oauth/authorize?client_id=Z2LzX0DtUkUiTUl1T3ybs-UyTF8YFmYkmMZj1QuWMyU&redirect_uri=${API_BASE_URL}/api/dribbble/callback`;
+                      }
+                    }}
+                  >
+                    {localStorage.getItem('dribbble_token') ? "Unlink" : "Connect"}
                   </Button>
                 </div>
 
