@@ -99,6 +99,7 @@ app.use('/api/webhooks', webhookRoutes);
 app.use('/api/github-app', githubAppWebhook);
 app.use('/api/meet', require('./routes/meetRoutes'));
 app.use('/api/teams', require('./routes/teamRoutes')); // Team Routes
+app.use('/api/dribbble', require('./routes/dribbbleRoutes'));
 
 
 // ==========================================
