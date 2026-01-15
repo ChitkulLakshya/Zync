@@ -3,7 +3,7 @@ const { PrismaClient } = require('../prisma/generated/client');
 const prisma = new PrismaClient();
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-pro";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 /**
  * Generates technical tasks from a user idea and links them to repositories.

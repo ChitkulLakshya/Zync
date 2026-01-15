@@ -7,7 +7,7 @@ const User = require('../models/User');
 
 // Use Secondary Key as requested
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || process.env.GEMINI_API_KEY);
-const GEMINI_MODEL = "gemini-2.0-flash-exp";
+const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
 
 router.post('/', async (req, res) => {
   const { name, description, ownerId } = req.body;
