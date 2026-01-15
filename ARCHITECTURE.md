@@ -1,107 +1,134 @@
-# Zync - System Architecture & Design
+# Zync - System Architecture & Design 🏗️
 
-## 1. High-Level System Architecture
+## 1. High-Level Data Flow
 
-Zync follows a modern, scalable, and modular architecture:
+Zync operates as a unified workspace where data flows between three main pillars: **User Interaction** (Frontend), **Data persistence & Logic** (Backend/DB), and **External Integrations** (GitHub/Google).
 
--   **Frontend**: React (Vite) + TypeScript + Tailwind CSS + Shadcn UI.
-    -   Handles UI/UX, user interactions, and real-time updates.
-    -   Communicates with the Backend API and Firebase Auth.
--   **Backend**: Node.js + Express.
-    -   RESTful API for project management, task tracking, and GitHub integration.
-    -   Connects to MongoDB for data persistence.
--   **Database**: MongoDB (Atlas).
-    -   Stores Users, Projects, Tasks, Comments, and Organization data.
--   **Authentication**: Firebase Authentication.
-    -   Handles Email/Password and GitHub OAuth.
--   **Integrations**:
-    -   **GitHub API**: For tracking commits and linking repositories.
-    -   **Google Meet**: For video conferencing.
-    -   **AI Service (OpenAI/Gemini)**: For generating project architectures (Planned).
+### The Three-Tier Architecture
+1.  **Client Layer (Frontend)**: React 18 SPA. Handles optimistic UI updates and real-time socket events.
+2.  **Service Layer (Backend)**: Express.js REST API. Acts as the orchestrator for AI, Auth, and Webhooks.
+3.  **Data Layer**:
+    *   **MongoDB**: Primary store for Users, Projects, and unstructured Notes.
+    *   **Prisma/Postgres**: Used specifically for the GitHub Sync Engine (Repositories/Tasks).
+    *   **Redis**: Session storage & global caching.
+    *   **Firestore**: Real-time chat message store.
 
-## 2. Feature Breakdown
+---
 
-### User Roles
--   **Administrator**: Full control over projects, teams, and tasks.
--   **Team Member**: Can view assigned tasks, update status, and push code.
+## 2. Authentication Flow 🔐
 
-### Core Modules
-1.  **Authentication**: Secure login/signup via Firebase (Email, GitHub).
-2.  **Project Management**: Create projects, generate AI architecture, view workflows.
-3.  **Task Management**: Kanban/List view, assign tasks, set deadlines, track progress.
-4.  **GitHub Integration**: Link repos, auto-complete tasks on commit push.
-5.  **Communication**: In-app chat, file sharing, Google Meet integration.
-6.  **Notifications**: Real-time alerts (In-app) and Email notifications.
-7.  **Dashboard**: Personalized views for Admins and Team Members.
+**Goal**: Securely identify users using Firebase while maintaining a custom backend session.
 
-## 3. Database Schema Suggestions (MongoDB)
+### Diagram
+```mermaid
+sequenceDiagram
+    participant User
+    participant Frontend (React)
+    participant Firebase Auth
+    participant Backend (Express)
+    participant MongoDB
 
-### Users Collection
-```json
-{
-  "_id": "ObjectId",
-  "firebaseUid": "String",
-  "email": "String",
-  "displayName": "String",
-  "photoURL": "String",
-  "githubHandle": "String",
-  "role": "String (admin/member)",
-  "createdAt": "Date"
-}
+    User->>Frontend: Clicks "Sign in with Google"
+    Frontend->>Firebase Auth: signInWithPopup(provider)
+    Firebase Auth-->>Frontend: Returns { AccessToken, UID, UserProfile }
+    Frontend->>Frontend: Stores Token in internal state
+    
+    rect rgb(240, 248, 255)
+    note right of Frontend: Sync with Backend
+    Frontend->>Backend: POST /api/users/sync { uid, email, name }
+    Backend->>Backend: Middleware verifies Token via Admin SDK
+    Backend->>MongoDB: Upsert User Document
+    Backend-->>Frontend: Returns { User (DB Object) }
+    end
 ```
 
-### Projects Collection
-```json
-{
-  "_id": "ObjectId",
-  "name": "String",
-  "description": "String",
-  "ownerId": "ObjectId (User)",
-  "githubRepo": "String (owner/repo)",
-  "architecture": "Object (AI Generated)",
-  "members": ["ObjectId (User)"],
-  "createdAt": "Date"
-}
+### Technical Detail
+1.  **Login (`Login.tsx`)**: Uses `signInWithPopup`. On success, we immediately call `verifyToken`.
+2.  **Verification (`middleware/authMiddleware.js`)**:
+    *   Intersects every API request.
+    *   Extracts `Bearer <token>`.
+    *   Calls `admin.auth().verifyIdToken(token)`.
+    *   Attaches `req.user.uid` to the request context.
+
+---
+
+## 3. GitHub Integration Flow 🐙
+
+**Goal**: Link Zync Projects to GitHub Repositories and auto-track progress.
+
+### A. OAuth Connection (Linking Account)
+1.  **User** clicks "Connect GitHub".
+2.  **Frontend** redirects to GitHub OAuth page.
+3.  **GitHub** calls back to `/api/github/callback` with a temporary `code`.
+4.  **Backend**:
+    *   Exchanges `code` for `access_token`.
+    *   **Encrypts** the token using AES-256 (`CryptoJS`).
+    *   Stores it in `User.integrations.github.accessToken`.
+
+### B. The Sync Engine (Webhooks)
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant GH as GitHub
+    participant WH as Webhook Endpoint
+    participant AI as Groq (Llama3)
+    participant DB as Prisma/DB
+    participant Client as Frontend
+
+    Dev->>GH: git push origin main -m "feat: Fix Login Bug"
+    GH->>WH: POST /api/github-app (payload)
+    WH->>WH: Verify HMAC Signature (Security)
+    WH->>AI: Analyze "Fix Login Bug" against Open Tasks
+    AI-->>WH: Match Found! Task ID: "TASK-101"
+    WH->>DB: Update Task Status -> "Completed"
+    WH->>Client: Socket.io Emit ("taskUpdated")
+    Client->>Client: Show Notification "Task Completed"
 ```
 
-### Tasks Collection
-```json
-{
-  "_id": "ObjectId",
-  "projectId": "ObjectId (Project)",
-  "title": "String",
-  "description": "String",
-  "assignedTo": "ObjectId (User)",
-  "status": "String (pending/in-progress/completed)",
-  "priority": "String (low/medium/high)",
-  "deadline": "Date",
-  "githubCommitId": "String",
-  "createdAt": "Date"
-}
-```
+---
 
-## 4. API Flow
+## 4. Google Meet Integration 🎥
 
-### GitHub Integration Flow
-1.  **User Action**: Team member pushes code to GitHub.
-2.  **GitHub Webhook**: GitHub sends a payload to Zync Backend (`/api/webhooks/github`).
-3.  **Backend Processing**:
-    -   Parses commit message (e.g., "Fixes #123").
-    -   Finds corresponding Task in MongoDB.
-    -   Updates Task status to "Completed".
-4.  **Frontend Update**: Real-time update via WebSocket or Polling reflects the change (Tick mark ✔️).
+**File**: `backend/services/googleMeet.js`
 
-### Project Creation Flow
-1.  **User Action**: Admin enters project idea prompt.
-2.  **Frontend**: Sends prompt to Backend (`/api/projects/generate`).
-3.  **Backend**: Calls AI Service to generate architecture.
-4.  **Database**: Saves generated architecture to `Projects` collection.
-5.  **Frontend**: Displays the generated plan for review.
+This flow is unique because it requires **Offline Access** (server-side generation without user interaction).
 
-## 5. User Flow Diagrams
+1.  **Setup**: The Admin (User) generates a `GOOGLE_REFRESH_TOKEN` via our script `scripts/get-refresh-token.js`. This token allows the backend to act on behalf of the `zync.meet@gmail.com` account forever.
+2.  **Request**: Frontend calls `POST /api/meet/invite`.
+3.  **Execution**:
+    *   Backend initializes `google.auth.OAuth2` with the *Refresh Token*.
+    *   It requests a new short-lived *Access Token*.
+    *   It calls `calendar.events.insert` with `conferenceDataVersion: 1`.
+    *   Google returns a `hangoutLink` (e.g., `meet.google.com/abc-xyz`).
+4.  **Delivery**: The link is returned to the Frontend and effectively "injected" into the Chat or Project via Email.
 
-### Login/Signup
-`Landing Page` -> `Login/Signup Page` -> `Firebase Auth` -> `Dashboard`
+---
 
-### Task Completion
-`Dashboard` -> `View Task` -> `Code & Push to GitHub` -> `System Auto-Updates Task` -> `Notification Sent`
+## 5. Frontend Architecture (Folder Structure)
+
+Mapping the view components in `src/components/views` to the actual user features:
+
+| Component | Feature / Responsibility |
+| :--- | :--- |
+| **`DesktopView.tsx`** | **The Main Layout**. Handles the Sidebar navigation, global state layout, and switching between the views below. |
+| **`DashboardView.tsx`** | **Home**. Shows "Good Morning", Productivity Chart, Quick Tasks, and Recent Activity. |
+| **`MyProjectsView.tsx`** | **Project Hub**. Grid view of all projects. Clicking one opens `ProjectDetails.tsx`. |
+| **`ChatView.tsx`** | **Messenger**. The Instagram-style chat interface. Handles real-time message rendering and user list. |
+| **`CalendarView.tsx`** | **Schedule**. Renders the `react-big-calendar`. Fetches events from Google Calendar and stored Project deadlines. |
+| **`TasksView.tsx`** | **Global Kanban**. Aggregates tasks from *all* projects into a single "To-Do / Doing / Done" board. |
+| **`DesignView.tsx`** | **Inspiration**. Connects to Dribbble API to show design shots for inspiration. |
+| **`SettingsView.tsx`** | **User Config**. Profile update, Notifications toggle, GitHub Connect/Disconnect controls. |
+
+---
+
+## 6. AI Agent Flow (Project Generation)
+
+**File**: `backend/routes/generateProjectRoutes.js`
+
+1.  **Prompt Engineering**: User input ("I want a refined E-commerce app") is wrapped in a "Senior Architect" system prompt.
+2.  **Inference**: Sent to Google Gemini Pro model.
+3.  **Structured Output**: The AI is forced to return valid JSON containing:
+    *   `architecture`: High-level tech stack explanations.
+    *   `steps`: An array of Phases (Frontend, Backend, DB).
+    *   `tasks`: Granular action items for each phase.
+4.  **Hydration**: This JSON is mapped directly to the Mongoose `Project` schema and saved.
