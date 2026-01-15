@@ -176,3 +176,12 @@ Combine these variables into your `.env` files.
 
 ## 📄 License
 MIT License.
+
+---
+
+## 👥 Contributors
+
+This project was architected and built by:
+
+*   **Chitkul Lakshya** ([@ChitkulLakshya](https://github.com/ChitkulLakshya))
+*   **Prem Sai Kota** ([@prem22k](https://github.com/prem22k))
