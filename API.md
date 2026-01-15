@@ -2,192 +2,122 @@
 
 Base URL: `http://localhost:5000/api`
 
-## Authentication
-Most endpoints require a valid Firebase ID Token in the `Authorization` header.
-```
-Authorization: Bearer <valid_firebase_id_token>
-```
+> **Note**: Most endpoints require a valid Firebase ID Token in the `Authorization` header: `Bearer <token>`.
 
 ---
 
-## 🤖 AI Project Generation
+## 🔐 Authentication & Users
 
-### Generate Project Plan
-Uses Google Gemini to create a full technical architecture and task list from a prompt.
+### User Management
+Base Path: `/api/users`
 
-- **Endpoint**: `POST /generate-project`
-- **Auth Required**: No (Publicly accessible for now)
-- **Request Body**:
-  ```json
-  {
-    "name": "E-Commerce Platform",
-    "description": "A full-stack online store with Stripe payments",
-    "ownerId": "firebase_uid_123"
-  }
-  ```
-- **Response** (`201 Created`):
-  Returns the created `Project` object with populated `architecture` and `steps`.
-  ```json
-  {
-    "_id": "65a1...",
-    "name": "E-Commerce Platform",
-    "architecture": {
-      "highLevel": "Microservices based...",
-      "frontend": { "tech": "React, Redux...", "components": [...] },
-      "backend": { "tech": "Node, Express...", "services": [...] }
-    },
-    "steps": [
-      {
-        "title": "Phase 1: Foundation",
-        "tasks": [
-            { "title": "Setup Repo", "status": "Pending" },
-            { "title": "Config DB", "status": "Pending" }
-        ]
-      }
-    ]
-  }
-  ```
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/sync` | Sync Firebase User to MongoDB (Login/Signup). Payload: `{ uid, email, displayName, photoURL }` | No |
+| **GET** | `/me` | Get current user profile. | Yes |
+| **GET** | `/:uid` | Get public profile of a user. | Yes |
+| **PUT** | `/:uid` | Update user profile. Payload: `{ firstName, lastName, theme, ... }` | Yes |
+| **POST** | `/verify-phone/request` | Send verification code to user's phone. | Yes |
+| **POST** | `/verify-phone/confirm` | Confirm phone verification code. | Yes |
+| **POST** | `/delete/request` | Request account deletion (Email code). | Yes |
+| **POST** | `/delete/confirm` | Confirm account deletion. | Yes |
+
+---
+
+## 🤖 AI & Projects
+
+### Project Generation
+Base Path: `/api/generate-project`
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/` | Generate a full project architecture using Gemini. Payload: `{ name, description, ownerId }`. Returns `Project` object. | No |
+
+### Project Management
+Base Path: `/api/projects`
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | Get all projects for user (`?ownerId=...`). | Yes |
+| **GET** | `/:id` | Get specific project details. | Yes |
+| **PATCH** | `/:id` | Update project (e.g., link GitHub repo). | Yes |
+| **DELETE** | `/:id` | Delete a project. | Yes |
+| **POST** | `/:id/team` | Add user to team. Payload: `{ userId }`. | Yes |
+| **POST** | `/:projectId/quick-task` | Create a task from external source (Notes). | Yes |
+| **PUT** | `/:pid/steps/:sid/tasks/:tid` | Update task status/assignee. | Yes |
 
 ---
 
 ## 🐙 GitHub Integration
 
-### Connect Account
-Exchanges an OAuth code for an access token, encrypts it, and links it to the user.
+### OAuth & Sync
+Base Path: `/api/github` (Source: `routes/github.js`)
 
-- **Endpoint**: `POST /github/callback`
-- **Auth Required**: Yes
-- **Request Body**:
-  ```json
-  {
-    "code": "github_oauth_code_from_frontend"
-  }
-  ```
-- **Response** (`200 OK`):
-  ```json
-  {
-    "message": "GitHub connected successfully",
-    "username": "octocat"
-  }
-  ```
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/callback` | Exchange OAuth code for token. Payload: `{ code }`. | Yes |
+| **POST** | `/connect` | Manual token connect (Legacy). | Yes |
+| **DELETE** | `/disconnect` | Remove GitHub integration. | Yes |
+| **GET** | `/repos` | List repositories. | Yes |
+| **GET** | `/stats` | Get user public stats. | Yes |
+| **GET** | `/events` | Get user activity feed. | Yes |
+| **GET** | `/contributions` | Get contribution graph data (GraphQL). | Yes |
 
-### List Repositories
-Fetches repositories from the connected GitHub account.
-
-- **Endpoint**: `GET /github/repos`
-- **Auth Required**: Yes
-- **Request Body**: None
-- **Response** (`200 OK`):
-  Array of repository objects.
-  ```json
-  [
-    {
-      "id": 1296269,
-      "name": "Hello-World",
-      "full_name": "octocat/Hello-World",
-      "private": false,
-      "owner": "octocat",
-      "html_url": "https://github.com/octocat/Hello-World"
-    },
-    ...
-  ]
-  ```
-
-### Get User Stats
-Fetches public profile statistics (Followers, Repos, etc.).
-
-- **Endpoint**: `GET /github/stats`
-- **Auth Required**: Yes
-- **Response**:
-  ```json
-  {
-    "login": "octocat",
-    "public_repos": 42,
-    "followers": 1000,
-    "html_url": "..."
-  }
-  ```
+### Webhooks
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/api/github-app` | **Primary Webhook**. Receives `push` events, verifies signature, uses Groq to identify tasks, and updates Prisma DB. |
+| **POST** | `/api/webhooks/github` | **Legacy Webhook**. Similar logic but different mount point. |
 
 ---
 
-## 📅 Google Meet Integration
+## 📝 Notes & Folders
+Base Path: `/api/notes`
 
-### Create Instant Meeting
-Creates a Google Meet link via Calendar API and emails invites.
-
-- **Endpoint**: `POST /meet/invite`
-- **Auth Required**: Yes
-- **Request Body**:
-  ```json
-  {
-    "senderId": "uid_sender",
-    "receiverIds": ["uid_receiver_1", "uid_receiver_2"],
-    "projectId": "optional_project_id" 
-  }
-  ```
-- **Response** (`200 OK`):
-  ```json
-  {
-    "message": "Meeting created",
-    "meetingUrl": "https://meet.google.com/abc-defg-hij"
-  }
-  ```
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/` | Get all notes. Query: `?userId=...&folderId=...` | Yes |
+| **POST** | `/` | Create note. Payload: `{ title, content, ownerId, folderId }`. | Yes |
+| **GET** | `/:id` | Get single note. | Yes |
+| **PUT** | `/:id` | Update note content. | Yes |
+| **DELETE** | `/:id` | Delete note. | Yes |
+| **GET** | `/folders` | Get folders. Query: `?userId=...` | Yes |
+| **POST** | `/folders` | Create folder. | Yes |
+| **POST** | `/folders/:id/share` | Share folder. Payload: `{ collaboratorIds: [] }`. | Yes |
 
 ---
 
-## 🛠️ Projects Management
+## 🎥 Google Meet
+Base Path: `/api/meet`
 
-### Get All Projects
-Fetches projects owned by or shared with the user.
-
-- **Endpoint**: `GET /projects`
-- **Query Params**: `?ownerId=<uid>`
-- **Response**: Array of Project objects.
-
-### Update Project
-Used to link a GitHub repo or update metadata.
-
-- **Endpoint**: `PATCH /projects/:id`
-- **Request Body**:
-  ```json
-  {
-    "githubRepoName": "octocat/Hello-World",
-    "isTrackingActive": true
-  }
-  ```
-
-### Update Task Status
-Updates a specific task within a project step.
-
-- **Endpoint**: `PUT /projects/:projectId/steps/:stepId/tasks/:taskId`
-- **Request Body**:
-  ```json
-  {
-    "status": "In Progress",
-    "assignedTo": "uid_user"
-  }
-  ```
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/invite` | Create Instant Meet & Email Invites. Payload: `{ senderId, receiverIds[] }`. | Yes |
 
 ---
 
-## 👤 User Management
+## ⏱️ Sessions & Analytics
+Base Path: `/api/sessions`
 
-### Sync User
-Creates or updates a user in MongoDB after Firebase login.
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/start` | Start tracking a session. Payload: `{ userId }`. | Yes |
+| **PUT** | `/:id` | Heartbeat update (every 1m). Payload: `{ activeIncrement }`. | Yes |
+| **GET** | `/:userId` | Get session history. | Yes |
 
-- **Endpoint**: `POST /users/sync`
-- **Auth Required**: No (Called post-login)
-- **Request Body**:
-  ```json
-  {
-    "uid": "firebase_uid",
-    "email": "user@example.com",
-    "displayName": "John Doe",
-    "photoURL": "..."
-  }
-  ```
+---
 
-### Get Current Profile
-- **Endpoint**: `GET /users/me`
-- **Auth Required**: Yes
-- **Response**: User object (including integration status).
+## 🎨 Design & Inspiration
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **GET** | `/api/design/search` | Search Behance/Unsplash. Query: `?q=...` | Yes |
+| **GET** | `/api/inspiration` | Search Inspiration (Legacy). | Yes |
+
+---
+
+## 📂 File Uploads
+Base Path: `/api/upload`
+
+| Method | Endpoint | Description | Auth |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/` | Upload file (Multipart Form). Key: `file`. Returns `{ fileUrl }`. | Yes |
