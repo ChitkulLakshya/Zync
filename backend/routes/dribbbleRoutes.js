@@ -19,6 +19,10 @@ router.get('/callback', async (req, res) => {
 
     try {
         // Exchange code for token
+        console.log('DEBUG: Client ID:', process.env.DRIBBBLE_CLIENT_ID ? 'Loaded' : 'Missing');
+        console.log('DEBUG: Client Secret:', process.env.DRIBBBLE_CLIENT_SECRET ? 'Loaded' : 'Missing');
+        console.log('DEBUG: Redirect URI:', process.env.DRIBBBLE_REDIRECT_URI);
+
         const response = await axios.post('https://dribbble.com/oauth/token', {
             client_id: process.env.DRIBBBLE_CLIENT_ID,
             client_secret: process.env.DRIBBBLE_CLIENT_SECRET,

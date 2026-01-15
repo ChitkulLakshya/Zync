@@ -168,13 +168,20 @@ async function getInspiration(req, res) {
       fetchBehance(q, 50),
       (async () => {
         const dToken = req.header('x-dribbble-token');
-        if (!dToken) return [];
+        if (!dToken) {
+          console.log('DEBUG: No Dribbble Token provided in request headers.');
+          return [];
+        }
         try {
+          console.log('DEBUG: Fetching Dribbble shots with token...');
           // Dribbble V2: Fetch authenticated user's shots
           const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
             headers: { Authorization: `Bearer ${dToken}` },
             params: { per_page: 30 }
           });
+
+          console.log(`DEBUG: Dribbble Response Status: ${resp.status}`);
+          console.log(`DEBUG: Dribbble Items: ${resp.data?.length}`);
 
           return resp.data.map(shot => ({
             id: `dribbble_${shot.id}`,
@@ -185,7 +192,7 @@ async function getInspiration(req, res) {
             creator: 'Dribbble User'
           }));
         } catch (e) {
-          console.error('Dribbble API error:', e.response?.data || e.message);
+          console.error('DEBUG: Dribbble API error:', e.response?.data || e.message);
           return [];
         }
       })()

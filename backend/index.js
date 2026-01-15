@@ -16,7 +16,14 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:8080', 'https://zync-meet.vercel.app', 'http://localhost:3000'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:8080',
+      'https://zync-meet.vercel.app',
+      'https://ZYNC-meet.vercel.app',
+      'http://localhost:3000',
+      process.env.FRONTEND_URL
+    ].filter(Boolean),
     methods: ["GET", "POST"]
   }
 });
@@ -68,7 +75,14 @@ app.use(
 );
 
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:8080', 'https://ZYNC-meet.vercel.app', 'http://localhost:3000'],
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:8080',
+    'https://zync-meet.vercel.app', // Lowercase
+    'https://ZYNC-meet.vercel.app', // Uppercase (just in case)
+    'http://localhost:3000',
+    process.env.FRONTEND_URL // Allow dynamic env var
+  ].filter(Boolean), // Remove undefined if env var is missing
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
