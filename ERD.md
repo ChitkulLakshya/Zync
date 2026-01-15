@@ -1,97 +1,121 @@
-# Reverse Engineered Entity Relationship Diagram (ERD) 🛠️
+# System Entity Relationship Diagram (ERD) 🗄️
 
-> **Source**: `backend/models/*.js`
-> **Method**: Static analysis of Mongoose Schemas.
+This document serves as the **Single Source of Truth** for the Zync Data Architecture.
+It covers the Hybrid Database system (MongoDB + Postgres + Firestore + Redis).
 
-## 1. Mongoose ERD (Mermaid.js)
+## 1. High-Level Data Model
 
 ```mermaid
 erDiagram
-    %% CORE IDENTITIES
-    User ||--o{ Project : "owns {ownerId}"
-    User ||--o{ Folder : "owns {ownerId}"
-    User ||--o{ Note : "creates {ownerId}"
-    User ||--o{ Session : "tracks {userId}"
-
-    %% PROJECT HIERARCHY (Embedded Documents)
-    Project ||--|{ Step : "embeds [steps]"
-    Step ||--|{ Task : "embeds [tasks]"
-
-    %% DOCUMENT ORGANIZATION
-    Project ||--o{ Note : "contains {projectId}"
-    Folder ||--o{ Folder : "parent/child {parentId}"
-    Folder ||--o{ Note : "contains {folderId}"
-
+    %% MONGOOSE (Core App)
+    User ||--o{ Project : "owns"
+    User ||--o{ Note : "creates"
+    User ||--o{ Session : "tracks"
+    
+    Project ||--o{ Step : "embeds"
+    Step ||--o{ Task : "embeds"
+    
+    %% PRISMA (Git Sync Engine)
+    GithubRepository ||--o{ GitTask : "syncs"
+    
+    %% FIRESTORE (Real-time Chat)
+    User ||--o{ Message : "sends"
+    User ||--o{ Message : "receives"
+    
     %% DEFINITIONS
     User {
-        String uid PK "Firebase UID"
-        String email
-        String role "user/admin"
-        Object integrations "GitHub/Google Tokens"
+        string uid PK "Firebase UID"
+        string email
+        object integrations "Encrypted OAuth Tokens"
     }
-
+    
     Project {
         ObjectId _id PK
-        String name
-        String ownerId FK "User.uid"
-        String[] team "User UIDs"
-        Object architecture "AI Generated Config"
+        string name
+        json architecture "AI Gen Data"
+        Step[] steps
     }
-
-    Step {
-        String id "Generated ID"
-        String title
-        String status
-        String type "Frontend/Backend"
-    }
-
-    Task {
-        String id "Generated ID"
-        String title
-        String status "Backlog...Done"
-        String assignedTo "User UID"
-        Object commitInfo "Git Data"
-    }
-
-    Note {
-        ObjectId _id PK
-        String title
-        Object content "BlockNote JSON"
-        ObjectId projectId FK "Project._id"
-        ObjectId folderId FK "Folder._id"
-    }
-
-    Folder {
-        ObjectId _id PK
-        String name
-        ObjectId parentId FK "Folder._id (Recursive)"
-        ObjectId projectId FK "Project._id"
-    }
-
-    Session {
-        ObjectId _id PK
-        String userId FK "User.uid"
-        Date startTime
-        Number duration "Seconds"
+    
+    Message {
+        string id PK "AutoID"
+        string chatId "Composite(uid1_uid2)"
+        string type "text|image|file"
+        timestamp sentAt
     }
 ```
 
-## 2. Key Findings
+---
 
-### A. Strict Mongoose Relationships (Hybrid Refs)
-Your database uses a hybrid approach to relationships:
-1.  **Hard References (`ObjectId`)**: Used for `Notes`, `Folders`, and `Projects`. This allows population (`.populate('folderId')`).
-2.  **Soft References (`String UID`)**: Used for **Users**. The `User` model is identified by the Firebase `uid` (String), not a MongoDB `_id`. Therefore, `Project.ownerId`, `Note.ownerId`, and `Task.assignedTo` store strings, not ObjectIds. **You cannot use standard Mongoose `.populate('ownerId')` here.** You must manually query the User collection.
+## 2. NoSQL Document Schemas (Mongoose)
 
-### B. Embedded vs. Referenced Tasks
-*   **Tasks are EMBEDDED**: `Tasks` do **not** have their own Collection. They exist only inside the `steps` array of a `Project` document.
-*   **Implication**: To update a task, you must find the Project first, then traverse the arrays:
-    ```javascript
-    Project.findOneAndUpdate(
-      { "_id": pid, "steps.tasks._id": tid }, 
-      { $set: { "steps.$[s].tasks.$[t].status": "Done" } } ...
-    )
-    ```
+### `User` Collection
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `uid` | String (Index) | **Primary Key**. Firebase User ID. |
+| `email` | String | User email. |
+| `integrations.github` | Object | `{ accessToken (Encrypted), username, installationId }` |
+| `integrations.google` | Object | `{ refresh_token }` |
+| `role` | String | `user` or `admin`. |
 
-### C. Missing Entities (External Data)
-*   **Chat Messages**: No `Message` model was found. Based on your codebase, these are stored in **Firebase Firestore** (`chats` / `messages` collections) for real-time performance.
+### `Project` Collection
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | ObjectId | **Primary Key**. |
+| `ownerId` | String | FK to `User.uid`. |
+| `steps` | Array | List of phases (e.g., "Phase 1: Frontend"). |
+| `steps[].tasks` | Array | **Embedded** Task objects. |
+| `githubRepoIds` | String[] | Linked GitHub Repository IDs. |
+
+### `Note` Collection
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `_id` | ObjectId | **Primary Key**. |
+| `content` | JSON | **BlockNote** compatible JSON structure. |
+| `folderId` | ObjectId | FK to `Folder` (Nullable). |
+| `projectId` | ObjectId | FK to `Project` (Nullable). |
+
+---
+
+## 3. Relational Schema (Prisma/Postgres)
+
+**Purpose**: Used strictly by the **GitHub Sync Engine** to map Git commits to Tasks efficiently without parsing deep JSON trees in MongoDB.
+
+### `Task` Table
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | String (PK) | Mongo ObjectId string. |
+| `displayId` | String | Human readable ID (e.g., `TASK-101`). |
+| `repoIds` | String[] | Array of associated GitHub Repo IDs. |
+| `status` | String | `pending`, `completed`. |
+
+### `Repository` Table
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `id` | String (PK) | Mongo ObjectId string. |
+| `githubRepoId` | String (Unique)| The actual numeric ID from GitHub API. |
+| `repoName` | String | e.g., `owner/repo-name`. |
+
+---
+
+## 4. Real-Time Data (Firestore)
+
+**Purpose**: Stores chat history and drives real-time messaging updates.
+
+### `messages` Collection
+| Field | Type | Description |
+| :--- | :--- | :--- |
+| `chatId` | String | Composite key: `Sort([uid1, uid2]).join('_')`. |
+| `senderId` | String | User UID. |
+| `receiverId` | String | User UID. |
+| `text` | String | Message content. |
+| `type` | String | `text`, `image`, `file`, `project-invite`. |
+| `fileUrl` | String | Path to uploaded file (for `image`/`file`). |
+| `timestamp` | ServerTimestamp | Processing time. |
+| `seen` | Boolean | Read receipt status. |
+
+---
+
+## 5. Caching & Session (Redis)
+*   **Usage**: `connect-redis` session store.
+*   **Key Pattern**: `sess:{session_id}`.
+*   **TTL**: Defined by `express-session` config (default 1 day).
