@@ -1,14 +1,14 @@
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { Groq } = require('groq-sdk');
 const Project = require('../models/Project');
 const { sendZyncEmail } = require('../services/mailer');
 const User = require('../models/User');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || process.env.GEMINI_API_KEY || "DUMMY_KEY_TO_PREVENT_CRASH");
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const MODEL_NAME = "llama-3.3-70b-versatile";
 
 router.post('/generate', async (req, res) => {
   try {
@@ -17,8 +17,6 @@ router.post('/generate', async (req, res) => {
     if (!name || !description) {
       return res.status(400).json({ message: 'Name and description are required' });
     }
-
-    const model = genAI.getGenerativeModel({ model: GEMINI_MODEL });
 
     const prompt = `
       You are a software architect. Generate a comprehensive project architecture and step-by-step development plan for the following project:
@@ -72,18 +70,19 @@ router.post('/generate', async (req, res) => {
       Ensure the steps are ordered logically for development. Each step should act as a phase (e.g. 'Setup', 'Database', 'Frontend Core') and contain multiple granular tasks.
     `;
 
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: MODEL_NAME,
+      response_format: { type: 'json_object' }
+    });
 
-    // Clean up the text to ensure it's valid JSON (remove markdown code blocks if present)
-    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonString = completion.choices[0]?.message?.content || "{}";
 
     let generatedData;
     try {
       generatedData = JSON.parse(jsonString);
     } catch (e) {
-      console.error("Failed to parse Gemini response:", text);
+      console.error("Failed to parse Groq response:", jsonString);
       return res.status(500).json({ message: 'Failed to generate valid project structure', error: e.message });
     }
 
@@ -102,16 +101,7 @@ router.post('/generate', async (req, res) => {
 
   } catch (error) {
     console.error('Error generating project:', error);
-
-    // Improved error handling
-    let errorMessage = 'Server error';
-    if (error.status === 404 && error.message.includes('not found')) {
-      errorMessage = `Model not found: ${GEMINI_MODEL}. Please check API key availability.`;
-    } else if (error.message) {
-      errorMessage = error.message;
-    }
-
-    res.status(500).json({ message: 'Failed to generate project', error: errorMessage });
+    res.status(500).json({ message: 'Failed to generate project', error: error.message });
   }
 });
 

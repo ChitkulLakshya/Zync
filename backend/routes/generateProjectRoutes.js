@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { Groq } = require('groq-sdk');
 const mongoose = require('mongoose');
 const Project = require('../models/Project');
 const User = require('../models/User');
 
-// Use Secondary Key as requested
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY || process.env.GEMINI_API_KEY);
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+// Initialize Groq
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+const MODEL_NAME = "llama-3.3-70b-versatile";
 
 router.post('/', async (req, res) => {
   const { name, description, ownerId } = req.body;
@@ -17,12 +17,7 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // 1. Generate Architecture & Tasks with Gemini
-    const model = genAI.getGenerativeModel({
-      model: GEMINI_MODEL,
-      generationConfig: { responseMimeType: "application/json" }
-    });
-
+    // 1. Generate Architecture & Tasks with Groq
     const prompt = `
       You are a Senior Software Architect and Project Manager. 
       Create a comprehensive technical Implementation Plan for a software project.
@@ -71,9 +66,13 @@ router.post('/', async (req, res) => {
       Make the tasks specific, actionable, and technical. Include a "Test Board" step/phase explicitly.
     `;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
+    const completion = await groq.chat.completions.create({
+      messages: [{ role: 'user', content: prompt }],
+      model: MODEL_NAME,
+      response_format: { type: 'json_object' }
+    });
 
+    const responseText = completion.choices[0]?.message?.content || "{}";
     let generatedData;
     try {
       generatedData = JSON.parse(responseText);

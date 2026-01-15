@@ -170,13 +170,13 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                 {/* Sidebar */}
                 <div
                     ref={sidebarRef}
-                    className={cn("relative h-full shrink-0 group/sidebar bg-secondary/30 border-r border-border/50")}
+                    className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/50 supports-[backdrop-filter]:bg-background/60")}
                     style={{ width: isCollapsed ? 64 : sidebarWidth }}
                 >
                     <div
                         className={cn(
-                            "h-full flex flex-col bg-secondary/30 border-r border-border/50 text-foreground overflow-hidden",
-                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r bg-background/95 backdrop-blur-sm" : "w-full"
+                            "h-full flex flex-col bg-transparent text-foreground overflow-hidden",
+                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r bg-background/95 backdrop-blur-xl" : "w-full"
                         )}
                         style={{ width: isFloating ? sidebarWidth : '100%', transition: 'width 0.2s ease-out' }}
                         onMouseEnter={() => {
@@ -245,10 +245,32 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             <div>
                                 <h3 className="text-sm text-muted-foreground mb-1">Team Owner</h3>
                                 <div className="flex items-center gap-3">
-                                    <Avatar className="h-10 w-10 border shadow-sm">
-                                        <AvatarImage src={getFullUrl(currentUser?.photoURL || "")} referrerPolicy="no-referrer" />
-                                        <AvatarFallback>{getUserInitials(currentUser)}</AvatarFallback>
-                                    </Avatar>
+                                    {(() => {
+                                        // Resolve Team Owner
+                                        let ownerUser = null;
+                                        if (teamInfo?.ownerId) {
+                                            if (currentUser?.uid === teamInfo.ownerId) {
+                                                ownerUser = currentUser;
+                                            } else {
+                                                ownerUser = users.find(u => u.uid === teamInfo.ownerId);
+                                            }
+                                        }
+                                        // Fallback to current user if logic fails or data missing (safe default)
+                                        const displayUser = ownerUser || currentUser;
+
+                                        return (
+                                            <>
+                                                <Avatar className="h-10 w-10 border shadow-sm">
+                                                    <AvatarImage src={getFullUrl(displayUser?.photoURL || "")} referrerPolicy="no-referrer" />
+                                                    <AvatarFallback>{getUserInitials(displayUser)}</AvatarFallback>
+                                                </Avatar>
+                                                <div className="flex flex-col">
+                                                    <span className="font-semibold text-sm">{getUserName(displayUser)}</span>
+                                                    <span className="text-xs text-muted-foreground">{displayUser?.email}</span>
+                                                </div>
+                                            </>
+                                        );
+                                    })()}
 
                                     {/* Invite Dialog Trigger */}
                                     <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
@@ -321,14 +343,31 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             </div>
                         </div>
 
-                        <div className="border rounded-lg bg-card p-4 shadow-sm">
-                            <h1 className="text-2xl font-bold tracking-tight mb-2">{teamInfo?.name || "Your Team"}</h1>
-                            {teamInfo && (
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <span>Invite Code:</span>
-                                    <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground font-semibold">{teamInfo.inviteCode}</code>
-                                </div>
-                            )}
+                        <div className="border rounded-xl bg-gradient-to-br from-card to-secondary/10 p-6 shadow-sm border-border/50 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-500" />
+
+                            <div className="relative z-10">
+                                <h1 className="text-3xl font-bold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">{teamInfo?.name || "Your Team"}</h1>
+                                {teamInfo && (
+                                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                            <span>Invite Code:</span>
+                                            <div
+                                                className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-md border border-border/50 cursor-pointer hover:border-primary/50 transition-colors group/code"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(teamInfo.inviteCode);
+                                                    toast({ description: "Invite code copied to clipboard" });
+                                                }}
+                                            >
+                                                <code className="font-mono font-bold tracking-wider text-primary">{teamInfo.inviteCode}</code>
+                                                <div className="bg-primary/10 p-1 rounded-md ml-1 group-hover/code:bg-primary/20 transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -361,9 +400,18 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                     let statusText = status;
                                     if (lastSeenDate && !isNaN(lastSeenDate.getTime())) {
                                         try {
-                                            const duration = formatDistanceToNow(lastSeenDate, { addSuffix: true });
+                                            // Shorten the status text
+                                            const duration = formatDistanceToNow(lastSeenDate, { addSuffix: false })
+                                                .replace('less than a minute', '1m')
+                                                .replace(' minutes', 'm')
+                                                .replace(' minute', 'm')
+                                                .replace(' hours', 'h')
+                                                .replace(' hour', 'h')
+                                                .replace(' days', 'd')
+                                                .replace(' day', 'd');
+
                                             if (status === 'online') {
-                                                statusText = `Online started ${duration}`;
+                                                statusText = `Online (${duration})`;
                                             } else {
                                                 statusText = `Offline ${duration}`;
                                             }
@@ -375,30 +423,37 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                     const displayName = getUserName(user);
 
                                     return (
-                                        <Card key={user._id || user.id} className="hover:shadow-md transition-shadow flex flex-row items-center p-4 gap-4 h-auto">
+                                        <Card key={user._id || user.id} className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative">
+                                            {/* Glow Effect */}
+                                            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+
                                             <div className="relative shrink-0">
-                                                <Avatar className="h-12 w-12 border">
+                                                <Avatar className="h-14 w-14 border-2 border-background ring-2 ring-border/20 group-hover:ring-primary/20 transition-all">
                                                     <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
-                                                    <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
+                                                    <AvatarFallback className="bg-primary/5 text-primary font-bold">{getUserInitials(user)}</AvatarFallback>
                                                 </Avatar>
-                                                <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${status === "online" ? "bg-green-500" :
-                                                    status === "away" ? "bg-yellow-500" : "bg-gray-400"
-                                                    }`} />
+                                                <span className={cn("absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background shadow-sm",
+                                                    status === "online" ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" :
+                                                        status === "away" ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"
+                                                )} />
                                             </div>
 
-                                            <div className="flex-1 min-w-0 text-left">
-                                                <h4 className="font-semibold truncate">{displayName}</h4>
-                                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                                            <div className="flex-1 min-w-0 text-left z-10">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="font-bold truncate text-base group-hover:text-primary transition-colors">{displayName}</h4>
+                                                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity -mr-2" onClick={() => onChat(user)}>
+                                                        <MessageSquare className="w-4 h-4 text-primary" />
+                                                    </Button>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground truncate font-medium opacity-80">{user.email}</p>
 
-                                                <div className="flex items-center gap-2 mt-2">
-                                                    <Badge variant="outline" className={cn("text-[10px] px-1.5 h-5 font-normal capitalize",
-                                                        status === 'online' ? "text-green-600 border-green-200 bg-green-50" : "text-muted-foreground"
+                                                <div className="flex items-center gap-2 mt-3">
+                                                    <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-medium capitalize border-0",
+                                                        status === 'online' ? "bg-green-500/10 text-green-600 dark:text-green-400" :
+                                                            "bg-secondary text-muted-foreground"
                                                     )}>
                                                         {statusText}
                                                     </Badge>
-                                                    <Button size="icon" variant="ghost" className="h-6 w-6 rounded-full" onClick={() => onChat(user)}>
-                                                        <MessageSquare className="w-3 h-3" />
-                                                    </Button>
                                                 </div>
                                             </div>
                                         </Card>
