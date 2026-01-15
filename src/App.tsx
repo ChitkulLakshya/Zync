@@ -16,6 +16,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { useActivityTracker } from "./hooks/use-activity-tracker";
 import { useChatNotifications } from "./hooks/use-chat-notifications";
 import { useUserSync } from "./hooks/use-user-sync";
+import { useTeamProtection } from "./hooks/use-team-protection";
 
 const queryClient = new QueryClient();
 

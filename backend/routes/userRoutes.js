@@ -21,7 +21,7 @@ const sendVerificationEmail = async (email, code) => {
 /* GET Current User Profile */
 router.get('/me', verifyToken, async (req, res) => {
   try {
-    const user = await User.findOne({ uid: req.user.uid });
+    const user = await User.findOne({ uid: req.user.uid }).populate('teamId');
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.json(user);
   } catch (error) {
@@ -91,6 +91,8 @@ router.post('/sync', async (req, res) => {
       }
     }
 
+    // Populate before returning
+    await user.populate('teamId');
     res.status(200).json(user);
   } catch (error) {
     console.error('Error syncing user:', error);
@@ -136,10 +138,24 @@ router.post('/sync-github', verifyToken, async (req, res) => {
   }
 });
 
-// Get all users
-router.get('/', async (req, res) => {
+// Get all users (filtered by Team)
+router.get('/', verifyToken, async (req, res) => {
   try {
-    const users = await User.find().sort({ lastSeen: -1 });
+    const currentUser = await User.findOne({ uid: req.user.uid });
+    if (!currentUser) return res.status(404).json({ message: 'User not found' });
+
+    let query = {};
+
+    // Only show users in the same team
+    if (currentUser.teamId) {
+      query.teamId = currentUser.teamId;
+    } else {
+      // If user has no team, they shouldn't see anyone (or maybe just themselves/admin?)
+      // For now, return empty if no team to enforce isolation
+      return res.status(200).json([]);
+    }
+
+    const users = await User.find(query).sort({ lastSeen: -1 });
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

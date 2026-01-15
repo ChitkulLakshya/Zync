@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Github, Mail, AlertTriangle, Check, ChevronsUpDown, Camera } from "lucide-react";
+import { Loader2, Github, Mail, AlertTriangle, Check, ChevronsUpDown, Camera, Plus, X } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
@@ -33,6 +33,175 @@ const countries = [
   { name: "South Korea", code: "KR", dial_code: "+82", flag: "🇰🇷" },
   { name: "Russia", code: "RU", dial_code: "+7", flag: "🇷🇺" },
 ];
+
+const TeamSettingsView = ({ currentUser }: { currentUser: any }) => {
+  const [team, setTeam] = useState<any>(null);
+  const [members, setMembers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  const fetchTeamData = async () => {
+    try {
+      if (!currentUser) return;
+      const token = await currentUser.getIdToken();
+
+      // Get Team Info
+      const res = await fetch(`${API_BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const userData = await res.json();
+
+      if (userData.teamId && typeof userData.teamId === 'object') {
+        setTeam(userData.teamId);
+
+        // Fetch Members (filtered by team is default behavior now)
+        const membersRes = await fetch(`${API_BASE_URL}/api/users`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const membersData = await membersRes.json();
+        setMembers(membersData);
+      } else {
+        setTeam(null);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeamData();
+  }, [currentUser]);
+
+  const handleDeleteTeam = async () => {
+    if (!window.confirm("Are you sure you want to delete this team? This cannot be undone.")) return;
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${team._id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        toast({ title: "Team Deleted", description: "Your team has been removed." });
+        window.location.reload();
+      } else {
+        const err = await res.json();
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!window.confirm("Remove this member from the team?")) return;
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${team._id}/members/${memberId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        toast({ title: "Member Removed", description: "User removed from team." });
+        setMembers(prev => prev.filter(m => m.uid !== memberId));
+      } else {
+        const err = await res.json();
+        toast({ title: "Error", description: err.message, variant: "destructive" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  if (loading) return <div className="p-8 flex justify-center"><Loader2 className="animate-spin" /></div>;
+
+  if (!team) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Team Settings</CardTitle>
+          <CardDescription>You are not currently in a team.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Go to the People tab to create or join a team.</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const isOwner = team.ownerId === currentUser.uid;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {/* Sidebar (Mockup Style) */}
+      <div className="md:col-span-1 space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-2">Teams</h3>
+          <div className="bg-secondary/50 p-2 rounded-md border text-sm font-medium">
+            {team.name}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="md:col-span-3 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-card border rounded-lg shadow-sm">
+          <div className="flex items-center gap-4">
+            <Avatar className="h-10 w-10">
+              <AvatarFallback>{team.name.substring(0, 2).toUpperCase()}</AvatarFallback>
+            </Avatar>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl font-bold">{team.name}</h2>
+              {/* <Button variant="ghost" size="icon" className="rounded-full h-8 w-8"><Plus className="h-4 w-4" /></Button> */}
+            </div>
+          </div>
+          {isOwner && (
+            <Button variant="ghost" className="text-destructive hover:text-destructive hover:bg-destructive/10" onClick={handleDeleteTeam}>
+              Delete Team
+            </Button>
+          )}
+        </div>
+
+        {/* Members List */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Members</h3>
+            {/* <Button variant="outline" size="sm">Edit Members</Button> */}
+          </div>
+
+          <div className="bg-card border rounded-lg shadow-sm divide-y">
+            {members.map(member => (
+              <div key={member.uid} className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={getFullUrl(member.photoURL)} />
+                    <AvatarFallback>{member.displayName?.[0]}</AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{member.displayName} {member.uid === currentUser.uid && "(You)"}</span>
+                </div>
+
+                {member.uid !== currentUser.uid && isOwner && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-muted-foreground hover:text-destructive rounded-full h-8 w-8"
+                    onClick={() => handleRemoveMember(member.uid)}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const SettingsView = () => {
   const { toast } = useToast();
@@ -361,6 +530,7 @@ const SettingsView = () => {
         <Tabs defaultValue="profile" className="space-y-6">
           <TabsList>
             <TabsTrigger value="profile">My Profile</TabsTrigger>
+            <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
@@ -588,6 +758,11 @@ const SettingsView = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* TEAM TAB */}
+          <TabsContent value="team">
+            <TeamSettingsView currentUser={currentUser} />
           </TabsContent>
 
         </Tabs>

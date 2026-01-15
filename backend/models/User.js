@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   birthday: Date,
   isPhoneVerified: { type: Boolean, default: false },
   role: { type: String, enum: ['user', 'admin'], default: 'user' }, // Added Admin Role
+  teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' }, // Reference to Team Model
 
   // Deletion Verification
   deleteConfirmationCode: String,

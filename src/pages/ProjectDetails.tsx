@@ -149,9 +149,22 @@ const ProjectDetails = () => {
     }
   };
 
+  const [currentUser, setCurrentUser] = useState<any>(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setCurrentUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const fetchUsers = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/users`);
+      if (!currentUser) return;
+      const token = await currentUser.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/users`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -163,7 +176,15 @@ const ProjectDetails = () => {
 
   const fetchProject = async () => {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/projects/${id}`);
+      // Project might be public or require auth, assuming public for now or headerless ok? 
+      // If projects are protected too, we need token here too.
+      // Assuming public for read now as per previous code, but good to add token if user exists
+      const options: any = {};
+      if (currentUser) {
+        const token = await currentUser.getIdToken();
+        options.headers = { Authorization: `Bearer ${token}` };
+      }
+      const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, options);
       if (!response.ok) throw new Error("Project not found");
       const data = await response.json();
       setProject(data);
@@ -175,11 +196,11 @@ const ProjectDetails = () => {
   };
 
   useEffect(() => {
-    if (id) {
+    if (id && currentUser) {
       fetchProject();
       fetchUsers();
     }
-  }, [id]);
+  }, [id, currentUser]);
 
   useEffect(() => {
     // Connect to Socket.io

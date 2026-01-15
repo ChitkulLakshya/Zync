@@ -72,6 +72,7 @@ import DashboardView from "./DashboardView";
 import PeopleView from "./PeopleView";
 import ChatLayout from "./ChatLayout";
 import CreateProject from "@/components/dashboard/CreateProject";
+import TeamGateway from "./TeamGateway";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
@@ -479,7 +480,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     if ((activeSection === "People" || activeSection === "Notes" || activeSection === "Chat" || activeSection === "Meet" || activeSection === "Tasks") && !isPreview) {
       const fetchUsers = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/users`);
+          if (!currentUser) return;
+          const token = await currentUser.getIdToken();
+          const response = await fetch(`${API_BASE_URL}/api/users`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             setUsersList(data);
@@ -490,7 +497,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       };
       fetchUsers();
     }
-  }, [activeSection, isPreview]);
+  }, [activeSection, isPreview, currentUser]);
 
 
 
@@ -633,6 +640,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <CalendarView />;
 
       case "Chat":
+        if (userData && !userData.teamId) {
+          return <TeamGateway title="Team Chat Locked" description="Join a team to start chatting with your colleagues." />;
+        }
         return (
           <ChatLayout
             users={displayUsers}
@@ -671,6 +681,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         );
 
       case "Meet":
+        if (userData && !userData.teamId) {
+          return <TeamGateway title="Video Meetings Restricted" description="You need to be part of a team to start video meetings." />;
+        }
         return (
           <div className="flex-1 w-full flex flex-col items-center justify-center h-full p-6 text-center space-y-6">
             <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">

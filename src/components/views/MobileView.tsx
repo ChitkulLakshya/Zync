@@ -44,13 +44,17 @@ const MobileView = () => {
 
   // Fetch Users when People tab is active
   useEffect(() => {
-    if (activeTab === "people") {
+    if (activeTab === "people" && currentUser) {
       const fetchUsers = async () => {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000);
 
         try {
-          const response = await fetch(`${API_BASE_URL}/api/users`, { signal: controller.signal });
+          const token = await currentUser.getIdToken();
+          const response = await fetch(`${API_BASE_URL}/api/users`, {
+            signal: controller.signal,
+            headers: { Authorization: `Bearer ${token}` }
+          });
           if (response.ok) {
             const data = await response.json();
             setUsersList(data);
@@ -66,7 +70,7 @@ const MobileView = () => {
       };
       fetchUsers();
     }
-  }, [activeTab]);
+  }, [activeTab, currentUser]);
 
   const handleNavigate = (path: string) => {
     // Map Workspace navigation strings to routes
