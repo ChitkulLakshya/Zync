@@ -167,34 +167,59 @@ async function getInspiration(req, res) {
       })(),
       fetchBehance(q, 50),
       (async () => {
-        const dToken = req.header('x-dribbble-token');
-        if (!dToken) {
-          console.log('DEBUG: No Dribbble Token provided in request headers.');
-          return [];
-        }
         try {
-          console.log('DEBUG: Fetching Dribbble shots with token...');
-          // Dribbble V2: Fetch authenticated user's shots
-          const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
-            headers: { Authorization: `Bearer ${dToken}` },
-            params: { per_page: 30 }
-          });
+          // 1. Try RSS Search first (prioritize user query)
+          const tags = q.replace(/\s+/g, '-');
+          const feedUrl = `https://dribbble.com/shots/popular.rss?tag=${encodeURIComponent(tags)}`;
+          console.log(`DEBUG: Fetching Dribbble RSS: ${feedUrl}`);
 
-          console.log(`DEBUG: Dribbble Response Status: ${resp.status}`);
-          console.log(`DEBUG: Dribbble Items: ${resp.data?.length}`);
+          const feed = await parser.parseURL(feedUrl);
 
-          return resp.data.map(shot => ({
-            id: `dribbble_${shot.id}`,
-            source: 'dribbble',
-            title: shot.title,
-            image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser || 'https://via.placeholder.com/600x400?text=No+Preview',
-            link: shot.html_url,
-            creator: 'Dribbble User'
-          }));
+          if (feed.items && feed.items.length > 0) {
+            return feed.items.map((item, index) => {
+              let image = 'https://via.placeholder.com/600x400?text=No+Preview';
+              // Regex to find image src in the content HTML
+              const imgMatch = item.content?.match(/<img[^>]+src=["']([^"']+)["']/);
+              if (imgMatch && imgMatch[1]) image = imgMatch[1];
+
+              return {
+                id: `dribbble_rss_${index}`,
+                source: 'dribbble',
+                title: item.title,
+                image: image,
+                link: item.link,
+                creator: item.creator || 'Dribbble Designer'
+              };
+            });
+          }
         } catch (e) {
-          console.error('DEBUG: Dribbble API error:', e.response?.data || e.message);
-          return [];
+          console.error('DEBUG: Dribbble RSS Error:', e.message);
         }
+
+        // 2. Fallback to API (if RSS failed OR returned 0 items, AND we have a token)
+        const dToken = req.header('x-dribbble-token');
+        if (dToken) {
+          try {
+            console.log('DEBUG: Fallback to Dribbble API (My Shots)...');
+            const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
+              headers: { Authorization: `Bearer ${dToken}` },
+              params: { per_page: 30 }
+            });
+
+            return resp.data.map(shot => ({
+              id: `dribbble_${shot.id}`,
+              source: 'dribbble',
+              title: shot.title,
+              image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser,
+              link: shot.html_url,
+              creator: 'Me'
+            }));
+          } catch (e) {
+            console.error('DEBUG: Dribbble API error:', e.response?.data || e.message);
+          }
+        }
+
+        return [];
       })()
     ]);
 
