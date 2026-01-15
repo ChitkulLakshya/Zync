@@ -94,15 +94,30 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const sidebarRef = useRef<ImperativePanelHandle>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isLocked, setIsLocked] = useState(true);
 
   const toggleSidebar = () => {
     const panel = sidebarRef.current;
     if (panel) {
-      if (isCollapsed) {
-        panel.expand();
-      } else {
+      if (isLocked) {
+        setIsLocked(false);
         panel.collapse();
+      } else {
+        setIsLocked(true);
+        panel.expand();
       }
+    }
+  };
+
+  const handleMouseEnter = () => {
+    if (!isLocked) {
+      sidebarRef.current?.expand();
+    }
+  };
+
+  const handleMouseLeave = () => {
+    if (!isLocked) {
+      sidebarRef.current?.collapse();
     }
   };
 
@@ -899,115 +914,124 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             isCollapsed && "min-w-[50px]"
           )}
         >
-          <div className={cn("p-4 flex items-center gap-2 border-b border-border/50", isCollapsed ? "justify-center p-2" : "")}>
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
-              Z
-            </div>
-            {!isCollapsed && (
-              <>
-                <span className="font-bold text-lg truncate">Zync</span>
-              </>
-            )}
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("ml-auto h-8 w-8 text-muted-foreground", isCollapsed && "ml-0")}
-              onClick={toggleSidebar}
-            >
-              {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
-            </Button>
-          </div>
-
-          <div className="flex-1 overflow-y-auto py-4">
-            <div className={cn("px-3 mb-2", isCollapsed ? "px-2" : "")}>
-              <Button
-                className={cn(
-                  "w-full bg-primary text-primary-foreground hover:bg-primary/90",
-                  isCollapsed ? "justify-center px-0" : "justify-start gap-2"
-                )}
-                onClick={() => handleSectionChange("New Project")}
-                title="Create new project"
-              >
-                <Plus className="w-4 h-4" />
-                {!isCollapsed && "Create new project"}
-              </Button>
+          <div
+            className="flex flex-col h-full w-full"
+            onMouseEnter={handleMouseEnter}
+            onMouseLeave={handleMouseLeave}
+          >
+            <div className={cn("p-4 flex items-center gap-2 border-b border-border/50", isCollapsed ? "justify-center p-2" : "")}>
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
+                Z
+              </div>
+              {!isCollapsed && (
+                <>
+                  <span className="font-bold text-lg truncate">Zync</span>
+                </>
+              )}
+              {!isCollapsed && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn("ml-auto h-8 w-8 text-muted-foreground")}
+                  onClick={toggleSidebar}
+                  title={isLocked ? "Collapse sidebar" : "Lock sidebar open"}
+                >
+                  {isLocked ? <ChevronsLeft className="w-4 h-4" /> : <ChevronsRight className="w-4 h-4" />}
+                </Button>
+              )}
             </div>
 
-            <nav className="space-y-1 px-2">
-              {sidebarItems.map((item, index) => (
-                <div key={index}>
-                  <Button
-                    variant={item.active ? "secondary" : "ghost"}
-                    className={cn(
-                      "w-full",
-                      item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
-                      isCollapsed ? "justify-center px-0" : "justify-start gap-3"
-                    )}
-                    onClick={() => handleSectionChange(item.label)}
-                    title={item.label}
-                  >
-                    <item.icon className="w-4 h-4 shrink-0" />
-                    {!isCollapsed && item.label}
-                  </Button>
-                  {!isCollapsed && item.children && item.active && (
-                    <div className="ml-9 mt-1 space-y-1">
-                      {item.children.map((child, childIndex) => (
-                        <div
-                          key={childIndex}
-                          className="text-sm text-muted-foreground hover:text-foreground py-1 cursor-pointer"
-                        >
-                          {child.label}
-                        </div>
-                      ))}
-                    </div>
+            <div className="flex-1 overflow-y-auto py-4">
+              <div className={cn("px-3 mb-2", isCollapsed ? "px-2" : "")}>
+                <Button
+                  className={cn(
+                    "w-full bg-primary text-primary-foreground hover:bg-primary/90",
+                    isCollapsed ? "justify-center px-0" : "justify-start gap-2"
                   )}
-                </div>
-              ))}
-            </nav>
-          </div>
+                  onClick={() => handleSectionChange("New Project")}
+                  title="Create new project"
+                >
+                  <Plus className="w-4 h-4" />
+                  {!isCollapsed && "Create new project"}
+                </Button>
+              </div>
 
-          <div className={cn("p-4 border-t border-border/50", isCollapsed ? "p-2 items-center flex justify-center" : "")}>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className={cn("flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md", isCollapsed ? "justify-center" : "")}>
-                  <Avatar className="w-8 h-8 shrink-0">
-                    <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
-                    <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-                      {isPreview ? "JD" : getUserInitials(userData || currentUser)}
-                    </AvatarFallback>
-                  </Avatar>
-                  {!isCollapsed && (
-                    <>
-                      <div className="flex-1 overflow-hidden">
-                        <div className="text-sm font-medium truncate">
-                          {isPreview ? "John Doe" : getUserName(userData || currentUser)}
-                        </div>
-                        <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
+              <nav className="space-y-1 px-2">
+                {sidebarItems.map((item, index) => (
+                  <div key={index}>
+                    <Button
+                      variant={item.active ? "secondary" : "ghost"}
+                      className={cn(
+                        "w-full",
+                        item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
+                        isCollapsed ? "justify-center px-0" : "justify-start gap-3"
+                      )}
+                      onClick={() => handleSectionChange(item.label)}
+                      title={item.label}
+                    >
+                      <item.icon className="w-4 h-4 shrink-0" />
+                      {!isCollapsed && item.label}
+                    </Button>
+                    {!isCollapsed && item.children && item.active && (
+                      <div className="ml-9 mt-1 space-y-1">
+                        {item.children.map((child, childIndex) => (
+                          <div
+                            key={childIndex}
+                            className="text-sm text-muted-foreground hover:text-foreground py-1 cursor-pointer"
+                          >
+                            {child.label}
+                          </div>
+                        ))}
                       </div>
-                      <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                    </>
-                  )}
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => handleSectionChange("Settings")}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Settings</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={async () => {
-                  if (isPreview) return;
-                  localStorage.removeItem("zync-active-section");
-                  await signOut(auth);
-                  navigate("/login");
-                }} className="text-destructive focus:text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Sign out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                    )}
+                  </div>
+                ))}
+              </nav>
+            </div>
+
+            <div className={cn("p-4 border-t border-border/50", isCollapsed ? "p-2 items-center flex justify-center" : "")}>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <div className={cn("flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md", isCollapsed ? "justify-center" : "")}>
+                    <Avatar className="w-8 h-8 shrink-0">
+                      <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
+                      <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
+                        {isPreview ? "JD" : getUserInitials(userData || currentUser)}
+                      </AvatarFallback>
+                    </Avatar>
+                    {!isCollapsed && (
+                      <>
+                        <div className="flex-1 overflow-hidden">
+                          <div className="text-sm font-medium truncate">
+                            {isPreview ? "John Doe" : getUserName(userData || currentUser)}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
+                        </div>
+                        <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                      </>
+                    )}
+                  </div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => handleSectionChange("Settings")}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Settings</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={async () => {
+                    if (isPreview) return;
+                    localStorage.removeItem("zync-active-section");
+                    await signOut(auth);
+                    navigate("/login");
+                  }} className="text-destructive focus:text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Sign out</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </Panel>
 
