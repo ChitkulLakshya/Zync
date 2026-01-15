@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { CheckSquare, Calendar, FolderKanban, User, Clock, Flag, X } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { TaskGitSync } from "./TaskGitSync";
 
 export interface TaskDetail {
     id: string;
@@ -121,6 +122,13 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
                                     placeholder="Add more details to this task..."
                                 />
                             </div>
+                        </div>
+
+                        <Separator />
+
+                        {/* Git Sync */}
+                        <div className="space-y-3">
+                            <TaskGitSync taskId={task.id} />
                         </div>
 
                         <Separator />
