@@ -155,7 +155,7 @@ async function getInspiration(req, res) {
   const pinterestToken = req.header('x-pinterest-token') || process.env.PINTEREST_TOKEN;
 
   try {
-    const [unsplash, pinterest, behance] = await Promise.all([
+    const [unsplash, pinterest, behance, dribbble] = await Promise.all([
       fetchUnsplash(q, unsplashPage, unsplashPer).catch(e => { console.error('Unsplash error', e.message); return []; }),
       (async () => {
         try {
@@ -191,10 +191,10 @@ async function getInspiration(req, res) {
       })()
     ]);
 
-    console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}`);
+    console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}, Dribbble: ${dribbble.length}`);
 
     // Unified list
-    const unified = [...unsplash, ...pinterest, ...behance];
+    const unified = [...unsplash, ...pinterest, ...behance, ...dribbble];
     res.json({ ok: true, count: unified.length, items: unified });
   } catch (error) {
     console.error('Controller error', error);
