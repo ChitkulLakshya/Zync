@@ -1,160 +1,160 @@
 # Zync ⚡
 > **The Intelligent All-in-One Workspace for Teams and Developers.**
 
-Zync is a comprehensive collaboration platform that unifies project management, communication, and development workflows. It leverages AI to automate project setup, integrates deeply with GitHub for developer-centric tracking, and provides real-time tools like Chat, Notes, and Video Meetings in a single interface.
+Zync is a production-grade collaboration platform designed to unify project management, real-time communication, and developer workflows. It distinguishes itself by integrating **AI agents** for project planning and **automated git operations** for task tracking, bridging the gap between planning (Jira/Linear) and execution (GitHub).
 
 ---
 
-## 🏗️ Tech Stack
+## 🛠️ Deep-Dive Tech Stack
 
-### Frontend (`/`)
-- **Core**: [React 18](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Radix UI](https://www.radix-ui.com/), [Lucide React](https://lucide.dev/)
-- **State Management**: [TanStack Query](https://tanstack.com/query/latest), Context API
-- **Real-time**: [Socket.io Client](https://socket.io/), [Firebase Firestore](https://firebase.google.com/) (Chat)
-- **Editor**: [BlockNote](https://www.blocknotejs.org/) (Prosemirror-based rich text)
-- **Auth**: [Firebase Authentication](https://firebase.google.com/docs/auth)
+### Frontend Architecture (`src/`)
+*   **Core Framework**: [React 18](https://react.dev/) with [TypeScript](https://www.typescriptlang.org/) and built via [Vite](https://vitejs.dev/) for high-performance HMR.
+*   **State Management**:
+    *   **TanStack Query (v5)**: For server state management, caching, and optimistic updates.
+    *   **Context API**: For global UI state (Theme, Auth User).
+*   **Real-Time & Collaboration**:
+    *   **Socket.io Client**: For instant signaling and live updates.
+    *   **Firebase Firestore**: Used as the backing store for the Chat system to ensure message persistence and offline support.
+    *   **YJS**: Integrated with [BlockNote](https://www.blocknotejs.org/) for eventually consistent collaborative rich-text editing.
+*   **UI System**: [Tailwind CSS](https://tailwindcss.com/) combined with [Radix UI](https://www.radix-ui.com/) primitives for accessible, unstyled components.
 
-### Backend (`/backend`)
-- **Runtime**: Node.js, Express.js
-- **Database**: 
-  - **MongoDB** (Primary Data: Users, Projects, Notes)
-  - **Redis** (Session Store & Caching)
-- **Authentication**: Firebase Admin SDK (Token Verification)
-- **Real-time**: Socket.io (Signaling & Updates)
-- **Integrations**: 
-  - **Google Cloud**: Calendar API (Meet), Gmail API (OAuth2 Email)
-  - **GitHub**: Octokit (Repos, Commits, Webhooks)
-  - **AI**: Google Gemini / Groq SDK (Project Generation)
-
----
-
-## 🏛️ System Architecture
-
-### Directory Structure
-- **`src/`**: React frontend code.
-  - **`pages/`**: Top-level routes (Login, Dashboard, ProjectDetails).
-  - **`components/views/`**: Feature-specific complex views (ChatView, CalendarView, TasksView).
-  - **`components/ui/`**: Reusable atomic components.
-- **`backend/`**: Node.js API server.
-  - **`models/`**: Mongoose schemas.
-  - **`routes/`**: API endpoint definitions.
-  - **`services/`**: Business logic integrations (Mailer, GoogleMeet).
-  - **`middleware/`**: Auth verification (`verifyToken`).
-
-### Database Schema (MongoDB)
-Based on `backend/models`, Zync uses a relational-style schema in a document database:
-
-- **User**: Stores Profile, Firebase UID, and Integration tokens (GitHub/Google).
-  - *Key Fields*: `uid`, `email`, `role`, `integrations.github.accessToken`.
-- **Project**: The core entity.
-  - *Key Fields*: `name`, `githubRepoIds`, `ownerId`, `team` (array of UIDs).
-  - *Embedded*: `steps` (Phases) -> `tasks` (Task Items).
-- **Note**: Collaborative documents.
-  - *Key Fields*: `content` (JSON), `projectId`, `ownerId`.
-- **Session**: Tracks user activity duration.
-  - *Key Fields*: `startTime`, `endTime`, `activeDuration`.
-
-### Authentication Flow
-1. **Frontend**: User logs in via Google/GitHub using **Firebase Auth**.
-2. **Token Exchange**: Frontend retrieves an **ID Token**.
-3. **API Requests**: Token is sent in the `Authorization: Bearer <token>` header.
-4. **Backend**: `authMiddleware.js` verifies the token using **Firebase Admin SDK**.
-5. **Sync**: Verified User UID is matched/created in MongoDB for data association.
+### Backend Architecture (`backend/`)
+*   **Runtime**: Node.js with Express.js.
+*   **Databases (Hybrid Approach)**:
+    *   **MongoDB (via Mongoose)**: Primary document store for unstructured data like Users, Project Plans, and Notes.
+    *   **PostgreSQL (via Prisma)**: Used specifically for the **GitHub Sync Engine** to handle structured relational data (Repositories, Task mappings) efficiently.
+    *   **Redis**: High-speed session store and caching layer for frequent read operations.
+*   **Authentication**:
+    *   **Firebase Admin SDK**: Handles ID token verification. We offload identity management to Firebase but sync user profiles to our MongoDB `users` collection.
+*   **Background Processing**:
+    *   **Webhooks**: Dedicated endpoints for GitHub App events (`push`, `pull_request`).
+    *   **Nodemailer**: Custom OAuth2 transport for sending transactional emails via Gmail API.
 
 ---
 
-## 🚀 Features & Integrations
+## �️ System Architecture & Schema
 
-### 1. GitHub Integration 🐙
-- **OAuth Login**: Connect GitHub accounts to fetch repositories.
-- **Repo Linking**: Link GitHub repositories to Zync Projects.
-- **Smart Tracking**: Webhooks (`backend/routes/githubAppWebhook.js`) listen for pushes/PRs and auto-update project tasks.
+### Data Relationships (Text-based ERD)
 
-### 2. Intelligent Project Creation 🧠
-- **AI Agents**: Uses Gemini/Groq to parse a project description and generate a full implementation plan (Phases -> Tasks) automatically.
+```mermaid
+erDiagram
+    User ||--o{ Project : "owns/collaborates"
+    User ||--o{ Note : "creates"
+    User ||--o| Session : "tracks activity"
+    
+    Project ||--o{ Step : "contains"
+    Step ||--o{ Task : "contains"
+    
+    User {
+        string uid PK "Firebase UID"
+        string email
+        object integrations "Store Encrypted Tokens"
+    }
+    
+    Project {
+        ObjectId _id PK
+        string name
+        string[] githubRepoIds "Linked Repos"
+        object architecture "AI Generated Docs"
+    }
 
-### 3. Meetings & Calendar 📅
-- **Google Sync**: Two-way synchronization with Google Calendar.
-- **Instant Meet**: One-click generation of Google Meet links using the Calendar API (`backend/services/googleMeet.js`).
-
-### 4. Real-time Chat 💬
-- **Firestore**: Uses Firebase Cloud Firestore for instant message delivery and offline persistence.
-- **Features**: File sharing, Emoji picker, Read receipts, Typing indicators.
-
-### 5. Collaborative Notes 📝
-- **Block-Based**: Notion-style editor via BlockNote.
-- **Real-time**: Multi-user editing support (infrastructure ready via YJS/Socket.io).
-
----
-
-## 🔌 API Reference
-
-Key endpoints available in `backend/routes`:
-
-| Method | Endpoint | Description |
-| :--- | :--- | :--- |
-| **POST** | `/api/users/sync` | Sync Firebase User to MongoDB |
-| **GET** | `/api/projects/user/:uid` | Fetch all projects for a user |
-| **POST** | `/api/projects/generate` | AI-generate a project plan |
-| **POST** | `/api/meet/invite` | Create Google Meet & Email Invite |
-| **GET** | `/api/github/repos` | List user's GitHub repositories |
-| **POST** | `/api/notes` | Create a new note |
-
----
-
-## 🔑 Environment Variables
-
-Required `.env` configuration (see `.env.example` in respective directories):
-
-### Root (Frontend)
-- `VITE_API_URL`: Backend URL (e.g., `http://localhost:5000`)
-- `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, etc. (Firebase Config)
-- `VITE_GOOGLE_API_KEY`: For Google Maps/Calendar frontend SDKs
-
-### Backend (`/backend`)
-- **Database**: `MONGO_URI`, `REDIS_URL` (Optional)
-- **Auth**: `GCP_SERVICE_ACCOUNT_KEY` (Firebase Admin User Setup)
-- **AI**: `GEMINI_API_KEY`, `GROQ_API_KEY`
-- **Google APIs**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_REDIRECT_URI`
-- **GitHub**: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_WEBHOOK_SECRET`
-- **Email**: `GMAIL_USER` (OAuth2 user)
-
----
-
-## 🛠️ Installation & Setup
-
-### 1. Clone & Install
-```bash
-git clone https://github.com/yourusername/Zync.git
-cd Zync
-
-# Frontend
-npm install
-
-# Backend
-cd backend
-npm install
+    Task {
+        string id PK
+        string status "Backlog | In Progress | Done"
+        string assignedTo "User UID"
+        object commitInfo "Auto-updated via Git"
+    }
 ```
 
-### 2. Configure Environment
-1. Create `.env` in root based on `.env.example`.
-2. Create `.env` in `backend/` based on `backend/.env.example`.
-3. **Important**: Run `node backend/scripts/get-refresh-token.js` to generate a valid Google Refresh Token for calendar/mail features.
+### Key Schemas
+1.  **User (`models/User.js`)**: Acts as the central identity. Crucially, it stores **encrypted** OAuth tokens for GitHub (`integrations.github.accessToken`) and Google to allow API actions on behalf of the user.
+2.  **Project (`models/Project.js`)**: Uses an **Embedded Document Pattern** for `Steps` and `Tasks`. This allows for atomic updates and ensures the entire project plan is loaded in a single query, which is efficient for the Dashboard view.
 
-### 3. Run Development Servers
-Open two terminals:
+---
 
-**Backend:**
-```bash
-cd backend
-npm run dev
-# Server running on http://localhost:5000
-```
+## � Key Features Implementation
 
-**Frontend:**
-```bash
-# From root
-npm run dev
-# App accessible at http://localhost:5173
-```
+### 1. GitHub Bi-Directional Sync
+**The Problem**: Developers hate manually moving Jira tickets.
+**Our Solution**: We listen to actual code changes.
+*   **Auth**: Users authenticate via OAuth2 (`routes/github.js`). We exchange the code for an Access Token, **encrypt it using AES**, and store it in MongoDB.
+*   **Sync Engine**:
+    *   We use a **GitHub App Webhook** (`routes/githubAppWebhook.js`) to listen for `push` events.
+    *   **Signature Verification**: Every payload is verified against `GITHUB_WEBHOOK_SECRET` using HMAC SHA-256 to prevent spoofing.
+    *   **AI Analysis**: The commit message is sent to **Groq/Llama3**, which parses it to find semantic matches to existing tasks (e.g., "fix login bug" -> matches Task "Fix Auth").
+    *   **Auto-Complete**: If a match is found, the system automatically marks the Task as `Completed` in the database and creates a real-time `taskUpdated` event via Socket.io.
+
+### 2. Instant Google Meet
+*   **Flow**: User clicks "Create Meeting" -> Frontend calls API.
+*   **Backend**: 
+    1.  Uses a pre-authorized `GOOGLE_REFRESH_TOKEN` (Server-side offline access).
+    2.  Refreshes the Access Token via `googleapis` Auth client.
+    3.  Calls `calendar.events.insert` with `conferenceDataVersion: 1`.
+    4.  Returns the generated `hangoutLink` immediately to the chat.
+
+### 3. AI Project Generation
+*   **Input**: User types "I want a Netflix clone."
+*   **Process**:
+    1.  Prompt Engineering: We wrap this input in a "System Architect" persona prompt.
+    2.  LLM Call: Sent to Google Gemini Pro.
+    3.  JSON Parsing: The AI returns a structured JSON object containing Phases (Frontend/Backend) and specific actionable Tasks.
+    4.  Persistence: This JSON is hydrated into the `Project` Mongoose model and saved.
+
+---
+
+## ⚙️ Environment Setup
+
+Combine these variables into your `.env` files.
+
+### 1. Backend (`backend/.env`)
+
+| Variable | Description |
+| :--- | :--- |
+| **Database** | |
+| `MONGO_URI` | Connection string for MongoDB Atlas/Local |
+| `REDIS_URL` | Redis connection (default: `redis://localhost:6379`) |
+| **Auth & Security** | |
+| `ENCRYPTION_KEY` | Random string (32 chars) to encrypt OAuth tokens |
+| `GOOGLE_REFRESH_TOKEN` | **Critical**: Run `node scripts/get-refresh-token.js` to get this |
+| `GCP_SERVICE_ACCOUNT_KEY`| JSON string of Firebase Admin Service Account |
+| **Integrations** | |
+| `GITHUB_APP_ID` | From GitHub App Settings |
+| `GITHUB_PRIVATE_KEY` | PEM format key for GitHub App (use `\n` for newlines) |
+| `GITHUB_WEBHOOK_SECRET` | Secret you set in GitHub Webhook settings |
+| `GEMINI_API_KEY` | Google AI Studio Key |
+| `GROQ_API_KEY` | Groq Cloud Key |
+| `DRIBBBLE_ACCESS_TOKEN` | Client Access Token for Dribbble API |
+
+### 2. Frontend (`.env`)
+
+| Variable | Description |
+| :--- | :--- |
+| `VITE_API_URL` | `http://localhost:5000` (or your production URL) |
+| `VITE_FIREBASE_Config` | All standard Firebase SDK keys (`API_KEY`, `AUTH_DOMAIN`, etc.) |
+
+---
+
+## � Running the Project
+
+1.  **Install Dependencies**
+    ```bash
+    npm install         # Frontend
+    cd backend && npm install
+    ```
+
+2.  **Refresh Token Setup (First Run Only)**
+    To enable Calendar/Mail features, you must generate a user-scoped refresh token:
+    ```bash
+    cd backend
+    node scripts/get-refresh-token.js
+    # Follow on-screen instructions and update backend/.env
+    ```
+
+3.  **Start Dev Servers**
+    *   Backend: `cd backend && npm run dev`
+    *   Frontend: `npm run dev`
+
+---
+
+## 📄 License
+MIT License.
