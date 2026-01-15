@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const crypto = require('crypto');
-const { analyzeCommitWithGroq } = require('../utils/groqService');
+const { analyzeCommit } = require('../utils/commitAnalysisService');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');
 

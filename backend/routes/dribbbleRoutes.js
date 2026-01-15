@@ -6,6 +6,8 @@ const User = require('../models/User');
 // GET /api/dribbble/callback
 router.get('/callback', async (req, res) => {
     const { code, error } = req.query;
+    console.log('Dribbble Callback Query:', req.query); // DEBUG LOG
+
 
     if (error) {
         return res.redirect(`${process.env.FRONTEND_URL || 'http://localhost:5173'}/dashboard/settings?error=dribbble_auth_failed`);
