@@ -6,7 +6,7 @@ const TestimonialsSection = () => {
       name: "Sarah Chen",
       role: "CTO at TechStart",
       avatar: "SC",
-      content: "Zync transformed how our team collaborates. The AI-powered architecture generation saved us weeks of planning time.",
+      content: "ZYNC transformed how our team collaborates. The AI-powered architecture generation saved us weeks of planning time.",
       rating: 5,
     },
     {
@@ -20,7 +20,7 @@ const TestimonialsSection = () => {
       name: "Emily Johnson",
       role: "Founder at StartupHub",
       avatar: "EJ",
-      content: "We tried many project management tools before. Zync is the only one that actually understands software development workflows.",
+      content: "We tried many project management tools before. ZYNC is the only one that actually understands software development workflows.",
       rating: 5,
     },
   ];
@@ -34,7 +34,7 @@ const TestimonialsSection = () => {
             Loved by teams worldwide
           </h2>
           <p className="text-lg text-muted-foreground">
-            See what developers and project managers say about Zync.
+            See what developers and project managers say about ZYNC.
           </p>
         </div>
 

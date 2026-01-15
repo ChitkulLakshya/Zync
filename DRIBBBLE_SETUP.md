@@ -1,6 +1,6 @@
 # Design Inspiration Setup Guide 🎨
 
-This guide covers the integration of **Dribbble**, **Unsplash**, **Pinterest**, and **Behance** into Zync.
+This guide covers the integration of **Dribbble**, **Unsplash**, **Pinterest**, and **Behance** into ZYNC.
 
 ## 1. Environment Variables
 

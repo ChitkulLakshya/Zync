@@ -121,7 +121,7 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
         const data = await response.json();
         if (data.notInstalled) {
           // Redirect to App Installation
-          window.location.href = `https://github.com/apps/zync-meet/installations/new`;
+          window.location.href = `https://github.com/apps/ZYNC-meet/installations/new`;
           return;
         }
       }
@@ -136,7 +136,7 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
       console.error(error);
       toast({
         title: "Error",
-        description: "Failed to fetch repositories. Please ensure Zync is installed on your GitHub.",
+        description: "Failed to fetch repositories. Please ensure ZYNC is installed on your GitHub.",
         variant: "destructive"
       });
     } finally {
@@ -490,8 +490,8 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
               ) : repos.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
                   <p>No repositories found.</p>
-                  <a href="https://github.com/apps/zync-meet/installations/new" target="_blank" rel="noreferrer" className="text-primary hover:underline mt-2 block">
-                    Install Zync App on GitHub
+                  <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-primary hover:underline mt-2 block">
+                    Install ZYNC App on GitHub
                   </a>
                 </div>
               ) : (

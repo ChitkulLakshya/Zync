@@ -87,7 +87,7 @@ import { cn } from "@/lib/utils";
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
     if (isPreview) return "My Workspace";
-    return localStorage.getItem("zync-active-section") || "Dashboard";
+    return localStorage.getItem("ZYNC-active-section") || "Dashboard";
   });
 
 
@@ -123,7 +123,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   useEffect(() => {
     if (!isPreview) {
-      localStorage.setItem("zync-active-section", activeSection);
+      localStorage.setItem("ZYNC-active-section", activeSection);
     }
   }, [activeSection, isPreview]);
 
@@ -144,8 +144,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       }
     };
 
-    window.addEventListener("zync-open-chat", handleOpenChat);
-    return () => window.removeEventListener("zync-open-chat", handleOpenChat);
+    window.addEventListener("ZYNC-open-chat", handleOpenChat);
+    return () => window.removeEventListener("ZYNC-open-chat", handleOpenChat);
   }, [navigate]);
 
   // Map URL paths to section names
@@ -570,10 +570,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   // Mock Users Data for Preview
   const mockUsers = [
-    { _id: 1, displayName: "Oliver Campbell", email: "oliver@zync.io", status: "online", avatar: "OC" },
-    { _id: 2, displayName: "Sarah Chen", email: "sarah@zync.io", status: "online", avatar: "SC" },
-    { _id: 3, displayName: "Mike Wilson", email: "mike@zync.io", status: "offline", avatar: "MW" },
-    { _id: 4, displayName: "Emily Davis", email: "emily@zync.io", status: "away", avatar: "ED" },
+    { _id: 1, displayName: "Oliver Campbell", email: "oliver@ZYNC.io", status: "online", avatar: "OC" },
+    { _id: 2, displayName: "Sarah Chen", email: "sarah@ZYNC.io", status: "online", avatar: "SC" },
+    { _id: 3, displayName: "Mike Wilson", email: "mike@ZYNC.io", status: "offline", avatar: "MW" },
+    { _id: 4, displayName: "Emily Davis", email: "emily@ZYNC.io", status: "away", avatar: "ED" },
   ];
 
   const displayUsers = isPreview
@@ -925,7 +925,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </div>
               {!isCollapsed && (
                 <>
-                  <span className="font-bold text-lg truncate">Zync</span>
+                  <span className="font-bold text-lg truncate">ZYNC</span>
                 </>
               )}
               {!isCollapsed && (
@@ -1022,7 +1022,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={async () => {
                     if (isPreview) return;
-                    localStorage.removeItem("zync-active-section");
+                    localStorage.removeItem("ZYNC-active-section");
                     await signOut(auth);
                     navigate("/login");
                   }} className="text-destructive focus:text-destructive">

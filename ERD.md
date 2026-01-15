@@ -1,6 +1,6 @@
 # System Entity Relationship Diagram (ERD) 🗄️
 
-This document serves as the **Single Source of Truth** for the Zync Data Architecture.
+This document serves as the **Single Source of Truth** for the ZYNC Data Architecture.
 It covers the Hybrid Database system (MongoDB + Postgres + Firestore + Redis).
 
 ## 1. High-Level Data Model

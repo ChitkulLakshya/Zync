@@ -270,7 +270,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, cl
                 editor={editor}
                 onChange={handleContentChange}
                 theme={resolvedTheme === 'dark' ? "dark" : "light"}
-                className="zync-editor-overrides"
+                className="ZYNC-editor-overrides"
               />
             </div>
           </div>
@@ -283,7 +283,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, cl
           <DialogHeader>
             <DialogTitle>Convert to Task</DialogTitle>
             <DialogDescription>
-              Create a new task in Zync Project Management from this line.
+              Create a new task in ZYNC Project Management from this line.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">

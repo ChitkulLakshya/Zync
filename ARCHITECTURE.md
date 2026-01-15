@@ -1,8 +1,8 @@
-# Zync - System Architecture & Design 🏗️
+# ZYNC - System Architecture & Design 🏗️
 
 ## 1. High-Level Architecture
 
-Zync operates as a **Real-Time Collaborative Workspace** built on a Three-Tier Architecture, optimized for minimal latency and eventual consistency.
+ZYNC operates as a **Real-Time Collaborative Workspace** built on a Three-Tier Architecture, optimized for minimal latency and eventual consistency.
 
 ### The Stack
 *   **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, Radix UI.
@@ -38,7 +38,7 @@ The frontend relies on **Side-Effect Hooks** mounted at the root (`App.tsx`) to 
 ### Component Map
 *   **`DesktopView`**: The Layout Shell (Sidebar + Main Content Area).
 *   **`ChatView`**: Handles Firestore subscriptions for messages.
-*   **`CalendarView`**: Wraps `react-big-calendar` with Zync Event styles.
+*   **`CalendarView`**: Wraps `react-big-calendar` with ZYNC Event styles.
 *   **`NoteEditor` (BlockNote)**: The collaborative editor instance.
 
 ---
@@ -46,7 +46,7 @@ The frontend relies on **Side-Effect Hooks** mounted at the root (`App.tsx`) to 
 ## 3. Real-Time Collaboration Logic ⚡
 
 ### A. Collaborative Notes (`/notes` namespace)
-Zync uses **YJS** (CRDT) over **Socket.io** to enable Google Docs-like editing.
+ZYNC uses **YJS** (CRDT) over **Socket.io** to enable Google Docs-like editing.
 
 **Protocol:**
 1.  **Connection**: Client connects to `ws://host/notes`.

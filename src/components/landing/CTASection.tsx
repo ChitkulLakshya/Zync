@@ -17,20 +17,20 @@ const CTASection = () => {
       {/* Background decorations */}
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-      
+
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full mb-6">
             <Sparkles className="w-4 h-4 text-primary" />
             <span className="text-sm font-medium text-sidebar-foreground">Start your free trial today</span>
           </div>
-          
+
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-sidebar-foreground mb-6">
             Ready to transform how your team works?
           </h2>
-          
+
           <p className="text-lg text-sidebar-foreground/70 mb-10 max-w-2xl mx-auto">
-            Join thousands of teams already using Zync to manage their software projects 
+            Join thousands of teams already using ZYNC to manage their software projects
             more effectively. Get started in minutes, not hours.
           </p>
 
@@ -48,7 +48,7 @@ const CTASection = () => {
               <ArrowRight className="w-4 h-4 ml-1" />
             </Button>
           </div>
-          
+
           <p className="text-sm text-sidebar-foreground/50">
             Try it for free. No credit card required.
           </p>

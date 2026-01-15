@@ -16,10 +16,10 @@ const transporter = nodemailer.createTransport({
     socketTimeout: 10000
 });
 
-const sendZyncEmail = async (to, subject, html, text) => {
+const sendZYNCEmail = async (to, subject, html, text) => {
     try {
         const info = await transporter.sendMail({
-            from: `"Zync Platform" <${process.env.GMAIL_USER}>`,
+            from: `"ZYNC Platform" <${process.env.GMAIL_USER}>`,
             to: to,
             subject: subject,
             html: html,
@@ -36,4 +36,4 @@ const sendZyncEmail = async (to, subject, html, text) => {
     }
 };
 
-module.exports = { sendZyncEmail };
+module.exports = { sendZYNCEmail };

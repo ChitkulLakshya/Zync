@@ -24,7 +24,7 @@ const HeroSection = () => {
       {/* Decorative elements */}
       <div className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-      
+
       {/* Floating decorative shapes */}
       <div className="absolute top-40 right-[15%] w-4 h-4 bg-task-orange rounded-full floating-element opacity-60" />
       <div className="absolute top-60 left-[10%] w-3 h-3 bg-task-teal rounded-full floating-element opacity-60" style={{ animationDelay: '1s' }} />
@@ -40,7 +40,7 @@ const HeroSection = () => {
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up animate-delay-100">
-            Zync is a beautiful online software for effective team collaboration,
+            ZYNC is a beautiful online software for effective team collaboration,
             project management, task planning, and execution.
           </p>
 

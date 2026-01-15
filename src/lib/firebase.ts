@@ -6,9 +6,9 @@ import { getFirestore } from "firebase/firestore";
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyBoRrOTMYVBY1FF-tvv6rn2YFLImrO_ad0",
-  authDomain: "zync-7c9b0.firebaseapp.com",
-  projectId: "zync-7c9b0",
-  storageBucket: "zync-7c9b0.firebasestorage.app",
+  authDomain: "ZYNC-7c9b0.firebaseapp.com",
+  projectId: "ZYNC-7c9b0",
+  storageBucket: "ZYNC-7c9b0.firebasestorage.app",
   messagingSenderId: "504395777430",
   appId: "1:504395777430:web:4968b84164c6e4426109b7"
 };

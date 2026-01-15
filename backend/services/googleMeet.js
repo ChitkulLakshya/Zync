@@ -23,8 +23,8 @@ const create_meeting = async () => {
         const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
         const event = {
-            summary: 'Zync Instant Meeting',
-            description: 'Instant meeting created from Zync workspace.',
+            summary: 'ZYNC Instant Meeting',
+            description: 'Instant meeting created from ZYNC workspace.',
             start: {
                 dateTime: new Date().toISOString(),
                 timeZone: 'UTC',
@@ -62,7 +62,7 @@ const create_meeting = async () => {
     }
 };
 
-const send_zync_email = async (to, subject, bodyHtml) => {
+const send_ZYNC_email = async (to, subject, bodyHtml) => {
     try {
         console.log(`Sending email to ${to}...`);
 
@@ -107,6 +107,6 @@ const send_zync_email = async (to, subject, bodyHtml) => {
 
 module.exports = {
     create_meeting,
-    send_zync_email,
+    send_ZYNC_email,
     createInstantMeet: create_meeting // Alias for backward compatibility
 };

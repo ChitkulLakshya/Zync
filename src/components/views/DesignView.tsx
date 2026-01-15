@@ -14,7 +14,7 @@ interface DesignItem {
   link: string | null;
 }
 
-const STORAGE_KEY = "zync-design-view-state";
+const STORAGE_KEY = "ZYNC-design-view-state";
 
 const DesignView = () => {
   // Initialize state from sessionStorage if available

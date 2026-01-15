@@ -1,4 +1,4 @@
-# Zync API Documentation 📡
+# ZYNC API Documentation 📡
 
 Base URL: `http://localhost:5000/api`
 

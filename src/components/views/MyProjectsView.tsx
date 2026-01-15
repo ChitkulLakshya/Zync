@@ -178,7 +178,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
         <div className="max-w-md space-y-2">
           <h2 className="text-2xl font-bold">Connect to GitHub</h2>
           <p className="text-muted-foreground">
-            Link your GitHub account to access your repositories directly within Zync.
+            Link your GitHub account to access your repositories directly within ZYNC.
           </p>
         </div>
         <Button size="lg" onClick={handleConnect} className="gap-2">

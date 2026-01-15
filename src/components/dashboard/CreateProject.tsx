@@ -70,7 +70,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
     <div className="flex flex-col items-center justify-center h-full p-6 animate-fade-in">
       <div className="max-w-2xl w-full space-y-8">
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">Welcome to Zync</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Welcome to ZYNC</h1>
           <p className="text-muted-foreground text-lg">
             Let's turn your idea into a fully planned software project.
           </p>

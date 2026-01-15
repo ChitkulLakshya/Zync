@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Groq } = require('groq-sdk');
 const Project = require('../models/Project');
-const { sendZyncEmail } = require('../services/mailer');
+const { sendZYNCEmail } = require('../services/mailer');
 const User = require('../models/User');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');
@@ -239,12 +239,12 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
                 <p><strong>Step:</strong> ${step.title}</p>
                 <p><strong>Assigned By:</strong> ${assignedBy || 'Admin'}</p>
               </div>
-              <p>Please log in to Zync to view more details.</p>
+              <p>Please log in to ZYNC to view more details.</p>
             </div>
           `;
 
           try {
-            await sendZyncEmail(
+            await sendZYNCEmail(
               user.email,
               subject,
               html,

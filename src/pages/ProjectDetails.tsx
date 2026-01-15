@@ -86,9 +86,9 @@ interface Step {
 
 // Mock users for assignment - In real app, fetch from API
 const MOCK_USERS = [
-  { uid: "admin1", name: "Admin User", email: "admin@zync.com" },
-  { uid: "dev1", name: "Frontend Dev", email: "frontend@zync.com" },
-  { uid: "dev2", name: "Backend Dev", email: "backend@zync.com" },
+  { uid: "admin1", name: "Admin User", email: "admin@ZYNC.com" },
+  { uid: "dev1", name: "Frontend Dev", email: "frontend@ZYNC.com" },
+  { uid: "dev2", name: "Backend Dev", email: "backend@ZYNC.com" },
   { uid: auth.currentUser?.uid || "current", name: auth.currentUser?.displayName || "You", email: auth.currentUser?.email },
 ].filter((v, i, a) => a.findIndex(t => (t.uid === v.uid)) === i);
 
@@ -138,7 +138,7 @@ const ProjectDetails = () => {
       toast.success(`Invite sent to ${receiver.displayName}`);
 
       // Redirect to Chat
-      const event = new CustomEvent('zync-open-chat', { detail: receiver });
+      const event = new CustomEvent('ZYNC-open-chat', { detail: receiver });
       window.dispatchEvent(event);
 
     } catch (error) {

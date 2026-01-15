@@ -405,7 +405,7 @@ const SettingsView = () => {
                       <p className="text-sm text-muted-foreground">
                         {userData?.integrations?.github?.connected
                           ? `Connected as ${userData.integrations.github.username}`
-                          : "Connect repositories to Zync."}
+                          : "Connect repositories to ZYNC."}
                       </p>
                     </div>
                   </div>
@@ -460,7 +460,7 @@ const SettingsView = () => {
               <CardHeader>
                 <CardTitle className="text-destructive flex items-center gap-2">Danger Zone</CardTitle>
                 <CardDescription>
-                  Permanently remove your Personal Account and all of its contents from the Zync platform. This action is not reversible, so please continue with caution.
+                  Permanently remove your Personal Account and all of its contents from the ZYNC platform. This action is not reversible, so please continue with caution.
                 </CardDescription>
               </CardHeader>
               <CardContent>

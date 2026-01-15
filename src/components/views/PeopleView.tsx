@@ -45,9 +45,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
 
     // Load Preferences
     useEffect(() => {
-        const storedWidth = localStorage.getItem('zync-people-sidebar-width');
+        const storedWidth = localStorage.getItem('ZYNC-people-sidebar-width');
         if (storedWidth) setSidebarWidth(parseInt(storedWidth));
-        const storedCollapsed = localStorage.getItem('zync-people-sidebar-collapsed');
+        const storedCollapsed = localStorage.getItem('ZYNC-people-sidebar-collapsed');
         if (storedCollapsed) setIsCollapsed(storedCollapsed === 'true');
     }, []);
 
@@ -61,7 +61,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
         const handleMouseUp = () => {
             if (isResizing) {
                 setIsResizing(false);
-                localStorage.setItem('zync-people-sidebar-width', sidebarWidth.toString());
+                localStorage.setItem('ZYNC-people-sidebar-width', sidebarWidth.toString());
             }
         };
         if (isResizing) {
@@ -85,7 +85,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
         }
         const newState = !isCollapsed;
         setIsCollapsed(newState);
-        localStorage.setItem('zync-people-sidebar-collapsed', newState.toString());
+        localStorage.setItem('ZYNC-people-sidebar-collapsed', newState.toString());
         if (!newState) setIsHovered(false);
     };
 

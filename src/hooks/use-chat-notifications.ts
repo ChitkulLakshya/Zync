@@ -49,7 +49,7 @@ export const useChatNotifications = () => {
                             notifiedIds.current.add(msgId);
 
                             // Check if user is already on Chat view
-                            const activeSection = localStorage.getItem("zync-active-section");
+                            const activeSection = localStorage.getItem("ZYNC-active-section");
 
                             if (activeSection !== "Chat") {
                                 toast(message.senderName || "New Message", {
@@ -58,10 +58,10 @@ export const useChatNotifications = () => {
                                     action: {
                                         label: "Open Chat",
                                         onClick: () => {
-                                            localStorage.setItem("zync-active-section", "Chat");
+                                            localStorage.setItem("ZYNC-active-section", "Chat");
 
                                             // Dispatch custom event with sender details
-                                            const event = new CustomEvent("zync-open-chat", {
+                                            const event = new CustomEvent("ZYNC-open-chat", {
                                                 detail: {
                                                     uid: message.senderId,
                                                     displayName: message.senderName,

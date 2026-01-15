@@ -8,14 +8,14 @@ export const linkGithubAccount = async (currentUser: User) => {
 
   const provider = new GithubAuthProvider();
   // Request access to repositories
-  provider.addScope('repo'); 
+  provider.addScope('repo');
   // Request access to user profile
-  provider.addScope('read:user'); 
+  provider.addScope('read:user');
 
   try {
     // 1. Link GitHub account to existing Firebase user
     const result = await linkWithPopup(currentUser, provider);
-    
+
     // 2. Extract Credentials
     const credential = GithubAuthProvider.credentialFromResult(result);
     const accessToken = credential?.accessToken;
@@ -29,7 +29,7 @@ export const linkGithubAccount = async (currentUser: User) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-         // Pass Firebase Auth Token for security if backend requires it
+        // Pass Firebase Auth Token for security if backend requires it
         "Authorization": `Bearer ${await currentUser.getIdToken()}`
       },
       body: JSON.stringify({
@@ -40,8 +40,8 @@ export const linkGithubAccount = async (currentUser: User) => {
     });
 
     if (!response.ok) {
-       const errorData = await response.json();
-       throw new Error(errorData.message || "Failed to sync GitHub data with backend.");
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to sync GitHub data with backend.");
     }
 
     return {
@@ -55,7 +55,7 @@ export const linkGithubAccount = async (currentUser: User) => {
 
     // 4. Handle specific error codes
     if (error.code === 'auth/credential-already-in-use') {
-      alert("This GitHub account is already connected to another Zync account. Please sign in with that account or disconnect it first.");
+      alert("This GitHub account is already connected to another ZYNC account. Please sign in with that account or disconnect it first.");
     } else {
       alert(`Error linking GitHub: ${error.message}`);
     }

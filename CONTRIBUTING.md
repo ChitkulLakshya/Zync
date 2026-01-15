@@ -1,4 +1,4 @@
-# Contributing to Zync
+# Contributing to ZYNC
 
 We welcome contributions! Please follow these steps:
 

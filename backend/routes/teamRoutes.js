@@ -46,18 +46,18 @@ router.post('/create', verifyToken, async (req, res) => {
         // Send Initial Invites
         if (initialInvites && Array.isArray(initialInvites) && initialInvites.length > 0) {
             // We use a simple loop here. For production, a queue is better.
-            const { sendZyncEmail } = require('../services/mailer');
+            const { sendZYNCEmail } = require('../services/mailer');
             initialInvites.forEach(async (email) => {
                 if (!email) return;
                 try {
-                    await sendZyncEmail(
+                    await sendZYNCEmail(
                         email,
-                        `Join ${name} on Zync!`,
+                        `Join ${name} on ZYNC!`,
                         `
                           <h2>You've been invited to join a team!</h2>
-                          <p>${user.displayName || 'A colleague'} has invited you to join the <strong>${name}</strong> team on Zync.</p>
+                          <p>${user.displayName || 'A colleague'} has invited you to join the <strong>${name}</strong> team on ZYNC.</p>
                           <p><strong>Invite Code: ${inviteCode}</strong></p>
-                          <p>Login to Zync and enter this code to join.</p>
+                          <p>Login to ZYNC and enter this code to join.</p>
                         `,
                         `You've been invited to join ${name}. Invite Code: ${inviteCode}`
                     );
@@ -187,15 +187,15 @@ router.post('/invite', verifyToken, async (req, res) => {
         if (!team) return res.status(404).json({ message: 'Team not found' });
 
         // Send Email
-        const { sendZyncEmail } = require('../services/mailer');
-        await sendZyncEmail(
+        const { sendZYNCEmail } = require('../services/mailer');
+        await sendZYNCEmail(
             email,
-            `You're invited to join ${team.name} on Zync!`,
+            `You're invited to join ${team.name} on ZYNC!`,
             `
               <h2>Team Invitation</h2>
               <p>${user.displayName || 'A colleague'} has invited you to join the <strong>${team.name}</strong> team.</p>
               <p><strong>Invite Code: ${team.inviteCode}</strong></p>
-              <p>Login to Zync and enter this code to join the team.</p>
+              <p>Login to ZYNC and enter this code to join the team.</p>
             `,
             `You've been invited to join ${team.name}. Invite Code: ${team.inviteCode}`
         );

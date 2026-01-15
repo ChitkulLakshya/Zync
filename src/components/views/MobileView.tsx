@@ -111,7 +111,7 @@ const MobileView = () => {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-xs">Z</span>
           </div>
-          <span className="font-semibold text-lg">Zync</span>
+          <span className="font-semibold text-lg">ZYNC</span>
         </div>
 
         <Sheet>

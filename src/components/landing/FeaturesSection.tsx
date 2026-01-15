@@ -1,9 +1,9 @@
-import { 
-  Users, 
-  GitBranch, 
-  Calendar, 
-  MessageSquare, 
-  Bell, 
+import {
+  Users,
+  GitBranch,
+  Calendar,
+  MessageSquare,
+  Bell,
   CheckCircle2,
   Sparkles,
   Video,
@@ -62,7 +62,7 @@ const FeaturesSection = () => {
             <span className="gradient-text">software projects</span>
           </h2>
           <p className="text-lg text-muted-foreground">
-            From AI-powered planning to GitHub integration, Zync has all the tools 
+            From AI-powered planning to GitHub integration, ZYNC has all the tools
             your team needs to ship faster and collaborate better.
           </p>
         </div>
@@ -109,17 +109,15 @@ const FeaturesSection = () => {
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
                         {member.avatar}
                       </div>
-                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${
-                        member.status === "online" ? "bg-task-green" : member.status === "away" ? "bg-task-yellow" : "bg-muted"
-                      }`} />
+                      <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-card ${member.status === "online" ? "bg-task-green" : member.status === "away" ? "bg-task-yellow" : "bg-muted"
+                        }`} />
                     </div>
                     <div className="flex-1">
                       <div className="font-medium text-foreground">{member.name}</div>
                       <div className="text-sm text-muted-foreground">{member.role}</div>
                     </div>
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      member.role === "Admin" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
-                    }`}>
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${member.role === "Admin" ? "bg-primary/10 text-primary" : "bg-secondary text-muted-foreground"
+                      }`}>
                       {member.role}
                     </div>
                   </div>
@@ -132,7 +130,7 @@ const FeaturesSection = () => {
               Create teams and projects, invite your teammates
             </h3>
             <p className="text-lg text-muted-foreground mb-6">
-              Zync allows you to create tasks and events at the team level or the project level. 
+              ZYNC allows you to create tasks and events at the team level or the project level.
               Invite people from different teams, assign tasks to them, schedule appointments, and track progress.
             </p>
             <div className="space-y-3">
@@ -153,8 +151,8 @@ const FeaturesSection = () => {
               See a detailed work plan for every employee, every day
             </h3>
             <p className="text-lg text-muted-foreground mb-6">
-              Have you ever had difficulties figuring out what your employees are working on? 
-              Zync removes this chaos forever. Now each of your employees will have a complete 
+              Have you ever had difficulties figuring out what your employees are working on?
+              ZYNC removes this chaos forever. Now each of your employees will have a complete
               list of activities for today, tomorrow, and the following days.
             </p>
             <div className="space-y-3">
@@ -189,11 +187,10 @@ const FeaturesSection = () => {
                   return (
                     <div
                       key={i}
-                      className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors ${
-                        day < 1 || day > 31 ? "text-muted-foreground/30" : 
-                        isToday ? "bg-primary text-primary-foreground font-semibold" : 
-                        "text-foreground hover:bg-secondary"
-                      }`}
+                      className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors ${day < 1 || day > 31 ? "text-muted-foreground/30" :
+                          isToday ? "bg-primary text-primary-foreground font-semibold" :
+                            "text-foreground hover:bg-secondary"
+                        }`}
                     >
                       {day >= 1 && day <= 31 && (
                         <>
