@@ -1,140 +1,160 @@
 # Zync ⚡
-> The Intelligent All-in-One Workspace for Teams and Developers.
+> **The Intelligent All-in-One Workspace for Teams and Developers.**
 
-Zync is a modern, feature-rich workspace platform designed to streamline collaboration, project management, and communication. It unifies your workflow by combining real-time chat, collaborative notes, video meetings, project tracking, and GitHub integration into a single, cohesive interface.
-
-![Zync Workspace](https://via.placeholder.com/1200x600?text=Zync+Dashboard+Preview) *[Replace with actual screenshot]*
+Zync is a comprehensive collaboration platform that unifies project management, communication, and development workflows. It leverages AI to automate project setup, integrates deeply with GitHub for developer-centric tracking, and provides real-time tools like Chat, Notes, and Video Meetings in a single interface.
 
 ---
 
-## 🚀 Key Features
+## 🏗️ Tech Stack
 
-### 🛠️ Project Management
-- **Smart Dashboard**: Get a bird's-eye view of your productivity, active projects, and upcoming deadlines.
-- **AI-Powered Creation**: Generate project structures and tasks automatically using integrated AI agents (Gemini/Groq).
-- **Task Tracking**: Kanban-style or list-based task management to keep your team aligned.
+### Frontend (`/`)
+- **Core**: [React 18](https://react.dev/), [Vite](https://vitejs.dev/), [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Radix UI](https://www.radix-ui.com/), [Lucide React](https://lucide.dev/)
+- **State Management**: [TanStack Query](https://tanstack.com/query/latest), Context API
+- **Real-time**: [Socket.io Client](https://socket.io/), [Firebase Firestore](https://firebase.google.com/) (Chat)
+- **Editor**: [BlockNote](https://www.blocknotejs.org/) (Prosemirror-based rich text)
+- **Auth**: [Firebase Authentication](https://firebase.google.com/docs/auth)
 
-### 💬 Real-Time Collaboration
-- **Connect Chat**: An "Instagram Direct" style messaging interface for seamless team communication. Supports rich text, file sharing, and emojis.
-- **Collaborative Notes**: Notion-style rich text editor (BlockNote) with real-time multi-user editing (YJS).
-- **Online Status**: See who is active, away, or offline instantly.
-
-### 📅 Calendar & Meetings
-- **Smart Calendar**: Two-way sync with Google Calendar. visualizing your schedule and holidays.
-- **Instant Meet**: Launch Google Meet video calls directly from the chat or project view with a single click.
-
-### 💻 Developer Centric
-- **GitHub Integration**: Link repositories, track commits, and manage webhooks directly within your workspace.
-- **Activity Log**: Detailed session tracking and user activity monitoring.
-
----
-
-## 🛠️ Technology Stack
-
-**Frontend**
-- **Framework**: React 18 + Vite (TypeScript)
-- **Styling**: Tailwind CSS, Radix UI, Lucide Icons
-- **State & Data**: React Query, Zustand/Context
-- **Editor**: BlockNote (Prosemirror-based)
-
-**Backend**
-- **Runtime**: Node.js + Express
-- **Database**: MongoDB (Primary), Redis (Caching/Sessions)
-- **Real-time**: Socket.io
-- **Auth**: Firebase Authentication
-
-**Integrations**
-- **AI**: Google Gemini, Groq SDK
-- **Google**: Calendar API, Gmail API (Nodemailer OAuth2), Google Meet
-- **GitHub**: Octokit SDK
+### Backend (`/backend`)
+- **Runtime**: Node.js, Express.js
+- **Database**: 
+  - **MongoDB** (Primary Data: Users, Projects, Notes)
+  - **Redis** (Session Store & Caching)
+- **Authentication**: Firebase Admin SDK (Token Verification)
+- **Real-time**: Socket.io (Signaling & Updates)
+- **Integrations**: 
+  - **Google Cloud**: Calendar API (Meet), Gmail API (OAuth2 Email)
+  - **GitHub**: Octokit (Repos, Commits, Webhooks)
+  - **AI**: Google Gemini / Groq SDK (Project Generation)
 
 ---
 
-## 🏁 Getting Started
+## 🏛️ System Architecture
 
-Follow these steps to set up Zync locally.
+### Directory Structure
+- **`src/`**: React frontend code.
+  - **`pages/`**: Top-level routes (Login, Dashboard, ProjectDetails).
+  - **`components/views/`**: Feature-specific complex views (ChatView, CalendarView, TasksView).
+  - **`components/ui/`**: Reusable atomic components.
+- **`backend/`**: Node.js API server.
+  - **`models/`**: Mongoose schemas.
+  - **`routes/`**: API endpoint definitions.
+  - **`services/`**: Business logic integrations (Mailer, GoogleMeet).
+  - **`middleware/`**: Auth verification (`verifyToken`).
 
-### Prerequisites
-- Node.js (v18+)
-- MongoDB (Local or Atlas)
-- Redis server
-- Firebase Project (for Auth)
-- Google Cloud Project (for Calendar/Meet/Mail APIs)
+### Database Schema (MongoDB)
+Based on `backend/models`, Zync uses a relational-style schema in a document database:
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/Zync.git
-cd Zync
-```
+- **User**: Stores Profile, Firebase UID, and Integration tokens (GitHub/Google).
+  - *Key Fields*: `uid`, `email`, `role`, `integrations.github.accessToken`.
+- **Project**: The core entity.
+  - *Key Fields*: `name`, `githubRepoIds`, `ownerId`, `team` (array of UIDs).
+  - *Embedded*: `steps` (Phases) -> `tasks` (Task Items).
+- **Note**: Collaborative documents.
+  - *Key Fields*: `content` (JSON), `projectId`, `ownerId`.
+- **Session**: Tracks user activity duration.
+  - *Key Fields*: `startTime`, `endTime`, `activeDuration`.
 
-### 2. Frontend Setup
-```bash
-# Install dependencies
-npm install
+### Authentication Flow
+1. **Frontend**: User logs in via Google/GitHub using **Firebase Auth**.
+2. **Token Exchange**: Frontend retrieves an **ID Token**.
+3. **API Requests**: Token is sent in the `Authorization: Bearer <token>` header.
+4. **Backend**: `authMiddleware.js` verifies the token using **Firebase Admin SDK**.
+5. **Sync**: Verified User UID is matched/created in MongoDB for data association.
 
-# Configure Environment
-cp .env.example .env
-# Edit .env and add your Firebase and API URL config
-```
+---
 
-### 3. Backend Setup
-```bash
-cd backend
+## 🚀 Features & Integrations
 
-# Install dependencies
-npm install
+### 1. GitHub Integration 🐙
+- **OAuth Login**: Connect GitHub accounts to fetch repositories.
+- **Repo Linking**: Link GitHub repositories to Zync Projects.
+- **Smart Tracking**: Webhooks (`backend/routes/githubAppWebhook.js`) listen for pushes/PRs and auto-update project tasks.
 
-# Configure Environment
-cp .env.example .env
-# Edit .env with your MongoDB URI, Google API Keys, and Secrets
-```
+### 2. Intelligent Project Creation 🧠
+- **AI Agents**: Uses Gemini/Groq to parse a project description and generate a full implementation plan (Phases -> Tasks) automatically.
 
-### 4. Run the Application
-You need to run both the frontend and backend servers.
+### 3. Meetings & Calendar 📅
+- **Google Sync**: Two-way synchronization with Google Calendar.
+- **Instant Meet**: One-click generation of Google Meet links using the Calendar API (`backend/services/googleMeet.js`).
 
-**Option 1: Concurrent (Recommended)**
-Open two terminal tabs:
+### 4. Real-time Chat 💬
+- **Firestore**: Uses Firebase Cloud Firestore for instant message delivery and offline persistence.
+- **Features**: File sharing, Emoji picker, Read receipts, Typing indicators.
 
-**Terminal 1 (Backend):**
-```bash
-cd backend
-npm run dev
-```
+### 5. Collaborative Notes 📝
+- **Block-Based**: Notion-style editor via BlockNote.
+- **Real-time**: Multi-user editing support (infrastructure ready via YJS/Socket.io).
 
-**Terminal 2 (Frontend):**
-```bash
-# from root
-npm run dev
-```
+---
 
-Visit `http://localhost:5173` to access Zync.
+## 🔌 API Reference
+
+Key endpoints available in `backend/routes`:
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| **POST** | `/api/users/sync` | Sync Firebase User to MongoDB |
+| **GET** | `/api/projects/user/:uid` | Fetch all projects for a user |
+| **POST** | `/api/projects/generate` | AI-generate a project plan |
+| **POST** | `/api/meet/invite` | Create Google Meet & Email Invite |
+| **GET** | `/api/github/repos` | List user's GitHub repositories |
+| **POST** | `/api/notes` | Create a new note |
 
 ---
 
 ## 🔑 Environment Variables
 
-See `.env.example` in both root and `backend/` for the full list of required variables.
+Required `.env` configuration (see `.env.example` in respective directories):
 
-**Critical Backend Variables:**
-- `MONGO_URI`: MongoDB Connection String
-- `GOOGLE_CLIENT_ID` / `_SECRET`: OAuth2 credentials for Google Login & APIs
-- `GOOGLE_REFRESH_TOKEN`: Required for offline access to Calendar/Mail APIs
-- `GITHUB_ACCESS_TOKEN`: For GitHub integration features
+### Root (Frontend)
+- `VITE_API_URL`: Backend URL (e.g., `http://localhost:5000`)
+- `VITE_FIREBASE_API_KEY`, `VITE_FIREBASE_AUTH_DOMAIN`, etc. (Firebase Config)
+- `VITE_GOOGLE_API_KEY`: For Google Maps/Calendar frontend SDKs
 
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Backend (`/backend`)
+- **Database**: `MONGO_URI`, `REDIS_URL` (Optional)
+- **Auth**: `GCP_SERVICE_ACCOUNT_KEY` (Firebase Admin User Setup)
+- **AI**: `GEMINI_API_KEY`, `GROQ_API_KEY`
+- **Google APIs**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REFRESH_TOKEN`, `GOOGLE_REDIRECT_URI`
+- **GitHub**: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GITHUB_WEBHOOK_SECRET`
+- **Email**: `GMAIL_USER` (OAuth2 user)
 
 ---
 
-## 📄 License
+## 🛠️ Installation & Setup
 
-This project is licensed under the ISC License.
+### 1. Clone & Install
+```bash
+git clone https://github.com/yourusername/Zync.git
+cd Zync
+
+# Frontend
+npm install
+
+# Backend
+cd backend
+npm install
+```
+
+### 2. Configure Environment
+1. Create `.env` in root based on `.env.example`.
+2. Create `.env` in `backend/` based on `backend/.env.example`.
+3. **Important**: Run `node backend/scripts/get-refresh-token.js` to generate a valid Google Refresh Token for calendar/mail features.
+
+### 3. Run Development Servers
+Open two terminals:
+
+**Backend:**
+```bash
+cd backend
+npm run dev
+# Server running on http://localhost:5000
+```
+
+**Frontend:**
+```bash
+# From root
+npm run dev
+# App accessible at http://localhost:5173
+```
