@@ -27,7 +27,7 @@ const analyzeCommitWithGroq = async (message) => {
           content: message
         }
       ],
-      model: "llama3-8b-8192",
+      model: "llama-3.3-70b-versatile",
       temperature: 0,
       response_format: { type: "json_object" }
     });
@@ -36,18 +36,18 @@ const analyzeCommitWithGroq = async (message) => {
     if (!content) return null;
 
     try {
-        const result = JSON.parse(content);
-        // Normalize null returns from LLM to actual null
-        if (!result || (result.id === null && result.completed === undefined)) return null;
-        return result;
+      const result = JSON.parse(content);
+      // Normalize null returns from LLM to actual null
+      if (!result || (result.id === null && result.completed === undefined)) return null;
+      return result;
     } catch (e) {
-        // Fallback for when LLM wraps json in markdown (though response_format should prevent this)
-        const jsonStart = content.indexOf('{');
-        const jsonEnd = content.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            return JSON.parse(content.substring(jsonStart, jsonEnd + 1));
-        }
-        return null;
+      // Fallback for when LLM wraps json in markdown (though response_format should prevent this)
+      const jsonStart = content.indexOf('{');
+      const jsonEnd = content.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd !== -1) {
+        return JSON.parse(content.substring(jsonStart, jsonEnd + 1));
+      }
+      return null;
     }
 
   } catch (error) {
@@ -107,7 +107,7 @@ const filterCommitMessage = async (commitMessage, taskTitle = '', taskDescriptio
     const content = response.data.choices[0]?.message?.content;
     const jsonStart = content.indexOf('{');
     const jsonEnd = content.lastIndexOf('}');
-    
+
     if (jsonStart !== -1 && jsonEnd !== -1) {
       const jsonStr = content.substring(jsonStart, jsonEnd + 1);
       return JSON.parse(jsonStr);
