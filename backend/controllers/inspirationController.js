@@ -225,7 +225,11 @@ async function getInspiration(req, res) {
           return results;
 
         } catch (e) {
-          console.error('Dribbble scraping error', e.message);
+          console.error('Dribbble scraping error:', e.message);
+          if (e.response) {
+            console.error('Dribbble Response Status:', e.response.status);
+            console.error('Dribbble Response Data:', e.response.data);
+          }
           return [];
         }
       })()
