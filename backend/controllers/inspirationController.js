@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Parser = require('rss-parser');
-const cheerio = require('cheerio');
+
 
 const UNSPLASH_BASE = 'https://api.unsplash.com';
 const PINTEREST_BASE = 'https://api.pinterest.com/v5';
@@ -167,69 +167,25 @@ async function getInspiration(req, res) {
       })(),
       fetchBehance(q, 50),
       (async () => {
+        const dToken = req.header('x-dribbble-token');
+        if (!dToken) return [];
         try {
-          // Scrape Dribbble Search Results using Cheerio (No Token Required)
-          const searchUrl = `https://dribbble.com/search/${encodeURIComponent(q)}`;
-          console.log(`Scraping Dribbble: ${searchUrl}`);
-
-          const { data: html } = await axios.get(searchUrl, {
-            headers: {
-              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+          // Dribbble V2: Fetch authenticated user's shots
+          const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
+            headers: { Authorization: `Bearer ${dToken}` },
+            params: { per_page: 30 }
           });
 
-          const $ = cheerio.load(html);
-          const results = [];
-
-          $('.shot-thumbnail').each((i, el) => {
-            if (results.length >= 30) return;
-
-            const $el = $(el);
-            // Dribbble structure changes often, attempting robust selectors
-
-            // Image URL
-            let image = null;
-            const $img = $el.find('img');
-            // Try data-src (lazy load) or src
-            if ($img.attr('data-src')) image = $img.attr('data-src');
-            else if ($img.attr('src')) image = $img.attr('src');
-
-            // Video/GIF fallback
-            if (!image) {
-              const videoSrc = $el.find('video source').attr('src');
-              if (videoSrc) image = videoSrc;
-            }
-
-            // Title
-            const title = $el.find('.shot-title').text().trim() || 'Dribbble Shot';
-
-            // Link
-            const relativeLink = $el.find('.shot-thumbnail-link').attr('href');
-            const link = relativeLink ? `https://dribbble.com${relativeLink}` : null;
-
-            // Creator
-            const creator = $el.find('.user-information .display-name').text().trim();
-
-            if (image && link) {
-              results.push({
-                id: `dribbble_${link.split('/').pop()}`, // extract ID from URL
-                source: 'dribbble',
-                title,
-                image,
-                link,
-                creator: creator || 'Unknown'
-              });
-            }
-          });
-
-          return results;
-
+          return resp.data.map(shot => ({
+            id: `dribbble_${shot.id}`,
+            source: 'dribbble',
+            title: shot.title,
+            image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser || 'https://via.placeholder.com/600x400?text=No+Preview',
+            link: shot.html_url,
+            creator: 'Dribbble User'
+          }));
         } catch (e) {
-          console.error('Dribbble scraping error:', e.message);
-          if (e.response) {
-            console.error('Dribbble Response Status:', e.response.status);
-            console.error('Dribbble Response Data:', e.response.data);
-          }
+          console.error('Dribbble API error:', e.response?.data || e.message);
           return [];
         }
       })()
