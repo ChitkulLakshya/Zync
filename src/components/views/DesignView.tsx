@@ -140,15 +140,15 @@ const DesignView = () => {
           />
         </div>
         <Button type="submit" disabled={loading}>
-          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Search
         </Button>
       </form>
 
       {/* Masonry Layout using simple CSS columns */}
       <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-        {items.map((item) => (
-          <div key={item.id} className="break-inside-avoid relative group rounded-lg overflow-hidden border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+        {items.map((item, index) => (
+          <div key={`${item.id}-${index}`} className="break-inside-avoid relative group rounded-lg overflow-hidden border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow">
             <a href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="block">
               {item.image ? (
                 <img

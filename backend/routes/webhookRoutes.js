@@ -44,38 +44,23 @@ router.post('/github', verifyGithub, async (req, res) => {
                 // For now, we continue to update tasks based on repoId match.
             }
 
-            const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
+            // Process Commits
             for (const commit of commits) {
                 const { message } = commit;
 
-                // Auto-Tick Logic with Groq
+                // Auto-Tick Logic with Gemini (via commitAnalysisService)
+                const { analyzeCommit } = require('../utils/commitAnalysisService');
+
                 try {
-                    const completion = await groq.chat.completions.create({
-                        messages: [
-                            {
-                                role: "system",
-                                content: "You are a task manager. Extract the Task ID (e.g., TASK-01) from this commit message and determine if it indicates completion. Return JSON: {\"taskId\": \"string\", \"completed\": boolean}. If no task ID found, return {\"taskId\": null, \"completed\": false}."
-                            },
-                            {
-                                role: "user",
-                                content: message
-                            }
-                        ],
-                        model: "llama-3.3-70b-versatile",
-                        response_format: { type: "json_object" }
-                    });
+                    const analysis = await analyzeCommit(message);
 
-                    const content = completion.choices[0]?.message?.content;
-                    const analysis = JSON.parse(content || '{}');
-
-                    if (analysis.taskId && analysis.completed) {
-                        console.log(`Task identified: ${analysis.taskId}, Completed: ${analysis.completed}`);
+                    if (analysis.found && analysis.id && analysis.action === 'Complete') {
+                        console.log(`Task identified: ${analysis.id}, Action: ${analysis.action}`);
 
                         // Find task where displayId matches AND repoIds contains current repoId
                         const task = await prisma.task.findFirst({
                             where: {
-                                displayId: analysis.taskId,
+                                displayId: analysis.id,
                                 repoIds: { has: repoId }
                             }
                         });
@@ -84,17 +69,17 @@ router.post('/github', verifyGithub, async (req, res) => {
                             await prisma.task.update({
                                 where: { id: task.id },
                                 data: {
-                                    status: 'completed',
+                                    status: 'Completed',
                                     updatedAt: new Date()
                                 }
                             });
-                            console.log(`Updated Task ${analysis.taskId} to completed.`);
+                            console.log(`Updated Task ${analysis.id} to completed.`);
                         } else {
-                            console.warn(`Task ${analysis.taskId} not linked to repo ${repoId}.`);
+                            console.warn(`Task ${analysis.id} not linked to repo ${repoId}.`);
                         }
                     }
-                } catch (groqErr) {
-                    console.error("Groq Analysis Error:", groqErr);
+                } catch (err) {
+                    console.error("Commit Analysis Error:", err);
                 }
             }
 
