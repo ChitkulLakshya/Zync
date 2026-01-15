@@ -110,7 +110,7 @@ erDiagram
 *   **Input**: User types "I want a Netflix clone."
 *   **Process**:
     1.  Prompt Engineering: We wrap this input in a "System Architect" persona prompt.
-    2.  LLM Call: Sent to Google Gemini Pro.
+    2.  LLM Call: Sent to Google Gemini 2.5 Flash.
     3.  JSON Parsing: The AI returns a structured JSON object containing Phases (Frontend/Backend) and specific actionable Tasks.
 4.  Persistence: This JSON is hydrated into the `Project` Mongoose model and saved.
 
