@@ -25,13 +25,11 @@ const CTASection = () => {
             <span className="text-sm font-medium text-sidebar-foreground">Start your free trial today</span>
           </div>
 
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-sidebar-foreground mb-6">
-            Ready to transform how your team works?
+          <h2 className="text-3xl md:text-5xl font-bold mb-6 font-serif-elegant">
+            Ready to get in <span className="italic text-indigo-400">Zync</span>?
           </h2>
-
-          <p className="text-lg text-sidebar-foreground/70 mb-10 max-w-2xl mx-auto">
-            Join thousands of teams already using ZYNC to manage their software projects
-            more effectively. Get started in minutes, not hours.
+          <p className="text-xl text-indigo-100 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Join thousands of modern teams who have already switched to a better way of working.
           </p>
 
           {/* Email Form */}
@@ -54,7 +52,7 @@ const CTASection = () => {
           </p>
         </div>
       </div>
-    </section>
+    </section >
   );
 };
 

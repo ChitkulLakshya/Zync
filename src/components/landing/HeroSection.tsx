@@ -33,14 +33,14 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Main Heading */}
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-6 animate-fade-in-up">
-            Manage your remote team even{" "}
-            <span className="gradient-text">better than in the office</span>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-gray-400 font-serif-elegant pb-2">
+            The future of <br className="hidden md:block" />
+            work is <span className="text-indigo-600 dark:text-indigo-400 inline-block animate-pulse-slow">Zync</span>
           </h1>
 
           {/* Subtitle */}
           <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up animate-delay-100">
-            ZYNC is a beautiful online software for effective team collaboration,
+            Zync is a beautiful online software for effective team collaboration,
             project management, task planning, and execution.
           </p>
 

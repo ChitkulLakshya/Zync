@@ -15,11 +15,14 @@ if (!admin.apps.length) {
         }
       }
 
+      console.log("Initializing Firebase Admin with project_id:", serviceAccount.project_id);
+
       admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
       });
     } else {
       // Fallback to default credentials (file path or auto-discovery)
+      console.log("Initializing Firebase Admin with default credentials");
       admin.initializeApp();
     }
   } catch (error) {
@@ -49,7 +52,7 @@ const verifyToken = async (req, res, next) => {
     next();
   } catch (error) {
     console.error('Error verifying token:', error);
-    return res.status(403).json({ message: 'Unauthorized: Invalid token' });
+    return res.status(403).json({ message: `Unauthorized: ${error.message}` });
   }
 };
 

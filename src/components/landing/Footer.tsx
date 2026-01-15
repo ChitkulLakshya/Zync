@@ -22,13 +22,13 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="col-span-2">
             <div className="flex items-center gap-2 mb-4">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">Z</span>
+              <div className="h-8 w-8 bg-black rounded-lg flex items-center justify-center dark:bg-white">
+                <span className="text-white font-bold text-lg dark:text-black">Z</span>
               </div>
-              <span className="text-xl font-bold text-foreground">ZYNC</span>
+              <span className="text-xl font-bold font-serif-elegant">Zync</span>
             </div>
             <p className="text-muted-foreground mb-6 max-w-xs">
-              Beautiful online software for effective team collaboration, project management, and task execution.
+              The all-in-one platform for modern software teams.
             </p>
             <div className="flex gap-3">
               {socialLinks.map((social) => (

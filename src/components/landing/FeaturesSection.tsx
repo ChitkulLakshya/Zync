@@ -126,11 +126,11 @@ const FeaturesSection = () => {
             </div>
           </div>
           <div className="order-1 lg:order-2">
-            <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4">
-              Create teams and projects, invite your teammates
-            </h3>
+            <h2 className="text-3xl md:text-5xl font-bold mb-6 font-serif-elegant">
+              Why teams love <span className="text-indigo-600 dark:text-indigo-400">Zync</span>
+            </h2>
             <p className="text-lg text-muted-foreground mb-6">
-              ZYNC allows you to create tasks and events at the team level or the project level.
+              Zync allows you to create tasks and events at the team level or the project level.
               Invite people from different teams, assign tasks to them, schedule appointments, and track progress.
             </p>
             <div className="space-y-3">
@@ -188,8 +188,8 @@ const FeaturesSection = () => {
                     <div
                       key={i}
                       className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm transition-colors ${day < 1 || day > 31 ? "text-muted-foreground/30" :
-                          isToday ? "bg-primary text-primary-foreground font-semibold" :
-                            "text-foreground hover:bg-secondary"
+                        isToday ? "bg-primary text-primary-foreground font-semibold" :
+                          "text-foreground hover:bg-secondary"
                         }`}
                     >
                       {day >= 1 && day <= 31 && (

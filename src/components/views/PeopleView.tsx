@@ -45,9 +45,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
 
     // Load Preferences
     useEffect(() => {
-        const storedWidth = localStorage.getItem('ZYNC-people-sidebar-width');
+        const storedWidth = localStorage.getItem('zync-people-sidebar-width');
         if (storedWidth) setSidebarWidth(parseInt(storedWidth));
-        const storedCollapsed = localStorage.getItem('ZYNC-people-sidebar-collapsed');
+        const storedCollapsed = localStorage.getItem('zync-people-sidebar-collapsed');
         if (storedCollapsed) setIsCollapsed(storedCollapsed === 'true');
     }, []);
 

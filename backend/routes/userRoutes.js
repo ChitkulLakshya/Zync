@@ -4,13 +4,13 @@ const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const { encrypt } = require('../utils/encryption');
 // const { sendEmail } = require('../utils/emailService'); // Replaced by mailer
-const { sendZYNCEmail } = require('../services/mailer');
+const { sendZyncEmail } = require('../services/mailer');
 // const { Resend } = require('resend'); // Removed
 // const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
 
 // Helper to send email
 const sendVerificationEmail = async (email, code) => {
-  return sendZYNCEmail(
+  return sendZyncEmail(
     email,
     'Phone Verification Code',
     `<b>Your verification code is: ${code}</b>`,

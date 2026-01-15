@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { Groq } = require('groq-sdk');
 const Project = require('../models/Project');
-const { sendZYNCEmail } = require('../services/mailer');
+const { sendZyncEmail } = require('../services/mailer');
 const User = require('../models/User');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');

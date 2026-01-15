@@ -13,7 +13,7 @@ const TrustSection = () => {
     <section className="py-12 bg-background border-y border-border/50">
       <div className="container mx-auto px-4">
         <p className="text-center text-muted-foreground text-sm mb-8">
-          Today <span className="font-semibold text-foreground">14,297</span> companies worldwide are using ZYNC to increase their productivity
+          Today <span className="font-semibold text-foreground">14,297</span> companies worldwide are using Zync to increase their productivity
         </p>
 
         {/* Company Logos */}

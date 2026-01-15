@@ -123,7 +123,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   useEffect(() => {
     if (!isPreview) {
-      localStorage.setItem("ZYNC-active-section", activeSection);
+      localStorage.setItem("zync-active-section", activeSection);
     }
   }, [activeSection, isPreview]);
 
@@ -532,6 +532,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           if (response.ok) {
             const data = await response.json();
             setUsersList(data);
+          } else {
+            const errData = await response.json().catch(() => ({}));
+            console.error(`Error fetching users: ${response.status} ${response.statusText}`, errData);
           }
         } catch (error) {
           console.error("Error fetching users:", error);

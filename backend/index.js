@@ -16,7 +16,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:8080', 'https://ZYNC-meet.vercel.app', 'http://localhost:3000'],
+    origin: ['http://localhost:5173', 'http://localhost:8080', 'https://zync-meet.vercel.app', 'http://localhost:3000'],
     methods: ["GET", "POST"]
   }
 });
@@ -106,7 +106,7 @@ app.use('/api/dribbble', require('./routes/dribbbleRoutes'));
 // 2. ROBUST DATABASE CONNECTION
 // ==========================================
 mongoose.connect(process.env.MONGO_URI, {
-  dbName: 'ZYNC-production', // Force connection to specific database
+  dbName: 'zync-production', // Force connection to specific database
   // These options help prevent "buffering timed out" and "ECONNRESET" errors
   serverSelectionTimeoutMS: 5000,
   socketTimeoutMS: 45000,
