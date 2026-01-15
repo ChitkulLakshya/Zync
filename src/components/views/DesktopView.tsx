@@ -73,6 +73,7 @@ import PeopleView from "./PeopleView";
 import ChatLayout from "./ChatLayout";
 import CreateProject from "@/components/dashboard/CreateProject";
 import TeamGateway from "./TeamGateway";
+import { usePresence } from "@/hooks/usePresence";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
@@ -201,7 +202,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const [loading, setLoading] = useState(true);
   const [usersList, setUsersList] = useState<any[]>([]);
-  const [userStatuses, setUserStatuses] = useState<Record<string, any>>({});
+  // const [userStatuses, setUserStatuses] = useState<Record<string, any>>({});
+  const userStatuses = usePresence(currentUser?.uid);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
 
   // Session Timer State

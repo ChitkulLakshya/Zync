@@ -7,10 +7,12 @@ import { Plus, MessageSquare, Loader2, Mail, PanelLeftClose, PanelLeftOpen } fro
 import { getFullUrl, API_BASE_URL, getUserName, getUserInitials, cn } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import TeamOnboarding from "./TeamOnboarding";
+import { CreateTeamDialog } from "./CreateTeamDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { formatDistanceToNow } from "date-fns";
 
 interface PeopleViewProps {
     users?: any[];
@@ -31,6 +33,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
     const [inviteOpen, setInviteOpen] = useState(false);
     const [inviteEmail, setInviteEmail] = useState("");
     const [inviteLoading, setInviteLoading] = useState(false);
+    const [createTeamOpen, setCreateTeamOpen] = useState(false);
 
     // Sidebar State
     const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -116,8 +119,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
     useEffect(() => {
         if (!isPreview && hasTeam) {
             const fetchUsers = async () => {
+                if (!currentUser) return;
                 try {
-                    const token = await currentUser?.getIdToken();
+                    const token = await currentUser.getIdToken();
                     const response = await fetch(`${API_BASE_URL}/api/users`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
@@ -347,9 +351,27 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                         ) : (
                             <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                 {users.map((user) => {
-                                    const status = !isPreview && userStatuses[user.uid]
-                                        ? userStatuses[user.uid].state
-                                        : user.status;
+                                    const statusData = !isPreview && userStatuses[user.uid]
+                                        ? userStatuses[user.uid]
+                                        : { status: user.status, lastSeen: user.lastSeen };
+
+                                    const status = statusData.status || 'offline';
+                                    const lastSeenDate = statusData.lastSeen ? new Date(statusData.lastSeen) : null;
+
+                                    let statusText = status;
+                                    if (lastSeenDate && !isNaN(lastSeenDate.getTime())) {
+                                        try {
+                                            const duration = formatDistanceToNow(lastSeenDate, { addSuffix: true });
+                                            if (status === 'online') {
+                                                statusText = `Online started ${duration}`;
+                                            } else {
+                                                statusText = `Offline ${duration}`;
+                                            }
+                                        } catch (e) {
+                                            // Fallback
+                                        }
+                                    }
+
                                     const displayName = getUserName(user);
 
                                     return (
@@ -369,8 +391,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                 <p className="text-xs text-muted-foreground truncate">{user.email}</p>
 
                                                 <div className="flex items-center gap-2 mt-2">
-                                                    <Badge variant="outline" className="text-[10px] px-1.5 h-5 font-normal capitalize">
-                                                        {status}
+                                                    <Badge variant="outline" className={cn("text-[10px] px-1.5 h-5 font-normal capitalize",
+                                                        status === 'online' ? "text-green-600 border-green-200 bg-green-50" : "text-muted-foreground"
+                                                    )}>
+                                                        {statusText}
                                                     </Badge>
                                                     <Button size="icon" variant="ghost" className="h-6 w-6 rounded-full" onClick={() => onChat(user)}>
                                                         <MessageSquare className="w-3 h-3" />
@@ -385,7 +409,28 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                     </div>
                 </div>
             </div>
-        </div>
+
+
+            {/* Create Team FAB */}
+            <div className="absolute bottom-6 right-6 z-50">
+                <Button
+                    size="icon"
+                    className="h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
+                    onClick={() => setCreateTeamOpen(true)}
+                >
+                    <Plus className="h-6 w-6 text-white" />
+                </Button>
+            </div>
+
+            <CreateTeamDialog
+                open={createTeamOpen}
+                onOpenChange={setCreateTeamOpen}
+                onSuccess={() => {
+                    // Refresh data
+                    window.location.reload();
+                }}
+            />
+        </div >
     );
 };
 

@@ -39,7 +39,7 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
                     ) : (
                         users.map((user) => {
                             const status = !isPreview && userStatuses[user.uid]
-                                ? userStatuses[user.uid].state
+                                ? userStatuses[user.uid].status
                                 : user.status;
                             const isSelected = selectedUser?.uid === user.uid;
 
@@ -88,7 +88,7 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
                     <ChatView
                         selectedUser={{
                             ...selectedUser,
-                            status: userStatuses[selectedUser.uid]?.state || selectedUser.status || 'offline'
+                            status: userStatuses[selectedUser.uid]?.status || selectedUser.status || 'offline'
                         }}
                     // No onBack prop needed for desktop split view
                     />

@@ -26,6 +26,7 @@ app.set('io', io);
 
 // Initialize Socket Handlers
 require('./sockets/noteSocketHandler')(io);
+require('./sockets/presenceSocketHandler')(io);
 
 
 const PORT = process.env.PORT || 5000;
