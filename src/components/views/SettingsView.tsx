@@ -255,6 +255,27 @@ const SettingsView = () => {
     }
   }, [currentUser]);
 
+  // Capture Dribbble Token from URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const dToken = params.get('dribbble_token');
+    const dUser = params.get('dribbble_user'); // Optional
+
+    if (dToken) {
+      localStorage.setItem('dribbble_token', dToken);
+      if (dUser) localStorage.setItem('dribbble_user', dUser);
+
+      toast({ title: "Connected!", description: "Dribbble account linked successfully." });
+
+      // Clear URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    if (params.get('error') === 'dribbble_auth_failed') {
+      toast({ title: "Connection Failed", description: "Could not connect to Dribbble.", variant: "destructive" });
+    }
+  }, []);
+
   // --- Profile Update Logic ---
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -667,13 +688,74 @@ const SettingsView = () => {
                       </p>
                     </div>
                   </div>
+                </div>
+
+                {/* Dribbble Connection */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 flex items-center justify-center bg-[#ea4c89] text-white rounded-full">
+                      <svg viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm6.605 4.61a8.502 8.502 0 011.93 5.314c-.281-.054-3.101-.629-5.943-.271-.065-.141-.12-.293-.184-.445a25.416 25.416 0 00-.564-1.236c3.145-1.28 4.577-3.124 4.761-3.362zM12 3.475c2.17 0 4.154.813 5.662 2.148-.152.216-1.443 1.941-4.48 3.08-1.399-2.57-2.95-4.675-3.189-5.03A8.458 8.458 0 0112 3.475zm-6.509 3.383c.247.358 1.821 2.68 3.239 5.289a29.866 29.866 0 01-4.496.643c-.02-.349-.033-.7-.033-1.056a8.468 8.468 0 011.29-4.876zm-1.637 6.47c1.764-.08 4.64.212 6.551.681.459 1.258.858 2.505 1.189 3.86a26.04 26.04 0 01-3.996 1.157c-2.486-1.6-4.008-4.226-4.008-7.149 0-.214.015-.424.03-.632.079.03.155.056.234.083zM12 20.53c-2.02 0-3.875-.712-5.327-1.921 1.251-.271 3.201-.849 5.368-1.472.261 1.05.514 2.17.755 3.328A8.466 8.466 0 0112 20.53zm0-18.995V1.53c0-.001-.001 0 0 0zm6.918 10.99l.011.393c.002.046.002.091.002.137 0 1.97-.676 3.784-1.815 5.234-.339-1.527-.678-2.978-1.015-4.329 2.571-.246 4.909.117 5.143.165-.183-.54-.429-1.052-.72-1.523-.424-.047-.98-.073-1.606-.078z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p className="font-medium">Dribbble</p>
+                      <p className="text-sm text-muted-foreground">
+                        {localStorage.getItem('dribbble_token')
+                          ? `Connected as ${localStorage.getItem('dribbble_user') || 'User'}`
+                          : "Connect your Dribbble account."}
+                      </p>
+                    </div>
+                  </div>
                   <Button
-                    variant={userData?.integrations?.github?.connected ? "destructive" : "secondary"}
-                    onClick={userData?.integrations?.github?.connected ? handleGithubDisconnect : handleGithubConnect}
-                    disabled={loading}
+                    variant={localStorage.getItem('dribbble_token') ? "destructive" : "secondary"}
+                    onClick={() => {
+                      if (localStorage.getItem('dribbble_token')) {
+                        localStorage.removeItem('dribbble_token');
+                        localStorage.removeItem('dribbble_user');
+                        toast({ title: "Disconnected", description: "Dribbble account unlinked." });
+                        window.location.reload();
+                      } else {
+                        // Use credentialed Client ID
+                        const clientId = "Z2LzX0DtUkUiTUl1T3ybs-UyTF8YFmYkmMZj1QuWMyU";
+                        const redirectUri = `${API_BASE_URL}/api/dribbble/callback`;
+                        window.location.href = `https://dribbble.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=public%20upload`;
+                      }
+                    }}
                   >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> :
-                      userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
+                    {localStorage.getItem('dribbble_token') ? "Unlink" : "Connect"}
+                  </Button>
+                </div>
+
+                {/* Dribbble Connection */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className="w-8 h-8 flex items-center justify-center font-bold text-xl text-pink-500">D</div>
+                    <div>
+                      <p className="font-medium">Dribbble</p>
+                      <p className="text-sm text-muted-foreground">
+                        {localStorage.getItem('dribbble_token')
+                          ? "Connected to Dribbble"
+                          : "Connect to fetch your designs."}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant={localStorage.getItem('dribbble_token') ? "destructive" : "secondary"}
+                    onClick={() => {
+                      if (localStorage.getItem('dribbble_token')) {
+                        if (window.confirm("Disconnect from Dribbble?")) {
+                          localStorage.removeItem('dribbble_token');
+                          toast({ title: "Disconnected", description: "Dribbble account unlinked." });
+                          window.location.reload();
+                        }
+                      } else {
+                        // Redirect to backend auth flow
+                        window.location.href = `https://dribbble.com/oauth/authorize?client_id=Z2LzX0DtUkUiTUl1T3ybs-UyTF8YFmYkmMZj1QuWMyU&redirect_uri=${API_BASE_URL}/api/dribbble/callback`;
+                      }
+                    }}
+                  >
+                    {localStorage.getItem('dribbble_token') ? "Unlink" : "Connect"}
                   </Button>
                 </div>
 
