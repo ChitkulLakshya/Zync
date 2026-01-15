@@ -5,6 +5,17 @@ Zync is a production-grade collaboration platform designed to unify project mana
 
 ---
 
+## 📚 Internal Documentation
+
+For deep-dives into specific systems, refer to our internal specs:
+
+- **[API Reference (`API.md`)](./API.md)**: Detailed endpoint documentation (Auth, Payloads, Responses).
+- **[System Architecture (`ARCHITECTURE.md`)](./ARCHITECTURE.md)**: Data flows, View-Controller mappings, and Meeting Logic diagrams.
+- **[Database Schema (`ERD.md`)](./ERD.md)**: Reverse-engineered Entity Relationship Diagram (Mongoose & Prisma).
+- **[System Audit (`AUDIT.md`)](./AUDIT.md)**: A technical audit of the hybrid database architecture and AI logic.
+
+---
+
 ## 🛠️ Deep-Dive Tech Stack
 
 ### Frontend Architecture (`src/`)
