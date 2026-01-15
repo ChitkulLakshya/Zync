@@ -13,6 +13,7 @@ For deep-dives into specific systems, refer to our internal specs:
 - **[System Architecture (`ARCHITECTURE.md`)](./ARCHITECTURE.md)**: Data flows, View-Controller mappings, and Meeting Logic diagrams.
 - **[Database Schema (`ERD.md`)](./ERD.md)**: Reverse-engineered Entity Relationship Diagram (Mongoose & Prisma).
 - **[System Audit (`AUDIT.md`)](./AUDIT.md)**: A technical audit of the hybrid database architecture and AI logic.
+- **[Design Setup (`DRIBBBLE_SETUP.md`)](./DRIBBBLE_SETUP.md)**: Configuration guide for Unsplash, Pinterest, and Behance integrations.
 
 ---
 
@@ -109,7 +110,11 @@ erDiagram
     1.  Prompt Engineering: We wrap this input in a "System Architect" persona prompt.
     2.  LLM Call: Sent to Google Gemini Pro.
     3.  JSON Parsing: The AI returns a structured JSON object containing Phases (Frontend/Backend) and specific actionable Tasks.
-    4.  Persistence: This JSON is hydrated into the `Project` Mongoose model and saved.
+4.  Persistence: This JSON is hydrated into the `Project` Mongoose model and saved.
+
+### 4. Design Inspiration Engine
+*   **Sources**: Aggregates creative work from **Unsplash**, **Pinterest**, and **Behance**.
+*   **Mechanism**: Uses official APIs (Pinterest/Unsplash) and RSS feeds (Behance) to create a unified searchable feed for localized design research without leaving the app.
 
 ---
 
@@ -134,7 +139,9 @@ Combine these variables into your `.env` files.
 | `GITHUB_WEBHOOK_SECRET` | Secret you set in GitHub Webhook settings |
 | `GEMINI_API_KEY` | Google AI Studio Key |
 | `GROQ_API_KEY` | Groq Cloud Key |
-| `DRIBBBLE_ACCESS_TOKEN` | Client Access Token for Dribbble API |
+| `UNSPLASH_ACCESS_KEY` | Unsplash Client ID for image search |
+| `PINTEREST_TOKEN` | Pinterest User Access Token (Bearer) |
+| `PINTEREST_BOARD_ID` | Specific board ID to fetch pins from |
 
 ### 2. Frontend (`.env`)
 
