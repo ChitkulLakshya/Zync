@@ -1,131 +1,54 @@
-# Backend Architecture Audit Report
+# System Audit Report 🛡️
 
-## 1. Prisma Audit: **CONFIRMED USE** ⚠️
+> **Date**: 2026-01-15
+> **Scope**: Full Repository Analysis
 
-Documentation that states Zync is "Strictly Mongoose/MongoDB" is **INCORRECT**.
+## 1. Database Architecture: **Hybrid (Risk: Medium)**
 
-The project uses a **Hybrid Database Architecture**:
-1.  **MongoDB (via Mongoose)**: This is the primary database for Users, Projects, Notes, and Sessions.
-2.  **MongoDB (via Prisma/Postgres Adapter?)**: The project contains a `schema.prisma` file, and `prisma` is actively used in the **GitHub Sync Engine** (`githubAppWebhook.js`) and **Task Synchronization** (`linkRoutes.js`).
+The project uses two database ORMs simultaneously, which increases complexity and potential for data desync.
 
-**Evidence:**
--   `backend/prisma/schema.prisma` exists.
--   `backend/lib/prisma.js` initializes the client.
--   `backend/routes/githubAppWebhook.js` imports `prisma` and performs `upsert` on `Repository` and `update` on `Task`.
+*   **Primary (Mongoose)**: Handles 90% of the app (Users, Projects, Notes).
+*   **Secondary (Prisma)**: Used *strictly* for the `GitHub Sync Engine`.
+    *   **Risk**: The `Task` entity exists in both MongoDB (embedded in Project) and Prisma (as a table). The Webhook updates Prisma, but the Frontend reads from Mongoose.
+    *   **Mitigation**: Ensure `linkRoutes.js` or `socket.io` events strictly keep these in sync.
 
-**architectural Note**: It appears `Prisma` is being used to mirror or handle specific relational data (like GitHub Repo <-> Task mappings) that might require SQL-like consistency or was part of a specific feature implementation, while the core app uses Mongoose.
+## 2. Code Quality & Organization
 
----
+### Dead Code 💀
+*   **`backend/routes/githubRoutes.js`**: This file is **UNUSED**.
+    *   *Evidence*: `backend/index.js` imports `routes/github` (which resolves to `github.js`). `githubRoutes.js` is a duplicate/legacy file and should be deleted to avoid confusion.
 
-## 2. Project Creation Logic
+### Architectural Patterns 🏗️
+*   **"Fat Routes" Anti-Pattern**:
+    *   Most business logic (Project Generation, Meet Invite, GitHub OAuth) is written directly inside `backend/routes/*.js` files.
+    *   **Exception**: `inspirationController.js` is the *only* controller used (by `designRoutes.js`).
+    *   **recommendation**: Refactor route logic into dedicated logic/service files to improve testability.
 
-The AI Project Generation flow is handled by **Mongoose**.
+### Dependency Check 📦
+*   **Root `package.json`**:
+    *   Contains `firebase-admin`. **Warning**: This SDK is for server-side use. Including it in the frontend bundle (even if unused) bloats the size and might trigger build warnings.
+*   **Backend `package.json`**:
+    *   Using `express@^5.2.1`. This is valid but ensure compatibility with all middleware.
 
-**Endpoint**: `POST /api/generate-project`
-**File**: `backend/routes/generateProjectRoutes.js`
-**Frontend Call**: `CreateProject.tsx` calls `${API_BASE_URL}/api/generate-project`.
+## 3. Security Audit 🔒
 
-**Step-by-Step Flow:**
-1.  **Request**: Receives `{ name, description, ownerId }`.
-2.  **AI Inference**: Calls `GoogleGenerativeAI` (Gemini Model: `gemini-2.0-flash-exp`) with a system prompt to return a JSON structure.
-3.  **Parsing**: The text response is parsed into a JSON object (`generatedData`).
-4.  **Transformation**: The AI's `steps` array is mapped to match the Mongoose sub-document schema.
-5.  **Persistence (Mongoose)**:
-    ```javascript
-    // Line 103 in generateProjectRoutes.js
-    const newProject = new Project({
-      name,
-      description,
-      ownerId: ownerId || 'anonymous',
-      architecture: generatedData.architecture || {},
-      steps: steps, // Mapped array
-      team: []
-    });
+| Check | Status | Notes |
+| :--- | :--- | :--- |
+| **Headers** | ✅ Pass | `helmet` is configured with strict CSP in `index.js`. |
+| **Auth** | ✅ Pass | `verifyToken` (Firebase Admin) middleware protects key routes. |
+| **Tokens** | ✅ Pass | OAuth tokens are **AES-256 Encrypted** before storage in MongoDB. |
+| **Webhooks** | ✅ Pass | GitHub Webhook validates `HMAC SHA-256` signature. |
+| **Secrets** | ⚠️ Note | Ensure `ENCRYPTION_KEY` is high-entropy in production. |
 
-    await newProject.save(); // Saves to MongoDB
-    ```
-6.  **Response**: Returns the fully created MongoDB document.
+## 4. Frontend Internal Audit
 
-*Conclusion*: Project generation **strictly uses Mongoose**. Prisma is NOT involved in this specific flow.
+*   **State Management**:
+    *   Uses **Hooks-over-Context** approach (`useUserSync`). This is cleaner than massive Context Providers but makes centralized debugging slightly harder.
+*   **Performance**:
+    *   `react-big-calendar` and `blocknote` are heavy dependencies. Ensure code-splitting is active (Vite handles this well by default).
 
----
+## 5. Action Plan
 
-## 3. Entity Relationship Diagram (ERD)
-
-Based on `backend/models/*.js` (Mongoose) and `backend/prisma/schema.prisma` (Prisma).
-
-```mermaid
-erDiagram
-    %% MONGOOSE MODELS
-    User ||--o{ Project : "owns"
-    User ||--o{ Note : "creates"
-    User ||--o{ Session : "has"
-    
-    Project ||--o{ Step : "embeds"
-    Step ||--o{ Task : "embeds"
-    
-    %% PRISMA MODELS (Shadow/Sync DB)
-    PrismaRepository ||--o{ PrismaTask : "syncs"
-    
-    %% DEFINITIONS
-    User {
-        string uid PK "Firebase UID"
-        string email
-        object integrations "Github/Google Tokens"
-        string role "user|admin"
-    }
-    
-    Project {
-        ObjectId _id PK
-        string name
-        string ownerId FK "User.uid"
-        string[] team "Array of User UIDs"
-        json architecture
-        Step[] steps
-    }
-
-    Step {
-        string id
-        string title
-        Task[] tasks
-    }
-
-    Task {
-        string id
-        string title
-        string status
-        string assignedTo "User UID"
-    }
-
-    Note {
-        ObjectId _id PK
-        string title
-        json content "BlockNote JSON"
-        string ownerId FK "User.uid"
-        string projectId FK "Project._id"
-    }
-
-    Session {
-        ObjectId _id PK
-        string userId FK "User.uid"
-        int duration
-        date startTime
-    }
-
-    %% Prisma Entities (Used for Webhooks)
-    PrismaTask {
-        String id PK
-        String displayId UK
-        String[] repoIds
-        String status
-    }
-    
-    PrismaRepository {
-        String id PK
-        String githubRepoId UK
-        String repoName
-    }
-```
-
-### Key Observation on Data Duplication
-There is an overlap between the **Embedded Tasks** in `Project` (Mongoose) and the **PrismaTask** model. The `githubAppWebhook.js` updates tasks via Prisma using `displayId`. This suggests a potential synchronization challenge where updates in one DB (Prisma - via Webhook) need to reflect in the other (Mongoose - via UI).
+1.  **Delete** `backend/routes/githubRoutes.js`.
+2.  **Move** `firebase-admin` from Root `dependencies` to Backend `dependencies` (if not already there) or `devDependencies` if used for scripts.
+3.  **Refactor** `projectRoutes.js` to extract the Gemini AI logic into `services/aiService.js`.
