@@ -29,6 +29,7 @@ const DesignView = () => {
 
   const [query, setQuery] = useState(savedState?.query || "web design");
   const [items, setItems] = useState<DesignItem[]>(savedState?.items || []);
+  const [selectedCategory, setSelectedCategory] = useState<string>(savedState?.selectedCategory || "All");
   const [loading, setLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -38,10 +39,11 @@ const DesignView = () => {
     const stateToSave = {
       query,
       items,
+      selectedCategory,
       scrollTop: scrollRef.current?.scrollTop || 0
     };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [query, items]);
+  }, [query, items, selectedCategory]);
 
   // Save scroll position specifically on scroll
   const handleScroll = () => {
@@ -145,37 +147,53 @@ const DesignView = () => {
         </Button>
       </form>
 
+      {/* Category Filters */}
+      <div className="flex flex-wrap gap-2">
+        {["All", "Dribbble", "Behance", "Unsplash", "Pinterest"].map((category) => (
+          <Badge
+            key={category}
+            variant={selectedCategory === category ? "default" : "outline"}
+            className="cursor-pointer px-4 py-1.5 text-sm hover:opacity-80 transition-opacity"
+            onClick={() => setSelectedCategory(category)}
+          >
+            {category}
+          </Badge>
+        ))}
+      </div>
+
       {/* Masonry Layout using simple CSS columns */}
       <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4 space-y-4">
-        {items.map((item, index) => (
-          <div key={`${item.id}-${index}`} className="break-inside-avoid relative group rounded-lg overflow-hidden border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow">
-            <a href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="block">
-              {item.image ? (
-                <img
-                  src={item.image}
-                  alt={item.title}
-                  className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
-                  loading="lazy"
-                  style={{ display: "block" }}
-                />
-              ) : (
-                <div className="w-full h-48 bg-muted flex items-center justify-center text-muted-foreground">
-                  No Image
-                </div>
-              )}
+        {items
+          .filter(item => selectedCategory === "All" || item.source.toLowerCase() === selectedCategory.toLowerCase())
+          .map((item, index) => (
+            <div key={`${item.id}-${index}`} className="break-inside-avoid relative group rounded-lg overflow-hidden border bg-card text-card-foreground shadow-sm hover:shadow-md transition-shadow">
+              <a href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="block">
+                {item.image ? (
+                  <img
+                    src={item.image}
+                    alt={item.title}
+                    className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
+                    loading="lazy"
+                    style={{ display: "block" }}
+                  />
+                ) : (
+                  <div className="w-full h-48 bg-muted flex items-center justify-center text-muted-foreground">
+                    No Image
+                  </div>
+                )}
 
-              <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
-                <div className="text-white font-medium line-clamp-2 mb-2">{item.title}</div>
-                <div className="flex justify-between items-center">
-                  <Badge variant="secondary" className="capitalize bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">
-                    {item.source}
-                  </Badge>
-                  <ExternalLink className="h-4 w-4 text-white" />
+                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                  <div className="text-white font-medium line-clamp-2 mb-2">{item.title}</div>
+                  <div className="flex justify-between items-center">
+                    <Badge variant="secondary" className="capitalize bg-white/20 hover:bg-white/30 text-white border-0 backdrop-blur-sm">
+                      {item.source}
+                    </Badge>
+                    <ExternalLink className="h-4 w-4 text-white" />
+                  </div>
                 </div>
-              </div>
-            </a>
-          </div>
-        ))}
+              </a>
+            </div>
+          ))}
       </div>
 
       {!loading && items.length === 0 && (
