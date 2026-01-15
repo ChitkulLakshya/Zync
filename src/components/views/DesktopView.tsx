@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import {
   Search,
@@ -23,7 +23,9 @@ import {
   Star,
   Github,
   Trash2,
-  Send
+  Send,
+  ChevronsLeft,
+  ChevronsRight
 } from "lucide-react";
 import { getUserName, getUserInitials } from "@/lib/utils";
 import { NotesView } from "@/components/notes/NotesView";
@@ -74,12 +76,35 @@ import ChatLayout from "./ChatLayout";
 import CreateProject from "@/components/dashboard/CreateProject";
 import TeamGateway from "./TeamGateway";
 import { usePresence } from "@/hooks/usePresence";
+import {
+  PanelResizeHandle,
+  Panel,
+  PanelGroup,
+  ImperativePanelHandle
+} from "react-resizable-panels";
+import { cn } from "@/lib/utils";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [activeSection, setActiveSection] = useState(() => {
     if (isPreview) return "My Workspace";
     return localStorage.getItem("zync-active-section") || "Dashboard";
   });
+
+
+
+  const sidebarRef = useRef<ImperativePanelHandle>(null);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
+  const toggleSidebar = () => {
+    const panel = sidebarRef.current;
+    if (panel) {
+      if (isCollapsed) {
+        panel.expand();
+      } else {
+        panel.collapse();
+      }
+    }
+  };
 
   useEffect(() => {
     if (!isPreview) {
@@ -858,137 +883,176 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
 
   return (
-    <div className={`flex bg-background text-foreground ${activeSection === "Chat" ? "h-screen overflow-hidden" : "min-h-screen"}`}>
-
-      {/* Sidebar */}
-      <div className="w-64 bg-secondary/30 border-r border-border/50 flex flex-col sticky top-0 h-screen">
-
-        <div className="p-4 flex items-center gap-2 border-b border-border/50">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold">
-            Z
-          </div>
-          <span className="font-bold text-lg">Zync</span>
-          <ChevronDown className="w-4 h-4 ml-auto text-muted-foreground" />
-        </div>
-
-        <div className="flex-1 overflow-y-auto py-4">
-          <div className="px-3 mb-2">
+    <div className={`h-screen w-full bg-background text-foreground overflow-hidden`}>
+      <PanelGroup direction="horizontal">
+        <Panel
+          ref={sidebarRef}
+          defaultSize={16}
+          minSize={4}
+          maxSize={20}
+          collapsible={true}
+          collapsedSize={4}
+          onCollapse={() => setIsCollapsed(true)}
+          onExpand={() => setIsCollapsed(false)}
+          className={cn(
+            "bg-secondary/30 border-r border-border/50 flex flex-col transition-all duration-300 ease-in-out",
+            isCollapsed && "min-w-[50px]"
+          )}
+        >
+          <div className={cn("p-4 flex items-center gap-2 border-b border-border/50", isCollapsed ? "justify-center p-2" : "")}>
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
+              Z
+            </div>
+            {!isCollapsed && (
+              <>
+                <span className="font-bold text-lg truncate">Zync</span>
+              </>
+            )}
             <Button
-              className="w-full justify-start gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => handleSectionChange("New Project")}
+              variant="ghost"
+              size="icon"
+              className={cn("ml-auto h-8 w-8 text-muted-foreground", isCollapsed && "ml-0")}
+              onClick={toggleSidebar}
             >
-              <Plus className="w-4 h-4" />
-              Create new project
+              {isCollapsed ? <ChevronsRight className="w-4 h-4" /> : <ChevronsLeft className="w-4 h-4" />}
             </Button>
           </div>
 
-          <nav className="space-y-1 px-2">
-            {sidebarItems.map((item, index) => (
-              <div key={index}>
-                <Button
-                  variant={item.active ? "secondary" : "ghost"}
-                  className={`w-full justify-start gap-3 ${item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground"}`}
-                  onClick={() => handleSectionChange(item.label)}
-                >
-                  <item.icon className="w-4 h-4" />
-                  {item.label}
-                </Button>
-                {item.children && item.active && (
-                  <div className="ml-9 mt-1 space-y-1">
-                    {item.children.map((child, childIndex) => (
-                      <div
-                        key={childIndex}
-                        className="text-sm text-muted-foreground hover:text-foreground py-1 cursor-pointer"
-                      >
-                        {child.label}
+          <div className="flex-1 overflow-y-auto py-4">
+            <div className={cn("px-3 mb-2", isCollapsed ? "px-2" : "")}>
+              <Button
+                className={cn(
+                  "w-full bg-primary text-primary-foreground hover:bg-primary/90",
+                  isCollapsed ? "justify-center px-0" : "justify-start gap-2"
+                )}
+                onClick={() => handleSectionChange("New Project")}
+                title="Create new project"
+              >
+                <Plus className="w-4 h-4" />
+                {!isCollapsed && "Create new project"}
+              </Button>
+            </div>
+
+            <nav className="space-y-1 px-2">
+              {sidebarItems.map((item, index) => (
+                <div key={index}>
+                  <Button
+                    variant={item.active ? "secondary" : "ghost"}
+                    className={cn(
+                      "w-full",
+                      item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
+                      isCollapsed ? "justify-center px-0" : "justify-start gap-3"
+                    )}
+                    onClick={() => handleSectionChange(item.label)}
+                    title={item.label}
+                  >
+                    <item.icon className="w-4 h-4 shrink-0" />
+                    {!isCollapsed && item.label}
+                  </Button>
+                  {!isCollapsed && item.children && item.active && (
+                    <div className="ml-9 mt-1 space-y-1">
+                      {item.children.map((child, childIndex) => (
+                        <div
+                          key={childIndex}
+                          className="text-sm text-muted-foreground hover:text-foreground py-1 cursor-pointer"
+                        >
+                          {child.label}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </nav>
+          </div>
+
+          <div className={cn("p-4 border-t border-border/50", isCollapsed ? "p-2 items-center flex justify-center" : "")}>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <div className={cn("flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md", isCollapsed ? "justify-center" : "")}>
+                  <Avatar className="w-8 h-8 shrink-0">
+                    <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
+                      {isPreview ? "JD" : getUserInitials(userData || currentUser)}
+                    </AvatarFallback>
+                  </Avatar>
+                  {!isCollapsed && (
+                    <>
+                      <div className="flex-1 overflow-hidden">
+                        <div className="text-sm font-medium truncate">
+                          {isPreview ? "John Doe" : getUserName(userData || currentUser)}
+                        </div>
+                        <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
                       </div>
-                    ))}
-                  </div>
+                      <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
+                    </>
+                  )}
+                </div>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handleSectionChange("Settings")}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={async () => {
+                  if (isPreview) return;
+                  localStorage.removeItem("zync-active-section");
+                  await signOut(auth);
+                  navigate("/login");
+                }} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Sign out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </Panel>
+
+        <PanelResizeHandle />
+
+        <Panel defaultSize={84}>
+          <div className={`flex flex-col h-full ${activeSection === "Chat" ? "overflow-hidden" : ""}`}>
+            {/* Global Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background shrink-0">
+              <div className="flex items-center gap-4">
+                {(activeSection === "My Workspace" || activeSection === "Dashboard") ? (
+                  <>
+                    <span className="font-semibold text-foreground">Tools</span>
+                    <Button size="sm" variant="hero" onClick={() => handleSectionChange("New Project")}>+ Add new</Button>
+                    <div className="flex gap-2">
+                      <span className="px-3 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full cursor-pointer">Week view</span>
+                      <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full cursor-pointer">Today</span>
+                      <span className="px-3 py-1 text-muted-foreground text-xs font-medium rounded-full hover:bg-secondary cursor-pointer">Filters</span>
+                    </div>
+                  </>
+                ) : (
+                  <h2 className="text-lg font-semibold text-foreground">{activeSection}</h2>
                 )}
               </div>
-            ))}
-          </nav>
-        </div>
-
-        <div className="p-4 border-t border-border/50">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <div className="flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md">
-                <Avatar className="w-8 h-8">
-                  <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-                    {isPreview ? "JD" : getUserInitials(userData || currentUser)}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 overflow-hidden">
-                  <div className="text-sm font-medium truncate">
-                    {isPreview ? "John Doe" : getUserName(userData || currentUser)}
-                  </div>
-                  <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-full">
+                  <Clock className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium text-foreground">{elapsedTime}</span>
                 </div>
-                <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-              </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>My Account</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handleSectionChange("Settings")}>
-                <Settings className="mr-2 h-4 w-4" />
-                <span>Settings</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={async () => {
-                if (isPreview) return;
-                localStorage.removeItem("zync-active-section");
-                await signOut(auth);
-                navigate("/login");
-              }} className="text-destructive focus:text-destructive">
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Sign out</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className={`flex-1 flex flex-col ${activeSection === "Chat" ? "overflow-hidden" : ""}`}>
-
-        {/* Global Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background shrink-0">
-          <div className="flex items-center gap-4">
-            {(activeSection === "My Workspace" || activeSection === "Dashboard") ? (
-              <>
-                <span className="font-semibold text-foreground">Tools</span>
-                <Button size="sm" variant="hero" onClick={() => handleSectionChange("New Project")}>+ Add new</Button>
-                <div className="flex gap-2">
-                  <span className="px-3 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full cursor-pointer">Week view</span>
-                  <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full cursor-pointer">Today</span>
-                  <span className="px-3 py-1 text-muted-foreground text-xs font-medium rounded-full hover:bg-secondary cursor-pointer">Filters</span>
+                <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
+                <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
+                {!isPreview && <ThemeToggle />}
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
+                  {isPreview ? "JD" : getUserInitials(userData || currentUser)}
                 </div>
-              </>
-            ) : (
-              <h2 className="text-lg font-semibold text-foreground">{activeSection}</h2>
-            )}
+              </div >
+            </div >
+
+            {renderContent()}
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-full">
-              <Clock className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-foreground">{elapsedTime}</span>
-            </div>
-            <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
-            <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
-            {!isPreview && <ThemeToggle />}
-            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-              {isPreview ? "JD" : getUserInitials(userData || currentUser)}
-            </div>
-          </div >
-        </div >
-
-        {renderContent()}
-      </div >
-    </div >
+        </Panel>
+      </PanelGroup>
+    </div>
   );
 };
 
 export default DesktopView;
+

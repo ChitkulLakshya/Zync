@@ -5,16 +5,18 @@ import { CheckSquare, Loader2, FolderKanban } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import TaskDetailDrawer from "./TaskDetailDrawer";
 
 interface TasksViewProps {
     currentUser: any;
     users?: any[];
 }
 
-interface FlattenedTask {
+export interface FlattenedTask {
     id: string; // This should be the functional ID for the view (can be _id)
     _id: string; // The real Mongoose ID
     title: string;
+    description?: string;
     status: string;
     projectName: string;
     projectId: string;
@@ -22,11 +24,14 @@ interface FlattenedTask {
     stepId: string;
     assignedTo?: string;
     assignedToName?: string;
+    createdAt?: string;
 }
 
 const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
     const [loading, setLoading] = useState(true);
     const [tasks, setTasks] = useState<FlattenedTask[]>([]);
+    const [selectedTask, setSelectedTask] = useState<FlattenedTask | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { toast } = useToast();
 
     // Refresh function
@@ -41,13 +46,15 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                         id: t._id || t.id || `${p._id}-${step.id || step.name}-${idx}`,
                         _id: t._id, // Ensure we have the DB ID
                         title: t.title || t.name || t,
+                        description: t.description,
                         status: t.status || "pending",
                         projectName: p.name,
                         projectId: p._id,
                         stepName: step.title || step.name,
                         stepId: step._id || step.id,
                         assignedTo: t.assignedTo,
-                        assignedToName: t.assignedToName
+                        assignedToName: t.assignedToName,
+                        createdAt: t.createdAt
                     }))
                 )
             );
@@ -70,6 +77,11 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
             setLoading(false);
         }
     }, [currentUser]);
+
+    const handleTaskClick = (task: FlattenedTask) => {
+        setSelectedTask(task);
+        setIsDrawerOpen(true);
+    };
 
     if (loading) {
         return (
@@ -102,7 +114,11 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                 <ScrollArea className="flex-1 pr-4">
                     <div className="grid gap-4">
                         {tasks.map((task) => (
-                            <Card key={task.id} className="hover:bg-secondary/10 transition-colors">
+                            <Card
+                                key={task.id}
+                                className="hover:bg-secondary/10 transition-colors cursor-pointer"
+                                onClick={() => handleTaskClick(task)}
+                            >
                                 <CardContent className="p-4 flex items-start gap-4">
                                     <div className="mt-1">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-muted-foreground'}`}>
@@ -122,7 +138,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                     </div>
 
                                     <div className="flex items-center gap-3">
-                                        <Badge variant={task.status === 'completed' ? 'default' : 'secondary'} className="capitalize">
+                                        <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="capitalize">
                                             {task.status}
                                         </Badge>
                                     </div>
@@ -132,6 +148,12 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                     </div>
                 </ScrollArea>
             )}
+
+            <TaskDetailDrawer
+                task={selectedTask}
+                open={isDrawerOpen}
+                onOpenChange={setIsDrawerOpen}
+            />
         </div>
     );
 };
