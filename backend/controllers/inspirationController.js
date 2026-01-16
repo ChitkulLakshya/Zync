@@ -1,6 +1,6 @@
 const axios = require('axios');
 const Parser = require('rss-parser');
-const puppeteer = require('puppeteer');
+
 
 
 const UNSPLASH_BASE = 'https://api.unsplash.com';
@@ -141,16 +141,27 @@ async function fetchBehance(query = 'web design', limit = 30) {
 
 // Express controller
 
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
+
 async function scrapeDribbble(query) {
   let browser = null;
   try {
-    console.log('DEBUG: Launching Puppeteer for Dribbble...');
+    console.log('DEBUG: Launching Stealth Puppeteer for Dribbble...');
+    // Launch options suitable for Render & Anti-bot
     browser = await puppeteer.launch({
       headless: "new",
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote']
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote', '--window-size=1920,1080']
     });
 
     const page = await browser.newPage();
+
+    // Set User-Agent to mimic real Chrome
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+
     // Use search URL if query exists, otherwise popular
     const targetUrl = query && query !== 'web design'
       ? `https://dribbble.com/search/${encodeURIComponent(query)}`
@@ -158,45 +169,42 @@ async function scrapeDribbble(query) {
 
     console.log(`DEBUG: Navigating to ${targetUrl}`);
 
-    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     try {
-      await page.waitForSelector('.shot-thumbnail', { timeout: 10000 });
+      // Robust selector wait (list item or grid container)
+      await page.waitForSelector('li.shot-thumbnail, .shots-grid', { timeout: 15000 });
     } catch (e) {
-      console.log('DEBUG: Timeout waiting for .shot-thumbnail, page might be different structure or empty.');
+      console.log('DEBUG: Timeout waiting for Dribbble selectors. Page might be blocked or empty.');
     }
 
     const shots = await page.evaluate(() => {
-      const items = Array.from(document.querySelectorAll('.shot-thumbnail')).slice(0, 10);
-      return items.map(item => {
-        // Extract Title
-        const titleEl = item.querySelector('.shot-title');
-        const title = titleEl ? titleEl.innerText.trim() : 'Untitled';
+      const results = [];
+      // Try multiple selectors as Dribbble classes change often
+      const items = document.querySelectorAll('li.shot-thumbnail, .shot-thumbnail');
 
-        // Extract Link - The main anchor usually wraps the thumbnail or is separate
-        // Look for the main link inside the thumbnail container
-        const linkEl = item.querySelector('a.dribbble-link') || item.querySelector('a');
-        const link = linkEl ? linkEl.href : null;
+      items.forEach(item => {
+        const linkEl = item.querySelector('a.dribbble-link, a.shot-thumbnail-link');
+        const imgEl = item.querySelector('img');
+        const titleEl = item.querySelector('.shot-title, .shot-details-title');
 
-        // Extract Image
-        // Try <picture> <source> first (high res), then <img>
-        let image = 'https://via.placeholder.com/600x400?text=No+Preview';
-        const pictureSource = item.querySelector('picture source');
-        const imgTag = item.querySelector('img');
+        if (linkEl && imgEl) {
+          // Get the highest res from srcset if available, else src
+          let image = imgEl.src;
+          if (imgEl.srcset) {
+            const parts = imgEl.srcset.split(',');
+            if (parts.length > 0) image = parts[0].split(' ')[0];
+          }
 
-        if (pictureSource && pictureSource.srcset) {
-          image = pictureSource.srcset.split(',')[0].split(' ')[0]; // Take first URL
-        } else if (imgTag) {
-          image = imgTag.src;
+          results.push({
+            title: titleEl ? titleEl.innerText.trim() : 'Design Inspiration',
+            link: linkEl.href,
+            image: image,
+            source: 'Dribbble'
+          });
         }
-
-        return {
-          title,
-          link,
-          image,
-          source: 'Dribbble'
-        };
       });
+      return results.slice(0, 10);
     });
 
     console.log(`DEBUG: Scraped ${shots.length} shots.`);
