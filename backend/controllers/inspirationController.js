@@ -241,7 +241,7 @@ async function scrapeDribbble(query) {
           });
         }
       });
-      return results.slice(0, 15);
+      return results; // Return all shots (Dribbble loads ~136 before "Load More")
     });
 
     console.log(`DEBUG: Scraped ${shots.length} shots.`);
