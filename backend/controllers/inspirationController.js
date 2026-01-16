@@ -2,6 +2,7 @@ const axios = require('axios');
 const Parser = require('rss-parser');
 
 
+
 const UNSPLASH_BASE = 'https://api.unsplash.com';
 const PINTEREST_BASE = 'https://api.pinterest.com/v5';
 const parser = new Parser();
@@ -139,6 +140,121 @@ async function fetchBehance(query = 'web design', limit = 30) {
 }
 
 // Express controller
+
+const puppeteer = require('puppeteer-extra');
+const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+
+puppeteer.use(StealthPlugin());
+
+async function scrapeDribbble(query) {
+  let browser = null;
+  try {
+    console.log('DEBUG: Launching Stealth Puppeteer for Dribbble...');
+    // Launch options suitable for Render & Anti-bot
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote', '--window-size=1920,1080']
+    });
+
+    const page = await browser.newPage();
+
+    // Set User-Agent to mimic real Chrome
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
+    await page.setViewport({ width: 1920, height: 1080 });
+
+    // Use search URL if query exists, otherwise popular
+    const targetUrl = query && query !== 'web design'
+      ? `https://dribbble.com/search/${encodeURIComponent(query)}`
+      : 'https://dribbble.com/shots/popular';
+
+    console.log(`DEBUG: Navigating to ${targetUrl}`);
+
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    try {
+      // Robust selector wait (list item or grid container)
+      await page.waitForSelector('li.shot-thumbnail, .shots-grid', { timeout: 15000 });
+    } catch (e) {
+      console.log('DEBUG: Timeout waiting for Dribbble selectors. Page might be blocked or empty.');
+    }
+
+    // Scroll down to trigger infinite scroll and load more shots
+    console.log('DEBUG: Scrolling to load more shots...');
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+      // Wait for new content to load
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+    // Scroll back to top so all images are in a known state
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const shots = await page.evaluate(() => {
+      const results = [];
+      // Use the exact selectors from Dribbble's HTML structure
+      const items = document.querySelectorAll('li.shot-thumbnail.js-thumbnail');
+
+      items.forEach(item => {
+        // Link is in the overlay or base
+        const linkEl = item.querySelector('a.shot-thumbnail-link.dribbble-link');
+        // Title is in the overlay content
+        const titleEl = item.querySelector('div.shot-title');
+        // Image is in the figure placeholder
+        const imgEl = item.querySelector('figure.js-thumbnail-placeholder img');
+
+        let image = null;
+
+        if (imgEl) {
+          // Dribbble uses lazy loading: data-srcset/data-src for most images
+          // First few have srcset directly (fetchpriority="high")
+          // Priority: data-srcset -> srcset -> data-src -> src (avoiding data: placeholders)
+          const dataSrcset = imgEl.getAttribute('data-srcset');
+          const srcset = imgEl.getAttribute('srcset');
+          const dataSrc = imgEl.getAttribute('data-src');
+          const src = imgEl.getAttribute('src');
+
+          if (dataSrcset) {
+            // Get highest quality from srcset (first entry is usually smallest, grab a middle one)
+            const parts = dataSrcset.split(',');
+            // Get ~400px version which is good quality but not huge
+            const match400 = parts.find(p => p.includes('400x300'));
+            image = match400 ? match400.trim().split(' ')[0] : parts[0].trim().split(' ')[0];
+          } else if (srcset) {
+            const parts = srcset.split(',');
+            const match400 = parts.find(p => p.includes('400x300'));
+            image = match400 ? match400.trim().split(' ')[0] : parts[0].trim().split(' ')[0];
+          } else if (dataSrc && !dataSrc.startsWith('data:')) {
+            image = dataSrc;
+          } else if (src && !src.startsWith('data:')) {
+            image = src;
+          }
+        }
+
+        if (linkEl && image) {
+          results.push({
+            title: titleEl ? titleEl.innerText.trim() : 'Design Inspiration',
+            link: linkEl.href,
+            image: image,
+            source: 'Dribbble'
+          });
+        }
+      });
+      return results; // Return all shots (Dribbble loads ~136 before "Load More")
+    });
+
+    console.log(`DEBUG: Scraped ${shots.length} shots.`);
+    return shots.map((s, i) => ({ ...s, id: `dribbble_scraped_${i}` }));
+
+  } catch (error) {
+    console.error('DEBUG: Puppeteer Scrape Error:', error.message);
+    return [];
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
 async function getInspiration(req, res) {
   // Simple checkLog to verify keys safely
   console.log("Pinterest Config Loaded:", {
@@ -155,73 +271,22 @@ async function getInspiration(req, res) {
   const pinterestToken = req.header('x-pinterest-token') || process.env.PINTEREST_TOKEN;
 
   try {
-    const [unsplash, pinterest, behance, dribbble] = await Promise.all([
-      fetchUnsplash(q, unsplashPage, unsplashPer).catch(e => { console.error('Unsplash error', e.message); return []; }),
-      (async () => {
-        try {
-          return await fetchPinterest(pinterestBoard, pinterestToken, q, 100);
-        } catch (e) {
-          console.error('Pinterest error', e.message);
-          return [];
-        }
-      })(),
+    const results = await Promise.allSettled([
+      fetchUnsplash(q, unsplashPage, unsplashPer),
+      fetchPinterest(pinterestBoard, pinterestToken, q, 100),
       fetchBehance(q, 50),
-      (async () => {
-        try {
-          // 1. Try RSS Search first (prioritize user query)
-          const tags = q.replace(/\s+/g, '-');
-          const feedUrl = `https://dribbble.com/shots/popular.rss?tag=${encodeURIComponent(tags)}`;
-          console.log(`DEBUG: Fetching Dribbble RSS: ${feedUrl}`);
-
-          const feed = await parser.parseURL(feedUrl);
-
-          if (feed.items && feed.items.length > 0) {
-            return feed.items.map((item, index) => {
-              let image = 'https://via.placeholder.com/600x400?text=No+Preview';
-              // Regex to find image src in the content HTML
-              const imgMatch = item.content?.match(/<img[^>]+src=["']([^"']+)["']/);
-              if (imgMatch && imgMatch[1]) image = imgMatch[1];
-
-              return {
-                id: `dribbble_rss_${index}`,
-                source: 'dribbble',
-                title: item.title,
-                image: image,
-                link: item.link,
-                creator: item.creator || 'Dribbble Designer'
-              };
-            });
-          }
-        } catch (e) {
-          console.error('DEBUG: Dribbble RSS Error:', e.message);
-        }
-
-        // 2. Fallback to API (if RSS failed OR returned 0 items, AND we have a token)
-        const dToken = req.header('x-dribbble-token');
-        if (dToken) {
-          try {
-            console.log('DEBUG: Fallback to Dribbble API (My Shots)...');
-            const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
-              headers: { Authorization: `Bearer ${dToken}` },
-              params: { per_page: 30 }
-            });
-
-            return resp.data.map(shot => ({
-              id: `dribbble_${shot.id}`,
-              source: 'dribbble',
-              title: shot.title,
-              image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser,
-              link: shot.html_url,
-              creator: 'Me'
-            }));
-          } catch (e) {
-            console.error('DEBUG: Dribbble API error:', e.response?.data || e.message);
-          }
-        }
-
-        return [];
-      })()
+      scrapeDribbble(q)
     ]);
+
+    const unsplash = results[0].status === 'fulfilled' ? results[0].value : [];
+    const pinterest = results[1].status === 'fulfilled' ? results[1].value : [];
+    const behance = results[2].status === 'fulfilled' ? results[2].value : [];
+    const dribbble = results[3].status === 'fulfilled' ? results[3].value : [];
+
+    if (results[0].status === 'rejected') console.error('Unsplash Error:', results[0].reason?.message);
+    if (results[1].status === 'rejected') console.error('Pinterest Error:', results[1].reason?.message);
+    if (results[2].status === 'rejected') console.error('Behance Error:', results[2].reason?.message);
+    if (results[3].status === 'rejected') console.error('Dribbble Scraper Error:', results[3].reason?.message);
 
     console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}, Dribbble: ${dribbble.length}`);
 
