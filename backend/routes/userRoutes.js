@@ -74,7 +74,7 @@ router.post('/sync', async (req, res) => {
       // Send Notification Email to Admin
       // Always attempt to send if GMAIL_USER is configured (implied by sendZYNCEmail existence)
       try {
-        await sendZYNCEmail(
+        await sendZyncEmail(
           'ChitkulLakshya@gmail.com',
           '🚀 New User Joined ZYNC!',
           `
@@ -224,7 +224,7 @@ router.post('/delete/request', verifyToken, async (req, res) => {
     await user.save();
 
     // Send email
-    await sendZYNCEmail(
+    await sendZyncEmail(
       user.email,
       'Account Deletion Verification Code',
       `

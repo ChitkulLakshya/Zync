@@ -122,7 +122,7 @@ app.use('/api/dribbble', require('./routes/dribbbleRoutes'));
 mongoose.connect(process.env.MONGO_URI, {
   dbName: 'zync-production', // Force connection to specific database
   // These options help prevent "buffering timed out" and "ECONNRESET" errors
-  serverSelectionTimeoutMS: 5000,
+  serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 45000,
 })
   .then((conn) => {

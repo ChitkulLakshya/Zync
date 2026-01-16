@@ -557,4 +557,51 @@ router.get('/contributions', verifyToken, async (req, res) => {
   }
 });
 
+// GET /readme - Fetch README content for a repository
+router.get('/readme', verifyToken, async (req, res) => {
+  const { owner, repo } = req.query;
+  const uid = req.user.uid;
+
+  if (!owner || !repo) {
+    return res.status(400).json({ message: 'Owner and repo are required' });
+  }
+
+  try {
+    const user = await User.findOne({ uid });
+
+    if (!user || !user.integrations?.github?.connected || !user.integrations?.github?.installationId) {
+      return res.status(400).json({ message: 'GitHub App not installed' });
+    }
+
+    const installationId = user.integrations.github.installationId;
+    const appId = process.env.GITHUB_APP_ID;
+    let privateKey = process.env.GITHUB_PRIVATE_KEY?.replace(/\\n/g, '\n');
+
+    const { App } = await import('octokit');
+    const app = new App({ appId, privateKey });
+    const octokit = await app.getInstallationOctokit(parseInt(installationId));
+
+    try {
+      const response = await octokit.request('GET /repos/{owner}/{repo}/readme', {
+        owner,
+        repo,
+        mediaType: {
+          format: 'raw'
+        }
+      });
+      res.send(response.data);
+    } catch (err) {
+      // If README not found, return empty string or specific message
+      if (err.status === 404) {
+        return res.send("# No README found");
+      }
+      throw err;
+    }
+
+  } catch (error) {
+    console.error('Error fetching README:', error);
+    res.status(500).json({ message: 'Failed to fetch README' });
+  }
+});
+
 module.exports = router;

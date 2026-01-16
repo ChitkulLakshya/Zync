@@ -1,14 +1,144 @@
 const express = require('express');
 const router = express.Router();
-const { Groq } = require('groq-sdk');
+const { GoogleGenerativeAI } = require("@google/generative-ai"); // Changed from Groq
 const Project = require('../models/Project');
 const { sendZyncEmail } = require('../services/mailer');
 const User = require('../models/User');
 // Prisma Client with Driver Adapter
 const prisma = require('../lib/prisma');
+const axios = require('axios');
+const CryptoJS = require('crypto-js');
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-const MODEL_NAME = "llama-3.3-70b-versatile";
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY);
+// Reverting to stable model as requested (likely user meant 1.5-flash or 2.0-flash-exp but 1.5 is safer)
+const MODEL_NAME = "gemini-2.5-flash";
+console.log(`[Config] Using Gemini Model: ${MODEL_NAME}`);
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+
+// Helper: Decrypt Token
+const decryptToken = (ciphertext) => {
+  if (!ciphertext) return null;
+  try {
+    const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
+    return bytes.toString(CryptoJS.enc.Utf8);
+  } catch (error) {
+    console.error("Token decryption failed:", error);
+    return null;
+  }
+};
+
+const fs = require('fs');
+const path = require('path');
+
+const logDebug = (message) => {
+  const logPath = path.join(__dirname, '../debug_architecture.log');
+  const timestamp = new Date().toISOString();
+  fs.appendFileSync(logPath, `[${timestamp}] ${message}\n`);
+  console.log(`[DEBUG] ${message}`);
+};
+
+// Helper: Fetch Repo Context
+const fetchRepoContext = async (accessToken, owner, repo) => {
+  logDebug(`Fetching repo context for ${owner}/${repo}`);
+  try {
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github.v3+json'
+    };
+
+    // 1. Fetch File Tree (Root)
+    logDebug(`Requesting file tree...`);
+    const treeResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents`, { headers });
+    const files = treeResponse.data.map(f => f.name);
+    logDebug(`Found files: ${files.join(', ')}`);
+
+    let context = `Repository File Structure (Root):\n${files.join('\n')}\n\n`;
+
+    // 2. Fetch specific interesting files
+    const interestingFiles = ['package.json', 'requirements.txt', 'go.mod', 'README.md', 'schema.prisma', 'Genre.js', 'App.js', 'server.js', 'index.js'];
+
+    for (const file of interestingFiles) {
+      if (files.includes(file)) {
+        try {
+          logDebug(`Fetching content of ${file}...`);
+          const contentRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents/${file}`, { headers });
+          if (contentRes.data.content) {
+            const content = Buffer.from(contentRes.data.content, 'base64').toString('utf-8');
+            // Truncate large files to avoid token limits
+            context += `\n--- Content of ${file} ---\n${content.substring(0, 5000)}\n----------------------\n`;
+          }
+        } catch (e) {
+          logDebug(`Failed to fetch ${file}: ${e.message}`);
+        }
+      }
+    }
+
+    logDebug(`Context prepared. Length: ${context.length} chars`);
+    return context;
+  } catch (error) {
+    logDebug(`Error fetching repo context: ${error.message}`);
+    if (error.response) logDebug(`Response data: ${JSON.stringify(error.response.data)}`);
+    return "Failed to fetch repository context.";
+  }
+};
+
+// Helper: Analyze with Gemini
+const analyzeWithGemini = async (repoContext, projectName) => {
+  logDebug(`Sending context to Gemini for analysis...`);
+  const prompt = `
+    You are a Senior Software Architect. Analyze the following codebase context for the project "${projectName}".
+    
+    Codebase Context:
+    ${repoContext}
+
+    Based on the file structure and contents (dependencies, README, etc.), deduce the architecture.
+    Return a STRICT JSON object matching this schema exactly:
+
+    {
+      "highLevel": "Brief summary of the architecture (e.g., MERN Stack application with Redux)",
+      "frontend": {
+        "structure": "Description of frontend organization (e.g., React with Vite)",
+        "pages": ["Inferred pages"],
+        "components": ["Inferred key components"],
+        "routing": "Inferred routing strategy"
+      },
+      "backend": {
+        "structure": "Description of backend organization (e.g., Node.js Express server)",
+        "apis": ["Inferred API routes (REST/GraphQL)"],
+        "controllers": ["Inferred controllers"],
+        "services": ["Inferred services"],
+        "authFlow": "Inferred authentication mechanism"
+      },
+      "database": {
+        "design": "Description of data model",
+        "collections": ["Inferred collections/tables"],
+        "relationships": "Inferred key relationships"
+      },
+      "apiFlow": "How frontend communicates with backend",
+      "integrations": ["Detected external libraries/SDKs (e.g., Firebase, Stripe)"]
+    }
+
+    If you cannot derive specific details, ANY logical inference is better than null. Use "N/A" only if absolutely unknown.
+    Do NOT include markdown formatting or explanations outside the JSON.
+  `;
+
+  try {
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+
+    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    logDebug(`Gemini response received. Length: ${jsonString.length}`);
+
+    const parsed = JSON.parse(jsonString);
+    logDebug(`Parsed JSON keys: ${Object.keys(parsed).join(', ')}`);
+    return parsed;
+  } catch (error) {
+    logDebug(`Gemini analysis failed: ${error.message}`);
+    throw error; // Propagate error so route handles it
+  }
+};
 
 // Create a new project manually (e.g. from GitHub import)
 router.post('/', async (req, res) => {
@@ -26,8 +156,8 @@ router.post('/', async (req, res) => {
       githubRepoName,
       githubRepoOwner,
       isTrackingActive: !!(githubRepoName && githubRepoOwner),
-      steps: [],
-      architecture: {}
+      steps: [], // GitHub projects don't have AI-generated steps initially
+      architecture: {} // Initially empty for on-demand generation
     });
 
     await newProject.save();
@@ -35,6 +165,54 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error creating project:', error);
     res.status(500).json({ message: 'Failed to create project', error: error.message });
+  }
+});
+
+// Trigger Architecture Analysis On-Demand
+router.post('/:id/analyze-architecture', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const project = await Project.findById(id);
+
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+
+    const { githubRepoName, githubRepoOwner, ownerId } = project;
+
+    if (!githubRepoName || !githubRepoOwner) {
+      return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
+    }
+
+    const user = await User.findOne({ uid: ownerId });
+    if (!user || !user.integrations?.github?.accessToken) {
+      return res.status(400).json({ message: 'Owner is not connected to GitHub' });
+    }
+
+    const accessToken = decryptToken(user.integrations.github.accessToken);
+    if (!accessToken) {
+      return res.status(500).json({ message: 'Failed to decrypt GitHub token' });
+    }
+
+    console.log(`Analyzing GitHub Repo: ${githubRepoOwner}/${githubRepoName}...`);
+    const context = await fetchRepoContext(accessToken, githubRepoOwner, githubRepoName);
+    const analyzedArch = await analyzeWithGemini(context, project.name);
+
+    console.log("Analysis Result:", JSON.stringify(analyzedArch, null, 2));
+
+    if (analyzedArch && Object.keys(analyzedArch).length > 0) {
+      project.architecture = analyzedArch;
+      await project.save();
+      console.log("Project architecture saved successfully.");
+    } else {
+      console.warn("Analysis returned empty or null.");
+    }
+
+
+    res.json(project);
+  } catch (error) {
+    console.error("Architecture analysis failed:", error);
+    res.status(500).json({ message: 'Failed to analyze architecture', error: error.message });
   }
 });
 
@@ -98,19 +276,18 @@ router.post('/generate', async (req, res) => {
       Ensure the steps are ordered logically for development. Each step should act as a phase (e.g. 'Setup', 'Database', 'Frontend Core') and contain multiple granular tasks.
     `;
 
-    const completion = await groq.chat.completions.create({
-      messages: [{ role: 'user', content: prompt }],
-      model: MODEL_NAME,
-      response_format: { type: 'json_object' }
-    });
+    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
 
-    const jsonString = completion.choices[0]?.message?.content || "{}";
+    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
 
     let generatedData;
     try {
       generatedData = JSON.parse(jsonString);
     } catch (e) {
-      console.error("Failed to parse Groq response:", jsonString);
+      console.error("Failed to parse Gemini response:", jsonString);
       return res.status(500).json({ message: 'Failed to generate valid project structure', error: e.message });
     }
 
@@ -336,7 +513,7 @@ router.get('/tasks/search', async (req, res) => {
 router.post('/:projectId/quick-task', async (req, res) => {
   try {
     const { projectId } = req.params;
-    const { title, description } = req.body;
+    const { title, description, assignedTo, assignedToName } = req.body;
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -360,9 +537,6 @@ router.post('/:projectId/quick-task', async (req, res) => {
         type: 'Other',
         tasks: []
       });
-      step = project.steps[project.steps.length - 1]; // Get the one we just pushed (Wait, mongoose arrays behave differently)
-      // It's safer to save and re-fetch or just assume index 0 if it was empty.
-      // Actually, project.steps is a MongooseDocumentArray.
       step = project.steps[project.steps.length - 1];
     }
 
@@ -370,8 +544,35 @@ router.post('/:projectId/quick-task', async (req, res) => {
       title,
       description,
       status: 'Backlog',
-      assignedBy: 'Note Integration'
+      assignedTo,
+      assignedToName,
+      assignedBy: req.user?.name || 'Admin', // Expecting authMiddleware to have set user if available, fallback to Admin
     };
+
+    // Send email notification if assigned
+    if (assignedTo) {
+      const user = await User.findOne({ uid: assignedTo });
+      if (user && user.email) {
+        const subject = `New Task Assigned: ${newTask.title}`;
+        const text = `You have been assigned a new task in project "${project.name}".\n\nTask: ${newTask.title}\nDescription: ${newTask.description || 'No description'}\nAssigned By: Admin`;
+        const html = `
+          <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2>New Task Assignment</h2>
+            <p>You have been assigned a new task in project <strong>${project.name}</strong>.</p>
+            <div style="background: #f4f4f4; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p><strong>Task:</strong> ${newTask.title}</p>
+              <p><strong>Description:</strong> ${newTask.description || 'No description'}</p>
+            </div>
+            <p>Please log in to Zync to view more details.</p>
+          </div>
+        `;
+        try {
+          await sendZyncEmail(user.email, subject, html, text);
+        } catch (emailError) {
+          console.error("Failed to send assignment email:", emailError);
+        }
+      }
+    }
 
     step.tasks.push(newTask);
     await project.save();

@@ -16,6 +16,8 @@ import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import KanbanBoard from "@/components/workspace/KanbanBoard";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   Dialog,
   DialogContent,
@@ -54,6 +56,8 @@ interface Project {
   };
   steps: Step[];
   ownerId: string;
+  githubRepoName?: string;
+  githubRepoOwner?: string;
 }
 
 interface Task {
@@ -99,12 +103,40 @@ const ProjectDetails = () => {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
+  const [readmeContent, setReadmeContent] = useState<string | null>(null);
 
   // Assignment State
   const [selectedTaskForAssignment, setSelectedTaskForAssignment] = useState<{ stepId: string, task: Task } | null>(null);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
+
+  // New state for analysis
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Handle Architecture Analysis
+  const handleAnalyzeArchitecture = async () => {
+    if (!project) return;
+    setIsAnalyzing(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project._id}/analyze-architecture`, {
+        method: 'POST',
+      });
+
+      if (!response.ok) {
+        throw new Error('Analysis failed');
+      }
+
+      const updatedProject = await response.json();
+      setProject(updatedProject);
+      toast.success("Architecture analysis complete!");
+    } catch (error) {
+      console.error("Analysis Error:", error);
+      toast.error("Failed to analyze architecture. Please try again.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   // Share State
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
@@ -188,6 +220,22 @@ const ProjectDetails = () => {
       if (!response.ok) throw new Error("Project not found");
       const data = await response.json();
       setProject(data);
+
+      // Fetch README if it's a GitHub project
+      if (data.githubRepoName && data.githubRepoOwner && currentUser) {
+        const token = await currentUser.getIdToken();
+        try {
+          const readmeRes = await fetch(`${API_BASE_URL}/api/github/readme?owner=${data.githubRepoOwner}&repo=${data.githubRepoName}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (readmeRes.ok) {
+            const text = await readmeRes.text();
+            setReadmeContent(text);
+          }
+        } catch (err) {
+          console.error("Failed to fetch README", err);
+        }
+      }
     } catch (error) {
       console.error(error);
     } finally {
@@ -314,6 +362,7 @@ const ProjectDetails = () => {
   }
 
   const isOwner = project.ownerId === auth.currentUser?.uid;
+  const isGitHubProject = !!(project.githubRepoName && project.githubRepoOwner);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -343,9 +392,11 @@ const ProjectDetails = () => {
             <TabsTrigger value="architecture" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
               Architecture
             </TabsTrigger>
-            <TabsTrigger value="steps" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
-              Development Steps
-            </TabsTrigger>
+            {!isGitHubProject && (
+              <TabsTrigger value="steps" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
+                Development Steps
+              </TabsTrigger>
+            )}
             <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
               Task Board
             </TabsTrigger>
@@ -356,116 +407,166 @@ const ProjectDetails = () => {
             )}
           </TabsList>
 
-          <TabsContent value="architecture" className="flex-1">
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {/* High Level */}
-              <Card className="col-span-full">
+          <TabsContent value="architecture" className="flex-1 space-y-6">
+            {/* README Section */}
+            {readmeContent && (
+              <Card>
                 <CardHeader>
-                  <CardTitle>High-Level Architecture</CardTitle>
+                  <CardTitle>Project README</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{project.architecture.highLevel}</p>
-                  <div className="mt-4">
-                    <h4 className="font-semibold mb-2">API Flow</h4>
-                    <p className="text-sm text-muted-foreground bg-secondary/50 p-3 rounded-md">
-                      {project.architecture.apiFlow}
-                    </p>
-                  </div>
+                  <ScrollArea className="h-[400px] w-full rounded-md border p-4">
+                    <div className="prose dark:prose-invert max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {readmeContent}
+                      </ReactMarkdown>
+                    </div>
+                  </ScrollArea>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Frontend */}
+            {/* Architecture Generation Button */}
+            {isGitHubProject && !project.architecture?.highLevel && (
               <Card>
-                <CardHeader className="flex flex-row items-center gap-2">
-                  <Layout className="h-5 w-5 text-blue-500" />
-                  <CardTitle>Frontend</CardTitle>
+                <CardHeader>
+                  <CardTitle>Architecture Analysis</CardTitle>
+                  <CardDescription>Generate a comprehensive architecture breakdown using AI.</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Structure</h4>
-                    <p className="text-xs text-muted-foreground">{project.architecture.frontend.structure}</p>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Pages</h4>
-                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                      {project.architecture.frontend.pages.map((page, i) => (
-                        <li key={i}>{page}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Components</h4>
-                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                      {project.architecture.frontend.components.map((comp, i) => (
-                        <li key={i}>{comp}</li>
-                      ))}
-                    </ul>
-                  </div>
+                <CardContent>
+                  <Button
+                    onClick={handleAnalyzeArchitecture}
+                    disabled={isAnalyzing}
+                    className="w-full sm:w-auto"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Analyzing Repository...
+                      </>
+                    ) : (
+                      <>
+                        <Server className="mr-2 h-4 w-4" />
+                        Generate Architecture with AI
+                      </>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
+            )}
 
-              {/* Backend */}
-              <Card>
-                <CardHeader className="flex flex-row items-center gap-2">
-                  <Server className="h-5 w-5 text-green-500" />
-                  <CardTitle>Backend</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Structure</h4>
-                    <p className="text-xs text-muted-foreground">{project.architecture.backend.structure}</p>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">APIs</h4>
-                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                      {project.architecture.backend.apis.map((api, i) => (
-                        <li key={i}>{api}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Services</h4>
-                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                      {project.architecture.backend.services.map((svc, i) => (
-                        <li key={i}>{svc}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Architecture Cards (Only show if generated) */}
+            {(project.architecture?.highLevel || (!isGitHubProject)) && (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {/* High Level */}
+                <Card className="col-span-full">
+                  <CardHeader>
+                    <CardTitle>High-Level Architecture</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{project.architecture?.highLevel || "No high-level architecture generated."}</p>
+                    <div className="mt-4">
+                      <h4 className="font-semibold mb-2">API Flow</h4>
+                      <p className="text-sm text-muted-foreground bg-secondary/50 p-3 rounded-md">
+                        {project.architecture?.apiFlow || "N/A"}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              {/* Database */}
-              <Card>
-                <CardHeader className="flex flex-row items-center gap-2">
-                  <Database className="h-5 w-5 text-orange-500" />
-                  <CardTitle>Database</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Design</h4>
-                    <p className="text-xs text-muted-foreground">{project.architecture.database.design}</p>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Collections</h4>
-                    <ul className="list-disc list-inside text-xs text-muted-foreground">
-                      {project.architecture.database.collections.map((col, i) => (
-                        <li key={i}>{col}</li>
-                      ))}
-                    </ul>
-                  </div>
-                  <Separator />
-                  <div>
-                    <h4 className="text-sm font-semibold mb-1">Relationships</h4>
-                    <p className="text-xs text-muted-foreground">{project.architecture.database.relationships}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                {/* Frontend */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center gap-2">
+                    <Layout className="h-5 w-5 text-blue-500" />
+                    <CardTitle>Frontend</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Structure</h4>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.frontend?.structure || "N/A"}</p>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Pages</h4>
+                      <ul className="list-disc list-inside text-xs text-muted-foreground">
+                        {(project.architecture?.frontend?.pages || []).map((page, i) => (
+                          <li key={i}>{page}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Components</h4>
+                      <ul className="list-disc list-inside text-xs text-muted-foreground">
+                        {(project.architecture?.frontend?.components || []).map((comp, i) => (
+                          <li key={i}>{comp}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Backend */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center gap-2">
+                    <Server className="h-5 w-5 text-green-500" />
+                    <CardTitle>Backend</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Structure</h4>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.backend?.structure || "N/A"}</p>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">APIs</h4>
+                      <ul className="list-disc list-inside text-xs text-muted-foreground">
+                        {(project.architecture?.backend?.apis || []).map((api, i) => (
+                          <li key={i}>{api}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Services</h4>
+                      <ul className="list-disc list-inside text-xs text-muted-foreground">
+                        {(project.architecture?.backend?.services || []).map((svc, i) => (
+                          <li key={i}>{svc}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Database */}
+                <Card>
+                  <CardHeader className="flex flex-row items-center gap-2">
+                    <Database className="h-5 w-5 text-orange-500" />
+                    <CardTitle>Database</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Design</h4>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.database?.design || "N/A"}</p>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Collections</h4>
+                      <ul className="list-disc list-inside text-xs text-muted-foreground">
+                        {(project.architecture?.database?.collections || []).map((col, i) => (
+                          <li key={i}>{col}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <Separator />
+                    <div>
+                      <h4 className="text-sm font-semibold mb-1">Relationships</h4>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.database?.relationships || "N/A"}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="board" className="flex-1 p-4">
@@ -476,137 +577,139 @@ const ProjectDetails = () => {
             />
           </TabsContent>
 
-          <TabsContent value="steps" className="flex-1">
-            <Card className="h-full">
-              <CardHeader>
-                <CardTitle>Development Plan</CardTitle>
-                <CardDescription>Step-by-step implementation guide</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {project.steps.map((step, index) => (
-                    <div key={step.id || index} className="border rounded-lg p-4 bg-card/50">
-                      <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline" className="bg-background">{index + 1}</Badge>
-                          <h3 className="font-semibold">{step.title}</h3>
+          {!isGitHubProject && (
+            <TabsContent value="steps" className="flex-1">
+              <Card className="h-full">
+                <CardHeader>
+                  <CardTitle>Development Plan</CardTitle>
+                  <CardDescription>Step-by-step implementation guide</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {project.steps.map((step, index) => (
+                      <div key={step.id || index} className="border rounded-lg p-4 bg-card/50">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="bg-background">{index + 1}</Badge>
+                            <h3 className="font-semibold">{step.title}</h3>
+                          </div>
+                          <Badge variant="secondary">{step.type}</Badge>
                         </div>
-                        <Badge variant="secondary">{step.type}</Badge>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-4">{step.description}</p>
+                        <p className="text-sm text-muted-foreground mb-4">{step.description}</p>
 
-                      <div className="space-y-3 pl-4 border-l-2 border-muted ml-2">
-                        {step.tasks && step.tasks.map((task) => (
-                          <div key={task.id || task._id} className="flex items-start gap-3 group">
-                            <Checkbox
-                              id={task.id}
-                              checked={task.status === "Completed"}
-                              onCheckedChange={(checked) => handleTaskUpdate(step._id, task._id, { status: checked ? "Completed" : "Pending" })}
-                              disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
-                            />
-                            <div className="flex-1 space-y-1">
-                              <div className="flex items-center justify-between">
-                                <label
-                                  htmlFor={task.id}
-                                  className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === "Completed" ? "line-through text-muted-foreground" : ""}`}
-                                >
-                                  {task.title}
-                                </label>
-                              </div>
-                              <p className="text-xs text-muted-foreground">{task.description}</p>
-
-                              {task.commitInfo && (
-                                <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
-                                  <GitCommit className="w-3 h-3 text-primary" />
-                                  <span className="font-mono text-primary truncate max-w-[200px]">{task.commitInfo.message}</span>
-                                  <span className="text-muted-foreground">- {task.commitInfo.author}</span>
-                                  {task.commitInfo.url && (
-                                    <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-primary">
-                                      <ExternalLink className="w-3 h-3" />
-                                    </a>
-                                  )}
-                                </div>
-                              )}
-
-                              <div className="flex items-center gap-4 mt-2">
-                                {/* Assignment using Dialog */}
-                                {isOwner ? (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 text-xs border border-dashed gap-2"
-                                    onClick={() => openAssignmentDialog(step._id, task)}
+                        <div className="space-y-3 pl-4 border-l-2 border-muted ml-2">
+                          {step.tasks && step.tasks.map((task) => (
+                            <div key={task.id || task._id} className="flex items-start gap-3 group">
+                              <Checkbox
+                                id={task.id}
+                                checked={task.status === "Completed"}
+                                onCheckedChange={(checked) => handleTaskUpdate(step._id, task._id, { status: checked ? "Completed" : "Pending" })}
+                                disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
+                              />
+                              <div className="flex-1 space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <label
+                                    htmlFor={task.id}
+                                    className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === "Completed" ? "line-through text-muted-foreground" : ""}`}
                                   >
-                                    {task.assignedTo ? (
-                                      <>
-                                        <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
-                                          {(() => {
-                                            const assignedUser = users.find(u => u.uid === task.assignedTo);
-                                            return assignedUser ? (
-                                              <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
-                                            ) : (
-                                              <div className="w-full h-full bg-primary/20" />
-                                            )
-                                          })()}
-                                        </div>
-                                        <span>{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
-                                      </>
-                                    ) : (
-                                      <><span>Assign</span></>
-                                    )}
-                                  </Button>
-                                ) : (
-                                  <div className="flex items-center gap-2 px-2 h-7 text-xs border border-transparent">
-                                    {task.assignedTo ? (
-                                      <>
-                                        <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
-                                          {(() => {
-                                            const assignedUser = users.find(u => u.uid === task.assignedTo);
-                                            return assignedUser ? (
-                                              <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
-                                            ) : (
-                                              <div className="w-full h-full bg-primary/20" />
-                                            )
-                                          })()}
-                                        </div>
-                                        <span className="text-muted-foreground">{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
-                                      </>
-                                    ) : (
-                                      <span className="text-muted-foreground italic">Unassigned</span>
+                                    {task.title}
+                                  </label>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{task.description}</p>
+
+                                {task.commitInfo && (
+                                  <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
+                                    <GitCommit className="w-3 h-3 text-primary" />
+                                    <span className="font-mono text-primary truncate max-w-[200px]">{task.commitInfo.message}</span>
+                                    <span className="text-muted-foreground">- {task.commitInfo.author}</span>
+                                    {task.commitInfo.url && (
+                                      <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-primary">
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
                                     )}
                                   </div>
                                 )}
 
-                                {/* Status Dropdown */}
-                                <Select
-                                  value={task.status}
-                                  onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
-                                >
-                                  <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
-                                    task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
-                                    }`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="Pending">Pending</SelectItem>
-                                    <SelectItem value="In Progress">In Progress</SelectItem>
-                                    <SelectItem value="Completed">Completed</SelectItem>
-                                  </SelectContent>
-                                </Select>
+                                <div className="flex items-center gap-4 mt-2">
+                                  {/* Assignment using Dialog */}
+                                  {isOwner ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-xs border border-dashed gap-2"
+                                      onClick={() => openAssignmentDialog(step._id, task)}
+                                    >
+                                      {task.assignedTo ? (
+                                        <>
+                                          <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                            {(() => {
+                                              const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                              return assignedUser ? (
+                                                <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <div className="w-full h-full bg-primary/20" />
+                                              )
+                                            })()}
+                                          </div>
+                                          <span>{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                        </>
+                                      ) : (
+                                        <><span>Assign</span></>
+                                      )}
+                                    </Button>
+                                  ) : (
+                                    <div className="flex items-center gap-2 px-2 h-7 text-xs border border-transparent">
+                                      {task.assignedTo ? (
+                                        <>
+                                          <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                            {(() => {
+                                              const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                              return assignedUser ? (
+                                                <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <div className="w-full h-full bg-primary/20" />
+                                              )
+                                            })()}
+                                          </div>
+                                          <span className="text-muted-foreground">{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-muted-foreground italic">Unassigned</span>
+                                      )}
+                                    </div>
+                                  )}
+
+                                  {/* Status Dropdown */}
+                                  <Select
+                                    value={task.status}
+                                    onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
+                                  >
+                                    <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30' :
+                                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30' : 'bg-gray-100 dark:bg-gray-800'
+                                      }`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Pending">Pending</SelectItem>
+                                      <SelectItem value="In Progress">In Progress</SelectItem>
+                                      <SelectItem value="Completed">Completed</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                        {(!step.tasks || step.tasks.length === 0) && (
-                          <div className="text-sm text-muted-foreground italic">No specific tasks generated for this step.</div>
-                        )}
+                          ))}
+                          {(!step.tasks || step.tasks.length === 0) && (
+                            <div className="text-sm text-muted-foreground italic">No specific tasks generated for this step.</div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
 
           {isOwner && (
             <TabsContent value="team" className="flex-1">

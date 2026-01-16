@@ -6,6 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import TaskDetailDrawer from "./TaskDetailDrawer";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { API_BASE_URL, getFullUrl } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface TasksViewProps {
     currentUser: any;
@@ -33,6 +43,15 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
     const [selectedTask, setSelectedTask] = useState<FlattenedTask | null>(null);
     const [isDrawerOpen, setIsDrawerOpen] = useState(false);
     const { toast } = useToast();
+
+    // Create Task State
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [projects, setProjects] = useState<Project[]>([]);
+    const [newTaskTitle, setNewTaskTitle] = useState("");
+    const [newTaskDesc, setNewTaskDesc] = useState("");
+    const [newTaskProjectId, setNewTaskProjectId] = useState("");
+    const [newTaskAssignedTo, setNewTaskAssignedTo] = useState<string>("");
+    const [isCreating, setIsCreating] = useState(false);
 
     // Refresh function
     const loadTasks = async () => {
@@ -63,6 +82,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
             const myTasks = allTasks.filter(t => t.assignedTo === currentUser.uid);
 
             setTasks(myTasks);
+            setProjects(projects);
         } catch (error) {
             console.error("Failed to fetch tasks", error);
         } finally {
@@ -83,6 +103,49 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         setIsDrawerOpen(true);
     };
 
+    const handleCreateTask = async () => {
+        if (!newTaskTitle || !newTaskProjectId) {
+            toast({ title: "Validation Error", description: "Title and Project are required.", variant: "destructive" });
+            return;
+        }
+
+        setIsCreating(true);
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/projects/${newTaskProjectId}/quick-task`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    title: newTaskTitle,
+                    description: newTaskDesc,
+                    assignedTo: newTaskAssignedTo || undefined,
+                    assignedToName: newTaskAssignedTo ? users.find(u => u.uid === newTaskAssignedTo)?.displayName : undefined
+                })
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                toast({ title: "Success", description: "Task created successfully." });
+                setIsCreateDialogOpen(false);
+                setNewTaskTitle("");
+                setNewTaskDesc("");
+                setNewTaskProjectId("");
+                setNewTaskAssignedTo("");
+                loadTasks(); // Reload tasks to see the new one
+            } else {
+                throw new Error("Failed to create task");
+            }
+        } catch (error) {
+            console.error(error);
+            toast({ title: "Error", description: "Failed to create task.", variant: "destructive" });
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex w-full h-full items-center justify-center">
@@ -100,6 +163,9 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                         Tasks assigned to you across all projects.
                     </p>
                 </div>
+                <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+                    <Plus className="w-4 h-4" /> New Task
+                </Button>
             </div>
 
             {tasks.length === 0 ? (
@@ -154,6 +220,77 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                 open={isDrawerOpen}
                 onOpenChange={setIsDrawerOpen}
             />
+
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Create New Task</DialogTitle>
+                        <DialogDescription>
+                            Add a new task to one of your projects.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label>Project</Label>
+                            <Select value={newTaskProjectId} onValueChange={setNewTaskProjectId}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select a project" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {projects.map(p => (
+                                        <SelectItem key={p._id} value={p._id}>{p.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Task Title</Label>
+                            <Input
+                                placeholder="e.g. Update documentation"
+                                value={newTaskTitle}
+                                onChange={(e) => setNewTaskTitle(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Description</Label>
+                            <Textarea
+                                placeholder="Add more details..."
+                                value={newTaskDesc}
+                                onChange={(e) => setNewTaskDesc(e.target.value)}
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <Label>Assign To (Optional)</Label>
+                            <Select value={newTaskAssignedTo} onValueChange={setNewTaskAssignedTo}>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Unassigned" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                                    {users.map(user => (
+                                        <SelectItem key={user.uid} value={user.uid}>
+                                            <div className="flex items-center gap-2">
+                                                <Avatar className="h-4 w-4">
+                                                    <AvatarImage src={getFullUrl(user.photoURL)} />
+                                                    <AvatarFallback>{user.displayName?.substring(0, 1)}</AvatarFallback>
+                                                </Avatar>
+                                                <span>{user.displayName || user.email}</span>
+                                            </div>
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleCreateTask} disabled={isCreating}>
+                            {isCreating ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                            Create Task
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

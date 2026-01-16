@@ -164,7 +164,7 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
         },
         body: JSON.stringify({
           githubRepoName: repo.name,
-          githubRepoOwner: repo.owner.login,
+          githubRepoOwner: repo.owner,
           isTrackingActive: true
         })
       });
@@ -255,7 +255,7 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
           description: repo.description,
           ownerId: user?.uid,
           githubRepoName: repo.name,
-          githubRepoOwner: repo.owner.login
+          githubRepoOwner: repo.owner
         })
       });
 
