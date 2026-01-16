@@ -34,10 +34,8 @@ apt-get update && apt-get install -y \
 
 echo "Installing dependencies and building..."
 
-# Check if we are in the root and need to go to backend
-if [ -d "backend" ]; then
-  cd backend
-fi
+# Script is running inside 'backend' directory (Root Dir setting)
+echo "Running in: $(pwd)"
 
 npm install
 npm run build
