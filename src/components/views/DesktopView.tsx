@@ -38,6 +38,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { useTheme } from "next-themes";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,6 +86,13 @@ import {
 import { cn } from "@/lib/utils";
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const [activeSection, setActiveSection] = useState(() => {
     if (isPreview) return "My Workspace";
     return localStorage.getItem("ZYNC-active-section") || "Dashboard";
@@ -923,9 +931,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             onMouseLeave={handleMouseLeave}
           >
             <div className={cn("p-4 flex items-center gap-2 border-b border-border/50", isCollapsed ? "justify-center p-2" : "")}>
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
-                Z
-              </div>
+              {/* Dynamic Logo - visible in both collapsed (as icon) and expanded states */}
+              {mounted ? (
+                <img
+                  src={resolvedTheme === 'dark' ? '/zync-dark.webp' : '/zync-white.webp'}
+                  alt="Zync Logo"
+                  className="h-8 w-8 object-contain shrink-0"
+                />
+              ) : (
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
+                  Z
+                </div>
+              )}
+
               {!isCollapsed && (
                 <>
                   <span className="font-bold text-lg truncate">ZYNC</span>

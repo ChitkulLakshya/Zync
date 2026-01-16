@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -6,6 +7,12 @@ import { Menu, X, ChevronDown, FolderKanban, Calendar, MessageSquare, Video } fr
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const navItems = [
     { name: "Solutions", hasDropdown: true, icon: null },
@@ -21,14 +28,22 @@ const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {/* Logo */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-lg">Z</span>
-            </div>
+          <Link to="/" className="flex items-center gap-2">
+            {mounted ? (
+              <img
+                src={resolvedTheme === 'dark' ? '/zync-dark.webp' : '/zync-white.webp'}
+                alt="Zync Logo"
+                className="h-8 w-auto object-contain"
+              />
+            ) : (
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-lg">Z</span>
+              </div>
+            )}
             <span className="font-serif-elegant font-bold text-xl tracking-tight text-foreground">
               Zync
             </span>
-          </div>
+          </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-6">
