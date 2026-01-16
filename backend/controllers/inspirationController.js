@@ -180,22 +180,29 @@ async function scrapeDribbble(query) {
 
     const shots = await page.evaluate(() => {
       const results = [];
-      // Try multiple selectors as Dribbble classes change often
       const items = document.querySelectorAll('li.shot-thumbnail, .shot-thumbnail');
 
       items.forEach(item => {
-        const linkEl = item.querySelector('a.dribbble-link, a.shot-thumbnail-link');
-        const imgEl = item.querySelector('img');
+        const linkEl = item.querySelector('a.dribbble-link, a.shot-thumbnail-link, a');
         const titleEl = item.querySelector('.shot-title, .shot-details-title');
 
-        if (linkEl && imgEl) {
-          // Get the highest res from srcset if available, else src
-          let image = imgEl.src;
-          if (imgEl.srcset) {
-            const parts = imgEl.srcset.split(',');
-            if (parts.length > 0) image = parts[0].split(' ')[0];
-          }
+        // Priority: <picture><source srcset> -> <img> srcset -> <img> src
+        const pictureSource = item.querySelector('picture source');
+        const imgEl = item.querySelector('img');
 
+        let image = null;
+
+        if (pictureSource && pictureSource.srcset) {
+          image = pictureSource.srcset.split(',')[0].split(' ')[0];
+        } else if (imgEl) {
+          if (imgEl.srcset) {
+            image = imgEl.srcset.split(',')[0].split(' ')[0];
+          } else if (imgEl.src && !imgEl.src.startsWith('data:')) {
+            image = imgEl.src;
+          }
+        }
+
+        if (linkEl && image) {
           results.push({
             title: titleEl ? titleEl.innerText.trim() : 'Design Inspiration',
             link: linkEl.href,

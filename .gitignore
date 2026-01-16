@@ -28,3 +28,9 @@ dist-ssr
 .env.local
 .env.*.local
 backend/.env
+
+# Puppeteer cache and debug files
+backend/.cache/
+backend/test-puppeteer.js
+backend/debug_*.png
+*.png
