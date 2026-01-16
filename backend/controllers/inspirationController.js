@@ -1,5 +1,6 @@
 const axios = require('axios');
 const Parser = require('rss-parser');
+const puppeteer = require('puppeteer');
 
 
 const UNSPLASH_BASE = 'https://api.unsplash.com';
@@ -139,6 +140,76 @@ async function fetchBehance(query = 'web design', limit = 30) {
 }
 
 // Express controller
+
+async function scrapeDribbble(query) {
+  let browser = null;
+  try {
+    console.log('DEBUG: Launching Puppeteer for Dribbble...');
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote']
+    });
+
+    const page = await browser.newPage();
+    // Use search URL if query exists, otherwise popular
+    const targetUrl = query && query !== 'web design'
+      ? `https://dribbble.com/search/${encodeURIComponent(query)}`
+      : 'https://dribbble.com/shots/popular';
+
+    console.log(`DEBUG: Navigating to ${targetUrl}`);
+
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 30000 });
+
+    try {
+      await page.waitForSelector('.shot-thumbnail', { timeout: 10000 });
+    } catch (e) {
+      console.log('DEBUG: Timeout waiting for .shot-thumbnail, page might be different structure or empty.');
+    }
+
+    const shots = await page.evaluate(() => {
+      const items = Array.from(document.querySelectorAll('.shot-thumbnail')).slice(0, 10);
+      return items.map(item => {
+        // Extract Title
+        const titleEl = item.querySelector('.shot-title');
+        const title = titleEl ? titleEl.innerText.trim() : 'Untitled';
+
+        // Extract Link - The main anchor usually wraps the thumbnail or is separate
+        // Look for the main link inside the thumbnail container
+        const linkEl = item.querySelector('a.dribbble-link') || item.querySelector('a');
+        const link = linkEl ? linkEl.href : null;
+
+        // Extract Image
+        // Try <picture> <source> first (high res), then <img>
+        let image = 'https://via.placeholder.com/600x400?text=No+Preview';
+        const pictureSource = item.querySelector('picture source');
+        const imgTag = item.querySelector('img');
+
+        if (pictureSource && pictureSource.srcset) {
+          image = pictureSource.srcset.split(',')[0].split(' ')[0]; // Take first URL
+        } else if (imgTag) {
+          image = imgTag.src;
+        }
+
+        return {
+          title,
+          link,
+          image,
+          source: 'Dribbble'
+        };
+      });
+    });
+
+    console.log(`DEBUG: Scraped ${shots.length} shots.`);
+    return shots.map((s, i) => ({ ...s, id: `dribbble_scraped_${i}` }));
+
+  } catch (error) {
+    console.error('DEBUG: Puppeteer Scrape Error:', error.message);
+    return [];
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
 async function getInspiration(req, res) {
   // Simple checkLog to verify keys safely
   console.log("Pinterest Config Loaded:", {
@@ -167,59 +238,37 @@ async function getInspiration(req, res) {
       })(),
       fetchBehance(q, 50),
       (async () => {
+        // Use Puppeteer Scraper for Dribbble
         try {
-          // 1. Try RSS Search first (prioritize user query)
-          const tags = q.replace(/\s+/g, '-');
-          const feedUrl = `https://dribbble.com/shots/popular.rss?tag=${encodeURIComponent(tags)}`;
-          console.log(`DEBUG: Fetching Dribbble RSS: ${feedUrl}`);
-
-          const feed = await parser.parseURL(feedUrl);
-
-          if (feed.items && feed.items.length > 0) {
-            return feed.items.map((item, index) => {
-              let image = 'https://via.placeholder.com/600x400?text=No+Preview';
-              // Regex to find image src in the content HTML
-              const imgMatch = item.content?.match(/<img[^>]+src=["']([^"']+)["']/);
-              if (imgMatch && imgMatch[1]) image = imgMatch[1];
-
-              return {
-                id: `dribbble_rss_${index}`,
-                source: 'dribbble',
-                title: item.title,
-                image: image,
-                link: item.link,
-                creator: item.creator || 'Dribbble Designer'
-              };
-            });
-          }
+          return await scrapeDribbble(q);
         } catch (e) {
-          console.error('DEBUG: Dribbble RSS Error:', e.message);
-        }
+          console.error('DEBUG: Dribbble Scraper Error:', e.message);
 
-        // 2. Fallback to API (if RSS failed OR returned 0 items, AND we have a token)
-        const dToken = req.header('x-dribbble-token');
-        if (dToken) {
-          try {
-            console.log('DEBUG: Fallback to Dribbble API (My Shots)...');
-            const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
-              headers: { Authorization: `Bearer ${dToken}` },
-              params: { per_page: 30 }
-            });
-
-            return resp.data.map(shot => ({
-              id: `dribbble_${shot.id}`,
-              source: 'dribbble',
-              title: shot.title,
-              image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser,
-              link: shot.html_url,
-              creator: 'Me'
-            }));
-          } catch (e) {
-            console.error('DEBUG: Dribbble API error:', e.response?.data || e.message);
+          // Fallback to API if scraper fails (and we have token) - optional, 
+          // but the user seemingly wants to replace API fetcher.
+          // Leaving API fallback as a last resort 'My Shots' if token exists.
+          const dToken = req.header('x-dribbble-token');
+          if (dToken) {
+            try {
+              console.log('DEBUG: Fallback to Dribbble API (My Shots)...');
+              const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
+                headers: { Authorization: `Bearer ${dToken}` },
+                params: { per_page: 30 }
+              });
+              return resp.data.map(shot => ({
+                id: `dribbble_${shot.id}`,
+                source: 'dribbble',
+                title: shot.title,
+                image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser,
+                link: shot.html_url,
+                creator: 'Me'
+              }));
+            } catch (apiErr) {
+              console.error('DEBUG: Dribbble API Fallback Error:', apiErr.message);
+            }
           }
+          return [];
         }
-
-        return [];
       })()
     ]);
 
