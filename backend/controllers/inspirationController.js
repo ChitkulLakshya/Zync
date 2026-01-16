@@ -178,6 +178,19 @@ async function scrapeDribbble(query) {
       console.log('DEBUG: Timeout waiting for Dribbble selectors. Page might be blocked or empty.');
     }
 
+    // Scroll down to trigger infinite scroll and load more shots
+    console.log('DEBUG: Scrolling to load more shots...');
+    for (let i = 0; i < 3; i++) {
+      await page.evaluate(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+      });
+      // Wait for new content to load
+      await new Promise(resolve => setTimeout(resolve, 1500));
+    }
+    // Scroll back to top so all images are in a known state
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     const shots = await page.evaluate(() => {
       const results = [];
       // Use the exact selectors from Dribbble's HTML structure
@@ -228,7 +241,7 @@ async function scrapeDribbble(query) {
           });
         }
       });
-      return results.slice(0, 10);
+      return results.slice(0, 15);
     });
 
     console.log(`DEBUG: Scraped ${shots.length} shots.`);
