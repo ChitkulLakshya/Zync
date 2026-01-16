@@ -226,51 +226,22 @@ async function getInspiration(req, res) {
   const pinterestToken = req.header('x-pinterest-token') || process.env.PINTEREST_TOKEN;
 
   try {
-    const [unsplash, pinterest, behance, dribbble] = await Promise.all([
-      fetchUnsplash(q, unsplashPage, unsplashPer).catch(e => { console.error('Unsplash error', e.message); return []; }),
-      (async () => {
-        try {
-          return await fetchPinterest(pinterestBoard, pinterestToken, q, 100);
-        } catch (e) {
-          console.error('Pinterest error', e.message);
-          return [];
-        }
-      })(),
+    const results = await Promise.allSettled([
+      fetchUnsplash(q, unsplashPage, unsplashPer),
+      fetchPinterest(pinterestBoard, pinterestToken, q, 100),
       fetchBehance(q, 50),
-      (async () => {
-        // Use Puppeteer Scraper for Dribbble
-        try {
-          return await scrapeDribbble(q);
-        } catch (e) {
-          console.error('DEBUG: Dribbble Scraper Error:', e.message);
-
-          // Fallback to API if scraper fails (and we have token) - optional, 
-          // but the user seemingly wants to replace API fetcher.
-          // Leaving API fallback as a last resort 'My Shots' if token exists.
-          const dToken = req.header('x-dribbble-token');
-          if (dToken) {
-            try {
-              console.log('DEBUG: Fallback to Dribbble API (My Shots)...');
-              const resp = await axios.get('https://api.dribbble.com/v2/user/shots', {
-                headers: { Authorization: `Bearer ${dToken}` },
-                params: { per_page: 30 }
-              });
-              return resp.data.map(shot => ({
-                id: `dribbble_${shot.id}`,
-                source: 'dribbble',
-                title: shot.title,
-                image: shot.images?.hidpi || shot.images?.normal || shot.images?.teaser,
-                link: shot.html_url,
-                creator: 'Me'
-              }));
-            } catch (apiErr) {
-              console.error('DEBUG: Dribbble API Fallback Error:', apiErr.message);
-            }
-          }
-          return [];
-        }
-      })()
+      scrapeDribbble(q)
     ]);
+
+    const unsplash = results[0].status === 'fulfilled' ? results[0].value : [];
+    const pinterest = results[1].status === 'fulfilled' ? results[1].value : [];
+    const behance = results[2].status === 'fulfilled' ? results[2].value : [];
+    const dribbble = results[3].status === 'fulfilled' ? results[3].value : [];
+
+    if (results[0].status === 'rejected') console.error('Unsplash Error:', results[0].reason?.message);
+    if (results[1].status === 'rejected') console.error('Pinterest Error:', results[1].reason?.message);
+    if (results[2].status === 'rejected') console.error('Behance Error:', results[2].reason?.message);
+    if (results[3].status === 'rejected') console.error('Dribbble Scraper Error:', results[3].reason?.message);
 
     console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}, Dribbble: ${dribbble.length}`);
 
