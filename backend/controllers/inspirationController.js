@@ -180,25 +180,42 @@ async function scrapeDribbble(query) {
 
     const shots = await page.evaluate(() => {
       const results = [];
-      const items = document.querySelectorAll('li.shot-thumbnail, .shot-thumbnail');
+      // Use the exact selectors from Dribbble's HTML structure
+      const items = document.querySelectorAll('li.shot-thumbnail.js-thumbnail');
 
       items.forEach(item => {
-        const linkEl = item.querySelector('a.dribbble-link, a.shot-thumbnail-link, a');
-        const titleEl = item.querySelector('.shot-title, .shot-details-title');
-
-        // Priority: <picture><source srcset> -> <img> srcset -> <img> src
-        const pictureSource = item.querySelector('picture source');
-        const imgEl = item.querySelector('img');
+        // Link is in the overlay or base
+        const linkEl = item.querySelector('a.shot-thumbnail-link.dribbble-link');
+        // Title is in the overlay content
+        const titleEl = item.querySelector('div.shot-title');
+        // Image is in the figure placeholder
+        const imgEl = item.querySelector('figure.js-thumbnail-placeholder img');
 
         let image = null;
 
-        if (pictureSource && pictureSource.srcset) {
-          image = pictureSource.srcset.split(',')[0].split(' ')[0];
-        } else if (imgEl) {
-          if (imgEl.srcset) {
-            image = imgEl.srcset.split(',')[0].split(' ')[0];
-          } else if (imgEl.src && !imgEl.src.startsWith('data:')) {
-            image = imgEl.src;
+        if (imgEl) {
+          // Dribbble uses lazy loading: data-srcset/data-src for most images
+          // First few have srcset directly (fetchpriority="high")
+          // Priority: data-srcset -> srcset -> data-src -> src (avoiding data: placeholders)
+          const dataSrcset = imgEl.getAttribute('data-srcset');
+          const srcset = imgEl.getAttribute('srcset');
+          const dataSrc = imgEl.getAttribute('data-src');
+          const src = imgEl.getAttribute('src');
+
+          if (dataSrcset) {
+            // Get highest quality from srcset (first entry is usually smallest, grab a middle one)
+            const parts = dataSrcset.split(',');
+            // Get ~400px version which is good quality but not huge
+            const match400 = parts.find(p => p.includes('400x300'));
+            image = match400 ? match400.trim().split(' ')[0] : parts[0].trim().split(' ')[0];
+          } else if (srcset) {
+            const parts = srcset.split(',');
+            const match400 = parts.find(p => p.includes('400x300'));
+            image = match400 ? match400.trim().split(' ')[0] : parts[0].trim().split(' ')[0];
+          } else if (dataSrc && !dataSrc.startsWith('data:')) {
+            image = dataSrc;
+          } else if (src && !src.startsWith('data:')) {
+            image = src;
           }
         }
 
