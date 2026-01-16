@@ -54,6 +54,11 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
   const [loadingRepos, setLoadingRepos] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [linkingRepo, setLinkingRepo] = useState(false);
+
+  // New Project Creation State
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [creatingProject, setCreatingProject] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -184,7 +189,97 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
     } finally {
       setLinkingRepo(false);
     }
-  }
+  };
+
+  const handleOpenCreateModal = async () => {
+    setCreateModalOpen(true);
+    setLoadingRepos(true);
+    setSearchTerm("");
+
+    try {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : null;
+
+      if (!token) {
+        toast({ title: "Authentication Error", description: "You are not signed in.", variant: "destructive" });
+        setLoadingRepos(false);
+        return;
+      }
+
+      const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 400) {
+        const data = await response.json();
+        if (data.notInstalled) {
+          window.location.href = `https://github.com/apps/ZYNC-meet/installations/new`;
+          return;
+        }
+      }
+
+      if (response.ok) {
+        const data = await response.json();
+        setRepos(data);
+      } else {
+        throw new Error("Failed to fetch repos");
+      }
+    } catch (error) {
+      console.error(error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch repositories.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
+  const handleCreateProjectFromRepo = async (repo: any) => {
+    setCreatingProject(true);
+    try {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : null;
+
+      const response = await fetch(`${API_BASE_URL}/api/projects`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          name: repo.name,
+          description: repo.description,
+          ownerId: user?.uid,
+          githubRepoName: repo.name,
+          githubRepoOwner: repo.owner.login
+        })
+      });
+
+      if (response.ok) {
+        const newProject = await response.json();
+        setProjects([newProject, ...projects]);
+        setCreateModalOpen(false);
+        toast({
+          title: "Success",
+          description: `Project ${repo.name} created successfully.`
+        });
+      } else {
+        throw new Error("Failed to create project");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create project.",
+        variant: "destructive"
+      });
+    } finally {
+      setCreatingProject(false);
+    }
+  };
 
 
   const handleUnlinkRepo = async (e: React.MouseEvent, project: Project) => {
@@ -308,9 +403,9 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
               Manage your AI-generated projects and assignments.
             </p>
           </div>
-          <Button onClick={() => onNavigate("New Project")} size="lg" className="gap-2">
+          <Button onClick={handleOpenCreateModal} size="lg" className="gap-2">
             <Plus className="w-5 h-5" />
-            New Project
+            Add Project
           </Button>
         </div>
 
@@ -355,8 +450,8 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
               <p className="text-muted-foreground max-w-sm mb-6">
                 Get started by creating your first AI-powered project. Describe your idea and let us build the architecture.
               </p>
-              <Button onClick={() => onNavigate("New Project")}>
-                Create your first project
+              <Button onClick={handleOpenCreateModal}>
+                Add your first project
               </Button>
             </CardContent>
           </Card>
@@ -506,6 +601,61 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
                       <span className="text-xs text-muted-foreground truncate">{repo.full_name}</span>
                     </div>
                     {selectedProjectForLink?.githubRepoName === repo.name && <Badge>Linked</Badge>}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Project Modal */}
+      <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Project from GitHub</DialogTitle>
+            <DialogDescription>
+              Select a repository to import as a new project.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search repositories..."
+                className="pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
+            <div className="h-[200px] overflow-y-auto border rounded-md p-2 space-y-1">
+              {loadingRepos ? (
+                <div className="flex h-full items-center justify-center">
+                  <Spinner className="w-6 h-6 animate-spin text-primary" />
+                </div>
+              ) : repos.length === 0 ? (
+                <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
+                  <p>No repositories found.</p>
+                  <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-primary hover:underline mt-2 block">
+                    Install ZYNC App on GitHub
+                  </a>
+                </div>
+              ) : (
+                filteredRepos.map(repo => (
+                  <div
+                    key={repo.id}
+                    onClick={() => handleCreateProjectFromRepo(repo)}
+                    className="flex items-center justify-between p-2 hover:bg-secondary rounded-md cursor-pointer transition-colors"
+                  >
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="font-medium text-sm truncate">{repo.name}</span>
+                      <span className="text-xs text-muted-foreground truncate">{repo.full_name}</span>
+                    </div>
+                    <Button variant="ghost" size="sm" disabled={creatingProject}>
+                      {creatingProject ? <Spinner className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    </Button>
                   </div>
                 ))
               )}

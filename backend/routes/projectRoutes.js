@@ -10,6 +10,34 @@ const prisma = require('../lib/prisma');
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const MODEL_NAME = "llama-3.3-70b-versatile";
 
+// Create a new project manually (e.g. from GitHub import)
+router.post('/', async (req, res) => {
+  try {
+    const { name, description, ownerId, githubRepoName, githubRepoOwner } = req.body;
+
+    if (!name) {
+      return res.status(400).json({ message: 'Name is required' });
+    }
+
+    const newProject = new Project({
+      name,
+      description: description || 'No description',
+      ownerId,
+      githubRepoName,
+      githubRepoOwner,
+      isTrackingActive: !!(githubRepoName && githubRepoOwner),
+      steps: [],
+      architecture: {}
+    });
+
+    await newProject.save();
+    res.status(201).json(newProject);
+  } catch (error) {
+    console.error('Error creating project:', error);
+    res.status(500).json({ message: 'Failed to create project', error: error.message });
+  }
+});
+
 router.post('/generate', async (req, res) => {
   try {
     const { name, description, ownerId } = req.body;
