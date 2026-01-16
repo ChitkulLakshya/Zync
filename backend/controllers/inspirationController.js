@@ -94,10 +94,11 @@ async function fetchPinterest(boardId, token, query, page_size = 40) {
 
 async function fetchBehance(query = 'web design', limit = 30) {
   try {
-    // Fetch from Behance RSS feed with tags
-    // Hardcode 'web design' tag in addition to user query
-    const tags = `web design,${query}`;
-    const feedUrl = `https://www.behance.net/feeds/projects?tags=${encodeURIComponent(tags)}`;
+    // Fetch from Behance RSS feed filtered by Creative Field
+    // Use 'field' parameter for web design projects (more targeted than tags)
+    // Behance Creative Fields: web design, interaction design, UI/UX, etc.
+    const field = 'web design'; // Primary creative field filter
+    const feedUrl = `https://www.behance.net/feeds/projects?field=${encodeURIComponent(field)}&q=${encodeURIComponent(query)}`;
     const feed = await parser.parseURL(feedUrl);
 
     const results = [];
