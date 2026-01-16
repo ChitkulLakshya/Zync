@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "export PUPPETEER_CACHE_DIR=/opt/render/.cache/puppeteer && node index.js",
     "dev": "nodemon index.js",
     "build": "npx prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1"
