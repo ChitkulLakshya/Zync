@@ -232,7 +232,7 @@ async function scrapePinterest(browser, query) {
       console.log('DEBUG: Timeout waiting for Pinterest data script [script#__PWS_INITIAL_PROPS__]');
     }
 
-    const pins = await page.evaluate(() => {
+    let pins = await page.evaluate(() => {
       try {
         const script = document.getElementById('__PWS_INITIAL_PROPS__');
         if (!script) return [];
@@ -282,7 +282,46 @@ async function scrapePinterest(browser, query) {
       }
     });
 
-    console.log(`DEBUG: Scraped ${pins.length} Pinterest pins via JSON.`);
+    // FALLBACK: If JSON extraction failed (0 pins), try visual scraping
+    if (pins.length === 0) {
+      console.log('DEBUG: Pinterest JSON returned 0 items. Falling back to Visual Scraping...');
+
+      try {
+        await page.waitForSelector('[data-test-id="pin"]', { timeout: 5000 });
+
+        pins = await page.evaluate(() => {
+          const results = [];
+          const items = document.querySelectorAll('[data-test-id="pin"]');
+
+          // Extract top 30
+          for (let i = 0; i < Math.min(items.length, 30); i++) {
+            const item = items[i];
+            const imgEl = item.querySelector('img');
+            const linkEl = item.closest('a') || item.querySelector('a');
+
+            if (imgEl && linkEl) {
+              const title = imgEl.alt || 'Pinterest Pin';
+              const image = imgEl.src;
+              const link = linkEl.href;
+
+              if (link.startsWith('https://www.pinterest.com')) {
+                results.push({
+                  title,
+                  link,
+                  image,
+                  source: 'Pinterest'
+                });
+              }
+            }
+          }
+          return results;
+        });
+      } catch (err) {
+        console.log('DEBUG: Pinterest Visual Fallback also failed:', err.message);
+      }
+    }
+
+    console.log(`DEBUG: Scraped ${pins.length} Pinterest pins (Method: ${pins.length > 0 ? 'Success' : 'Failed'}).`);
     return pins.map((p, i) => ({ ...p, id: `pinterest_scraped_${i}` }));
 
   } catch (error) {
