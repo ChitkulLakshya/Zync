@@ -212,126 +212,76 @@ async function scrapeDribbble(browser, query, page = 1) {
   }
 }
 
-async function scrapePinterest(browser, query) {
-  if (!browser) return [];
-
-  const page = await browser.newPage();
+async function scrapePinterest(query) {
   try {
-    await page.setViewport({ width: 1920, height: 1080 });
-    // Mimic real user agent
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
+    const encodedQuery = encodeURIComponent(query || 'web design');
+    const url = 'https://www.pinterest.com/resource/BaseSearchResource/get/';
 
-    const encodedQuery = encodeURIComponent(query || 'web design ui');
-    const targetUrl = `https://www.pinterest.com/search/pins/?q=${encodedQuery}`;
+    // Construct the data parameter exactly as requested
+    const dataDetails = {
+      options: {
+        isPrefetch: false,
+        query: query || "web design",
+        scope: "pins",
+        no_fetch_context_on_resource: false
+      },
+      context: {}
+    };
 
-    console.log(`DEBUG: Navigating to Pinterest: ${targetUrl}`);
-    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+    const params = {
+      source_url: `/search/pins/?q=${encodedQuery}`,
+      data: JSON.stringify(dataDetails)
+    };
 
-    try {
-      // Wait for the data script
-      await page.waitForSelector('script#__PWS_INITIAL_PROPS__', { timeout: 15000 });
-    } catch (e) {
-      console.log('DEBUG: Timeout waiting for Pinterest data script [script#__PWS_INITIAL_PROPS__]');
-    }
+    console.log(`DEBUG: Fetching Pinterest via Internal API: ${query}`);
 
-    let pins = await page.evaluate(() => {
-      try {
-        const script = document.getElementById('__PWS_INITIAL_PROPS__');
-        if (!script) return [];
-
-        const json = JSON.parse(script.textContent);
-        const feeds = json?.initialReduxState?.feeds;
-        if (!feeds) return [];
-
-        // Find the key that contains 'results' (it's dynamic, usually search:...)
-        const feedKey = Object.keys(feeds).find(key =>
-          feeds[key]?.response?.data?.results && Array.isArray(feeds[key].response.data.results)
-        );
-
-        if (!feedKey) return [];
-
-        const items = feeds[feedKey].response.data.results;
-
-        // Return all found items (limit by memory/logic if needed, but user requested all)
-        return items.map(item => {
-          // Robust checking for image
-          let imageUrl = null;
-          if (item.images?.orig?.url) imageUrl = item.images.orig.url;
-          else if (item.images?.['736x']?.url) imageUrl = item.images['736x'].url;
-          else if (item.images?.['474x']?.url) imageUrl = item.images['474x'].url;
-
-          // Robust link construction
-          let link = '#';
-          if (item.link) link = item.link; // sometimes full url
-          else if (item.id) link = `https://www.pinterest.com/pin/${item.id}/`;
-
-          if (!link.startsWith('http')) {
-            // Handle relative links if they appear
-            link = `https://www.pinterest.com${link.startsWith('/') ? '' : '/'}${link}`;
-          }
-
-          return {
-            title: item.title || item.grid_title || item.description || 'Pinterest Pin',
-            link: link,
-            image: imageUrl,
-            source: 'Pinterest'
-          };
-        }).filter(p => p.image); // Filter out items without images
-
-      } catch (e) {
-        console.error('Pinterest Client-Side Parse Error:', e.message);
-        return [];
+    const response = await axios.get(url, {
+      params,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest',
+        'Referer': 'https://www.pinterest.com/',
+        'Accept': 'application/json, text/javascript, */*; q=0.01'
       }
     });
 
-    // FALLBACK: If JSON extraction failed (0 pins), try visual scraping
-    if (pins.length === 0) {
-      console.log('DEBUG: Pinterest JSON returned 0 items. Falling back to Visual Scraping...');
+    const results = response.data?.resource_response?.data?.results;
 
-      try {
-        await page.waitForSelector('[data-test-id="pin"]', { timeout: 5000 });
-
-        pins = await page.evaluate(() => {
-          const results = [];
-          const items = document.querySelectorAll('[data-test-id="pin"]');
-
-          // Extract top 30
-          for (let i = 0; i < Math.min(items.length, 30); i++) {
-            const item = items[i];
-            const imgEl = item.querySelector('img');
-            const linkEl = item.closest('a') || item.querySelector('a');
-
-            if (imgEl && linkEl) {
-              const title = imgEl.alt || 'Pinterest Pin';
-              const image = imgEl.src;
-              const link = linkEl.href;
-
-              if (link.startsWith('https://www.pinterest.com')) {
-                results.push({
-                  title,
-                  link,
-                  image,
-                  source: 'Pinterest'
-                });
-              }
-            }
-          }
-          return results;
-        });
-      } catch (err) {
-        console.log('DEBUG: Pinterest Visual Fallback also failed:', err.message);
-      }
+    if (!results || !Array.isArray(results)) {
+      console.log('DEBUG: Pinterest Internal API returned no valid results structure.');
+      return [];
     }
 
-    console.log(`DEBUG: Scraped ${pins.length} Pinterest pins (Method: ${pins.length > 0 ? 'Success' : 'Failed'}).`);
-    return pins.map((p, i) => ({ ...p, id: `pinterest_scraped_${i}` }));
+    return results.map(item => {
+      // Robust checking for image
+      let imageUrl = null;
+      if (item.images?.orig?.url) imageUrl = item.images.orig.url;
+      else if (item.images?.['736x']?.url) imageUrl = item.images['736x'].url;
+      else if (item.images?.['474x']?.url) imageUrl = item.images['474x'].url;
+      else if (item.images?.['236x']?.url) imageUrl = item.images['236x'].url; // Fallback
+
+      // Robust link construction
+      let link = '#';
+      if (item.link) link = item.link;
+      else if (item.id) link = `https://www.pinterest.com/pin/${item.id}/`;
+
+      if (link && !link.startsWith('http')) {
+        link = `https://www.pinterest.com${link.startsWith('/') ? '' : '/'}${link}`;
+      }
+
+      return {
+        title: item.title || item.grid_title || item.description || 'Pinterest Pin',
+        link: link,
+        image: imageUrl,
+        source: 'Pinterest',
+        id: item.id || `pin_${Math.random()}`
+      };
+    }).filter(p => p.image); // Filter out items without images
 
   } catch (error) {
-    console.error('DEBUG: Pinterest Scrape Error:', error.message);
+    console.error('Pinterest Internal API Error:', error.message);
+    // Silent fail or return empty
     return [];
-  } finally {
-    // Close page, but NOT browser
-    await page.close();
   }
 }
 
@@ -357,7 +307,7 @@ async function getInspiration(req, res) {
 
     const results = await Promise.allSettled([
       fetchUnsplash(q, unsplashPage, unsplashPer),
-      scrapePinterest(browser, q), // Use scraper instead of API
+      scrapePinterest(q), // Use scraper instead of API
       fetchBehance(q, 50),
       scrapeDribbble(browser, q) // Pass browser instance
     ]);
@@ -391,17 +341,13 @@ async function getInspiration(req, res) {
 
 async function getPinterestInspiration(req, res) {
   const q = req.query.q || 'web design ui';
-  let browser = null;
   try {
-    browser = await launchBrowser();
     console.log('DEBUG: Fetching Pinterest Inspiration for:', q);
-    const items = await scrapePinterest(browser, q);
+    const items = await scrapePinterest(q);
     res.json(items);
   } catch (error) {
     console.error('Pinterest Controller Error:', error);
     res.status(500).json({ error: error.message });
-  } finally {
-    if (browser) await browser.close();
   }
 }
 
