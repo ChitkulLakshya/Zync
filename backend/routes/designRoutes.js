@@ -1,11 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { getBehance, getInspiration } = require('../controllers/inspirationController');
-
-router.get('/behance', getBehance);
+const { getInspiration, getPinterestInspiration, getDribbbleInspiration } = require('../controllers/inspirationController');
 
 // Unified search (Unsplash + Behance)
 router.get('/search', getInspiration);
 
 module.exports = router;
-

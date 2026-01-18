@@ -3,91 +3,93 @@ const Parser = require('rss-parser');
 
 
 
-const UNSPLASH_BASE = 'https://api.unsplash.com';
-const PINTEREST_BASE = 'https://api.pinterest.com/v5';
+
 const parser = new Parser();
 
 const PLACEHOLDER_IMG = 'https://via.placeholder.com/600x400?text=No+Preview';
 
-async function fetchUnsplash(query = 'web design', page = 1, per_page = 50) {
-  const accessKey = process.env.UNSPLASH_ACCESS_KEY;
-  if (!accessKey) throw new Error('UNSPLASH_ACCESS_KEY missing');
-
-  // Refine query to be design-specific: 'web design user interface' preferred
-  const refinedQuery = query.toLowerCase().includes('web') || query.toLowerCase().includes('design')
-    ? `${query} user interface`
-    : `web design user interface ${query}`;
-
-  const resp = await axios.get(`${UNSPLASH_BASE}/search/photos`, {
-    params: {
-      query: refinedQuery,
-      page,
-      per_page: 10, // Limit to 10 high-quality shots 
-      orientation: 'landscape'
-    },
-    headers: { Authorization: `Client-ID ${accessKey}` },
-  });
-
-  return resp.data.results.map(r => ({
-    id: `unsplash_${r.id}`,
-    source: 'unsplash',
-    title: r.alt_description || r.description || 'Untitled',
-    // Use regular or small as requested
-    image: r.urls?.regular || r.urls?.small || r.urls?.full || PLACEHOLDER_IMG,
-    thumb: r.urls?.small || r.urls?.thumb,
-    photographer: r.user?.name,
-    photographerProfile: r.user?.links?.html,
-    link: r.links?.html,
-  }));
-}
-
-
-
-async function fetchBehance(query = 'web design', limit = 30) {
+// SiteInspire RSS Fetcher
+async function fetchSiteInspire() {
   try {
-    // Fetch from Behance RSS feed filtered by Creative Field
-    // Use 'field' parameter for web design projects (more targeted than tags)
-    const field = 'web design'; // Primary creative field filter
-    // Construct feed URL with field and sort by appreciated if possible, or just default (published_date filters apply implicitly in RSS)
-    const feedUrl = `https://www.behance.net/feeds/projects?field=${encodeURIComponent(field)}&q=${encodeURIComponent(query)}`;
-    const feed = await parser.parseURL(feedUrl);
+    const parser = new Parser();
+    const feed = await parser.parseURL('https://feeds.feedburner.com/Siteinspire');
 
-    const results = [];
-    feed.items.forEach((item, index) => {
-      if (results.length >= limit) return;
-
-      // Extract image URL from content or description
+    return feed.items.slice(0, 20).map(item => {
+      // Extract image from content:encoded or content
+      const content = item['content:encoded'] || item.content;
       let image = null;
-      // 1. Try custom covers if RSS parser captured them (unlikely without custom fields, but harmless)
-      if (item.covers && item.covers['404']) image = item.covers['404'];
-      else if (item.covers && item.covers.original) image = item.covers.original;
-
-      // 2. Regex fallback (standard RSS)
-      if (!image) {
-        const content = item.content || item.description || '';
-        const imgMatch = content.match(/<img[^>]+src=["']([^"']+)["']/);
-        if (imgMatch && imgMatch[1]) {
-          image = imgMatch[1];
-        }
+      if (content) {
+        const imgMatch = content.match(/src="([^"]+)"/);
+        if (imgMatch) image = imgMatch[1];
       }
 
-      // Use GUID or Link + Index to ensure uniqueness
-      const uniqueId = item.guid || item.link || `no-link-${index}`;
-
-      results.push({
-        id: `behance_${Buffer.from(uniqueId).toString('base64')}`,
-        source: 'behance',
-        title: item.title || 'Untitled',
-        image: image || PLACEHOLDER_IMG,
+      return {
+        title: item.title,
         link: item.link,
-        creator: item.creator || item.author || 'Unknown',
+        image: image,
+        source: 'SiteInspire',
+        id: `siteinspire_${Math.random().toString(36).substr(2, 9)}`
+      };
+    }).filter(i => i.image);
+  } catch (error) {
+    console.error('SiteInspire Fetch Error:', error.message);
+    return [];
+  }
+}
+
+// Godly.website Scraper
+async function scrapeGodly(browser) {
+  if (!browser) return [];
+  const page = await browser.newPage();
+  try {
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
+
+    console.log('DEBUG: Navigating to Godly.website');
+    await page.goto('https://godly.website/', { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    // Wait for cards
+    try {
+      await page.waitForSelector('a[href^="/website/"]', { timeout: 15000 });
+    } catch (e) {
+      console.log('DEBUG: Timeout waiting for Godly selectors');
+    }
+
+    const items = await page.evaluate(() => {
+      const results = [];
+      // Select anchors that look like website cards
+      // Godly structure changes, but usually valid items are anchors wrapping images
+      const cards = document.querySelectorAll('a[href^="/website/"]');
+
+      cards.forEach(card => {
+        const titleEl = card.querySelector('h2') || card.querySelector('div[class*="title"]');
+        const imgEl = card.querySelector('img') || card.querySelector('video');
+
+        let image = null;
+        if (imgEl) {
+          image = imgEl.src || imgEl.poster; // Use poster if it's a video
+        }
+
+        if (image) {
+          results.push({
+            title: titleEl ? titleEl.innerText.trim() : 'Web Design Inspiration',
+            link: card.href,
+            image: image,
+            source: 'Godly'
+          });
+        }
       });
+      return results.slice(0, 15);
     });
 
-    return results;
+    console.log(`DEBUG: Scraped ${items.length} Godly items.`);
+    return items.map((i, idx) => ({ ...i, id: `godly_${idx}` }));
+
   } catch (error) {
-    console.error('Behance RSS fetch error:', error.message);
+    console.error('Godly Scrape Error:', error.message);
     return [];
+  } finally {
+    if (page) await page.close();
   }
 }
 
@@ -295,8 +297,6 @@ async function getInspiration(req, res) {
   });
 
   const q = req.query.q || 'web design';
-  const unsplashPage = parseInt(req.query.up) || 1;
-  const unsplashPer = parseInt(req.query.upp) || 50;
   const pinterestBoard = req.query.pboard || process.env.PINTEREST_BOARD_ID;
   const pinterestToken = req.header('x-pinterest-token') || process.env.PINTEREST_TOKEN;
 
@@ -305,28 +305,48 @@ async function getInspiration(req, res) {
     // Launch browser once for all scrapers
     browser = await launchBrowser();
 
+    // Parallel Fetching
     const results = await Promise.allSettled([
-      fetchUnsplash(q, unsplashPage, unsplashPer),
-      scrapePinterest(q), // Use scraper instead of API
-      fetchBehance(q, 50),
-      scrapeDribbble(browser, q) // Pass browser instance
+      fetchSiteInspire(),
+      scrapeGodly(browser),
+      scrapePinterest(req.query.q || 'web design'), // Using Axios call now
+      scrapeDribbble(browser, q)
     ]);
 
-    const unsplash = results[0].status === 'fulfilled' ? results[0].value : [];
-    const pinterest = results[1].status === 'fulfilled' ? results[1].value : [];
-    const behance = results[2].status === 'fulfilled' ? results[2].value : [];
+    const siteInspire = results[0].status === 'fulfilled' ? results[0].value : [];
+    const godly = results[1].status === 'fulfilled' ? results[1].value : [];
+    const pinterest = results[2].status === 'fulfilled' ? results[2].value : [];
     const dribbble = results[3].status === 'fulfilled' ? results[3].value : [];
 
-    if (results[0].status === 'rejected') console.error('Unsplash Error:', results[0].reason?.message);
-    if (results[1].status === 'rejected') console.error('Pinterest Error:', results[1].reason?.message);
-    if (results[2].status === 'rejected') console.error('Behance Error:', results[2].reason?.message);
+    if (results[0].status === 'rejected') console.error('SiteInspire Error:', results[0].reason?.message);
+    if (results[1].status === 'rejected') console.error('Godly Error:', results[1].reason?.message);
+    if (results[2].status === 'rejected') console.error('Pinterest Error:', results[2].reason?.message);
     if (results[3].status === 'rejected') console.error('Dribbble Scraper Error:', results[3].reason?.message);
 
-    console.log(`Inspiration Results - Unsplash: ${unsplash.length}, Pinterest: ${pinterest.length}, Behance: ${behance.length}, Dribbble: ${dribbble.length}`);
+    console.log(`Inspiration Results - SiteInspire: ${siteInspire.length}, Godly: ${godly.length}, Pinterest: ${pinterest.length}, Dribbble: ${dribbble.length}`);
 
-    // Unified list
-    const unified = [...unsplash, ...pinterest, ...behance, ...dribbble];
-    res.json({ ok: true, count: unified.length, items: unified });
+    // Merge all
+    let unified = [...dribbble, ...siteInspire, ...godly, ...pinterest];
+
+    // Shuffle results (Fisher-Yates)
+    for (let i = unified.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [unified[i], unified[j]] = [unified[j], unified[i]];
+    }
+
+    // Deduplicate by ID
+    const seen = new Set();
+    unified = unified.filter(item => {
+      const duplicate = seen.has(item.id);
+      seen.add(item.id);
+      return !duplicate;
+    });
+
+    res.json({
+      ok: true,
+      count: unified.length,
+      items: unified
+    });
   } catch (error) {
     console.error('Controller error', error);
     res.status(500).json({ ok: false, error: error.message });
@@ -368,15 +388,6 @@ async function getDribbbleInspiration(req, res) {
   }
 }
 
-async function getBehance(req, res) {
-  const q = req.query.q || 'web design';
-  try {
-    const items = await fetchBehance(q, 50);
-    res.json(items);
-  } catch (error) {
-    console.error('Behance controller error', error);
-    res.status(500).json({ error: error.message });
-  }
-}
 
-module.exports = { getInspiration, getBehance, getPinterestInspiration, getDribbbleInspiration };
+
+module.exports = { getInspiration, getPinterestInspiration, getDribbbleInspiration };
