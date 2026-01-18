@@ -226,44 +226,62 @@ async function scrapePinterest(browser, query) {
     await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
     try {
-      // Wait for pins to load
-      await page.waitForSelector('[data-test-id="pin"]', { timeout: 15000 });
+      // Wait for the data script
+      await page.waitForSelector('script#__PWS_INITIAL_PROPS__', { timeout: 15000 });
     } catch (e) {
-      console.log('DEBUG: Timeout waiting for Pinterest selector [data-test-id="pin"]');
+      console.log('DEBUG: Timeout waiting for Pinterest data script [script#__PWS_INITIAL_PROPS__]');
     }
 
     const pins = await page.evaluate(() => {
-      const results = [];
-      const items = document.querySelectorAll('[data-test-id="pin"]');
+      try {
+        const script = document.getElementById('__PWS_INITIAL_PROPS__');
+        if (!script) return [];
 
-      // Extract top 20
-      for (let i = 0; i < Math.min(items.length, 20); i++) {
-        const item = items[i];
-        const imgEl = item.querySelector('img');
-        // Parent anchor usually wraps the pin or is inside
-        // Strategy: find closest anchor or anchor inside
-        const linkEl = item.closest('a') || item.querySelector('a');
+        const json = JSON.parse(script.textContent);
+        const feeds = json?.initialReduxState?.feeds;
+        if (!feeds) return [];
 
-        if (imgEl && linkEl) {
-          const title = imgEl.alt || 'Pinterest Pin';
-          const image = imgEl.src;
-          const link = linkEl.href;
+        // Find the key that contains 'results' (it's dynamic, usually search:...)
+        const feedKey = Object.keys(feeds).find(key =>
+          feeds[key]?.response?.data?.results && Array.isArray(feeds[key].response.data.results)
+        );
 
-          // Basic validation to ensure it's a real pin link
-          if (link.startsWith('https://www.pinterest.com')) {
-            results.push({
-              title,
-              link,
-              image,
-              source: 'Pinterest'
-            });
+        if (!feedKey) return [];
+
+        const items = feeds[feedKey].response.data.results;
+
+        return items.slice(0, 20).map(item => {
+          // Robust checking for image
+          let imageUrl = null;
+          if (item.images?.orig?.url) imageUrl = item.images.orig.url;
+          else if (item.images?.['736x']?.url) imageUrl = item.images['736x'].url;
+          else if (item.images?.['474x']?.url) imageUrl = item.images['474x'].url;
+
+          // Robust link construction
+          let link = '#';
+          if (item.link) link = item.link; // sometimes full url
+          else if (item.id) link = `https://www.pinterest.com/pin/${item.id}/`;
+
+          if (!link.startsWith('http')) {
+            // Handle relative links if they appear
+            link = `https://www.pinterest.com${link.startsWith('/') ? '' : '/'}${link}`;
           }
-        }
+
+          return {
+            title: item.title || item.grid_title || item.description || 'Pinterest Pin',
+            link: link,
+            image: imageUrl,
+            source: 'Pinterest'
+          };
+        }).filter(p => p.image); // Filter out items without images
+
+      } catch (e) {
+        console.error('Pinterest Client-Side Parse Error:', e.message);
+        return [];
       }
-      return results;
     });
 
-    console.log(`DEBUG: Scraped ${pins.length} Pinterest pins.`);
+    console.log(`DEBUG: Scraped ${pins.length} Pinterest pins via JSON.`);
     return pins.map((p, i) => ({ ...p, id: `pinterest_scraped_${i}` }));
 
   } catch (error) {
