@@ -111,6 +111,14 @@ const ProjectDetails = () => {
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
 
+  // Task Creation State
+  const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [selectedStepId, setSelectedStepId] = useState<string>("");
+  const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
+  const [isCreatingTask, setIsCreatingTask] = useState(false);
+
   // New state for analysis
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
@@ -348,6 +356,56 @@ const ProjectDetails = () => {
     setIsAssignmentDialogOpen(false);
     toast.success(selectedUserId ? `Assigned to ${assignedToName}` : "Task Unassigned");
   };
+
+  const handleCreateTask = async () => {
+    if (!project || !newTaskTitle || !selectedStepId) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    setIsCreatingTask(true);
+    try {
+      const assignedUser = users.find(u => u.uid === selectedAssigneeId);
+      const assignedToName = assignedUser ? (assignedUser.displayName || assignedUser.email) : undefined;
+
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project._id}/steps/${selectedStepId}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth header if needed, assuming generic public/internal for now based on existing fetchProject
+        },
+        body: JSON.stringify({
+          title: newTaskTitle,
+          description: newTaskDescription,
+          assignedTo: selectedAssigneeId,
+          assignedToName: assignedToName,
+          assignedBy: auth.currentUser?.displayName || 'Admin'
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to create task");
+      }
+
+      const updatedProject = await response.json();
+      setProject(updatedProject);
+      toast.success("Task created successfully");
+      setIsCreateTaskDialogOpen(false);
+
+      // Reset form
+      setNewTaskTitle("");
+      setNewTaskDescription("");
+      setSelectedStepId("");
+      setSelectedAssigneeId(null);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      toast.error("Failed to create task");
+    } finally {
+      setIsCreatingTask(false);
+    }
+  };
+
+
 
   if (loading) {
     return (
@@ -714,9 +772,15 @@ const ProjectDetails = () => {
           {isOwner && (
             <TabsContent value="team" className="flex-1">
               <Card>
-                <CardHeader>
-                  <CardTitle>Team Assignments</CardTitle>
-                  <CardDescription>Manage task assignments for {project.name}</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Team Assignments</CardTitle>
+                    <CardDescription>Manage task assignments for {project.name}</CardDescription>
+                  </div>
+                  <Button onClick={() => setIsCreateTaskDialogOpen(true)} className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Create Task
+                  </Button>
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[600px] pr-4">
@@ -823,6 +887,80 @@ const ProjectDetails = () => {
             <Button onClick={handleAssignSubmit} disabled={isSubmittingAssignment}>
               {isSubmittingAssignment && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Confirm Assignment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Task Dialog */}
+      <Dialog open={isCreateTaskDialogOpen} onOpenChange={setIsCreateTaskDialogOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Task</DialogTitle>
+            <DialogDescription>
+              Add a new task to your project plan and assign it to a team member.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="title" className="text-sm font-medium">Task Title *</label>
+              <input
+                id="title"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="e.g., Implement Authentication"
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="description" className="text-sm font-medium">Description</label>
+              <textarea
+                id="description"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Details about the task..."
+                value={newTaskDescription}
+                onChange={(e) => setNewTaskDescription(e.target.value)}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Project Step *</label>
+                <Select value={selectedStepId} onValueChange={setSelectedStepId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Step" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {project.steps.map((step) => (
+                      <SelectItem key={step._id || step.id} value={step._id || step.id}>
+                        {step.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Assign To</label>
+                <Select value={selectedAssigneeId || "unassigned"} onValueChange={(val) => setSelectedAssigneeId(val === "unassigned" ? null : val)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select User" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {users.map((user) => (
+                      <SelectItem key={user.uid} value={user.uid}>
+                        {user.displayName || user.email}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateTaskDialogOpen(false)} disabled={isCreatingTask}>Cancel</Button>
+            <Button onClick={handleCreateTask} disabled={isCreatingTask || !newTaskTitle || !selectedStepId}>
+              {isCreatingTask && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Create Task
             </Button>
           </DialogFooter>
         </DialogContent>

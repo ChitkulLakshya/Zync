@@ -405,6 +405,67 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
+// Create a new task in a specific step
+router.post('/:projectId/steps/:stepId/tasks', async (req, res) => {
+  try {
+    const { projectId, stepId } = req.params;
+    const { title, description, assignedTo, assignedToName, assignedBy } = req.body;
+
+    if (!title) {
+      return res.status(400).json({ message: 'Task title is required' });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    const step = project.steps.id(stepId);
+    if (!step) return res.status(404).json({ message: 'Step not found' });
+
+    const newTask = {
+      title,
+      description,
+      status: 'Pending',
+      assignedTo,
+      assignedToName,
+      assignedBy: assignedBy || 'Admin',
+    };
+
+    // Send email notification if assigned
+    if (assignedTo) {
+      const user = await User.findOne({ uid: assignedTo });
+      if (user && user.email) {
+        const subject = `New Task Assigned: ${newTask.title}`;
+        const text = `You have been assigned a new task in project "${project.name}".\n\nTask: ${newTask.title}\nDescription: ${newTask.description || 'No description'}\nAssigned By: ${assignedBy || 'Admin'}`;
+        const html = `
+          <div style="font-family: Arial, sans-serif; color: #333;">
+            <h2>New Task Assignment</h2>
+            <p>You have been assigned a new task in project <strong>${project.name}</strong>.</p>
+            <div style="background: #f4f4f4; padding: 15px; border-radius: 5px; margin: 15px 0;">
+              <p><strong>Step:</strong> ${step.title}</p>
+              <p><strong>Task:</strong> ${newTask.title}</p>
+              <p><strong>Description:</strong> ${newTask.description || 'No description'}</p>
+            </div>
+            <p>Please log in to Zync to view more details.</p>
+          </div>
+        `;
+        try {
+          await sendZyncEmail(user.email, subject, html, text);
+        } catch (emailError) {
+          console.error("Failed to send assignment email:", emailError);
+        }
+      }
+    }
+
+    step.tasks.push(newTask);
+    await project.save();
+
+    res.status(201).json(project);
+  } catch (error) {
+    console.error('Error creating task:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Update a specific task status or assignment
 router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
   try {
@@ -449,7 +510,7 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
           `;
 
           try {
-            await sendZYNCEmail(
+            await sendZyncEmail(
               user.email,
               subject,
               html,
