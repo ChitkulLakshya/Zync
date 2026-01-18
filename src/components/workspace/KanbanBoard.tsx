@@ -44,11 +44,11 @@ const COLUMN_MAPPING: Record<string, string> = {
 const COLUMNS = ['Backlog', 'Ready', 'In Progress', 'In Review', 'Done'];
 
 const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
-  const [draggedTask, setDraggedTask] = useState<{task: Task, stepId: string} | null>(null);
+  const [draggedTask, setDraggedTask] = useState<{ task: Task, stepId: string } | null>(null);
 
   // Flatten tasks logic for the board, while preserving step reference
   const allTasks = useMemo(() => {
-    return steps.flatMap(step => 
+    return steps.flatMap(step =>
       step.tasks.map(task => ({
         ...task,
         status: COLUMN_MAPPING[task.status] || 'Backlog',
@@ -62,7 +62,7 @@ const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
     const cols: Record<string, typeof allTasks> = {};
     COLUMNS.forEach(c => cols[c] = []);
     allTasks.forEach(task => {
-        if (cols[task.status]) cols[task.status].push(task);
+      if (cols[task.status]) cols[task.status].push(task);
     });
     return cols;
   }, [allTasks]);
@@ -82,59 +82,72 @@ const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
     if (!draggedTask) return;
 
     if (draggedTask.task.status !== targetStatus) {
-        // Map back to schema valid status
-        let schemaStatus = targetStatus;
-        if(targetStatus === 'Done') schemaStatus = 'Completed';
+      // Map back to schema valid status
+      let schemaStatus = targetStatus;
+      if (targetStatus === 'Done') schemaStatus = 'Completed';
 
-        onUpdateTask(draggedTask.stepId, draggedTask.task._id, { status: schemaStatus });
+      onUpdateTask(draggedTask.stepId, draggedTask.task._id, { status: schemaStatus });
     }
     setDraggedTask(null);
+  };
+
+  // Helper for border colors
+  const getBorderColor = (status: string) => {
+    if (status === 'In Progress') return 'border-l-green-500 bg-green-50/5';
+    if (status === 'Done') return 'border-l-blue-500 bg-blue-50/5';
+    return 'border-l-muted-foreground/30';
   };
 
   return (
     <div className="flex h-full gap-4 overflow-x-auto pb-4">
       {COLUMNS.map(column => (
-        <div 
-            key={column} 
-            className="flex-shrink-0 w-72 bg-secondary/20 rounded-lg flex flex-col border border-border/50"
-            onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, column)}
+        <div
+          key={column}
+          className="flex-shrink-0 w-72 bg-secondary/20 rounded-lg flex flex-col border border-border/50"
+          onDragOver={handleDragOver}
+          onDrop={(e) => handleDrop(e, column)}
         >
           <div className="p-3 font-semibold text-sm flex justify-between items-center border-b border-border/50 bg-secondary/10 rounded-t-lg">
             {column}
             <Badge variant="secondary" className="ml-2">{columns[column].length}</Badge>
           </div>
-          
+
           <ScrollArea className="flex-1 p-2">
             <div className="space-y-2">
-                {columns[column].map(task => (
-                    <Card 
-                        key={task._id} 
-                        draggable
-                        onDragStart={(e) => handleDragStart(e, task, task.stepId)}
-                        className="cursor-move hover:shadow-md transition-all active:cursor-grabbing border-l-2 border-l-primary"
-                    >
-                        <CardContent className="p-3 space-y-2">
-                            <div className="flex justify-between items-start gap-2">
-                                <span className="text-sm font-medium leading-tight">{task.title}</span>
-                                <GripVertical className="w-4 h-4 text-muted-foreground opacity-50" />
-                            </div>
-                            
-                            {task.assignedTo && (
-                                <div className="flex items-center gap-2 pt-2">
-                                    <Avatar className="w-5 h-5">
-                                        <AvatarFallback className="text-[10px] bg-primary/20 text-primary">
-                                            {task.assignedToName?.substring(0,2).toUpperCase() || 'U'}
-                                        </AvatarFallback>
-                                    </Avatar>
-                                    <span className="text-xs text-muted-foreground truncate max-w-[100px]">
-                                        {task.assignedToName}
-                                    </span>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                ))}
+              {columns[column].map(task => (
+                <Card
+                  key={task._id}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, task, task.stepId)}
+                  onClick={() => {
+                    // Auto-start task on click if it's in backlog
+                    if (['Backlog', 'Ready', 'Pending'].includes(task.status)) {
+                      onUpdateTask(task.stepId, task._id, { status: 'In Progress' });
+                    }
+                  }}
+                  className={`cursor-pointer hover:shadow-md transition-all active:cursor-grabbing border-l-4 ${getBorderColor(task.status)}`}
+                >
+                  <CardContent className="p-3 space-y-2">
+                    <div className="flex justify-between items-start gap-2">
+                      <span className="text-sm font-medium leading-tight">{task.title}</span>
+                      <GripVertical className="w-4 h-4 text-muted-foreground opacity-50" />
+                    </div>
+
+                    {task.assignedTo && (
+                      <div className="flex items-center gap-2 pt-2">
+                        <Avatar className="w-5 h-5">
+                          <AvatarFallback className="text-[10px] bg-primary/20 text-primary">
+                            {task.assignedToName?.substring(0, 2).toUpperCase() || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-muted-foreground truncate max-w-[100px]">
+                          {task.assignedToName}
+                        </span>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </ScrollArea>
         </div>

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const prisma = require('../lib/prisma');
+
 const Groq = require('groq-sdk');
 const User = require('../models/User');
 // Removed: const { getUserApp } = require('../utils/githubService'); 
@@ -9,9 +9,14 @@ const User = require('../models/User');
 
 const verifyGithub = require('../middleware/verifyGithub');
 
+// ... (previous imports)
+const Project = require('../models/Project'); // Correct Mongoose Model
+const { analyzeCommit } = require('../utils/commitAnalysisService');
+
 router.post('/github', verifyGithub, async (req, res) => {
     try {
         const event = req.headers['x-github-event'];
+        console.log(`Received GitHub Header Event: ${event}`);
 
         if (event === 'ping') {
             return res.json({ message: 'Pong' });
@@ -19,78 +24,87 @@ router.post('/github', verifyGithub, async (req, res) => {
 
         if (event === 'push') {
             const payload = req.body;
-            const installationId = payload.installation?.id?.toString();
-            const repoId = payload.repository.id.toString(); // githubRepoId
             const commits = payload.commits || [];
+            console.log(`Processing push event with ${commits.length} commits.`);
 
-            if (!installationId) {
-                console.warn('Webhook received without installation ID');
-            } else {
-                console.log('Verified Webhook from GitHub for Installation:', installationId);
-            }
+            const io = req.app.get('io'); // Get Socket.IO instance
 
-            console.log(`Received push event from repo ${repoId} (Install: ${installationId}) with ${commits.length} commits`);
-
-            // 1. Find the User associated with this installation to know WHO is "active"
-            const user = await User.findOne({ 'integrations.github.installationId': installationId });
-
-            if (user) {
-                console.log(`Webhook linked to user: ${user.uid}`);
-                // Potential TODO: Use user's specific settings or verify context
-            } else {
-                console.warn(`No user found for installation ID: ${installationId}`);
-                // Logic can still proceed if we just match Tasks by repoId, 
-                // but strictly speaking, in multi-tenant SaaS, you might want to stop here.
-                // For now, we continue to update tasks based on repoId match.
-            }
-
-            // Process Commits
             for (const commit of commits) {
-                const { message } = commit;
+                const message = commit.message;
+                let taskId = null;
+                let action = null;
 
-                // Auto-Tick Logic with Gemini (via commitAnalysisService)
-                const { analyzeCommit } = require('../utils/commitAnalysisService');
-
-                try {
+                // 1. Check for Explicit ZYNC Tag [ZYNC-COMPLETE #ID]
+                const explicitMatch = message.match(/\[ZYNC-COMPLETE #([a-zA-Z0-9_-]+)\]/i);
+                if (explicitMatch) {
+                    taskId = explicitMatch[1];
+                    action = 'Complete';
+                    console.log(`Found Explicit Tag: ${taskId}`);
+                } else {
+                    // 2. Fallback to AI Analysis
                     const analysis = await analyzeCommit(message);
-
                     if (analysis.found && analysis.id && analysis.action === 'Complete') {
-                        console.log(`Task identified: ${analysis.id}, Action: ${analysis.action}`);
+                        // Removing prefix if present to match DB ID
+                        taskId = analysis.id.replace('TASK-', '');
+                        action = 'Complete';
+                        console.log(`AI identified task: ${taskId}`);
+                    }
+                }
 
-                        // Find task where displayId matches AND repoIds contains current repoId
-                        const task = await prisma.task.findFirst({
-                            where: {
-                                displayId: analysis.id,
-                                repoIds: { has: repoId }
-                            }
-                        });
+                if (taskId && action === 'Complete') {
+                    // Search for project containing this task
+                    // We search in steps.tasks.id OR steps.tasks._id
+                    const project = await Project.findOne({
+                        $or: [
+                            { "steps.tasks.id": taskId },
+                            { "steps.tasks._id": taskId } // Support both string ID and ObjectId
+                        ]
+                    });
 
-                        if (task) {
-                            await prisma.task.update({
-                                where: { id: task.id },
-                                data: {
-                                    status: 'Completed',
-                                    updatedAt: new Date()
+                    if (project) {
+                        let taskUpdated = false;
+                        project.steps.forEach(step => {
+                            step.tasks.forEach(task => {
+                                if (task.id === taskId || (task._id && task._id.toString() === taskId)) {
+                                    task.status = 'Completed';
+                                    task.commitInfo = {
+                                        message: commit.message,
+                                        url: commit.url,
+                                        author: commit.author.name,
+                                        timestamp: commit.timestamp
+                                    };
+                                    taskUpdated = true;
+                                    console.log(`Marking task ${task.title} as Completed`);
                                 }
                             });
-                            console.log(`Updated Task ${analysis.id} to completed.`);
-                        } else {
-                            console.warn(`Task ${analysis.id} not linked to repo ${repoId}.`);
+                        });
+
+                        if (taskUpdated) {
+                            await project.save();
+                            console.log(`SUCCESS: Task ${taskId} updated in DB.`);
+
+                            // Emit Socket Event
+                            if (io) {
+                                io.emit('taskUpdated', {
+                                    taskId: taskId,
+                                    projectId: project._id,
+                                    status: 'Completed',
+                                    message: `Task completed via commit: ${message}`
+                                });
+                                console.log('Socket event emitted: taskUpdated');
+                            }
                         }
+                    } else {
+                        console.warn(`Task ID ${taskId} not found in any project.`);
                     }
-                } catch (err) {
-                    console.error("Commit Analysis Error:", err);
                 }
             }
-
-            return res.status(200).json({ message: 'Webhook processed' });
+            return res.status(200).json({ message: 'Processed' });
         }
-
-        res.status(200).json({ message: 'Ignored event' });
-
+        res.status(200).json({ message: 'Ignored' });
     } catch (error) {
         console.error('Webhook Error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 });
 
