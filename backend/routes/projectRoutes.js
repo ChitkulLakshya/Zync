@@ -562,13 +562,19 @@ router.delete('/:projectId/steps/:stepId/tasks/:taskId', authMiddleware, async (
     const task = step.tasks.id(taskId);
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    // Check Permissions: Owner of Project OR Creator of Task
-    if (project.ownerId !== userId && task.createdBy !== userId) {
-      return res.status(403).json({ message: 'Permission denied. Only the task creator or project owner can delete this task.' });
+    // Check Permissions: ONLY Project Owner
+    if (project.ownerId !== userId) {
+      return res.status(403).json({ message: 'Permission denied. Only the project owner can delete tasks.' });
     }
 
     step.tasks.pull(taskId);
     await project.save();
+
+    // Emit generic project update for live board (since deletion changes state)
+    req.app.get('io').emit('projectUpdate', {
+      projectId: project._id,
+      project
+    });
 
     res.json({ message: 'Task deleted successfully', projectId, stepId, taskId });
   } catch (error) {

@@ -1030,7 +1030,13 @@ const ProjectDetails = () => {
                     <SelectItem value="unassigned">Unassigned</SelectItem>
                     {users.map((user) => (
                       <SelectItem key={user.uid} value={user.uid}>
-                        {user.displayName || user.email}
+                        <div className="flex items-center gap-2">
+                          <Avatar className="h-6 w-6">
+                            <AvatarImage src={getFullUrl(user.photoURL)} />
+                            <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <span>{user.displayName || user.email}</span>
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
