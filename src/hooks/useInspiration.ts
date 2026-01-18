@@ -18,32 +18,26 @@ interface UseInspirationReturn {
     reset: () => void;
 }
 
+const ITEMS_PER_PAGE = 15;
+
 export const useInspiration = (): UseInspirationReturn => {
+    // All items fetched from backend (stored in memory)
     const [allItems, setAllItems] = useState<DesignItem[]>([]);
-    const [displayCount, setDisplayCount] = useState(10);
+    // How many items to currently display (for "fake" infinite scroll)
+    const [displayCount, setDisplayCount] = useState(ITEMS_PER_PAGE);
     const [loading, setLoading] = useState(false);
 
-    // Ref to track processed IDs to prevent duplicates during multiple parallel returns
+    // Ref to track processed IDs for deduplication
     const processedIds = useRef<Set<string>>(new Set());
 
-    // Shuffle function
-    const shuffle = (array: DesignItem[]) => {
-        let currentIndex = array.length, randomIndex;
-        while (currentIndex !== 0) {
-            randomIndex = Math.floor(Math.random() * currentIndex);
-            currentIndex--;
-            [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
-        }
-        return array;
-    };
-
     const loadMore = useCallback(() => {
-        setDisplayCount(prev => prev + 10);
-    }, []);
+        // Just reveal more items from memory
+        setDisplayCount(prev => Math.min(prev + ITEMS_PER_PAGE, allItems.length));
+    }, [allItems.length]);
 
     const reset = useCallback(() => {
         setAllItems([]);
-        setDisplayCount(10);
+        setDisplayCount(ITEMS_PER_PAGE);
         processedIds.current.clear();
     }, []);
 
@@ -51,80 +45,36 @@ export const useInspiration = (): UseInspirationReturn => {
         setLoading(true);
         reset();
 
-        // Helper to process and append items
-        const appendItems = (newItems: DesignItem[]) => {
-            setAllItems(prev => {
-                // Filter out items we've already seen (deduplication)
-                const uniqueNewItems = newItems.filter(item => !processedIds.current.has(item.id));
+        try {
+            // Single API call to unified endpoint
+            const response = await fetch(
+                `${API_BASE_URL}/api/inspiration?q=${encodeURIComponent(query)}`
+            );
 
-                // Mark as seen
-                uniqueNewItems.forEach(item => processedIds.current.add(item.id));
+            const data = await response.json();
 
-                if (uniqueNewItems.length === 0) return prev;
+            if (data.ok && Array.isArray(data.items)) {
+                // Deduplicate
+                const uniqueItems = data.items.filter((item: DesignItem) => {
+                    if (processedIds.current.has(item.id)) return false;
+                    processedIds.current.add(item.id);
+                    return true;
+                });
 
-                // Combine and Shuffle
-                // We shuffle the *new* items into the *existing* items? 
-                // Or just append and shuffle? 
-                // User said "Shuffle the combined array". 
-                // Shuffling the whole array every time might be jarring if the user is reading.
-                // Better to shuffle the NEW items and append them? 
-                // Or strictly follow "Shuffle the combined array".
-                // Let's shuffle the whole thing for now, or maybe just shuffle the incoming batch and append.
-                // If I shuffle existing items, they will jump around. That's bad UX.
-                // Strategy: Shuffle uniqueNewItems, then append.
-                const shuffledNew = shuffle([...uniqueNewItems]);
-                return [...prev, ...shuffledNew];
-            });
-        };
-
-        const dToken = localStorage.getItem('dribbble_token');
-        const headers: HeadersInit = {};
-        if (dToken) headers['x-dribbble-token'] = dToken;
-
-        // 1. Pinterest (Fast)
-        const pPromise = fetch(`${API_BASE_URL}/api/inspiration/pinterest?q=${encodeURIComponent(query)}`)
-            .then(res => res.json())
-            .then(data => {
-                const items = Array.isArray(data) ? data : (data.items || []);
-                appendItems(items);
-            })
-            .catch(err => console.error("Pinterest fetch failed", err));
-
-        // 2. Dribbble (Slow)
-        const dPromise = fetch(`${API_BASE_URL}/api/inspiration/dribbble?q=${encodeURIComponent(query)}`, { headers })
-            .then(res => res.json())
-            .then(data => {
-                const items = Array.isArray(data) ? data : (data.items || []);
-                appendItems(items);
-            })
-            .catch(err => console.error("Dribbble fetch failed", err));
-
-        // 3. Main Search (Slow, contains Unsplash + Behance + duplicates)
-        // We strictly want this for Unsplash & Behance.
-        // Ideally we should filter the response to only include those sources to avoid processing overhead,
-        // but the deduplication logic handles it.
-        const mainPromise = fetch(`${API_BASE_URL}/api/design/search?q=${encodeURIComponent(query)}`, { headers })
-            .then(res => res.json())
-            .then(data => {
-                let items: DesignItem[] = [];
-                if (data.items && Array.isArray(data.items)) items = data.items;
-                else if (Array.isArray(data)) items = data;
-
-                // Optional: Pre-filter so we prioritize the Unsplash/Behance ones 
-                // since we likely already got P/D from the specific endpoints.
-                appendItems(items);
-            })
-            .catch(err => console.error("Main search failed", err));
-
-        // Wait for all to settle to clear loading state
-        await Promise.allSettled([pPromise, dPromise, mainPromise]);
-        setLoading(false);
-
+                setAllItems(uniqueItems);
+            }
+        } catch (err) {
+            console.error("Inspiration fetch failed:", err);
+        } finally {
+            setLoading(false);
+        }
     }, [reset]);
 
     return {
+        // Only return items up to displayCount (fake infinite scroll)
         items: allItems.slice(0, displayCount),
         loading,
+        // There's more if we haven't revealed all items yet
         hasMore: displayCount < allItems.length,
         loadMore,
         search,

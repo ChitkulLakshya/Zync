@@ -1,241 +1,178 @@
-import { useState, useEffect, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Search, ExternalLink, Loader2, ArrowUpRight, Sparkles } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL, cn } from "@/lib/utils";
+import { Search, ArrowUpRight, Plus } from "lucide-react";
 import { useInspiration } from "@/hooks/useInspiration";
+import { cn } from "@/lib/utils";
 
 const STORAGE_KEY = "ZYNC-design-view-state";
 
 const DesignView = () => {
-  // Initialize state from sessionStorage if available
   const savedState = (() => {
-    try {
-      const stored = sessionStorage.getItem(STORAGE_KEY);
-      return stored ? JSON.parse(stored) : null;
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null"); } catch { return null; }
   })();
 
   const [query, setQuery] = useState(savedState?.query || "web design");
   const [selectedCategory, setSelectedCategory] = useState<string>(savedState?.selectedCategory || "All");
+  const [hasSearched, setHasSearched] = useState(false);
 
-  // Use custom parallel fetching hook
-  const { items, loading, hasMore, loadMore, search, reset } = useInspiration();
+  const { items, loading, hasMore, loadMore, search } = useInspiration();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Initial fetch if empty
+  // Observer
   useEffect(() => {
-    if (items.length === 0 && query) {
-      search(query);
-    }
-  }, []); // Run once on mount
-
-  // Infinite Scroll Observer
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          loadMore();
-        }
-      },
-      { threshold: 1.0 }
-    );
-
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) loadMore();
+    }, { threshold: 1.0 });
+    if (observerTarget.current) observer.observe(observerTarget.current);
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
-
-  // Save state to sessionStorage
-  useEffect(() => {
-    const stateToSave = {
-      query,
-      selectedCategory,
-      scrollTop: scrollRef.current?.scrollTop || 0
-    };
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(stateToSave));
-  }, [query, selectedCategory]);
-
-  const handleSearch = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim()) return;
-    if (scrollRef.current) scrollRef.current.scrollTop = 0;
-    search(query);
-  };
 
   // Helper for Source Colors/Icons
   const getSourceStyle = (source: string) => {
     const s = source.toLowerCase();
     if (s.includes('dribbble')) return "bg-[#ea4c89] text-white border-[#ea4c89]";
-    if (s.includes('pinterest')) return "bg-[#bd081c] text-white border-[#bd081c]";
+    if (s.includes('lapa')) return "bg-[#6a3ae2] text-white border-[#6a3ae2]"; // Purple for Lapa
     if (s.includes('behance')) return "bg-[#1769ff] text-white border-[#1769ff]";
     if (s.includes('godly')) return "bg-black text-white border-black dark:bg-white dark:text-black";
     if (s.includes('siteinspire')) return "bg-emerald-600 text-white border-emerald-600";
     return "bg-secondary text-secondary-foreground";
   };
 
+  // Persistence
+  useEffect(() => {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ query, selectedCategory, scrollTop: scrollRef.current?.scrollTop || 0 }));
+  }, [query, selectedCategory]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+    setHasSearched(true);
+    search(query);
+  };
+
   return (
-    <div
-      ref={scrollRef}
-      className="h-full bg-background relative overflow-y-auto scroll-smooth"
-    >
-      {/* Sticky Header with Glassmorphism */}
-      <div className="sticky top-0 z-20 w-full bg-background/80 backdrop-blur-md border-b supports-[backdrop-filter]:bg-background/60">
-        <div className="container mx-auto max-w-7xl p-4 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                Inspiration Hub
-              </h1>
-              <p className="text-xs text-muted-foreground hidden md:block">
-                Curated form Godly, SiteInspire, Dribbble & Pinterest
-              </p>
-            </div>
-
-            <form onSubmit={handleSearch} className="relative w-full md:max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search UI, landing pages, interactions..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="pl-9 bg-muted/50 border-0 focus-visible:ring-1 focus-visible:ring-primary/50 transition-all rounded-full"
-              />
-            </form>
+    <div ref={scrollRef} className="h-full bg-background overflow-y-auto w-full">
+      {/* Editorial Header */}
+      <div className="w-full max-w-[1800px] mx-auto pt-16 pb-12 px-6 md:px-10 flex flex-col items-start gap-8">
+        <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/40 pb-6">
+          <div className="space-y-1">
+            <h1 className="text-4xl md:text-5xl font-medium tracking-tighter text-foreground">
+              Inspiration
+            </h1>
+            <p className="text-muted-foreground text-sm tracking-wide uppercase font-medium">
+              Curated Web Design
+            </p>
           </div>
 
-          {/* Category Filters (Scrollable) */}
-          <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {["All", "Godly", "SiteInspire", "Dribbble", "Pinterest"].map((category) => (
-              <Badge
-                key={category}
-                variant={selectedCategory === category ? "default" : "secondary"}
-                className={cn(
-                  "cursor-pointer px-4 py-1.5 text-xs font-medium transition-all hover:scale-105 active:scale-95 whitespace-nowrap rounded-full",
-                  selectedCategory === category ? "shadow-md" : "hover:bg-muted-foreground/10"
-                )}
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </Badge>
-            ))}
-          </div>
+          <form onSubmit={handleSearch} className="w-full md:max-w-xs relative group">
+            <Search className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-foreground transition-colors" />
+            <input
+              className="w-full bg-transparent border-none outline-none pl-6 pr-2 py-2 text-base placeholder:text-muted-foreground/50 focus:placeholder:text-muted-foreground/30 transition-all font-medium"
+              placeholder="Search..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            {/* Minimal animated underline */}
+            <div className="absolute bottom-0 left-0 h-[1px] w-full bg-border group-focus-within:bg-foreground transition-colors duration-300" />
+          </form>
+        </div>
+
+        {/* Text Filters */}
+        <div className="flex flex-wrap gap-8 text-sm font-medium tracking-wide">
+          {["All", "Godly", "SiteInspire", "Dribbble", "Lapa Ninja", "Awwwards"].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedCategory(cat)}
+              className={cn(
+                "relative pb-1 uppercase transition-colors hover:text-foreground/80",
+                selectedCategory === cat ? "text-foreground" : "text-muted-foreground"
+              )}
+            >
+              {cat}
+              {selectedCategory === cat && (
+                <span className="absolute -bottom-1 left-0 w-full h-[2px] bg-foreground" />
+              )}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="container mx-auto max-w-7xl p-4 min-h-screen">
-        {/* Dribbble Connection Prompt */}
-        {selectedCategory === "Dribbble" && !localStorage.getItem('dribbble_token') && (
-          <div className="mb-8 p-6 border border-dashed rounded-xl bg-muted/30 flex flex-col items-center justify-center text-center space-y-4">
-            <div className="w-12 h-12 flex items-center justify-center bg-[#ea4c89] text-white rounded-full shadow-lg shadow-pink-500/20">
-              <svg viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm6.605 4.61a8.502 8.502 0 011.93 5.314c-.281-.054-3.101-.629-5.943-.271-.065-.141-.12-.293-.184-.445a25.416 25.416 0 00-.564-1.236c3.145-1.28 4.577-3.124 4.761-3.362zM12 3.475c2.17 0 4.154.813 5.662 2.148-.152.216-1.443 1.941-4.48 3.08-1.399-2.57-2.95-4.675-3.189-5.03A8.458 8.458 0 0112 3.475zm-6.509 3.383c.247.358 1.821 2.68 3.239 5.289a29.866 29.866 0 01-4.496.643c-.02-.349-.033-.7-.033-1.056a8.468 8.468 0 011.29-4.876zm-1.637 6.47c1.764-.08 4.64.212 6.551.681.459 1.258.858 2.505 1.189 3.86a26.04 26.04 0 01-3.996 1.157c-2.486-1.6-4.008-4.226-4.008-7.149 0-.214.015-.424.03-.632.079.03.155.056.234.083zM12 20.53c-2.02 0-3.875-.712-5.327-1.921 1.251-.271 3.201-.849 5.368-1.472.261 1.05.514 2.17.755 3.328A8.466 8.466 0 0112 20.53zm0-18.995V1.53c0-.001-.001 0 0 0zm6.918 10.99l.011.393c.002.046.002.091.002.137 0 1.97-.676 3.784-1.815 5.234-.339-1.527-.678-2.978-1.015-4.329 2.571-.246 4.909.117 5.143.165-.183-.54-.429-1.052-.72-1.523-.424-.047-.98-.073-1.606-.078z" /></svg>
-            </div>
-            <h3 className="text-lg font-semibold">Unlock Dribbble</h3>
-            <Button
-              className="rounded-full px-6"
-              onClick={() => {
-                const clientId = "Z2LzX0DtUkUiTUl1T3ybs-UyTF8YFmYkmMZj1QuWMyU";
-                const redirectUri = `${API_BASE_URL}/api/dribbble/callback`;
-                window.location.href = `https://dribbble.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=public%20upload`;
-              }}
-            >
-              Connect Account
-            </Button>
-          </div>
-        )}
-
-        {/* Masonry Layout */}
-        <div className="columns-1 xs:columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 gap-4 space-y-4 pb-10">
+      {/* Experimental Grid - Clean & Sharp */}
+      <div className="px-6 md:px-10 pb-20 max-w-[1800px] mx-auto">
+        <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
           {items
             .filter(item => selectedCategory === "All" || item.source.toLowerCase() === selectedCategory.toLowerCase())
             .map((item, index) => (
-              <div
+              <a
                 key={`${item.id}-${index}`}
-                className="break-inside-avoid relative group rounded-2xl overflow-hidden bg-muted/20 mb-4 transition-all duration-300 hover:shadow-2xl hover:-translate-y-1"
+                href={item.link || '#'}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group relative block break-inside-avoid mb-6"
               >
-                <a href={item.link || '#'} target="_blank" rel="noopener noreferrer" className="block relative cursor-zoom-in">
-                  {/* Image */}
-                  <div className="relative overflow-hidden w-full bg-muted">
-                    {item.image ? (
-                      <img
-                        src={item.image}
-                        alt={item.title}
-                        className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-105"
-                        loading="lazy"
-                        onLoad={(e) => {
-                          const img = e.target as HTMLImageElement;
-                          img.style.opacity = '1';
-                        }}
-                        style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
-                      />
-                    ) : (
-                      <div className="w-full h-64 bg-secondary flex items-center justify-center text-muted-foreground flex-col gap-2">
-                        <div className="w-10 h-10 rounded-full bg-background/50 animate-pulse" />
-                        <span className="text-xs font-medium">No Preview</span>
-                      </div>
-                    )}
+                {/* Image Container - No Radius, Sharp Edges or Minimal Radius */}
+                <div className="relative overflow-hidden bg-secondary/20">
+                  {item.image ? (
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="w-full h-auto object-cover transition-transform duration-500 will-change-transform group-hover:scale-[1.02]"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    <div className="w-full h-64 bg-secondary/10 flex items-center justify-center">
+                      <span className="text-xs text-muted-foreground/50 uppercase tracking-widest">No Preview</span>
+                    </div>
+                  )}
 
-                    {/* Gradient Overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                  </div>
-
-                  {/* Hover Content */}
-                  <div className="absolute inset-0 flex flex-col justify-end p-5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 translate-y-2 group-hover:translate-y-0">
-                    <h3 className="text-white font-bold text-sm line-clamp-2 mb-2 leading-tight drop-shadow-md">
-                      {item.title}
-                    </h3>
-
-                    <div className="flex justify-between items-center mt-1">
-                      <Badge
-                        variant="outline"
-                        className={cn("text-[10px] px-2 py-0.5 border-0 backdrop-blur-md uppercase tracking-wider font-bold shadow-lg", getSourceStyle(item.source))}
-                      >
-                        {item.source}
-                      </Badge>
-
-                      <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center hover:bg-white text-white hover:text-black transition-colors shadow-lg">
-                        <ArrowUpRight className="w-4 h-4" />
-                      </div>
+                  {/* Minimal Overlay - Only on Hover */}
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px]">
+                    <div className="bg-white/90 text-black px-4 py-2 rounded-full flex items-center gap-2 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+                      <span className="text-xs font-bold uppercase tracking-wider">{item.source}</span>
+                      <ArrowUpRight className="w-3 h-3" />
                     </div>
                   </div>
-                </a>
-              </div>
+                </div>
+
+                {/* Minimal Title below image, not inside */}
+                <div className="mt-3 flex justify-between items-start gap-4">
+                  <h3 className="text-sm font-medium leading-tight text-foreground/90 line-clamp-1 group-hover:text-foreground transition-colors">
+                    {item.title}
+                  </h3>
+                </div>
+              </a>
             ))}
+        </div>
 
-          {/* Skeleton Loaders (Show when loading AND when fetching initial data) */}
-          {(loading) && Array.from({ length: 8 }).map((_, i) => (
-            <div key={`skel-${i}`} className="break-inside-avoid relative rounded-2xl overflow-hidden bg-muted mb-4 animate-pulse">
-              <div style={{ height: `${Math.floor(Math.random() * (400 - 200) + 200)}px` }} className="w-full bg-muted-foreground/10" />
-              <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-                <div className="h-4 bg-muted-foreground/20 rounded w-3/4" />
-                <div className="h-3 bg-muted-foreground/20 rounded w-1/2" />
+        {/* Status States */}
+        <div ref={observerTarget} className="py-20 flex justify-center w-full">
+          {loading && (
+            <div className="flex flex-col items-center gap-3">
+              <div className="flex gap-1 items-center">
+                <span className="w-1.5 h-1.5 bg-foreground rounded-full animate-bounce [animation-delay:-0.3s]" />
+                <span className="w-1.5 h-1.5 bg-foreground rounded-full animate-bounce [animation-delay:-0.15s]" />
+                <span className="w-1.5 h-1.5 bg-foreground rounded-full animate-bounce" />
               </div>
+              <p className="text-muted-foreground/60 text-xs uppercase tracking-widest animate-pulse font-medium">
+                Please wait patiently, curating inspiration...
+              </p>
             </div>
-          ))}
-        </div>
+          )}
 
-        {/* Load More Trigger */}
-        <div ref={observerTarget} className="h-20 w-full flex items-center justify-center">
-          {loading && <p className="text-muted-foreground text-sm animate-pulse font-medium">Gathering inspiration...</p>}
-        </div>
-
-        {!loading && items.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground space-y-4">
-            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-              <Search className="w-8 h-8 opacity-50" />
+          {!loading && items.length === 0 && (
+            <div className="text-center space-y-2">
+              <p className="text-2xl font-light text-muted-foreground">
+                {hasSearched ? `Nothing found for "${query}"` : "Explore the unknown."}
+              </p>
+              {!hasSearched && <p className="text-sm text-muted-foreground/60 uppercase tracking-widest">Search to begin</p>}
             </div>
-            <p className="text-lg font-medium">No results found for "{query}"</p>
-            <p className="text-sm">Try checking your spelling or using broader keywords.</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
