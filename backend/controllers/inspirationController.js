@@ -13,11 +13,18 @@ async function fetchUnsplash(query = 'web design', page = 1, per_page = 50) {
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!accessKey) throw new Error('UNSPLASH_ACCESS_KEY missing');
 
-  // Refine query to be design-specific
-  const refinedQuery = `website design ${query}`;
+  // Refine query to be design-specific: 'web design user interface' preferred
+  const refinedQuery = query.toLowerCase().includes('web') || query.toLowerCase().includes('design')
+    ? `${query} user interface`
+    : `web design user interface ${query}`;
 
   const resp = await axios.get(`${UNSPLASH_BASE}/search/photos`, {
-    params: { query: refinedQuery, page, per_page },
+    params: {
+      query: refinedQuery,
+      page,
+      per_page: 10, // Limit to 10 high-quality shots 
+      orientation: 'landscape'
+    },
     headers: { Authorization: `Client-ID ${accessKey}` },
   });
 
@@ -34,70 +41,14 @@ async function fetchUnsplash(query = 'web design', page = 1, per_page = 50) {
   }));
 }
 
-async function fetchPinterest(boardId, token, query, page_size = 40) {
-  if (!boardId) return [];
 
-  // Ensure token and secret are available
-  let t = token || process.env.PINTEREST_TOKEN;
-  const appSecret = process.env.PINTEREST_APP_SECRET;
-
-  if (!t) throw new Error('PINTEREST_TOKEN missing');
-
-  // Clean token
-  t = t.trim();
-
-  // Note: For basic board fetch, Bearer token is sufficient. 
-
-  const endpoint = `${PINTEREST_BASE}/boards/${boardId}/pins`;
-  // Mask the ID in logs
-  const maskedId = typeof boardId === 'string' ? boardId.slice(0, 3) + '...' : '***';
-  console.log('Pinterest Request URL (Masked):', `${PINTEREST_BASE}/boards/${maskedId}/pins`);
-
-  const resp = await axios.get(endpoint, {
-    headers: {
-      'Authorization': `Bearer ${t}`,
-      'Content-Type': 'application/json'
-    },
-    params: { page_size },
-  });
-
-  let data = resp.data?.items || resp.data?.results || [];
-
-  // Filter locally by query if provided (simple case-insensitive match)
-  if (query && query.trim() !== 'web design') {
-    const qLower = query.toLowerCase();
-    data = data.filter(p => {
-      const title = (p.note || p.title || '').toLowerCase();
-      const desc = (p.description || '').toLowerCase();
-      return title.includes(qLower) || desc.includes(qLower);
-    });
-  }
-
-  return data.map(p => {
-    // Attempt multiple paths for image: v5 media.images['600x'], or fallback
-    let imgUrl = null;
-    if (p.media && p.media.images) {
-      imgUrl = p.media.images['600x']?.url || p.media.images['400x300']?.url || p.media.images['1200x']?.url;
-    } else if (p.image) {
-      imgUrl = p.image.url || p.image.original?.url;
-    }
-
-    return {
-      id: `pinterest_${p.id}`,
-      source: 'pinterest',
-      title: p.note || p.title || '',
-      image: imgUrl || PLACEHOLDER_IMG,
-      link: p.link || p.url || null,
-    };
-  });
-}
 
 async function fetchBehance(query = 'web design', limit = 30) {
   try {
     // Fetch from Behance RSS feed filtered by Creative Field
     // Use 'field' parameter for web design projects (more targeted than tags)
-    // Behance Creative Fields: web design, interaction design, UI/UX, etc.
     const field = 'web design'; // Primary creative field filter
+    // Construct feed URL with field and sort by appreciated if possible, or just default (published_date filters apply implicitly in RSS)
     const feedUrl = `https://www.behance.net/feeds/projects?field=${encodeURIComponent(field)}&q=${encodeURIComponent(query)}`;
     const feed = await parser.parseURL(feedUrl);
 
@@ -147,16 +98,20 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
 puppeteer.use(StealthPlugin());
 
-async function scrapeDribbble(query) {
-  let browser = null;
-  try {
-    console.log('DEBUG: Launching Stealth Puppeteer for Dribbble...');
-    // Launch options suitable for Render & Anti-bot
-    browser = await puppeteer.launch({
-      headless: "new",
-      args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote', '--window-size=1920,1080']
-    });
+// Helper to launch browser
+async function launchBrowser() {
+  console.log('DEBUG: Launching Stealth Puppeteer...');
+  return await puppeteer.launch({
+    headless: "new",
+    args: ['--no-sandbox', '--disable-setuid-sandbox', '--single-process', '--no-zygote', '--window-size=1920,1080']
+  });
+}
 
+async function scrapeDribbble(browser, query) {
+  if (!browser) return [];
+
+
+  try {
     const page = await browser.newPage();
 
     // Set User-Agent to mimic real Chrome
@@ -249,10 +204,93 @@ async function scrapeDribbble(query) {
     return shots.map((s, i) => ({ ...s, id: `dribbble_scraped_${i}` }));
 
   } catch (error) {
-    console.error('DEBUG: Puppeteer Scrape Error:', error.message);
+    console.error('DEBUG: Dribbble Scrape Error:', error.message);
+    return [];
+  }
+  // Browser is closed by caller
+}
+
+async function scrapePinterest(browser, query) {
+  if (!browser) return [];
+
+  const page = await browser.newPage();
+  try {
+    await page.setViewport({ width: 1920, height: 1080 });
+    // Mimic real user agent
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
+
+    const encodedQuery = encodeURIComponent(query || 'web design ui');
+    const targetUrl = `https://www.pinterest.com/search/pins/?q=${encodedQuery}`;
+
+    console.log(`DEBUG: Navigating to Pinterest: ${targetUrl}`);
+    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    try {
+      // Wait for the data script
+      await page.waitForSelector('script#__PWS_INITIAL_PROPS__', { timeout: 15000 });
+    } catch (e) {
+      console.log('DEBUG: Timeout waiting for Pinterest data script [script#__PWS_INITIAL_PROPS__]');
+    }
+
+    const pins = await page.evaluate(() => {
+      try {
+        const script = document.getElementById('__PWS_INITIAL_PROPS__');
+        if (!script) return [];
+
+        const json = JSON.parse(script.textContent);
+        const feeds = json?.initialReduxState?.feeds;
+        if (!feeds) return [];
+
+        // Find the key that contains 'results' (it's dynamic, usually search:...)
+        const feedKey = Object.keys(feeds).find(key =>
+          feeds[key]?.response?.data?.results && Array.isArray(feeds[key].response.data.results)
+        );
+
+        if (!feedKey) return [];
+
+        const items = feeds[feedKey].response.data.results;
+
+        // Return all found items (limit by memory/logic if needed, but user requested all)
+        return items.map(item => {
+          // Robust checking for image
+          let imageUrl = null;
+          if (item.images?.orig?.url) imageUrl = item.images.orig.url;
+          else if (item.images?.['736x']?.url) imageUrl = item.images['736x'].url;
+          else if (item.images?.['474x']?.url) imageUrl = item.images['474x'].url;
+
+          // Robust link construction
+          let link = '#';
+          if (item.link) link = item.link; // sometimes full url
+          else if (item.id) link = `https://www.pinterest.com/pin/${item.id}/`;
+
+          if (!link.startsWith('http')) {
+            // Handle relative links if they appear
+            link = `https://www.pinterest.com${link.startsWith('/') ? '' : '/'}${link}`;
+          }
+
+          return {
+            title: item.title || item.grid_title || item.description || 'Pinterest Pin',
+            link: link,
+            image: imageUrl,
+            source: 'Pinterest'
+          };
+        }).filter(p => p.image); // Filter out items without images
+
+      } catch (e) {
+        console.error('Pinterest Client-Side Parse Error:', e.message);
+        return [];
+      }
+    });
+
+    console.log(`DEBUG: Scraped ${pins.length} Pinterest pins via JSON.`);
+    return pins.map((p, i) => ({ ...p, id: `pinterest_scraped_${i}` }));
+
+  } catch (error) {
+    console.error('DEBUG: Pinterest Scrape Error:', error.message);
     return [];
   } finally {
-    if (browser) await browser.close();
+    // Close page, but NOT browser
+    await page.close();
   }
 }
 
@@ -271,12 +309,16 @@ async function getInspiration(req, res) {
   const pinterestBoard = req.query.pboard || process.env.PINTEREST_BOARD_ID;
   const pinterestToken = req.header('x-pinterest-token') || process.env.PINTEREST_TOKEN;
 
+  let browser = null;
   try {
+    // Launch browser once for all scrapers
+    browser = await launchBrowser();
+
     const results = await Promise.allSettled([
       fetchUnsplash(q, unsplashPage, unsplashPer),
-      fetchPinterest(pinterestBoard, pinterestToken, q, 100),
+      scrapePinterest(browser, q), // Use scraper instead of API
       fetchBehance(q, 50),
-      scrapeDribbble(q)
+      scrapeDribbble(browser, q) // Pass browser instance
     ]);
 
     const unsplash = results[0].status === 'fulfilled' ? results[0].value : [];
@@ -297,6 +339,44 @@ async function getInspiration(req, res) {
   } catch (error) {
     console.error('Controller error', error);
     res.status(500).json({ ok: false, error: error.message });
+  } finally {
+    // Ensure browser is closed
+    if (browser) {
+      console.log('DEBUG: Closing shared browser...');
+      await browser.close();
+    }
+  }
+}
+
+async function getPinterestInspiration(req, res) {
+  const q = req.query.q || 'web design ui';
+  let browser = null;
+  try {
+    browser = await launchBrowser();
+    console.log('DEBUG: Fetching Pinterest Inspiration for:', q);
+    const items = await scrapePinterest(browser, q);
+    res.json(items);
+  } catch (error) {
+    console.error('Pinterest Controller Error:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
+async function getDribbbleInspiration(req, res) {
+  const q = req.query.q || 'web design';
+  let browser = null;
+  try {
+    browser = await launchBrowser();
+    console.log('DEBUG: Fetching Dribbble Inspiration for:', q);
+    const items = await scrapeDribbble(browser, q);
+    res.json(items);
+  } catch (error) {
+    console.error('Dribbble Controller Error:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) await browser.close();
   }
 }
 
@@ -311,4 +391,4 @@ async function getBehance(req, res) {
   }
 }
 
-module.exports = { getInspiration, getBehance };
+module.exports = { getInspiration, getBehance, getPinterestInspiration, getDribbbleInspiration };
