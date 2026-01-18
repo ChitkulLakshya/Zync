@@ -291,10 +291,18 @@ const ProjectDetails = () => {
       });
     });
 
+    // Listen for full project updates (e.g. from task moves/edits elsewhere)
+    socket.on('projectUpdate', (data: any) => {
+      if (data.projectId && (data.projectId === id || (project && data.projectId === project._id))) {
+        console.log("Received live project update");
+        setProject(data.project);
+      }
+    });
+
     return () => {
       socket.disconnect();
     };
-  }, []);
+  }, [project, id]); // Re-bind if project/id changes to ensure correct ID check
 
   const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
     console.log("handleTaskUpdate called with:", { stepId, taskId, updates });
@@ -687,6 +695,10 @@ const ProjectDetails = () => {
               steps={project.steps}
               onUpdateTask={handleTaskUpdate}
               users={users}
+              currentUser={auth.currentUser}
+              isOwner={isOwner}
+              readOnly={true}
+              onDeleteTask={handleDeleteTask}
             />
           </TabsContent>
 

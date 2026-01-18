@@ -28,6 +28,7 @@ interface KanbanBoardProps {
   steps: Step[];
   onUpdateTask: (stepId: string, taskId: string, updates: any) => void;
   users: any[];
+  isOwner?: boolean;
 }
 
 // Map task statuses to Kanban columns
@@ -43,7 +44,7 @@ const COLUMN_MAPPING: Record<string, string> = {
 
 const COLUMNS = ['Backlog', 'Ready', 'In Progress', 'In Review', 'Done'];
 
-const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
+const KanbanBoard = ({ steps, onUpdateTask, users, isOwner }: KanbanBoardProps) => {
   const [draggedTask, setDraggedTask] = useState<{ task: Task, stepId: string } | null>(null);
 
   // Flatten tasks logic for the board, while preserving step reference
@@ -140,8 +141,8 @@ const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
                       </div>
                     )}
 
-                    {/* Start Task Button */}
-                    {['Backlog', 'Ready', 'Pending'].includes(task.status) && (
+                    {/* Start Task Button - Hidden for Owner */}
+                    {['Backlog', 'Ready', 'Pending'].includes(task.status) && !isOwner && (
                       <Button
                         size="sm"
                         variant="outline"

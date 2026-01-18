@@ -529,6 +529,13 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
     }
 
     await project.save();
+
+    // Emit generic project update for live board
+    req.app.get('io').emit('projectUpdate', {
+      projectId: project._id,
+      project
+    });
+
     res.json(project);
   } catch (error) {
     console.error('Error updating task:', error);
