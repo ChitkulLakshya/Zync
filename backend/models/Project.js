@@ -11,6 +11,7 @@ const TaskSchema = new mongoose.Schema({
   },
   assignedTo: { type: String, default: null }, // User UID
   assignedToName: { type: String, default: null },
+  createdBy: { type: String, default: null }, // User UID of Creator
   createdAt: { type: Date, default: Date.now },
   commitInfo: {
     message: String,

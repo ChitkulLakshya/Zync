@@ -119,13 +119,7 @@ const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
                   key={task._id}
                   draggable
                   onDragStart={(e) => handleDragStart(e, task, task.stepId)}
-                  onClick={() => {
-                    // Auto-start task on click if it's in backlog
-                    if (['Backlog', 'Ready', 'Pending'].includes(task.status)) {
-                      onUpdateTask(task.stepId, task._id, { status: 'In Progress' });
-                    }
-                  }}
-                  className={`cursor-pointer hover:shadow-md transition-all active:cursor-grabbing border-l-4 ${getBorderColor(task.status)}`}
+                  className={`cursor-default hover:shadow-md transition-all active:cursor-grabbing border-l-4 ${getBorderColor(task.status)}`}
                 >
                   <CardContent className="p-3 space-y-2">
                     <div className="flex justify-between items-start gap-2">
@@ -144,6 +138,22 @@ const KanbanBoard = ({ steps, onUpdateTask, users }: KanbanBoardProps) => {
                           {task.assignedToName}
                         </span>
                       </div>
+                    )}
+
+                    {/* Start Task Button */}
+                    {['Backlog', 'Ready', 'Pending'].includes(task.status) && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full mt-2 h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700 bg-white"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log("Start Task Triggered for Task ID:", task._id, "Step ID:", task.stepId);
+                          onUpdateTask(task.stepId, task._id, { status: 'In Progress' });
+                        }}
+                      >
+                        Start Task
+                      </Button>
                     )}
                   </CardContent>
                 </Card>

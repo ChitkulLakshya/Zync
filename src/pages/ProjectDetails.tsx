@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban, Trash2, Github, Bot, MoreVertical, Settings, MessageSquare, Wrench } from "lucide-react";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
@@ -297,22 +297,34 @@ const ProjectDetails = () => {
   }, []);
 
   const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
-    if (!project) return;
+    console.log("handleTaskUpdate called with:", { stepId, taskId, updates });
+    if (!project) {
+      console.error("Project not loaded in handleTaskUpdate");
+      return;
+    }
 
-    const newProject = { ...project };
-    const stepIndex = newProject.steps.findIndex(s => s._id === stepId || s.id === stepId);
+    // Find indices first
+    const stepIndex = project.steps.findIndex(s => s._id === stepId || s.id === stepId);
     if (stepIndex === -1) return;
 
-    const step = newProject.steps[stepIndex];
-    const taskIndex = step.tasks.findIndex(t => t._id === taskId || t.id === taskId);
+    const taskIndex = project.steps[stepIndex].tasks.findIndex(t => t._id === taskId || t.id === taskId);
     if (taskIndex === -1) return;
 
+    // Create deep copy for immutability to trigger re-renders
+    const newSteps = [...project.steps];
+    const newStep = { ...newSteps[stepIndex] };
+    const newTasks = [...newStep.tasks];
+
     // Optimistic Update
-    const updatedTask = { ...step.tasks[taskIndex], ...updates };
-    step.tasks[taskIndex] = updatedTask;
-    setProject({ ...newProject });
+    const updatedTask = { ...newTasks[taskIndex], ...updates };
+    newTasks[taskIndex] = updatedTask;
+    newStep.tasks = newTasks;
+    newSteps[stepIndex] = newStep;
+
+    setProject({ ...project, steps: newSteps });
 
     try {
+      const step = project.steps[stepIndex];
       const realStepId = step._id;
       const realTaskId = step.tasks[taskIndex]._id;
 
@@ -330,6 +342,49 @@ const ProjectDetails = () => {
       console.error("Failed to update task", error);
       fetchProject(); // Revert on failure by refetching
       toast.error("Failed to update task");
+    }
+  };
+
+
+
+  const handleDeleteTask = async (stepId: string, taskId: string) => {
+    if (!project) return;
+
+    // Optimistic UI Update
+    const newSteps = project.steps.map(step => {
+      if (step._id === stepId || step.id === stepId) {
+        return {
+          ...step,
+          tasks: step.tasks.filter(t => t._id !== taskId && t.id !== taskId)
+        };
+      }
+      return step;
+    });
+
+    setProject({ ...project, steps: newSteps });
+
+    try {
+      const step = project.steps.find(s => s._id === stepId || s.id === stepId);
+      if (!step) return;
+      // Need real IDs for API
+      const realStepId = step._id;
+      // We can use the passed taskId if we assume it's the real one, but safer to have the real one
+      // The passed taskId should be the real _id from the UI interaction
+
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project._id}/steps/${realStepId}/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) throw new Error("Failed to delete");
+      toast.success("Task deleted");
+    } catch (error) {
+      console.error("Delete failed", error);
+      toast.error("Failed to delete task");
+      fetchProject(); // Revert
     }
   };
 
@@ -788,9 +843,24 @@ const ProjectDetails = () => {
                       {project.steps.flatMap(step =>
                         (step.tasks || []).map(task => ({ ...task, stepName: step.title, stepId: step._id }))
                       ).map((task, idx) => (
-                        <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
+                        <div key={idx} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors group">
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
+                              {/* Delete Action */}
+                              {(auth.currentUser && (isOwner || task.createdBy === auth.currentUser.uid)) && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (confirm("Delete this task?")) {
+                                      handleDeleteTask(task.stepId, task._id);
+                                    }
+                                  }}
+                                  className="text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity mr-2"
+                                  title="Delete Task"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              )}
                               <span className="font-medium">{task.title}</span>
                               <Badge variant="outline">{task.stepName}</Badge>
                             </div>

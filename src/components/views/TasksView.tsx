@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { fetchProjects, Project } from "@/api/projects";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckSquare, Loader2, FolderKanban } from "lucide-react";
+import { CheckSquare, Loader2, FolderKanban, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
@@ -146,6 +146,52 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         }
     };
 
+    const updateTaskStatus = async (task: FlattenedTask, newStatus: string) => {
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/projects/${task.projectId}/steps/${task.stepId}/tasks/${task._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: newStatus })
+            });
+
+            if (response.ok) {
+                toast({ title: "Success", description: "Task status updated." });
+                loadTasks(); // Refresh list
+            } else {
+                throw new Error("Failed to update status");
+            }
+        } catch (error) {
+            console.error("Update failed", error);
+            toast({ title: "Error", description: "Failed to update task status.", variant: "destructive" });
+        }
+    };
+
+    const deleteTask = async (task: FlattenedTask) => {
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/projects/${task.projectId}/steps/${task.stepId}/tasks/${task._id}`, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                toast({ title: "Success", description: "Task deleted." });
+                loadTasks(); // Refresh list
+            } else {
+                throw new Error("Failed to delete task");
+            }
+        } catch (error) {
+            console.error("Delete failed", error);
+            toast({ title: "Error", description: "Failed to delete task.", variant: "destructive" });
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex w-full h-full items-center justify-center">
@@ -182,10 +228,25 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                         {tasks.map((task) => (
                             <Card
                                 key={task.id}
-                                className="hover:bg-secondary/10 transition-colors cursor-pointer"
+                                className="hover:bg-secondary/10 transition-colors cursor-pointer group relative"
                                 onClick={() => handleTaskClick(task)}
                             >
                                 <CardContent className="p-4 flex items-start gap-4">
+
+                                    {/* Delete Button (Visible mainly on hover) */}
+                                    <button
+                                        className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        title="Delete Task"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm("Delete this task?")) {
+                                                deleteTask(task);
+                                            }
+                                        }}
+                                    >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+
                                     <div className="mt-1">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-muted-foreground'}`}>
                                             {task.status === 'completed' && <CheckSquare className="w-3 h-3 text-white" />}
@@ -204,6 +265,18 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                     </div>
 
                                     <div className="flex items-center gap-3">
+                                        {['Backlog', 'Ready', 'Pending', 'pending'].includes(task.status) && (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700"
+                                                onClick={() => {
+                                                    updateTaskStatus(task, 'In Progress');
+                                                }}
+                                            >
+                                                Start Task
+                                            </Button>
+                                        )}
                                         <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="capitalize">
                                             {task.status}
                                         </Badge>

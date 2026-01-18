@@ -8,6 +8,7 @@ const User = require('../models/User');
 const prisma = require('../lib/prisma');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
+const authMiddleware = require('../middleware/authMiddleware');
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY);
 // Reverting to stable model as requested (likely user meant 1.5-flash or 2.0-flash-exp but 1.5 is safer)
@@ -427,7 +428,10 @@ router.post('/:projectId/steps/:stepId/tasks', async (req, res) => {
       status: 'Pending',
       assignedTo,
       assignedToName,
+      assignedTo,
+      assignedToName,
       assignedBy: assignedBy || 'Admin',
+      createdBy: req.user ? req.user.uid : (assignedBy || 'Admin') // Track Creator
     };
 
     // Send email notification if assigned
@@ -532,6 +536,40 @@ router.put('/:projectId/steps/:stepId/tasks/:taskId', async (req, res) => {
   }
 });
 
+// Delete a task (Only Creator or Project Owner)
+router.delete('/:projectId/steps/:stepId/tasks/:taskId', authMiddleware, async (req, res) => {
+  try {
+    const { projectId, stepId, taskId } = req.params;
+    const userId = req.user ? req.user.uid : null;
+
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const project = await Project.findById(projectId);
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    const step = project.steps.id(stepId);
+    if (!step) return res.status(404).json({ message: 'Step not found' });
+
+    const task = step.tasks.id(taskId);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    // Check Permissions: Owner of Project OR Creator of Task
+    if (project.ownerId !== userId && task.createdBy !== userId) {
+      return res.status(403).json({ message: 'Permission denied. Only the task creator or project owner can delete this task.' });
+    }
+
+    step.tasks.pull(taskId);
+    await project.save();
+
+    res.json({ message: 'Task deleted successfully', projectId, stepId, taskId });
+  } catch (error) {
+    console.error('Error deleting task:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Search for tasks across all projects
 router.get('/tasks/search', async (req, res) => {
   try {
@@ -607,7 +645,8 @@ router.post('/:projectId/quick-task', async (req, res) => {
       status: 'Backlog',
       assignedTo,
       assignedToName,
-      assignedBy: req.user?.name || 'Admin', // Expecting authMiddleware to have set user if available, fallback to Admin
+      assignedBy: req.user?.name || 'Admin',
+      createdBy: req.user ? req.user.uid : 'Admin'
     };
 
     // Send email notification if assigned

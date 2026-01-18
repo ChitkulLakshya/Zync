@@ -63,8 +63,12 @@ router.post('/', verifySignature, async (req, res) => {
 
                     // 1. Find and Update Task in Database
                     // We need to find which project/step contains this task.
-                    // Assuming 'id' in TaskSchema is unique enough or we search all.
-                    const project = await Project.findOne({ "steps.tasks.id": taskId });
+                    const project = await Project.findOne({
+                        $or: [
+                            { "steps.tasks.id": taskId },
+                            { "steps.tasks._id": taskId }
+                        ]
+                    });
 
                     if (project) {
                         let taskFound = false;
@@ -73,7 +77,7 @@ router.post('/', verifySignature, async (req, res) => {
                         // Locate and update the exact task object
                         project.steps.forEach(step => {
                             step.tasks.forEach(task => {
-                                if (task.id === taskId) {
+                                if (task.id === taskId || (task._id && task._id.toString() === taskId)) {
                                     task.status = 'Completed';
                                     task.commitInfo = {
                                         message: commit.message,
