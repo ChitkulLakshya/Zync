@@ -13,11 +13,18 @@ async function fetchUnsplash(query = 'web design', page = 1, per_page = 50) {
   const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!accessKey) throw new Error('UNSPLASH_ACCESS_KEY missing');
 
-  // Refine query to be design-specific
-  const refinedQuery = `website design ${query}`;
+  // Refine query to be design-specific: 'web design user interface' preferred
+  const refinedQuery = query.toLowerCase().includes('web') || query.toLowerCase().includes('design')
+    ? `${query} user interface`
+    : `web design user interface ${query}`;
 
   const resp = await axios.get(`${UNSPLASH_BASE}/search/photos`, {
-    params: { query: refinedQuery, page, per_page },
+    params: {
+      query: refinedQuery,
+      page,
+      per_page: 10, // Limit to 10 high-quality shots 
+      orientation: 'landscape'
+    },
     headers: { Authorization: `Client-ID ${accessKey}` },
   });
 
@@ -40,8 +47,8 @@ async function fetchBehance(query = 'web design', limit = 30) {
   try {
     // Fetch from Behance RSS feed filtered by Creative Field
     // Use 'field' parameter for web design projects (more targeted than tags)
-    // Behance Creative Fields: web design, interaction design, UI/UX, etc.
     const field = 'web design'; // Primary creative field filter
+    // Construct feed URL with field and sort by appreciated if possible, or just default (published_date filters apply implicitly in RSS)
     const feedUrl = `https://www.behance.net/feeds/projects?field=${encodeURIComponent(field)}&q=${encodeURIComponent(query)}`;
     const feed = await parser.parseURL(feedUrl);
 
