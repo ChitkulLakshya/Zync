@@ -30,6 +30,7 @@ export interface FlattenedTask {
     status: string;
     projectName: string;
     projectId: string;
+    projectOwnerId?: string;
     stepName: string;
     stepId: string;
     assignedTo?: string;
@@ -69,6 +70,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                         status: t.status || "pending",
                         projectName: p.name,
                         projectId: p._id,
+                        projectOwnerId: p.ownerId,
                         stepName: step.title || step.name,
                         stepId: step._id || step.id,
                         assignedTo: t.assignedTo,
@@ -233,19 +235,21 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                             >
                                 <CardContent className="p-4 flex items-start gap-4">
 
-                                    {/* Delete Button (Visible mainly on hover) */}
-                                    <button
-                                        className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                        title="Delete Task"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            if (confirm("Delete this task?")) {
-                                                deleteTask(task);
-                                            }
-                                        }}
-                                    >
-                                        <Trash2 className="w-3.5 h-3.5" />
-                                    </button>
+                                    {/* Delete Button (Visible mainly on hover) - Owner Only */}
+                                    {currentUser && task.projectOwnerId === currentUser.uid && (
+                                        <button
+                                            className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            title="Delete Task"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                if (confirm("Delete this task?")) {
+                                                    deleteTask(task);
+                                                }
+                                            }}
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                    )}
 
                                     <div className="mt-1">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-muted-foreground'}`}>
