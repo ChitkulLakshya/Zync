@@ -107,58 +107,59 @@ async function launchBrowser() {
   });
 }
 
-async function scrapeDribbble(browser, query) {
+async function scrapeDribbble(browser, query, page = 1) {
   if (!browser) return [];
 
-
+  const newPage = await browser.newPage();
   try {
-    const page = await browser.newPage();
+    await newPage.setViewport({ width: 1920, height: 1080 });
+    await newPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
 
-    // Set User-Agent to mimic real Chrome
-    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36');
-    await page.setViewport({ width: 1920, height: 1080 });
+    let targetUrl;
+    if (page > 1) {
+      // User requested pagination logic: use popular shots for subsequent pages 
+      // This is a common pattern to explore more content
+      targetUrl = `https://dribbble.com/shots/popular?page=${page}&per_page=24`;
+    } else {
+      const encodedQuery = encodeURIComponent(query || 'web design');
+      targetUrl = `https://dribbble.com/search/${encodedQuery}`;
+    }
 
-    // Use search URL if query exists, otherwise popular
-    const targetUrl = query && query !== 'web design'
-      ? `https://dribbble.com/search/${encodeURIComponent(query)}`
-      : 'https://dribbble.com/shots/popular';
+    console.log(`DEBUG: Navigating to Dribbble: ${targetUrl}`);
+    await newPage.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
 
-    console.log(`DEBUG: Navigating to ${targetUrl}`);
-
-    await page.goto(targetUrl, { waitUntil: 'domcontentloaded', timeout: 60000 });
-
+    // ... rest of scraping logic is same, wait for selector ...
     try {
-      // Robust selector wait (list item or grid container)
-      await page.waitForSelector('li.shot-thumbnail, .shots-grid', { timeout: 15000 });
+      if (page > 1) {
+        // Pagination pages might load differently, waiting for the list container
+        await newPage.waitForSelector('li.shot-thumbnail', { timeout: 15000 });
+      } else {
+        await newPage.waitForSelector('li.shot-thumbnail.js-thumbnail', { timeout: 15000 });
+      }
     } catch (e) {
-      console.log('DEBUG: Timeout waiting for Dribbble selectors. Page might be blocked or empty.');
+      console.log('DEBUG: Timeout waiting for Dribbble selector');
     }
 
-    // Scroll down to trigger infinite scroll and load more shots
-    console.log('DEBUG: Scrolling to load more shots...');
-    for (let i = 0; i < 3; i++) {
-      await page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
-      // Wait for new content to load
-      await new Promise(resolve => setTimeout(resolve, 1500));
+    // Scroll to load more (simulated infinite scroll)
+    const scrolls = 3;
+    for (let i = 0; i < scrolls; i++) {
+      await newPage.evaluate(() => window.scrollBy(0, window.innerHeight));
+      await new Promise(r => setTimeout(r, 1500));
     }
-    // Scroll back to top so all images are in a known state
-    await page.evaluate(() => window.scrollTo(0, 0));
-    await new Promise(resolve => setTimeout(resolve, 500));
+    console.log(`DEBUG: Scrolling to load more shots...`);
 
-    const shots = await page.evaluate(() => {
+    const shots = await newPage.evaluate(() => {
       const results = [];
       // Use the exact selectors from Dribbble's HTML structure
-      const items = document.querySelectorAll('li.shot-thumbnail.js-thumbnail');
+      const items = document.querySelectorAll('li.shot-thumbnail'); // Removed .js-thumbnail to be broader
 
       items.forEach(item => {
         // Link is in the overlay or base
-        const linkEl = item.querySelector('a.shot-thumbnail-link.dribbble-link');
+        const linkEl = item.querySelector('a.shot-thumbnail-link') || item.querySelector('a');
         // Title is in the overlay content
         const titleEl = item.querySelector('div.shot-title');
         // Image is in the figure placeholder
-        const imgEl = item.querySelector('figure.js-thumbnail-placeholder img');
+        const imgEl = item.querySelector('figure img') || item.querySelector('img');
 
         let image = null;
 
@@ -197,17 +198,18 @@ async function scrapeDribbble(browser, query) {
           });
         }
       });
-      return results; // Return all shots (Dribbble loads ~136 before "Load More")
+      return results; // Return all shots
     });
 
     console.log(`DEBUG: Scraped ${shots.length} shots.`);
-    return shots.map((s, i) => ({ ...s, id: `dribbble_scraped_${i}` }));
+    return shots.map((s, i) => ({ ...s, id: `dribbble_scraped_${page}_${i}` }));
 
   } catch (error) {
     console.error('DEBUG: Dribbble Scrape Error:', error.message);
     return [];
+  } finally {
+    if (newPage) await newPage.close();
   }
-  // Browser is closed by caller
 }
 
 async function scrapePinterest(browser, query) {
@@ -405,11 +407,12 @@ async function getPinterestInspiration(req, res) {
 
 async function getDribbbleInspiration(req, res) {
   const q = req.query.q || 'web design';
+  const page = parseInt(req.query.page) || 1;
   let browser = null;
   try {
     browser = await launchBrowser();
-    console.log('DEBUG: Fetching Dribbble Inspiration for:', q);
-    const items = await scrapeDribbble(browser, q);
+    console.log(`DEBUG: Fetching Dribbble Inspiration for: ${q} (Page ${page})`);
+    const items = await scrapeDribbble(browser, q, page);
     res.json(items);
   } catch (error) {
     console.error('Dribbble Controller Error:', error);
