@@ -104,7 +104,7 @@ const MobileView = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-background text-foreground">
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2">
@@ -146,7 +146,7 @@ const MobileView = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-y-auto pb-20">
+      <main className="flex-1 pb-20">
         {activeTab === "home" && (
           <div className="px-2 py-4">
             {currentUser ? (

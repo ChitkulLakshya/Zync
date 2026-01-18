@@ -272,7 +272,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
 
 
     return (
-        <div className="p-6 space-y-6 overflow-y-auto h-full max-w-7xl mx-auto">
+        <div className="p-6 space-y-6 max-w-7xl mx-auto">
             {/* Profile Header */}
             {stats && (
                 <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 bg-card/40 backdrop-blur-sm">

@@ -822,95 +822,15 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       case "Settings":
         return <SettingsView />;
 
-      case "Dashboard":
       default:
-        // Dashboard View (GitHub Profile)
-        return (
-          <div className="flex-1 p-8 overflow-y-auto">
-            <h2 className="text-3xl font-bold tracking-tight mb-6">Dashboard</h2>
-
-            <div className="w-full max-w-full">
-              {userData?.integrations?.github?.connected && githubProfile ? (
-                <Card className="overflow-hidden border-border/50 shadow-lg min-h-[500px]">
-                  <CardContent className="px-12 pb-12 pt-12">
-                    <div className="flex flex-col md:flex-row gap-10 items-start">
-                      {/* Avatar */}
-                      <Avatar className="w-64 h-64 border-4 border-background shadow-xl">
-                        <AvatarImage src={githubProfile.avatar_url} alt={githubProfile.login} />
-                        <AvatarFallback className="text-6xl">{githubProfile.login?.substring(0, 2).toUpperCase()}</AvatarFallback>
-                      </Avatar>
-
-                      <div className="flex-1 space-y-8">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-5xl font-bold tracking-tight mb-2">{githubProfile.name || githubProfile.login}</h3>
-                            <p className="text-muted-foreground text-2xl">@{githubProfile.login}</p>
-                          </div>
-                          <Button onClick={() => window.open(githubProfile.html_url, '_blank')} variant="outline" className="gap-2">
-                            <Github className="w-4 h-4" />
-                            View on GitHub
-                          </Button>
-                        </div>
-
-                        {githubProfile.bio && (
-                          <p className="text-2xl text-foreground/80 max-w-6xl leading-relaxed">{githubProfile.bio}</p>
-                        )}
-
-                        <div className="flex items-center gap-12 pt-8">
-                          <div className="flex items-center gap-3">
-                            <Users className="w-6 h-6 text-muted-foreground" />
-                            <span className="font-bold text-lg">{githubProfile.followers}</span> <span className="text-muted-foreground text-lg">Followers</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <Users className="w-6 h-6 text-muted-foreground" />
-                            <span className="font-bold text-lg">{githubProfile.following}</span> <span className="text-muted-foreground text-lg">Following</span>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            <FolderKanban className="w-6 h-6 text-muted-foreground" />
-                            <span className="font-bold text-lg">{githubProfile.public_repos}</span> <span className="text-muted-foreground text-lg">Public Repos</span>
-                          </div>
-                        </div>
-
-                        {/* Additional Info */}
-                        <div className="flex gap-8 text-lg text-muted-foreground pt-4">
-                          {githubProfile.location && (
-                            <div className="flex items-center gap-2">📍 {githubProfile.location}</div>
-                          )}
-                          {githubProfile.company && (
-                            <div className="flex items-center gap-2">🏢 {githubProfile.company}</div>
-                          )}
-                          {githubProfile.blog && (
-                            <div className="flex items-center gap-2">🔗 <a href={githubProfile.blog.startsWith('http') ? githubProfile.blog : `https://${githubProfile.blog}`} target="_blank" rel="noreferrer" className="hover:underline">{githubProfile.blog}</a></div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>GitHub Integration</CardTitle>
-                    <CardDescription>Connect your GitHub account to see your profile stats here.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <Button onClick={() => handleSectionChange("Settings")}>
-                      <Github className="mr-2 h-4 w-4" />
-                      Go to Settings to Connect
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
-          </div>
-        );
+        return null;
 
     }
   };
 
   return (
-    <div className={`h-screen w-full bg-background text-foreground overflow-hidden`}>
-      <PanelGroup direction="horizontal">
+    <div className={`min-h-screen w-full bg-background text-foreground`}>
+      <PanelGroup direction="horizontal" autoSaveId="persistence">
         <Panel
           ref={sidebarRef}
           defaultSize={16}
@@ -921,7 +841,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "bg-secondary/30 border-r border-border/50 flex flex-col transition-all duration-300 ease-in-out",
+            "bg-secondary/30 border-r border-border/50 flex flex-col transition-all duration-300 ease-in-out h-screen sticky top-0",
             isCollapsed && "min-w-[50px]"
           )}
         >
@@ -1059,9 +979,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         <PanelResizeHandle />
 
         <Panel defaultSize={84}>
-          <div className={`flex flex-col h-full ${activeSection === "Chat" ? "overflow-hidden" : ""}`}>
+          <div className={`flex flex-col min-h-screen ${activeSection === "Chat" ? "h-screen overflow-hidden" : ""}`}>
             {/* Global Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
               <div className="flex items-center gap-4">
                 {(activeSection === "My Workspace" || activeSection === "Dashboard") ? (
                   <>
@@ -1091,7 +1011,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </div >
             </div >
 
-            {renderContent()}
+            <div className="flex-1">
+              {renderContent()}
+            </div>
           </div>
         </Panel>
       </PanelGroup>

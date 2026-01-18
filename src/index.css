@@ -145,6 +145,16 @@
 
   html {
     scroll-behavior: smooth;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  body {
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  ::-webkit-scrollbar {
+    display: none;
   }
 }
 
