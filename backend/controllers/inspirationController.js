@@ -250,7 +250,8 @@ async function scrapePinterest(browser, query) {
 
         const items = feeds[feedKey].response.data.results;
 
-        return items.slice(0, 20).map(item => {
+        // Return all found items (limit by memory/logic if needed, but user requested all)
+        return items.map(item => {
           // Robust checking for image
           let imageUrl = null;
           if (item.images?.orig?.url) imageUrl = item.images.orig.url;
@@ -347,6 +348,38 @@ async function getInspiration(req, res) {
   }
 }
 
+async function getPinterestInspiration(req, res) {
+  const q = req.query.q || 'web design ui';
+  let browser = null;
+  try {
+    browser = await launchBrowser();
+    console.log('DEBUG: Fetching Pinterest Inspiration for:', q);
+    const items = await scrapePinterest(browser, q);
+    res.json(items);
+  } catch (error) {
+    console.error('Pinterest Controller Error:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
+async function getDribbbleInspiration(req, res) {
+  const q = req.query.q || 'web design';
+  let browser = null;
+  try {
+    browser = await launchBrowser();
+    console.log('DEBUG: Fetching Dribbble Inspiration for:', q);
+    const items = await scrapeDribbble(browser, q);
+    res.json(items);
+  } catch (error) {
+    console.error('Dribbble Controller Error:', error);
+    res.status(500).json({ error: error.message });
+  } finally {
+    if (browser) await browser.close();
+  }
+}
+
 async function getBehance(req, res) {
   const q = req.query.q || 'web design';
   try {
@@ -358,4 +391,4 @@ async function getBehance(req, res) {
   }
 }
 
-module.exports = { getInspiration, getBehance };
+module.exports = { getInspiration, getBehance, getPinterestInspiration, getDribbbleInspiration };
