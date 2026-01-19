@@ -58,6 +58,7 @@
     "emoji-picker-react": "^4.16.1",
     "firebase": "^12.7.0",
     "firebase-admin": "^13.6.0",
+    "framer-motion": "^12.27.0",
     "groq-sdk": "^0.37.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",

@@ -12,18 +12,32 @@ const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
  */
 const verifySignature = (req, res, next) => {
     const signature = req.headers['x-hub-signature-256'];
+    const deliveryId = req.headers['x-github-delivery'];
+
     if (!WEBHOOK_SECRET) {
         console.warn("GITHUB_WEBHOOK_SECRET not set. Skipping verification.");
         return next();
     }
+
     if (!signature) {
+        console.error(`[Webhook ${deliveryId}] No signature found on request.`);
         return res.status(401).json({ error: 'No signature found' });
     }
+
+    if (!req.rawBody) {
+        console.error(`[Webhook ${deliveryId}] req.rawBody is missing. Ensure express.json({ verify: ... }) is configured.`);
+        return res.status(500).json({ error: 'Internal Server Error: Raw body missing' });
+    }
+
     const hmac = crypto.createHmac('sha256', WEBHOOK_SECRET);
     const digest = 'sha256=' + hmac.update(req.rawBody).digest('hex');
+
     if (crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(digest))) {
+        console.log(`[Webhook ${deliveryId}] Signature verified successfully.`);
+        req.deliveryId = deliveryId; // Attach to req for downstream use
         next();
     } else {
+        console.error(`[Webhook ${deliveryId}] Invalid signature. Expected ${digest}, got ${signature}`);
         return res.status(401).json({ error: 'Invalid signature' });
     }
 };
