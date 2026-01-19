@@ -56,6 +56,12 @@ const MobilePreview = () => {
         { id: 3, name: "Mike Wilson", role: "Designer", status: "away", avatar: "MW" },
     ];
 
+    const mockNotes = [
+        { id: 1, title: "Project Requirements", date: "2h ago" },
+        { id: 2, title: "Meeting Minutes", date: "Yesterday" },
+        { id: 3, title: "Design Ideas", date: "Jan 12" },
+    ];
+
     return (
         <div className="w-[280px] h-[560px] bg-background rounded-[2.5rem] border-4 border-foreground/10 shadow-2xl overflow-hidden flex flex-col relative">
             {/* Phone Notch */}
@@ -183,8 +189,8 @@ const MobilePreview = () => {
                                         <div
                                             key={i}
                                             className={`aspect-square flex flex-col items-center justify-center rounded text-[9px] ${day < 1 || day > 31 ? "text-muted-foreground/20" :
-                                                    isToday ? "bg-primary text-primary-foreground font-medium" :
-                                                        "text-foreground"
+                                                isToday ? "bg-primary text-primary-foreground font-medium" :
+                                                    "text-foreground"
                                                 }`}
                                         >
                                             {day >= 1 && day <= 31 && (
@@ -202,6 +208,30 @@ const MobilePreview = () => {
                             <div className="text-[10px] font-medium text-foreground">Sprint Planning</div>
                             <div className="text-[8px] text-muted-foreground">Jan 22 · 10:00 AM</div>
                         </Card>
+                    </div>
+                )}
+
+                {activeTab === "notes" && (
+                    <div className="p-3 space-y-3">
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-sm font-bold text-foreground">Notes</h2>
+                            <Button size="sm" className="h-6 text-[9px] px-2">
+                                <Plus className="w-3 h-3" />
+                            </Button>
+                        </div>
+                        {mockNotes.map(note => (
+                            <Card key={note.id} className="p-2.5">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                                        <FileText className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="text-[10px] font-medium text-foreground">{note.title}</div>
+                                        <div className="text-[8px] text-muted-foreground">{note.date}</div>
+                                    </div>
+                                </div>
+                            </Card>
+                        ))}
                     </div>
                 )}
 
@@ -268,6 +298,7 @@ const MobilePreview = () => {
                     </div>
 
                     {[
+                        { id: "notes", icon: FileText, label: "Notes" },
                         { id: "tasks", icon: CheckSquare, label: "Tasks" },
                         { id: "meet", icon: Video, label: "Meet" },
                     ].map(item => (
