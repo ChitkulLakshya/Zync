@@ -16,6 +16,18 @@ const generateInviteCode = async () => {
     return code;
 };
 
+// Get Teams Owned by User
+router.get('/owned', verifyToken, async (req, res) => {
+    const uid = req.user.uid;
+    try {
+        const teams = await Team.find({ ownerId: uid });
+        res.json(teams);
+    } catch (error) {
+        console.error('Error fetching owned teams:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // Create Team
 router.post('/create', verifyToken, async (req, res) => {
     const { name, type, initialInvites } = req.body;

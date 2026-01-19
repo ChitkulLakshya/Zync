@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
+import { ActivityGraph } from "./ActivityGraph";
 
 interface ActivityLog {
     _id: string;
@@ -16,9 +17,15 @@ interface ActivityLogViewProps {
     elapsedTime: string;
     handleClearLogs: () => void;
     handleDeleteLog: (id: string) => void;
+    tasks?: any[];
+    users?: any[];
+    teamSessions?: any[];
+    currentTeamId?: string;
+    ownedTeams?: any[];
+    currentUserId?: string;
 }
 
-const ActivityLogView: React.FC<ActivityLogViewProps> = ({ activityLogs, elapsedTime, handleClearLogs, handleDeleteLog }) => {
+const ActivityLogView: React.FC<ActivityLogViewProps> = ({ activityLogs, elapsedTime, handleClearLogs, handleDeleteLog, tasks, users, teamSessions, currentTeamId, ownedTeams, currentUserId }) => {
     // Calculate Streak and Total Time
     const sortedLogs = [...activityLogs].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
@@ -59,6 +66,14 @@ const ActivityLogView: React.FC<ActivityLogViewProps> = ({ activityLogs, elapsed
     return (
         <div className="p-6 h-full space-y-6 overflow-y-auto">
             <h2 className="text-2xl font-bold">Activity Log</h2>
+
+            {/* Team Leader Graph */}
+            {/* Team Leader Graph */}
+            {tasks && tasks.length > 0 && users && (
+                <div className="mb-8">
+                    <ActivityGraph tasks={tasks} users={users} teamSessions={teamSessions} currentTeamId={currentTeamId} ownedTeams={ownedTeams} currentUserId={currentUserId} />
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Current Session */}

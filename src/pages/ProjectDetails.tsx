@@ -14,6 +14,7 @@ import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { auth, db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import KanbanBoard from "@/components/workspace/KanbanBoard";
+import { ActivityGraph } from "@/components/views/ActivityGraph";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
@@ -849,7 +850,11 @@ const ProjectDetails = () => {
                     Create Task
                   </Button>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="space-y-6">
+                  <ActivityGraph
+                    tasks={project.steps.flatMap(s => s.tasks || [])}
+                    users={users}
+                  />
                   <ScrollArea className="h-[600px] pr-4">
                     <div className="space-y-4">
                       {project.steps.flatMap(step =>

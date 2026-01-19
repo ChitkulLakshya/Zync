@@ -6,21 +6,21 @@ const Session = require('../models/Session');
 router.post('/start', async (req, res) => {
   try {
     console.log('POST /api/sessions/start body:', req.body);
-    
+
     if (!req.body) {
       console.error('Request body is missing');
       return res.status(400).json({ message: 'Request body is missing' });
     }
 
     const { userId } = req.body;
-    
+
     if (!userId) {
       console.error('User ID is missing in request body');
       return res.status(400).json({ message: 'User ID required' });
     }
 
     const today = new Date().toISOString().split('T')[0];
-    
+
     const session = new Session({
       userId,
       startTime: new Date(),
@@ -39,6 +39,20 @@ router.post('/start', async (req, res) => {
     }
   }
 });
+// Get sessions for multiple users (Batch)
+router.post('/batch', async (req, res) => {
+  try {
+    const { userIds } = req.body;
+    if (!userIds || !Array.isArray(userIds)) {
+      return res.status(400).json({ message: 'userIds array is required' });
+    }
+    const sessions = await Session.find({ userId: { $in: userIds } }).sort({ startTime: -1 });
+    res.json(sessions);
+  } catch (error) {
+    console.error('Error fetching batch sessions:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // Update session (heartbeat) - Support both PUT and POST (for sendBeacon)
 const updateSession = async (req, res) => {
@@ -47,17 +61,17 @@ const updateSession = async (req, res) => {
     if (!session) return res.status(404).json({ message: 'Session not found' });
 
     session.endTime = new Date();
-    
+
     // Update activity stats if provided
     if (req.body && req.body.lastAction) {
-        session.lastAction = req.body.lastAction;
+      session.lastAction = req.body.lastAction;
     }
     if (req.body && req.body.activeIncrement) {
-        session.activeDuration = (session.activeDuration || 0) + req.body.activeIncrement;
+      session.activeDuration = (session.activeDuration || 0) + req.body.activeIncrement;
     }
 
     await session.save();
-    
+
     res.json(session);
   } catch (error) {
     console.error('Error updating session:', error);
@@ -78,6 +92,8 @@ router.get('/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+
 
 // Delete a specific session
 router.delete('/:id', async (req, res) => {

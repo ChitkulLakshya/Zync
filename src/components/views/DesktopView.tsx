@@ -259,6 +259,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const [elapsedTime, setElapsedTime] = useState("00:00:00");
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
+  const [leaderTasks, setLeaderTasks] = useState<any[]>([]); // Tasks for Activity Graph
+  const [teamSessions, setTeamSessions] = useState<any[]>([]); // Sessions for Time Graph
+  const [ownedTeams, setOwnedTeams] = useState<any[]>([]);
 
   // Start Session on Login
   useEffect(() => {
@@ -391,8 +394,71 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         }
       };
       fetchLogs();
+      fetchLogs();
     }
   }, [activeSection, currentUser, isPreview]);
+
+  // Fetch Tasks for Activity Graph (Only for owned projects - Team Leader View)
+  useEffect(() => {
+    if (activeSection === "Activity log" && currentUser && !isPreview) {
+      const fetchLeaderTasks = async () => {
+        try {
+          const token = await currentUser.getIdToken();
+          const response = await fetch(`${API_BASE_URL}/api/projects?ownerId=${currentUser.uid}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const projects = await response.json();
+            // Filter only owned projects to ensure "Team Leader" context
+            const ownedProjects = projects.filter((p: any) => p.ownerId === currentUser.uid);
+
+            // Extract all tasks
+            const allTasks = ownedProjects.flatMap((p: any) =>
+              p.steps.flatMap((s: any) => s.tasks || [])
+            );
+            setLeaderTasks(allTasks);
+          }
+        } catch (error) {
+          console.error("Failed to fetch tasks for activity graph", error);
+        }
+      };
+      fetchLeaderTasks();
+    }
+  }, [activeSection, currentUser, isPreview]);
+
+  // Fetch Team Sessions for Activity Graph
+  useEffect(() => {
+    if (activeSection === "Activity log" && currentUser && !isPreview && usersList.length > 0) {
+      const fetchTeamSessions = async () => {
+        try {
+          const userIds = usersList.map(u => u.uid);
+          const response = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userIds })
+          });
+          if (response.ok) {
+            const sessions = await response.json();
+            setTeamSessions(sessions);
+          }
+
+          // Fetch Owned Teams
+          const token = await currentUser.getIdToken();
+          const teamsRes = await fetch(`${API_BASE_URL}/api/teams/owned`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (teamsRes.ok) {
+            const teamsData = await teamsRes.json();
+            setOwnedTeams(teamsData);
+          }
+
+        } catch (error) {
+          console.error("Failed to fetch team sessions or teams", error);
+        }
+      };
+      fetchTeamSessions();
+    }
+  }, [activeSection, currentUser, isPreview, usersList]);
 
   const handleDeleteLog = async (logId: string) => {
     try {
@@ -730,6 +796,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             elapsedTime={elapsedTime}
             handleClearLogs={handleClearLogs}
             handleDeleteLog={handleDeleteLog}
+            tasks={leaderTasks}
+            users={usersList}
+            teamSessions={teamSessions}
+            currentTeamId={userData?.teamId}
+            ownedTeams={ownedTeams}
+            currentUserId={currentUser?.uid}
           />
         );
 
@@ -829,7 +901,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
 
   return (
-    <div className={`min-h-screen w-full bg-background text-foreground`}>
+    <div className={`h-screen w-full bg-background text-foreground overflow-hidden`}>
       <PanelGroup direction="horizontal" autoSaveId="persistence">
         <Panel
           ref={sidebarRef}
@@ -841,7 +913,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "bg-secondary/30 border-r border-border/50 flex flex-col transition-all duration-300 ease-in-out h-screen sticky top-0",
+            "bg-secondary/30 border-r border-border/50 flex flex-col transition-all duration-300 ease-in-out h-full",
             isCollapsed && "min-w-[50px]"
           )}
         >
@@ -979,7 +1051,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         <PanelResizeHandle />
 
         <Panel defaultSize={84}>
-          <div className={`flex flex-col min-h-screen ${activeSection === "Chat" ? "h-screen overflow-hidden" : ""}`}>
+          <div className={`flex flex-col h-full overflow-y-auto ${activeSection === "Chat" ? "overflow-hidden" : ""}`}>
             {/* Global Header */}
             <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
               <div className="flex items-center gap-4">
