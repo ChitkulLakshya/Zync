@@ -35,7 +35,7 @@ const DesignView = () => {
     const s = source.toLowerCase();
     if (s.includes('dribbble')) return "bg-[#ea4c89] text-white border-[#ea4c89]";
     if (s.includes('lapa')) return "bg-[#6a3ae2] text-white border-[#6a3ae2]"; // Purple for Lapa
-    if (s.includes('behance')) return "bg-[#1769ff] text-white border-[#1769ff]";
+    if (s.includes('awwwards')) return "bg-[#1769ff] text-white border-[#1769ff]";
     if (s.includes('godly')) return "bg-black text-white border-black dark:bg-white dark:text-black";
     if (s.includes('siteinspire')) return "bg-emerald-600 text-white border-emerald-600";
     return "bg-secondary text-secondary-foreground";
