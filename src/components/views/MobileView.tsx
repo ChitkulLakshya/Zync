@@ -108,9 +108,16 @@ const MobileView = () => {
       {/* Header */}
       <header className="flex items-center justify-between px-4 py-3 border-b border-border/40 bg-background/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-xs">Z</span>
-          </div>
+          <img
+            src="/zync-dark.webp"
+            alt="Zync"
+            className="h-8 w-auto dark:hidden block rounded-lg"
+          />
+          <img
+            src="/zync-white.webp"
+            alt="Zync"
+            className="h-8 w-auto hidden dark:block rounded-lg"
+          />
           <span className="font-semibold text-lg">ZYNC</span>
         </div>
 

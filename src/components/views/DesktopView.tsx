@@ -925,11 +925,18 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <div className={cn("p-4 flex items-center gap-2 border-b border-border/50", isCollapsed ? "justify-center p-2" : "")}>
               {/* Dynamic Logo - visible in both collapsed (as icon) and expanded states */}
               {mounted ? (
-                <img
-                  src={resolvedTheme === 'dark' ? '/zync-dark.webp' : '/zync-white.webp'}
-                  alt="Zync Logo"
-                  className="h-8 w-8 object-contain shrink-0"
-                />
+                <>
+                  <img
+                    src="/zync-dark.webp"
+                    alt="Zync Logo"
+                    className={`h-8 w-8 object-contain shrink-0 dark:hidden block rounded-lg`}
+                  />
+                  <img
+                    src="/zync-white.webp"
+                    alt="Zync Logo"
+                    className={`h-8 w-8 object-contain shrink-0 hidden dark:block rounded-lg`}
+                  />
+                </>
               ) : (
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
                   Z
