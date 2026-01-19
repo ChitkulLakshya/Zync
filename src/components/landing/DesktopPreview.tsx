@@ -24,6 +24,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+    ContributionGraph,
+    ContributionGraphBlock,
+    ContributionGraphCalendar,
+    ContributionGraphFooter,
+    ContributionGraphLegend,
+    ContributionGraphTotalCount,
+} from "@/components/kibo-ui/contribution-graph";
+import { eachDayOfInterval, formatISO } from "date-fns";
 
 /**
  * DesktopPreview - A self-contained desktop mockup for the landing page.
@@ -73,6 +82,26 @@ const DesktopPreview = () => {
         { icon: Settings, label: "Settings" },
     ];
 
+    // Generate deterministic mock data for Kibo UI graph
+    const yearStart = new Date(2026, 0, 1);
+    const yearEnd = new Date(2026, 11, 31);
+    const days = eachDayOfInterval({ start: yearStart, end: yearEnd });
+
+    const graphData = days.map((date) => {
+        const dateStr = formatISO(date, { representation: "date" });
+        // Deterministic random-like pattern based on date
+        const dayNum = date.getDate() + date.getMonth() * 30;
+        const seed = (dayNum * 17) % 100;
+        const count = seed < 40 ? 0 : seed < 70 ? 2 : seed < 90 ? 5 : 12;
+        // Calculate level based on count
+        const level = count === 0 ? 0 : count < 3 ? 1 : count < 6 ? 2 : count < 10 ? 3 : 4;
+        return {
+            date: dateStr,
+            count,
+            level,
+        };
+    });
+
     return (
         <div className="w-full aspect-[16/10] bg-background rounded-lg border border-border/50 overflow-hidden flex shadow-xl">
             {/* Sidebar - Matching actual app */}
@@ -94,8 +123,8 @@ const DesktopPreview = () => {
                             key={item.label}
                             onClick={() => setActiveSection(item.label)}
                             className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors ${activeSection === item.label
-                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                                 }`}
                         >
                             <item.icon className="w-3.5 h-3.5" />
@@ -239,47 +268,33 @@ const DesktopPreview = () => {
                                 </CardContent>
                             </Card>
 
-                            {/* Contribution Graph - GitHub Style */}
+                            {/* Contribution Graph - Kibo UI */}
                             <Card className="p-4 overflow-hidden">
-                                <div className="flex items-center justify-between mb-3">
-                                    <span className="text-xs font-semibold">247 contributions in 2026</span>
-                                    <span className="text-[9px] text-muted-foreground">Jan - Dec</span>
-                                </div>
-                                {/* Contribution grid - 7 rows (days) x ~52 weeks */}
-                                <div className="flex flex-col gap-[2px]">
-                                    {[...Array(7)].map((_, rowIndex) => (
-                                        <div key={rowIndex} className="flex gap-[2px]">
-                                            {[...Array(52)].map((_, colIndex) => {
-                                                // Deterministic pattern based on position
-                                                const seed = (rowIndex * 52 + colIndex) % 100;
-                                                const level = seed < 50 ? 0 : seed < 70 ? 1 : seed < 85 ? 2 : seed < 95 ? 3 : 4;
-                                                const colors = [
-                                                    "bg-muted/50",
-                                                    "bg-emerald-200 dark:bg-emerald-900",
-                                                    "bg-emerald-400 dark:bg-emerald-700",
-                                                    "bg-emerald-500 dark:bg-emerald-500",
-                                                    "bg-emerald-600 dark:bg-emerald-400"
-                                                ];
-                                                return (
-                                                    <div
-                                                        key={colIndex}
-                                                        className={`w-[8px] h-[8px] rounded-[2px] ${colors[level]}`}
-                                                    />
-                                                );
-                                            })}
-                                        </div>
-                                    ))}
-                                </div>
-                                {/* Legend */}
-                                <div className="flex items-center justify-end gap-1 mt-2 text-[8px] text-muted-foreground">
-                                    <span>Less</span>
-                                    <div className="w-[8px] h-[8px] rounded-[2px] bg-muted/50" />
-                                    <div className="w-[8px] h-[8px] rounded-[2px] bg-emerald-200 dark:bg-emerald-900" />
-                                    <div className="w-[8px] h-[8px] rounded-[2px] bg-emerald-400 dark:bg-emerald-700" />
-                                    <div className="w-[8px] h-[8px] rounded-[2px] bg-emerald-500 dark:bg-emerald-500" />
-                                    <div className="w-[8px] h-[8px] rounded-[2px] bg-emerald-600 dark:bg-emerald-400" />
-                                    <span>More</span>
-                                </div>
+                                <ContributionGraph data={graphData} blockSize={7} blockMargin={2} blockRadius={1}>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <ContributionGraphTotalCount className="text-xs font-semibold" />
+                                        <span className="text-[9px] text-muted-foreground">2026</span>
+                                    </div>
+
+                                    {/* Container with overflow handling for the graph */}
+                                    <div className="w-full overflow-x-auto pb-2">
+                                        <ContributionGraphCalendar>
+                                            {({ activity, dayIndex, weekIndex }) => (
+                                                <ContributionGraphBlock
+                                                    key={`${weekIndex}-${dayIndex}`}
+                                                    activity={activity}
+                                                    dayIndex={dayIndex}
+                                                    weekIndex={weekIndex}
+                                                />
+                                            )}
+                                        </ContributionGraphCalendar>
+                                    </div>
+
+                                    <ContributionGraphFooter>
+                                        <span className="text-[9px]">Learn how we count contributions</span>
+                                        <ContributionGraphLegend className="scale-75 origin-right" />
+                                    </ContributionGraphFooter>
+                                </ContributionGraph>
                             </Card>
                         </div>
                     )}
@@ -309,8 +324,8 @@ const DesktopPreview = () => {
                                             <div
                                                 key={i}
                                                 className={`aspect-square flex flex-col items-center justify-center rounded text-[10px] cursor-pointer transition-colors ${day < 1 || day > 31 ? "text-muted-foreground/20" :
-                                                    isToday ? "bg-primary text-primary-foreground font-medium" :
-                                                        "text-foreground hover:bg-secondary"
+                                                        isToday ? "bg-primary text-primary-foreground font-medium" :
+                                                            "text-foreground hover:bg-secondary"
                                                     }`}
                                             >
                                                 {day >= 1 && day <= 31 && (
