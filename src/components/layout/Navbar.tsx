@@ -1,26 +1,32 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X, ChevronDown, FolderKanban, Calendar, MessageSquare, Video } from "lucide-react";
+import { Menu, X } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    setIsOpen(false);
+  };
+
   const navItems = [
-    { name: "Solutions", hasDropdown: true, icon: null },
-    { name: "Projects", hasDropdown: false, icon: FolderKanban },
-    { name: "Calendar", hasDropdown: false, icon: Calendar },
-    { name: "Chat", hasDropdown: false, icon: MessageSquare },
-    { name: "Meet", hasDropdown: false, icon: Video },
-    { name: "Contact", hasDropdown: false, icon: null },
+    { name: "Features", action: () => scrollToSection('features') },
+    { name: "Mobile App", action: () => scrollToSection('mobile') },
+    { name: "Contact", action: () => scrollToSection('cta') },
   ];
 
   return (
@@ -43,6 +49,9 @@ const Navbar = () => {
             <span className="font-serif-elegant font-bold text-xl tracking-tight text-foreground">
               Zync
             </span>
+            <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
+              Beta
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -50,11 +59,10 @@ const Navbar = () => {
             {navItems.map((item) => (
               <button
                 key={item.name}
-                className="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors font-medium"
+                onClick={item.action}
+                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
-                {item.icon && <item.icon className="w-4 h-4" />}
                 {item.name}
-                {item.hasDropdown && <ChevronDown className="w-4 h-4" />}
               </button>
             ))}
           </div>
@@ -69,7 +77,7 @@ const Navbar = () => {
             </Link>
             <Link to="/signup">
               <Button variant="hero" size="default">
-                Sign Up
+                Join Beta
               </Button>
             </Link>
           </div>
@@ -93,13 +101,10 @@ const Navbar = () => {
               {navItems.map((item) => (
                 <button
                   key={item.name}
-                  className="flex items-center justify-between text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
+                  onClick={item.action}
+                  className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                 >
-                  <div className="flex items-center gap-2">
-                    {item.icon && <item.icon className="w-4 h-4" />}
-                    {item.name}
-                  </div>
-                  {item.hasDropdown && <ChevronDown className="w-4 h-4" />}
+                  {item.name}
                 </button>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
@@ -110,7 +115,7 @@ const Navbar = () => {
                 </Link>
                 <Link to="/signup" onClick={() => setIsOpen(false)}>
                   <Button variant="hero" className="w-full justify-center">
-                    Sign Up
+                    Join Beta
                   </Button>
                 </Link>
               </div>

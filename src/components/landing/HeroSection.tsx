@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
-import DesktopView from "@/components/views/DesktopView";
+import { ArrowRight, Zap } from "lucide-react";
+import DesktopPreview from "@/components/landing/DesktopPreview";
 
 const HeroSection = () => {
   const [email, setEmail] = useState("");
@@ -13,76 +13,62 @@ const HeroSection = () => {
     navigate("/signup", { state: { email } });
   };
 
-  const features = [
-    "AI-powered project architecture",
-    "GitHub integration",
-    "Real-time collaboration",
-  ];
-
   return (
-    <section className="relative pt-24 lg:pt-32 pb-16 lg:pb-24 hero-gradient overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-64 h-64 bg-primary/5 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 right-10 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-
-      {/* Floating decorative shapes */}
-      <div className="absolute top-40 right-[15%] w-4 h-4 bg-task-orange rounded-full floating-element opacity-60" />
-      <div className="absolute top-60 left-[10%] w-3 h-3 bg-task-teal rounded-full floating-element opacity-60" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-40 right-[20%] w-5 h-5 bg-task-pink rounded-full floating-element opacity-60" style={{ animationDelay: '2s' }} />
+    <section className="relative pt-28 lg:pt-36 pb-16 lg:pb-24 hero-gradient overflow-hidden">
+      {/* Subtle background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-primary/[0.03] to-transparent pointer-events-none" />
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
+          {/* Beta Badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-primary/10 border border-primary/20 rounded-full mb-8 animate-fade-in">
+            <Zap className="w-3.5 h-3.5 text-primary" />
+            <span className="text-xs font-semibold tracking-wider text-primary uppercase">
+              Public Beta 1.0
+            </span>
+          </div>
+
           {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter mb-6 bg-clip-text text-transparent bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-200 dark:to-gray-400 font-serif-elegant pb-2">
-            The future of <br className="hidden md:block" />
-            work is <span className="text-indigo-600 dark:text-indigo-400 inline-block animate-pulse-slow">Zync</span>
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight mb-6 text-foreground font-serif-elegant leading-[1.1]">
+            Build software,
+            <br />
+            <span className="text-primary">together.</span>
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 animate-fade-in-up animate-delay-100">
-            Zync is a beautiful online software for effective team collaboration,
-            project management, task planning, and execution.
+          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed">
+            Zync brings your team's planning, tasks, and communication into one focused workspace.
+            AI-powered project setup. GitHub integration. Real-time collaboration.
           </p>
 
           {/* Email Input Form */}
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-6 animate-fade-in-up animate-delay-200">
+          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-4">
             <Input
               type="email"
-              placeholder="Enter your e-mail"
+              placeholder="you@company.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="h-12 px-5 bg-card border-border/50 text-foreground placeholder:text-muted-foreground"
+              className="h-12 px-5 bg-card border-border text-foreground placeholder:text-muted-foreground/60"
             />
             <Button variant="hero" size="lg" className="whitespace-nowrap" onClick={handleGetStarted}>
-              Get Started
-              <ArrowRight className="w-4 h-4 ml-1" />
+              Join the Beta
+              <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </div>
 
           {/* Trial text */}
-          <p className="text-sm text-muted-foreground mb-10 animate-fade-in-up animate-delay-300">
-            Try it for free. No credit card required.
+          <p className="text-sm text-muted-foreground/70 mb-16">
+            Free during beta · No credit card required
           </p>
-
-          {/* Feature Pills */}
-          <div className="flex flex-wrap justify-center gap-4 mb-12 animate-fade-in-up animate-delay-300">
-            {features.map((feature) => (
-              <div
-                key={feature}
-                className="flex items-center gap-2 bg-card/80 backdrop-blur-sm border border-border/50 rounded-full px-4 py-2 shadow-sm"
-              >
-                <CheckCircle2 className="w-4 h-4 text-task-green" />
-                <span className="text-sm font-medium text-foreground">{feature}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
-        {/* Dashboard Preview - Desktop View */}
-        <div className="relative max-w-6xl mx-auto animate-scale-in animate-delay-500">
-          <DesktopView isPreview={true} />
-          {/* Shadow effect */}
-          <div className="absolute -inset-4 bg-gradient-to-t from-background via-transparent to-transparent pointer-events-none" />
+        {/* Dashboard Preview - Using DesktopPreview */}
+        <div className="relative max-w-6xl mx-auto">
+          <div className="relative rounded-xl overflow-hidden border border-border/50 shadow-2xl shadow-primary/5">
+            <DesktopPreview />
+          </div>
+          {/* Fade overlay at bottom */}
+          <div className="absolute -bottom-1 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
         </div>
       </div>
     </section>

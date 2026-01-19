@@ -1,54 +1,50 @@
-import { Smartphone, Download } from "lucide-react";
+import { Smartphone, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import MobileView from "@/components/views/MobileView";
+import { useNavigate } from "react-router-dom";
+import MobilePreview from "@/components/landing/MobilePreview";
 
 const MobileAppSection = () => {
+  const navigate = useNavigate();
+
+  const handleNotifyMe = () => {
+    navigate("/signup", { state: { source: "mobile-waitlist" } });
+  };
+
   return (
-    <section className="py-20 lg:py-32 bg-secondary/30 overflow-hidden">
+    <section id="mobile" className="py-20 lg:py-28 bg-secondary/20 overflow-hidden scroll-mt-20">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {/* Content */}
           <div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-              <Smartphone className="w-4 h-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Mobile App Available</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-task-orange/10 border border-task-orange/20 rounded-full mb-6">
+              <Smartphone className="w-3.5 h-3.5 text-task-orange" />
+              <span className="text-xs font-medium text-task-orange">Coming Soon</span>
             </div>
-            
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-6">
-              Manage your teamwork wherever you are
+
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 font-serif-elegant">
+              Your workspace, in your pocket
             </h2>
-            
-            <p className="text-lg text-muted-foreground mb-8">
-              Imagine that your team's daily planner is always in your pocket. You can take a phone and 
-              check work progress anytime, anywhere, even when you're out of the office. Keep control 
-              even when you're on the go.
+
+            <p className="text-muted-foreground mb-8 leading-relaxed">
+              The Zync mobile app is in development. Check task progress, respond to messages,
+              and stay connected with your team—wherever you are.
             </p>
 
-            <div className="flex flex-wrap gap-4">
-              <Button variant="hero" size="lg" className="gap-2">
-                <Download className="w-5 h-5" />
-                Download for iOS
-              </Button>
-              <Button variant="outline" size="lg" className="gap-2">
-                <Download className="w-5 h-5" />
-                Download for Android
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="lg" className="gap-2" onClick={handleNotifyMe}>
+                <Bell className="w-4 h-4" />
+                Notify me when ready
               </Button>
             </div>
           </div>
 
-          {/* Phone Mockups */}
+          {/* Phone Mockup - Using MobilePreview */}
           <div className="relative flex justify-center">
-            {/* Background decoration */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-task-teal/10 rounded-full blur-3xl" />
-            
-            <MobileView />
+            {/* Subtle glow */}
+            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-task-teal/5 rounded-full blur-3xl" />
 
-            {/* Floating elements */}
-            <div className="absolute top-20 -right-4 bg-card rounded-xl shadow-lg p-3 border border-border/50 animate-float z-20">
-              <div className="text-xs font-medium text-foreground">✓ Task completed</div>
-            </div>
-            <div className="absolute bottom-32 -left-4 bg-card rounded-xl shadow-lg p-3 border border-border/50 animate-float z-20" style={{ animationDelay: '1s' }}>
-              <div className="text-xs font-medium text-foreground">🔔 New assignment</div>
+            <div className="relative">
+              <MobilePreview />
             </div>
           </div>
         </div>

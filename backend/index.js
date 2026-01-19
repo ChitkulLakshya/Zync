@@ -112,7 +112,8 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/webhooks', webhookRoutes);
 app.use('/api/github-app', githubAppWebhook);
 app.use('/api/meet', require('./routes/meetRoutes'));
-app.use('/api/teams', require('./routes/teamRoutes')); // Team Routes
+app.use('/api/teams', require('./routes/teamRoutes'));
+app.use('/api/google', require('./routes/googleRoutes')); // Google Integration
 
 
 
