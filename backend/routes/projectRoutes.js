@@ -156,8 +156,15 @@ router.post('/', async (req, res) => {
       ownerId,
       githubRepoName,
       githubRepoOwner,
+
       isTrackingActive: !!(githubRepoName && githubRepoOwner),
-      steps: [], // GitHub projects don't have AI-generated steps initially
+      steps: [
+        { id: 'step-1', title: 'Planning', description: 'Initial requirements and design', type: 'Design', tasks: [] },
+        { id: 'step-2', title: 'Frontend', description: 'Client-side implementation', type: 'Frontend', tasks: [] },
+        { id: 'step-3', title: 'Backend', description: 'Server-side logic and APIs', type: 'Backend', tasks: [] },
+        { id: 'step-4', title: 'Database', description: 'Schema design and data management', type: 'Database', tasks: [] },
+        { id: 'step-5', title: 'Deployment', description: 'CI/CD and hosting setup', type: 'Other', tasks: [] }
+      ], // Default steps for immediate task creation
       architecture: {} // Initially empty for on-demand generation
     });
 
@@ -357,6 +364,19 @@ router.get('/:id', async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
+
+    // Lazy initialization of steps if missing (for existing projects)
+    if (!project.steps || project.steps.length === 0) {
+      project.steps = [
+        { id: 'init-1', title: 'Planning', description: 'Initial requirements and design', type: 'Design', tasks: [] },
+        { id: 'init-2', title: 'Frontend', description: 'Client-side implementation', type: 'Frontend', tasks: [] },
+        { id: 'init-3', title: 'Backend', description: 'Server-side logic and APIs', type: 'Backend', tasks: [] },
+        { id: 'init-4', title: 'Database', description: 'Schema design and data management', type: 'Database', tasks: [] },
+        { id: 'init-5', title: 'Deployment', description: 'CI/CD and hosting setup', type: 'Other', tasks: [] }
+      ];
+      await project.save();
+    }
+
     res.json(project);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
