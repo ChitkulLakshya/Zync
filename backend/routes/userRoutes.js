@@ -138,6 +138,80 @@ router.post('/sync-github', verifyToken, async (req, res) => {
   }
 });
 
+// Search Users (Global) - Exclude current user
+router.get('/search', verifyToken, async (req, res) => {
+  const { query, excludeTeam } = req.query; // query = name or email
+  if (!query) return res.json([]);
+
+  try {
+    const searchRegex = new RegExp(query, 'i'); // Case-insensitive
+    const currentUserUid = req.user.uid;
+
+    // Find users matching query, excluding current user
+    // Optionally exclude own team members if excludeTeam=true (though UI might separate them)
+    const users = await User.find({
+      $and: [
+        { uid: { $ne: currentUserUid } },
+        {
+          $or: [
+            { displayName: searchRegex },
+            { email: searchRegex },
+            { firstName: searchRegex },
+            { lastName: searchRegex }
+          ]
+        }
+      ]
+    })
+      .select('uid displayName email photoURL status lastSeen teamId') // Return only public info
+      .populate('teamId') // If you need team details
+      .limit(20);
+
+    res.json(users);
+  } catch (error) {
+    console.error('Error searching users:', error);
+    res.status(500).json({ message: 'Server error during search' });
+  }
+});
+
+// Send Chat Request (Email Notification)
+router.post('/chat-request', verifyToken, async (req, res) => {
+  const { recipientId, message } = req.body;
+  const senderUid = req.user.uid;
+
+  try {
+    const sender = await User.findOne({ uid: senderUid });
+    const recipient = await User.findOne({ uid: recipientId });
+
+    if (!recipient) return res.status(404).json({ message: 'Recipient not found' });
+
+    // Check if in same team (Validation)
+    /*
+    if (sender.teamId && recipient.teamId && sender.teamId.toString() === recipient.teamId.toString()) {
+       return res.status(400).json({ message: 'Users are in the same team, no request needed.' });
+    }
+    */
+
+    // Send Email
+    await sendZyncEmail(
+      recipient.email,
+      `New Chat Request from ${sender.displayName || 'a Zync User'}`,
+      `
+        <h2>Chat Request</h2>
+        <p><b>${sender.displayName}</b> wants to chat with you on ZYNC.</p>
+        <p><i>"${message}"</i></p>
+        <br/>
+        <p>Log in to ZYNC to view and reply.</p>
+      `,
+      `New Chat Request from ${sender.displayName}: "${message}"`
+    );
+
+    res.json({ message: 'Chat request sent successfully' });
+  } catch (error) {
+    console.error('Chat request error:', error);
+    res.status(500).json({ message: 'Failed to send chat request' });
+  }
+});
+
 // Get all users (filtered by Team)
 router.get('/', verifyToken, async (req, res) => {
   try {

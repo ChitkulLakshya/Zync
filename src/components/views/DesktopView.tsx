@@ -74,6 +74,7 @@ import CalendarView from "./CalendarView";
 import DashboardView from "./DashboardView";
 import PeopleView from "./PeopleView";
 import ChatLayout from "./ChatLayout";
+import MessagesPage from "./MessagesPage";
 import CreateProject from "@/components/dashboard/CreateProject";
 import TeamGateway from "./TeamGateway";
 import { usePresence } from "@/hooks/usePresence";
@@ -778,6 +779,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
             userStatuses={userStatuses}
             onChat={handleChat}
+            onMessages={() => handleSectionChange("Messages")}
             isPreview={isPreview}
           />
         );
@@ -787,6 +789,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       case "New Project":
         return (
           <CreateProject onProjectCreated={(data) => navigate(`/projects/${data._id}`)} />
+        );
+
+      case "Messages":
+        return (
+          <MessagesPage
+            users={displayUsers}
+            currentUser={currentUser}
+            userStatuses={userStatuses}
+            onNavigateBack={() => handleSectionChange("People")}
+          />
         );
 
       case "Activity log":

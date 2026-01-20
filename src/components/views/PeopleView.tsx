@@ -18,10 +18,11 @@ interface PeopleViewProps {
     users?: any[];
     userStatuses: Record<string, any>;
     onChat: (user: any) => void;
+    onMessages?: () => void;
     isPreview?: boolean;
 }
 
-const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: PeopleViewProps) => {
+const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPreview }: PeopleViewProps) => {
     const [users, setUsers] = useState<any[]>(propUsers || []);
     const [loading, setLoading] = useState(true);
     const [hasTeam, setHasTeam] = useState<boolean>(true);
@@ -240,6 +241,14 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                 {/* Main Content */}
                 <div className="flex-1 overflow-y-auto p-6 md:pl-8 space-y-8">
                     {/* Team Action Header */}
+                    <div className="flex justify-end mb-2">
+                        {onMessages && (
+                            <Button variant="outline" className="gap-2" onClick={onMessages}>
+                                <MessageSquare className="w-4 h-4" />
+                                All Messages
+                            </Button>
+                        )}
+                    </div>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
                             <div>
