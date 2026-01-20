@@ -63,263 +63,266 @@ const MobilePreview = () => {
     ];
 
     return (
-        <div className="w-[280px] h-[560px] bg-background rounded-[2.5rem] border-4 border-foreground/10 shadow-2xl overflow-hidden flex flex-col relative">
-            {/* Phone Notch */}
-            <div className="bg-background pt-2 pb-1 flex justify-center">
-                <div className="w-20 h-5 bg-foreground/10 rounded-full" />
-            </div>
+        <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
+            <div className="w-[148px] h-[18px] bg-black top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute z-20"></div>
+            <div className="h-[32px] w-[3px] bg-gray-800 absolute -left-[17px] top-[72px] rounded-l-lg"></div>
+            <div className="h-[46px] w-[3px] bg-gray-800 absolute -left-[17px] top-[124px] rounded-l-lg"></div>
+            <div className="h-[46px] w-[3px] bg-gray-800 absolute -left-[17px] top-[178px] rounded-l-lg"></div>
+            <div className="h-[64px] w-[3px] bg-gray-800 absolute -right-[17px] top-[142px] rounded-r-lg"></div>
+            <div className="rounded-[2rem] overflow-hidden w-full h-full bg-background flex flex-col relative">
 
-            {/* Header */}
-            <header className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-background">
-                <div className="flex items-center">
-                    <img
-                        src="/zync-white.webp"
-                        alt="Zync"
-                        className="h-8 w-auto dark:hidden block rounded-lg"
-                    />
-                    <img
-                        src="/zync-dark.webp"
-                        alt="Zync"
-                        className="h-8 w-auto hidden dark:block rounded-lg"
-                    />
-                </div>
-                <Avatar className="w-6 h-6">
-                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">YU</AvatarFallback>
-                </Avatar>
-            </header>
-
-            {/* Content */}
-            <main className="flex-1 overflow-y-auto pb-20">
-                {activeTab === "home" && (
-                    <div className="p-3 space-y-3">
-                        {/* Header matching Workspace */}
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h2 className="text-sm font-bold text-foreground">My Workspace</h2>
-                                <p className="text-[9px] text-muted-foreground">Your projects</p>
-                            </div>
-                            <Button size="sm" className="h-6 text-[9px] px-2">
-                                <Plus className="w-3 h-3" />
-                            </Button>
-                        </div>
-
-                        {/* Project Cards - Matching actual mobile Workspace */}
-                        {mockProjects.map(project => (
-                            <Card
-                                key={project.id}
-                                className="border-l-4 border-l-primary"
-                            >
-                                <CardHeader className="p-3 pb-2">
-                                    <div className="flex justify-between items-start">
-                                        <Badge variant="outline" className="text-[7px] px-1 py-0 h-3">Project</Badge>
-                                        {project.owner && (
-                                            <Badge variant="secondary" className="text-[7px] px-1 py-0 h-3">Owner</Badge>
-                                        )}
-                                    </div>
-                                    <CardTitle className="text-[11px] line-clamp-1">
-                                        {project.name}
-                                    </CardTitle>
-                                    <CardDescription className="text-[8px] line-clamp-1">
-                                        {project.description}
-                                    </CardDescription>
-                                </CardHeader>
-                                <CardContent className="p-3 pt-0">
-                                    <div className="flex items-center gap-2 text-[8px] text-muted-foreground">
-                                        <CalendarIcon className="w-2.5 h-2.5" />
-                                        <span>{project.created}</span>
-                                        <User className="w-2.5 h-2.5 ml-2" />
-                                        <span>You</span>
-                                    </div>
-                                    {project.githubRepo && (
-                                        <div className="flex items-center gap-1 mt-1.5 p-1 bg-secondary/30 rounded text-[8px]">
-                                            <Github className="w-2.5 h-2.5" />
-                                            <span className="truncate">{project.githubRepo}</span>
-                                        </div>
-                                    )}
-                                </CardContent>
-                                <CardFooter className="p-2 pt-1.5 border-t bg-secondary/10">
-                                    <Button
-                                        variant="ghost"
-                                        className="flex-1 justify-between hover:bg-transparent px-0 text-primary h-4 text-[8px]"
-                                    >
-                                        View Architecture
-                                        <ArrowRight className="w-2.5 h-2.5" />
-                                    </Button>
-                                </CardFooter>
-                            </Card>
-                        ))}
+                {/* Header */}
+                <header className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-background">
+                    <div className="flex items-center">
+                        <img
+                            src="/zync-white.webp"
+                            alt="Zync"
+                            className="h-8 w-auto dark:hidden block rounded-lg"
+                        />
+                        <img
+                            src="/zync-dark.webp"
+                            alt="Zync"
+                            className="h-8 w-auto hidden dark:block rounded-lg"
+                        />
                     </div>
-                )}
+                    <Avatar className="w-6 h-6">
+                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">YU</AvatarFallback>
+                    </Avatar>
+                </header>
 
-                {activeTab === "people" && (
-                    <div className="p-3 space-y-3">
-                        <h2 className="text-sm font-bold text-foreground">People</h2>
-                        {mockPeople.map(person => (
-                            <Card key={person.id} className="p-2.5">
-                                <div className="flex items-center gap-2.5">
-                                    <div className="relative">
-                                        <Avatar className="w-8 h-8">
-                                            <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{person.avatar}</AvatarFallback>
-                                        </Avatar>
-                                        <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-card ${person.status === "online" ? "bg-task-green" : "bg-task-yellow"
-                                            }`} />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="text-[10px] font-medium text-foreground">{person.name}</div>
-                                        <div className="text-[8px] text-muted-foreground">{person.role}</div>
-                                    </div>
-                                    <Badge variant={person.status === "online" ? "default" : "secondary"} className="text-[7px] px-1 py-0">
-                                        {person.status}
-                                    </Badge>
+                {/* Content */}
+                <main className="flex-1 overflow-y-auto pb-20">
+                    {activeTab === "home" && (
+                        <div className="p-3 space-y-3">
+                            {/* Header matching Workspace */}
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h2 className="text-sm font-bold text-foreground">My Workspace</h2>
+                                    <p className="text-[9px] text-muted-foreground">Your projects</p>
                                 </div>
-                            </Card>
-                        ))}
-                    </div>
-                )}
-
-                {activeTab === "calendar" && (
-                    <div className="p-3 space-y-3">
-                        <h2 className="text-sm font-bold text-foreground">January 2026</h2>
-                        <Card className="p-2.5">
-                            <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
-                                {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-                                    <div key={i} className="text-[8px] text-muted-foreground font-medium py-0.5">{d}</div>
-                                ))}
+                                <Button size="sm" className="h-6 text-[9px] px-2">
+                                    <Plus className="w-3 h-3" />
+                                </Button>
                             </div>
-                            <div className="grid grid-cols-7 gap-0.5 text-center">
-                                {[...Array(35)].map((_, i) => {
-                                    const day = i - 3;
-                                    const isToday = day === 19;
-                                    const hasEvent = [5, 12, 19, 22].includes(day);
-                                    return (
-                                        <div
-                                            key={i}
-                                            className={`aspect-square flex flex-col items-center justify-center rounded text-[9px] ${day < 1 || day > 31 ? "text-muted-foreground/20" :
-                                                isToday ? "bg-primary text-primary-foreground font-medium" :
-                                                    "text-foreground"
-                                                }`}
-                                        >
-                                            {day >= 1 && day <= 31 && (
-                                                <>
-                                                    {day}
-                                                    {hasEvent && !isToday && <div className="w-0.5 h-0.5 rounded-full bg-task-orange mt-0.5" />}
-                                                </>
+
+                            {/* Project Cards - Matching actual mobile Workspace */}
+                            {mockProjects.map(project => (
+                                <Card
+                                    key={project.id}
+                                    className="border-l-4 border-l-primary"
+                                >
+                                    <CardHeader className="p-3 pb-2">
+                                        <div className="flex justify-between items-start">
+                                            <Badge variant="outline" className="text-[7px] px-1 py-0 h-3">Project</Badge>
+                                            {project.owner && (
+                                                <Badge variant="secondary" className="text-[7px] px-1 py-0 h-3">Owner</Badge>
                                             )}
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        </Card>
-                        <Card className="p-2.5 border-l-2 border-l-task-orange">
-                            <div className="text-[10px] font-medium text-foreground">Sprint Planning</div>
-                            <div className="text-[8px] text-muted-foreground">Jan 22 · 10:00 AM</div>
-                        </Card>
-                    </div>
-                )}
+                                        <CardTitle className="text-[11px] line-clamp-1">
+                                            {project.name}
+                                        </CardTitle>
+                                        <CardDescription className="text-[8px] line-clamp-1">
+                                            {project.description}
+                                        </CardDescription>
+                                    </CardHeader>
+                                    <CardContent className="p-3 pt-0">
+                                        <div className="flex items-center gap-2 text-[8px] text-muted-foreground">
+                                            <CalendarIcon className="w-2.5 h-2.5" />
+                                            <span>{project.created}</span>
+                                            <User className="w-2.5 h-2.5 ml-2" />
+                                            <span>You</span>
+                                        </div>
+                                        {project.githubRepo && (
+                                            <div className="flex items-center gap-1 mt-1.5 p-1 bg-secondary/30 rounded text-[8px]">
+                                                <Github className="w-2.5 h-2.5" />
+                                                <span className="truncate">{project.githubRepo}</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                    <CardFooter className="p-2 pt-1.5 border-t bg-secondary/10">
+                                        <Button
+                                            variant="ghost"
+                                            className="flex-1 justify-between hover:bg-transparent px-0 text-primary h-4 text-[8px]"
+                                        >
+                                            View Architecture
+                                            <ArrowRight className="w-2.5 h-2.5" />
+                                        </Button>
+                                    </CardFooter>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
 
-                {activeTab === "notes" && (
-                    <div className="p-3 space-y-3">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-sm font-bold text-foreground">Notes</h2>
-                            <Button size="sm" className="h-6 text-[9px] px-2">
-                                <Plus className="w-3 h-3" />
+                    {activeTab === "people" && (
+                        <div className="p-3 space-y-3">
+                            <h2 className="text-sm font-bold text-foreground">People</h2>
+                            {mockPeople.map(person => (
+                                <Card key={person.id} className="p-2.5">
+                                    <div className="flex items-center gap-2.5">
+                                        <div className="relative">
+                                            <Avatar className="w-8 h-8">
+                                                <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{person.avatar}</AvatarFallback>
+                                            </Avatar>
+                                            <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-card ${person.status === "online" ? "bg-task-green" : "bg-task-yellow"
+                                                }`} />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="text-[10px] font-medium text-foreground">{person.name}</div>
+                                            <div className="text-[8px] text-muted-foreground">{person.role}</div>
+                                        </div>
+                                        <Badge variant={person.status === "online" ? "default" : "secondary"} className="text-[7px] px-1 py-0">
+                                            {person.status}
+                                        </Badge>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+
+                    {activeTab === "calendar" && (
+                        <div className="p-3 space-y-3">
+                            <h2 className="text-sm font-bold text-foreground">January 2026</h2>
+                            <Card className="p-2.5">
+                                <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
+                                    {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+                                        <div key={i} className="text-[8px] text-muted-foreground font-medium py-0.5">{d}</div>
+                                    ))}
+                                </div>
+                                <div className="grid grid-cols-7 gap-0.5 text-center">
+                                    {[...Array(35)].map((_, i) => {
+                                        const day = i - 3;
+                                        const isToday = day === 19;
+                                        const hasEvent = [5, 12, 19, 22].includes(day);
+                                        return (
+                                            <div
+                                                key={i}
+                                                className={`aspect-square flex flex-col items-center justify-center rounded text-[9px] ${day < 1 || day > 31 ? "text-muted-foreground/20" :
+                                                    isToday ? "bg-primary text-primary-foreground font-medium" :
+                                                        "text-foreground"
+                                                    }`}
+                                            >
+                                                {day >= 1 && day <= 31 && (
+                                                    <>
+                                                        {day}
+                                                        {hasEvent && !isToday && <div className="w-0.5 h-0.5 rounded-full bg-task-orange mt-0.5" />}
+                                                    </>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </Card>
+                            <Card className="p-2.5 border-l-2 border-l-task-orange">
+                                <div className="text-[10px] font-medium text-foreground">Sprint Planning</div>
+                                <div className="text-[8px] text-muted-foreground">Jan 22 · 10:00 AM</div>
+                            </Card>
+                        </div>
+                    )}
+
+                    {activeTab === "notes" && (
+                        <div className="p-3 space-y-3">
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-sm font-bold text-foreground">Notes</h2>
+                                <Button size="sm" className="h-6 text-[9px] px-2">
+                                    <Plus className="w-3 h-3" />
+                                </Button>
+                            </div>
+                            {mockNotes.map(note => (
+                                <Card key={note.id} className="p-2.5">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                                            <FileText className="w-4 h-4" />
+                                        </div>
+                                        <div className="flex-1">
+                                            <div className="text-[10px] font-medium text-foreground">{note.title}</div>
+                                            <div className="text-[8px] text-muted-foreground">{note.date}</div>
+                                        </div>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+
+                    {activeTab === "tasks" && (
+                        <div className="p-3 space-y-3">
+                            <h2 className="text-sm font-bold text-foreground">My Tasks</h2>
+                            {mockTasks.map(task => (
+                                <Card key={task.id} className={`p-2.5 ${task.done ? "opacity-60" : ""}`}>
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${task.done ? "bg-task-green border-task-green" : "border-muted-foreground/30"
+                                            }`}>
+                                            {task.done && <CheckSquare className="w-2 h-2 text-white" />}
+                                        </div>
+                                        <span className={`text-[10px] flex-1 ${task.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
+                                            {task.title}
+                                        </span>
+                                        <Badge variant={task.priority === "high" ? "destructive" : "secondary"} className="text-[7px] px-1 py-0">
+                                            {task.priority}
+                                        </Badge>
+                                    </div>
+                                </Card>
+                            ))}
+                        </div>
+                    )}
+
+                    {activeTab === "meet" && (
+                        <div className="flex flex-col items-center justify-center h-full p-4 text-center">
+                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
+                                <Video className="w-6 h-6 text-primary" />
+                            </div>
+                            <h3 className="text-sm font-semibold text-foreground mb-1">Video Meetings</h3>
+                            <p className="text-[9px] text-muted-foreground mb-3">Connect with your team</p>
+                            <Button size="sm" className="text-[10px] h-7 px-3">
+                                <Plus className="w-3 h-3 mr-1" /> New Meeting
                             </Button>
                         </div>
-                        {mockNotes.map(note => (
-                            <Card key={note.id} className="p-2.5">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
-                                        <FileText className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex-1">
-                                        <div className="text-[10px] font-medium text-foreground">{note.title}</div>
-                                        <div className="text-[8px] text-muted-foreground">{note.date}</div>
-                                    </div>
-                                </div>
-                            </Card>
-                        ))}
-                    </div>
-                )}
+                    )}
+                </main>
 
-                {activeTab === "tasks" && (
-                    <div className="p-3 space-y-3">
-                        <h2 className="text-sm font-bold text-foreground">My Tasks</h2>
-                        {mockTasks.map(task => (
-                            <Card key={task.id} className={`p-2.5 ${task.done ? "opacity-60" : ""}`}>
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${task.done ? "bg-task-green border-task-green" : "border-muted-foreground/30"
-                                        }`}>
-                                        {task.done && <CheckSquare className="w-2 h-2 text-white" />}
-                                    </div>
-                                    <span className={`text-[10px] flex-1 ${task.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
-                                        {task.title}
-                                    </span>
-                                    <Badge variant={task.priority === "high" ? "destructive" : "secondary"} className="text-[7px] px-1 py-0">
-                                        {task.priority}
-                                    </Badge>
-                                </div>
-                            </Card>
+                {/* Bottom Navigation - Matching actual mobile nav */}
+                <nav className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border/40 px-2 py-1.5">
+                    <div className="flex items-center justify-between">
+                        {[
+                            { id: "home", icon: Home, label: "Home" },
+                            { id: "people", icon: Users, label: "People" },
+                            { id: "calendar", icon: CalendarIcon, label: "Cal" },
+                        ].map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
+                                    }`}
+                            >
+                                <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />
+                                <span className="text-[7px] mt-0.5">{item.label}</span>
+                            </button>
                         ))}
-                    </div>
-                )}
 
-                {activeTab === "meet" && (
-                    <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                        <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                            <Video className="w-6 h-6 text-primary" />
+                        {/* Center FAB */}
+                        <div className="relative -top-3">
+                            <button className="w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center ring-2 ring-background">
+                                <Plus className="w-4 h-4" />
+                            </button>
                         </div>
-                        <h3 className="text-sm font-semibold text-foreground mb-1">Video Meetings</h3>
-                        <p className="text-[9px] text-muted-foreground mb-3">Connect with your team</p>
-                        <Button size="sm" className="text-[10px] h-7 px-3">
-                            <Plus className="w-3 h-3 mr-1" /> New Meeting
-                        </Button>
+
+                        {[
+                            { id: "notes", icon: FileText, label: "Notes" },
+                            { id: "tasks", icon: CheckSquare, label: "Tasks" },
+                            { id: "meet", icon: Video, label: "Meet" },
+                        ].map(item => (
+                            <button
+                                key={item.id}
+                                onClick={() => setActiveTab(item.id)}
+                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
+                                    }`}
+                            >
+                                <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />
+                                <span className="text-[7px] mt-0.5">{item.label}</span>
+                            </button>
+                        ))}
                     </div>
-                )}
-            </main>
-
-            {/* Bottom Navigation - Matching actual mobile nav */}
-            <nav className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border/40 px-2 py-1.5">
-                <div className="flex items-center justify-between">
-                    {[
-                        { id: "home", icon: Home, label: "Home" },
-                        { id: "people", icon: Users, label: "People" },
-                        { id: "calendar", icon: CalendarIcon, label: "Cal" },
-                    ].map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
-                                }`}
-                        >
-                            <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />
-                            <span className="text-[7px] mt-0.5">{item.label}</span>
-                        </button>
-                    ))}
-
-                    {/* Center FAB */}
-                    <div className="relative -top-3">
-                        <button className="w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center ring-2 ring-background">
-                            <Plus className="w-4 h-4" />
-                        </button>
-                    </div>
-
-                    {[
-                        { id: "notes", icon: FileText, label: "Notes" },
-                        { id: "tasks", icon: CheckSquare, label: "Tasks" },
-                        { id: "meet", icon: Video, label: "Meet" },
-                    ].map(item => (
-                        <button
-                            key={item.id}
-                            onClick={() => setActiveTab(item.id)}
-                            className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
-                                }`}
-                        >
-                            <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />
-                            <span className="text-[7px] mt-0.5">{item.label}</span>
-                        </button>
-                    ))}
-                </div>
-            </nav>
+                </nav>
+            </div>
         </div>
     );
 };
