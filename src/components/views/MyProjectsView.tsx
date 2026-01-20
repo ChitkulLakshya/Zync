@@ -193,7 +193,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     <div className="p-6 flex flex-col space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
-          <h2 className="text-2xl font-bold tracking-tight">My Projects</h2>
+          <h2 className="text-2xl font-bold tracking-tight">PROJECTS</h2>
           <p className="text-muted-foreground">
             Manage your GitHub repositories and projects.
           </p>

@@ -90,6 +90,7 @@ import { cn } from "@/lib/utils";
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -1109,14 +1110,21 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   return (
     <div className="h-screen w-full bg-[#0F0F10] text-foreground overflow-hidden relative font-sans">
       {/* Full Screen Landing Page Overlay */}
+      {/* Full Screen Landing Page Overlay */}
       {isLanding && (
-        <div className="fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-black flex flex-col items-center justify-center">
+        <div className={cn(
+          "fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-black flex flex-col items-center justify-center transition-all duration-1000 ease-in-out",
+          isExiting ? "opacity-0 -translate-y-full blur-3xl scale-110" : "opacity-100 translate-y-0"
+        )}>
           {/* Background Gradients for Landing Page */}
           <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-rose-600/30 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
           <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
 
-          <DashboardHome onNavigate={handleSectionChange} />
+          <DashboardHome onNavigate={(section) => {
+            setIsExiting(true);
+            setTimeout(() => handleSectionChange(section), 800);
+          }} />
         </div>
       )}
 
