@@ -1108,8 +1108,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
 
   return (
-    <div className="h-screen w-full bg-[#0F0F10] text-foreground overflow-hidden relative font-sans">
-      {/* Full Screen Landing Page Overlay */}
+
+    <div className="h-screen w-full bg-black text-foreground overflow-hidden relative font-sans">
       {/* Full Screen Landing Page Overlay */}
       {isLanding && (
         <div className={cn(
@@ -1141,7 +1141,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onExpand={() => setIsCollapsed(false)}
           className={cn(
             "bg-[#0F0F10] flex flex-col transition-all duration-300 ease-in-out h-full border-none",
-            isCollapsed && "min-w-[70px]"
+            isCollapsed && "min-w-[70px]",
+            // Animation logic: Hidden during landing, slides in when landing finishes
+            isLanding ? "opacity-0 invisible" : "animate-in slide-in-from-left-10 duration-1000 fade-in fill-mode-forwards"
           )}
         >
           {/* Sidebar Content */}
@@ -1199,7 +1201,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     {!isCollapsed && (
                       <div className="flex-1 overflow-hidden">
                         <p className="text-sm font-medium text-white truncate">{isPreview ? "John Doe" : getUserName(userData || currentUser)}</p>
-                        <p className="text-xs text-zinc-500 truncate">Pro Plan</p>
+
                       </div>
                     )}
                     {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-zinc-500 ml-auto" />}
@@ -1255,8 +1257,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </div>
 
               {/* Content Area */}
-              <div className="flex-1 overflow-y-auto relative z-10 w-full hover:overflow-y-overlay custom-scrollbar">
-                {renderActiveView()}
+              <div
+                className="flex-1 overflow-y-auto relative z-10 w-full hover:overflow-y-overlay custom-scrollbar"
+              >
+                {(isExiting || !isLanding) && renderActiveView()}
               </div>
             </div>
           </div>

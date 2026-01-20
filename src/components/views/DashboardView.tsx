@@ -35,7 +35,8 @@ import {
     AlertCircle,
     ChevronDown,
     BookMarked,
-    LogOut
+    LogOut,
+    Loader2
 } from "lucide-react";
 
 interface GitHubStats {
@@ -239,32 +240,44 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
 
     if (loading) {
         return (
-            <div className="p-6 space-y-6">
-                <div className="flex items-center gap-4">
-                    <Skeleton className="h-16 w-16 rounded-full" />
-                    <div className="space-y-2">
-                        <Skeleton className="h-6 w-48" />
-                        <Skeleton className="h-4 w-32" />
-                    </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <Skeleton className="h-32" />
-                    <Skeleton className="h-32" />
-                    <Skeleton className="h-32" />
-                </div>
+            <div className="flex h-full w-full items-center justify-center min-h-[60vh]">
+                <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
             </div>
         );
     }
 
     if (error && !stats) {
         return (
-            <div className="p-6 flex flex-col items-center justify-center h-full gap-4">
-                <Github className="h-16 w-16 text-muted-foreground" />
-                <h2 className="text-xl font-semibold">Connect GitHub</h2>
-                <p className="text-muted-foreground text-center max-w-md">{error}</p>
-                <Button onClick={() => window.location.href = "/login"}>
-                    Sign in with GitHub
-                </Button>
+            <div className="p-6 flex flex-col items-center justify-center h-full gap-4 min-h-[60vh]">
+                <Github
+                    className="h-20 w-20 text-muted-foreground animate-in fade-in zoom-in-50 duration-1000"
+                    style={{ animationDelay: '0ms', animationFillMode: 'backwards' }}
+                />
+                <h2
+                    className="text-2xl font-bold animate-in fade-in slide-in-from-bottom-4 duration-1000"
+                    style={{ animationDelay: '150ms', animationFillMode: 'backwards' }}
+                >
+                    Connect GitHub
+                </h2>
+                <p
+                    className="text-muted-foreground text-center max-w-md text-lg animate-in fade-in slide-in-from-bottom-4 duration-1000"
+                    style={{ animationDelay: '300ms', animationFillMode: 'backwards' }}
+                >
+                    {error}
+                </p>
+                <div
+                    className="animate-in fade-in slide-in-from-bottom-8 duration-1000"
+                    style={{ animationDelay: '450ms', animationFillMode: 'backwards' }}
+                >
+                    <Button
+                        size="lg"
+                        onClick={() => window.location.href = "/login"}
+                        className="mt-2"
+                    >
+                        <Github className="mr-2 h-5 w-5" />
+                        Sign in with GitHub
+                    </Button>
+                </div>
             </div>
         );
     }
