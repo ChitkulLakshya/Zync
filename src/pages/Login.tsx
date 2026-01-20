@@ -109,11 +109,16 @@ const Login = () => {
       if (githubToken && result.user) {
         try {
           const firebaseToken = await result.user.getIdToken();
-          await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/github/connect`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${firebaseToken}` },
-            body: JSON.stringify({ accessToken: githubToken, username: result.user.displayName || 'unknown' })
-          });
+          try {
+            await fetch(`${import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000'}/api/github/connect`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${firebaseToken}` },
+              body: JSON.stringify({ accessToken: githubToken, username: result.user.displayName || 'unknown' })
+            });
+          } catch (fetchError: any) {
+            if (fetchError.name === 'AbortError') return;
+            throw fetchError;
+          }
         } catch (e) { console.warn('Failed to save GitHub token:', e); }
       }
 

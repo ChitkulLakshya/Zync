@@ -16,6 +16,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import { useActivityTracker } from "./hooks/use-activity-tracker";
 import { useChatNotifications } from "./hooks/use-chat-notifications";
 import { useUserSync } from "./hooks/use-user-sync";
+import { WakeUpService } from "@/components/WakeUpService";
 import { useTeamProtection } from "./hooks/use-team-protection";
 
 const queryClient = new QueryClient();
@@ -25,31 +26,34 @@ const AppContent = () => {
   useChatNotifications(); // Apply chat notifications globally
   useUserSync(); // Sync user data (names) globally
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/dashboard/workspace" element={<Dashboard />} />
-      <Route path="/dashboard/projects" element={<Dashboard />} />
-      <Route path="/dashboard/calendar" element={<Dashboard />} />
-      <Route path="/dashboard/design" element={<Dashboard />} />
-      <Route path="/dashboard/tasks" element={<Dashboard />} />
-      <Route path="/dashboard/notes" element={<Dashboard />} />
-      <Route path="/dashboard/files" element={<Dashboard />} />
-      <Route path="/dashboard/activity" element={<Dashboard />} />
-      <Route path="/dashboard/people" element={<Dashboard />} />
-      <Route path="/dashboard/meet" element={<Dashboard />} />
-      <Route path="/dashboard/settings" element={<Dashboard />} />
-      <Route path="/dashboard/chat" element={<Dashboard />} />
-      <Route path="/dashboard/new-project" element={<Dashboard />} />
-      <Route path="/new-project" element={<NewProject />} />
-      <Route path="/projects/:id" element={<ProjectDetails />} />
+    <>
+      <WakeUpService />
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/workspace" element={<Dashboard />} />
+        <Route path="/dashboard/projects" element={<Dashboard />} />
+        <Route path="/dashboard/calendar" element={<Dashboard />} />
+        <Route path="/dashboard/design" element={<Dashboard />} />
+        <Route path="/dashboard/tasks" element={<Dashboard />} />
+        <Route path="/dashboard/notes" element={<Dashboard />} />
+        <Route path="/dashboard/files" element={<Dashboard />} />
+        <Route path="/dashboard/activity" element={<Dashboard />} />
+        <Route path="/dashboard/people" element={<Dashboard />} />
+        <Route path="/dashboard/meet" element={<Dashboard />} />
+        <Route path="/dashboard/settings" element={<Dashboard />} />
+        <Route path="/dashboard/chat" element={<Dashboard />} />
+        <Route path="/dashboard/new-project" element={<Dashboard />} />
+        <Route path="/new-project" element={<NewProject />} />
+        <Route path="/projects/:id" element={<ProjectDetails />} />
 
-      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 };
 

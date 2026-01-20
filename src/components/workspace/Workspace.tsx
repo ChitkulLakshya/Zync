@@ -348,10 +348,10 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
 
   // Load projects
   useEffect(() => {
-    const loadData = async () => {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort('timeout'), 10000); // 10s timeout
 
+    const loadData = async () => {
       try {
         const ownerQuery = currentUser ? `?ownerId=${currentUser.uid}` : '';
         const [projectsRes, notes] = await Promise.all([
@@ -372,17 +372,32 @@ const Workspace = ({ onNavigate, onSelectProject, onOpenNote, currentUser, users
         }
 
       } catch (error: any) {
-        console.error("Failed to fetch data:", error);
         if (error.name === 'AbortError') {
-          toast({ title: "Timeout", description: "Server is taking too long to respond.", variant: "destructive" });
+          // Only show toast if it was a timeout abort, not a user navigation abort
+          if (controller.signal.reason === 'timeout') {
+            toast({ title: "Timeout", description: "Server is taking too long to respond.", variant: "destructive" });
+          }
+          return; // Ignore aborts
         }
+        console.error("Failed to fetch data:", error);
       } finally {
         clearTimeout(timeoutId);
-        setLoading(false);
+        // Only stop loading if we are still mounted (not strictly necessary with cleanup but good practice)
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        } else if (controller.signal.reason === 'timeout') {
+          // If timed out, we still want to stop loading to show "Try again" or empty state
+          setLoading(false);
+        }
       }
     };
 
     loadData();
+
+    return () => {
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, [currentUser]);
 
   if (loading) {

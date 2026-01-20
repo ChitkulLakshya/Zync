@@ -14,6 +14,10 @@ export const useUserSync = () => {
                 const lastName = parts.slice(1).join(" ") || "";
 
                 try {
+                    const controller = new AbortController();
+                    // Auto-abort if component unmounts quickly is handled by cleanup
+                    // checking signal in fetch
+
                     await fetch(`${API_BASE_URL}/api/users/sync`, {
                         method: "POST",
                         headers: {
@@ -27,8 +31,10 @@ export const useUserSync = () => {
                             firstName,
                             lastName,
                         }),
+                        signal: controller.signal
                     });
-                } catch (error) {
+                } catch (error: any) {
+                    if (error.name === 'AbortError') return;
                     console.error("Error syncing user data:", error);
                 }
             }
