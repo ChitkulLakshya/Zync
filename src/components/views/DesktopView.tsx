@@ -72,6 +72,7 @@ import DesignView from "./DesignView";
 import MyProjectsView from "./MyProjectsView";
 import CalendarView from "./CalendarView";
 import DashboardView from "./DashboardView";
+import DashboardHome from "./DashboardHome";
 import PeopleView from "./PeopleView";
 import ChatLayout from "./ChatLayout";
 import MessagesPage from "./MessagesPage";
@@ -202,8 +203,18 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   }, [location.pathname]);
 
+  // Determine if we should show the landing page (DashboardHome)
+  // Only show if we are effectively on the "Dashboard" root path and haven't navigated yet
+  const [isLanding, setIsLanding] = useState(() => {
+    // If we are deep linking to a specific section (e.g. /dashboard/messages), don't show landing
+    if (location.pathname !== '/dashboard') return false;
+    // Otherwise show landing on first load
+    return true;
+  });
+
   // Update URL when section changes (only if not caused by URL change)
   const handleSectionChange = (section: string) => {
+    setIsLanding(false); // Dismiss landing page on any navigation
     setActiveSection(section);
     const path = sectionToPath[section];
     if (path && location.pathname !== path) {
@@ -658,7 +669,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     ? mockUsers
     : usersList.filter(user => user.uid !== currentUser?.uid);
 
-  /* 
+  /*
   const handleCreateMeeting = () => {
     // Legacy Google Meet link
     const meetLink = `https://meet.google.com/new`;
@@ -735,6 +746,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
 
   const renderContent = () => {
+    // If on Landing state, show DashboardHome
+    // Note: DashboardHome should handle navigation via onNavigate which calls handleSectionChange
+    if (isLanding) {
+      return <DashboardHome onNavigate={handleSectionChange} />;
+    }
+
     switch (activeSection) {
       case "Dashboard":
         return <DashboardView currentUser={currentUser} />;
@@ -908,13 +925,203 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       default:
         return null;
+    }
+  };
 
+  // Renamed to renderActiveView to avoid potential conflicts and clarify purpose
+  const renderActiveView = () => {
+    switch (activeSection) {
+      case "Dashboard":
+        return <DashboardView currentUser={currentUser} />;
+
+      case "My Workspace":
+        return (
+          <Workspace
+            onNavigate={handleSectionChange}
+            onSelectProject={(id) => navigate(`/projects/${id}`)}
+            onOpenNote={(noteId) => {
+              setActiveNoteId(noteId);
+              handleSectionChange("Notes");
+            }}
+            currentUser={currentUser}
+            usersList={usersList}
+          />
+        );
+
+      case "My Projects":
+        return <MyProjectsView currentUser={currentUser} />;
+
+      case "Calendar":
+        return <CalendarView />;
+
+      case "Chat":
+        if (userData && !userData.teamId) {
+          return <TeamGateway title="Team Chat Locked" description="Join a team to start chatting with your colleagues." />;
+        }
+        return (
+          <ChatLayout
+            users={displayUsers}
+            selectedUser={selectedChatUser}
+            userStatuses={userStatuses}
+            onSelectUser={setSelectedChatUser}
+            isPreview={isPreview}
+          />
+        );
+
+      case "People":
+        return (
+          <PeopleView
+
+            userStatuses={userStatuses}
+            onChat={handleChat}
+            onMessages={() => handleSectionChange("Messages")}
+            isPreview={isPreview}
+          />
+        );
+
+
+
+      case "New Project":
+        return (
+          <CreateProject onProjectCreated={(data) => navigate(`/projects/${data._id}`)} />
+        );
+
+      case "Messages":
+        return (
+          <MessagesPage
+            users={displayUsers}
+            currentUser={currentUser}
+            userStatuses={userStatuses}
+            onNavigateBack={() => handleSectionChange("People")}
+          />
+        );
+
+      case "Activity log":
+        return (
+          <ActivityLogView
+            activityLogs={activityLogs}
+            elapsedTime={elapsedTime}
+            handleClearLogs={handleClearLogs}
+            handleDeleteLog={handleDeleteLog}
+            tasks={leaderTasks}
+            users={usersList}
+            teamSessions={teamSessions}
+            currentTeamId={userData?.teamId}
+            ownedTeams={ownedTeams}
+            currentUserId={currentUser?.uid}
+          />
+        );
+
+      case "Meet":
+        if (userData && !userData.teamId) {
+          return <TeamGateway title="Video Meetings Restricted" description="You need to be part of a team to start video meetings." />;
+        }
+        return (
+          <div className="flex-1 w-full flex flex-col items-center justify-center h-full p-6 text-center space-y-6">
+            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+              <Video className="w-12 h-12 text-primary" />
+            </div>
+            <h2 className="text-3xl font-bold">Video Meetings</h2>
+            <p className="text-muted-foreground max-w-md">
+              Connect with your team instantly. Create a new meeting link and invite colleagues via email and chat.
+            </p>
+
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="lg" className="gap-2">
+                  <Plus className="w-5 h-5" />
+                  Create New Meeting
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create Meeting & Invite</DialogTitle>
+                  <DialogDescription>
+                    Generate a Google Meet link, paste it below, and select users to invite.
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="space-y-4 py-4">
+
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-4 max-h-[300px] overflow-y-auto pr-2">
+                      {usersList.filter(u => u.uid !== currentUser?.uid).map((user) => (
+                        <div key={user.uid} className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <Avatar className="h-10 w-10">
+                              <AvatarImage src={getFullUrl(user.photoURL)} />
+                              <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
+                            </Avatar>
+                            <div className="flex flex-col text-left">
+                              <span className="font-medium text-sm">{getUserName(user)}</span>
+                              <span className="text-xs text-muted-foreground">{user.email}</span>
+                            </div>
+                          </div>
+                          <Switch
+                            checked={invitedUserIds.includes(user.uid)}
+                            onCheckedChange={() => toggleInviteUser(user.uid)}
+                            className="data-[state=checked]:bg-primary"
+                          />
+                        </div>
+                      ))}
+                      {usersList.length <= 1 && <p className="text-sm text-center text-muted-foreground">No other users found to invite.</p>}
+                    </div>
+                  </div>
+
+                </div>
+                <DialogFooter>
+                  <Button onClick={handleCreateMeetingWithInvites} disabled={isGenerating}>
+                    {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Video className="w-4 h-4 mr-2" />}
+                    Start Meeting
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+          </div>
+        );
+
+      case "Design":
+        return <DesignView />;
+
+      case "Tasks":
+        return <TasksView currentUser={currentUser} users={usersList} />;
+
+      case "Notes":
+        return <NotesView
+          user={currentUser ? {
+            uid: currentUser.uid,
+            displayName: currentUser.displayName || undefined,
+            email: currentUser.email || undefined
+          } : null}
+          users={usersList}
+          initialNoteId={activeNoteId}
+        />;
+
+      case "Settings":
+        return <SettingsView />;
+
+      default:
+        return null;
     }
   };
 
   return (
-    <div className={`h-screen w-full bg-background text-foreground overflow-hidden`}>
-      <PanelGroup direction="horizontal" autoSaveId="persistence">
+    <div className="h-screen w-full bg-[#0F0F10] text-foreground overflow-hidden relative font-sans">
+      {/* Full Screen Landing Page Overlay */}
+      {isLanding && (
+        <div className="fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-black flex flex-col items-center justify-center">
+          {/* Background Gradients for Landing Page */}
+          <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-rose-600/30 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+          <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+
+          <DashboardHome onNavigate={handleSectionChange} />
+        </div>
+      )}
+
+      <PanelGroup direction="horizontal" autoSaveId="persistence" className="w-full h-full">
+        {/* Sidebar Panel - Dark & Solid */}
         <Panel
           ref={sidebarRef}
           defaultSize={16}
@@ -925,139 +1132,85 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "bg-secondary/30 border-r border-border/50 flex flex-col transition-all duration-300 ease-in-out h-full",
-            isCollapsed && "min-w-[50px]"
+            "bg-[#0F0F10] flex flex-col transition-all duration-300 ease-in-out h-full border-none",
+            isCollapsed && "min-w-[70px]"
           )}
         >
+          {/* Sidebar Content */}
           <div
             className="flex flex-col h-full w-full"
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <div className={cn("p-4 flex items-center gap-2 border-b border-border/50", isCollapsed ? "justify-center p-2" : "")}>
-              {/* Dynamic Logo - visible in both collapsed (as icon) and expanded states */}
+            <div className={cn("p-4 flex items-center gap-2", isCollapsed ? "justify-center p-2 mb-4" : "mb-2")}>
               {mounted ? (
-                <>
-                  <img
-                    src="/zync-dark.webp"
-                    alt="Zync Logo"
-                    className={`h-8 w-8 object-contain shrink-0 dark:hidden block rounded-lg`}
-                  />
-                  <img
-                    src="/zync-white.webp"
-                    alt="Zync Logo"
-                    className={`h-8 w-8 object-contain shrink-0 hidden dark:block rounded-lg`}
-                  />
-                </>
-              ) : (
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground font-bold shrink-0">
-                  Z
-                </div>
-              )}
-
-              {!isCollapsed && (
-                <>
-                  <span className="font-bold text-lg truncate">ZYNC</span>
-                </>
-              )}
-              {!isCollapsed && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn("ml-auto h-8 w-8 text-muted-foreground")}
-                  onClick={toggleSidebar}
-                  title={isLocked ? "Collapse sidebar" : "Lock sidebar open"}
-                >
-                  {isLocked ? <ChevronsLeft className="w-4 h-4" /> : <ChevronsRight className="w-4 h-4" />}
-                </Button>
-              )}
+                <img src="/zync-white.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg" />
+              ) : <div className="w-8 h-8 bg-primary rounded-lg" />}
+              {!isCollapsed && <span className="font-bold text-lg text-white tracking-wide">ZYNC</span>}
             </div>
 
-            <div className="flex-1 overflow-y-auto py-4">
-              <div className={cn("px-3 mb-2", isCollapsed ? "px-2" : "")}>
+            <div className="flex-1 overflow-y-auto px-2 space-y-1">
+              {/* Create New Project Button */}
+              <div className="mb-6 px-1">
                 <Button
-                  className={cn(
-                    "w-full bg-primary text-primary-foreground hover:bg-primary/90",
-                    isCollapsed ? "justify-center px-0" : "justify-start gap-2"
-                  )}
+                  className={cn("w-full bg-white text-black hover:bg-gray-200 transition-colors font-medium rounded-xl", isCollapsed ? "px-0 justify-center" : "justify-start gap-2")}
                   onClick={() => handleSectionChange("New Project")}
-                  title="Create new project"
                 >
-                  <Plus className="w-4 h-4" />
-                  {!isCollapsed && "Create new project"}
+                  <Plus className="w-5 h-5" />
+                  {!isCollapsed && "New Project"}
                 </Button>
               </div>
 
-              <nav className="space-y-1 px-2">
-                {sidebarItems.map((item, index) => (
-                  <div key={index}>
-                    <Button
-                      variant={item.active ? "secondary" : "ghost"}
-                      className={cn(
-                        "w-full",
-                        item.active ? "bg-secondary text-foreground" : "text-muted-foreground hover:text-foreground",
-                        isCollapsed ? "justify-center px-0" : "justify-start gap-3"
-                      )}
-                      onClick={() => handleSectionChange(item.label)}
-                      title={item.label}
-                    >
-                      <item.icon className="w-4 h-4 shrink-0" />
-                      {!isCollapsed && item.label}
-                    </Button>
-                    {!isCollapsed && item.children && item.active && (
-                      <div className="ml-9 mt-1 space-y-1">
-                        {item.children.map((child, childIndex) => (
-                          <div
-                            key={childIndex}
-                            className="text-sm text-muted-foreground hover:text-foreground py-1 cursor-pointer"
-                          >
-                            {child.label}
-                          </div>
-                        ))}
-                      </div>
+              {sidebarItems.map((item, index) => (
+                <div key={index}>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      "w-full rounded-lg transition-all duration-200",
+                      item.active ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5",
+                      isCollapsed ? "justify-center px-0 py-3" : "justify-start gap-3 py-2 px-3"
                     )}
-                  </div>
-                ))}
-              </nav>
+                    onClick={() => handleSectionChange(item.label)}
+                  >
+                    <item.icon className={cn("w-5 h-5", item.active ? "text-white" : "text-zinc-400")} />
+                    {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+                  </Button>
+                </div>
+              ))}
             </div>
 
-            <div className={cn("p-4 border-t border-border/50", isCollapsed ? "p-2 items-center flex justify-center" : "")}>
+            {/* User Profile / Bottom */}
+            <div className="p-4 mt-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className={cn("flex items-center gap-3 cursor-pointer hover:bg-secondary/50 p-2 rounded-md", isCollapsed ? "justify-center" : "")}>
-                    <Avatar className="w-8 h-8 shrink-0">
+                  <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors", isCollapsed ? "justify-center" : "")}>
+                    <Avatar className="w-9 h-9 border border-white/10">
                       <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
-                      <AvatarFallback className="bg-primary/20 text-primary text-xs font-semibold">
-                        {isPreview ? "JD" : getUserInitials(userData || currentUser)}
-                      </AvatarFallback>
+                      <AvatarFallback className="bg-zinc-800 text-zinc-400">{isPreview ? "JD" : getUserInitials(userData || currentUser)}</AvatarFallback>
                     </Avatar>
                     {!isCollapsed && (
-                      <>
-                        <div className="flex-1 overflow-hidden">
-                          <div className="text-sm font-medium truncate">
-                            {isPreview ? "John Doe" : getUserName(userData || currentUser)}
-                          </div>
-                          <div className="text-xs text-muted-foreground truncate">{isPreview ? "john@example.com" : (currentUser?.email || "No email")}</div>
-                        </div>
-                        <MoreHorizontal className="w-4 h-4 text-muted-foreground" />
-                      </>
+                      <div className="flex-1 overflow-hidden">
+                        <p className="text-sm font-medium text-white truncate">{isPreview ? "John Doe" : getUserName(userData || currentUser)}</p>
+                        <p className="text-xs text-zinc-500 truncate">Pro Plan</p>
+                      </div>
                     )}
+                    {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-zinc-500 ml-auto" />}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => handleSectionChange("Settings")}>
+                <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-[#0F0F10] border border-white/10 text-white shadow-xl rounded-xl">
+                  <DropdownMenuLabel className="text-zinc-400 font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuItem onClick={() => handleSectionChange("Settings")} className="focus:bg-white/10 focus:text-white cursor-pointer py-2">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator />
+                  <DropdownMenuSeparator className="bg-white/10" />
                   <DropdownMenuItem onClick={async () => {
                     if (isPreview) return;
                     localStorage.removeItem("ZYNC-active-section");
                     await signOut(auth);
                     navigate("/login");
-                  }} className="text-destructive focus:text-destructive">
+                  }} className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer py-2">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
                   </DropdownMenuItem>
@@ -1067,43 +1220,36 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           </div>
         </Panel>
 
-        <PanelResizeHandle />
+        <PanelResizeHandle className="w-0 bg-transparent" />
 
+        {/* Main Content Panel - The "Card" Look */}
         <Panel defaultSize={84}>
-          <div className={`flex flex-col h-full overflow-y-auto ${activeSection === "Chat" ? "overflow-hidden" : ""}`}>
-            {/* Global Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-10">
-              <div className="flex items-center gap-4">
-                {(activeSection === "My Workspace" || activeSection === "Dashboard") ? (
-                  <>
-                    <span className="font-semibold text-foreground">Tools</span>
-                    <Button size="sm" variant="hero" onClick={() => handleSectionChange("New Project")}>+ Add new</Button>
-                    <div className="flex gap-2">
-                      <span className="px-3 py-1 bg-secondary text-muted-foreground text-xs font-medium rounded-full cursor-pointer">Week view</span>
-                      <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full cursor-pointer">Today</span>
-                      <span className="px-3 py-1 text-muted-foreground text-xs font-medium rounded-full hover:bg-secondary cursor-pointer">Filters</span>
-                    </div>
-                  </>
-                ) : (
-                  <h2 className="text-lg font-semibold text-foreground">{activeSection}</h2>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-secondary rounded-full">
-                  <Clock className="w-4 h-4 text-primary" />
-                  <span className="text-sm font-medium text-foreground">{elapsedTime}</span>
-                </div>
-                <Search className="w-5 h-5 text-muted-foreground cursor-pointer" />
-                <Bell className="w-5 h-5 text-muted-foreground cursor-pointer" />
-                {!isPreview && <ThemeToggle />}
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold text-primary">
-                  {isPreview ? "JD" : getUserInitials(userData || currentUser)}
-                </div>
-              </div >
-            </div >
+          <div className="h-full w-full p-2 pl-0 bg-[#0F0F10]">
+            <div className="h-full w-full bg-black rounded-[32px] overflow-hidden relative border border-white/5 shadow-2xl flex flex-col">
 
-            <div className="flex-1">
-              {renderContent()}
+              {/* Background Gradients - Inside the Rounded Container */}
+              <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-rose-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+              <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+              <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+
+              {/* Header - Always show for main app content */}
+              <div className="flex items-center justify-between px-8 py-5 border-b border-white/5 bg-black/40 backdrop-blur-md sticky top-0 z-20">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-xl font-bold text-white tracking-tight">{activeSection}</h2>
+                </div>
+                <div className="flex items-center gap-4">
+                  {/* Header Actions */}
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                    <Clock className="w-4 h-4 text-zinc-400" />
+                    <span className="text-xs font-medium text-zinc-300 tracking-wide">{elapsedTime}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Content Area */}
+              <div className="flex-1 overflow-y-auto relative z-10 w-full hover:overflow-y-overlay custom-scrollbar">
+                {renderActiveView()}
+              </div>
             </div>
           </div>
         </Panel>
@@ -1113,4 +1259,3 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 };
 
 export default DesktopView;
-
