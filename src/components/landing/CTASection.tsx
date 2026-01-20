@@ -40,7 +40,7 @@ const CTASection = () => {
               className="h-12 px-5 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/40"
             />
             <Button variant="hero" size="lg" className="whitespace-nowrap" onClick={handleGetStarted}>
-              Request Access
+              Get Started
               <ArrowRight className="w-4 h-4 ml-1.5" />
             </Button>
           </div>

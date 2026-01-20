@@ -13,7 +13,7 @@ const Footer = () => {
     Product: [
       { name: "Features", action: () => scrollToSection('features') },
       { name: "Mobile App", action: () => scrollToSection('mobile') },
-      { name: "Request Access", action: () => scrollToSection('cta') },
+      { name: "Get Started", action: () => scrollToSection('cta') },
     ],
     Legal: [
       { name: "Privacy Policy", href: "/privacy-policy" },
