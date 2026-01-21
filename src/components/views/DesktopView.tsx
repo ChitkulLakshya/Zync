@@ -296,7 +296,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             return;
           }
           try {
-            console.log("Starting session for user:", currentUser.uid);
+            // console.log("Starting session for user:", currentUser.uid);
             const response = await fetch(`${API_BASE_URL}/api/sessions/start`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

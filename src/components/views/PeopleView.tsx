@@ -8,7 +8,14 @@ import { getFullUrl, API_BASE_URL, getUserName, getUserInitials, cn } from "@/li
 import { auth } from "@/lib/firebase";
 import TeamOnboarding from "./TeamOnboarding";
 import { CreateTeamDialog } from "./CreateTeamDialog";
+import { JoinTeamDialog } from "./JoinTeamDialog";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
@@ -27,6 +34,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const [loading, setLoading] = useState(true);
     const [hasTeam, setHasTeam] = useState<boolean>(true);
     const [teamInfo, setTeamInfo] = useState<any>(null);
+    const [myTeams, setMyTeams] = useState<any[]>([]);
     const currentUser = auth.currentUser;
     const { toast } = useToast();
 
@@ -35,6 +43,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const [inviteEmail, setInviteEmail] = useState("");
     const [inviteLoading, setInviteLoading] = useState(false);
     const [createTeamOpen, setCreateTeamOpen] = useState(false);
+    const [joinTeamOpen, setJoinTeamOpen] = useState(false);
 
     // Sidebar State
     const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -90,40 +99,58 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
         if (!newState) setIsHovered(false);
     };
 
-    // Check if user has team
+    // Check if user has team and fetch all teams
     useEffect(() => {
-        const checkTeam = async () => {
+        const fetchTeams = async () => {
             if (!currentUser) return;
             try {
                 const token = await currentUser.getIdToken();
-                const response = await fetch(`${API_BASE_URL}/api/users/me`, {
+
+                // Fetch All My Teams
+                const teamsRes = await fetch(`${API_BASE_URL}/api/teams/mine`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
-                if (response.ok) {
-                    const data = await response.json();
-                    setHasTeam(!!data.teamId);
-                    if (data.teamId) {
-                        setTeamInfo(data.teamId);
+
+                if (teamsRes.ok) {
+                    const teams = await teamsRes.json();
+                    setMyTeams(teams);
+
+                    if (teams.length > 0) {
+                        setHasTeam(true);
+                        // If no team selected, or selected team not in list, default to first
+                        if (!teamInfo || !teams.find((t: any) => t._id === teamInfo._id)) {
+                            // Prefer the one from user profile if it exists, otherwise first one
+                            const userRes = await fetch(`${API_BASE_URL}/api/users/me`, {
+                                headers: { Authorization: `Bearer ${token}` }
+                            });
+                            const userData = await userRes.json();
+
+                            const activeTeam = teams.find((t: any) => t._id === userData.teamId) || teams[0];
+                            setTeamInfo(activeTeam);
+                        }
+                    } else {
+                        setHasTeam(false);
                     }
                 }
             } catch (err) {
-                console.error("Error checking team:", err);
+                console.error("Error checking teams:", err);
             }
         };
 
         if (!isPreview) {
-            checkTeam();
+            fetchTeams();
         }
     }, [currentUser, isPreview]);
 
     // Fetch users if has team
+    // Fetch users if has team
     useEffect(() => {
-        if (!isPreview && hasTeam) {
+        if (!isPreview && hasTeam && teamInfo) {
             const fetchUsers = async () => {
                 if (!currentUser) return;
                 try {
                     const token = await currentUser.getIdToken();
-                    const response = await fetch(`${API_BASE_URL}/api/users`, {
+                    const response = await fetch(`${API_BASE_URL}/api/users?teamId=${teamInfo._id}`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
                     if (response.ok) {
@@ -145,7 +172,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
         } else {
             setLoading(false);
         }
-    }, [isPreview, currentUser?.uid, hasTeam, propUsers]);
+    }, [isPreview, currentUser?.uid, hasTeam, propUsers, teamInfo?._id]);
 
     if (!hasTeam && !isPreview) {
         return <TeamOnboarding onSuccess={() => {
@@ -213,19 +240,34 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                             </div>
                             {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
 
-                            {teamInfo ? (
-                                <div className={cn(
-                                    "flex items-center rounded-md text-gray-600 dark:text-muted-foreground transition-all cursor-default select-none",
-                                    effectiveCollapsed ? "justify-center px-0 py-2 bg-secondary/50 text-foreground" : "px-2 py-1.5 text-sm bg-secondary/50 border border-border/50"
-                                )}>
-                                    {!effectiveCollapsed && <span className="font-medium truncate">{teamInfo.name}</span>}
-                                    {effectiveCollapsed && <span className="text-xs font-bold">{teamInfo.name.substring(0, 2).toUpperCase()}</span>}
-                                </div>
-                            ) : (
-                                <div className="p-2 text-sm text-muted-foreground text-center">
-                                    {effectiveCollapsed ? "-" : "No team"}
-                                </div>
-                            )}
+                            <div className="space-y-1">
+                                {myTeams.map((team) => (
+                                    <div
+                                        key={team._id}
+                                        onClick={() => setTeamInfo(team)}
+                                        className={cn(
+                                            "flex items-center rounded-md transition-all cursor-pointer select-none border border-transparent",
+                                            effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
+                                            teamInfo?._id === team._id
+                                                ? "bg-secondary/80 text-foreground border-border/50 shadow-sm"
+                                                : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                                        )}
+                                    >
+                                        {!effectiveCollapsed && <span className="font-medium truncate flex-1">{team.name}</span>}
+                                        {effectiveCollapsed && <span className="text-xs font-bold">{team.name.substring(0, 2).toUpperCase()}</span>}
+
+                                        {!effectiveCollapsed && teamInfo?._id === team._id && (
+                                            <div className="w-1.5 h-1.5 rounded-full bg-primary ml-2" />
+                                        )}
+                                    </div>
+                                ))}
+
+                                {myTeams.length === 0 && (
+                                    <div className="p-2 text-sm text-muted-foreground text-center">
+                                        {effectiveCollapsed ? "-" : "No teams"}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
@@ -475,20 +517,44 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
             </div>
 
 
-            {/* Create Team FAB */}
+            {/* Create/Join Team FAB */}
             <div className="absolute bottom-6 right-6 z-50">
-                <Button
-                    size="icon"
-                    className="h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
-                    onClick={() => setCreateTeamOpen(true)}
-                >
-                    <Plus className="h-6 w-6 text-white" />
-                </Button>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button
+                            size="icon"
+                            className="h-14 w-14 rounded-full shadow-xl bg-primary hover:bg-primary/90 transition-transform hover:scale-105"
+                        >
+                            <Plus className="h-6 w-6 text-white" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="mb-2 w-48">
+                        <DropdownMenuItem onClick={() => setCreateTeamOpen(true)} className="cursor-pointer">
+                            <Plus className="mr-2 h-4 w-4" />
+                            Create New Team
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setJoinTeamOpen(true)} className="cursor-pointer">
+                            <div className="flex items-center">
+                                <span className="mr-2 text-lg leading-none">#</span>
+                                Join Existing Team
+                            </div>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
 
             <CreateTeamDialog
                 open={createTeamOpen}
                 onOpenChange={setCreateTeamOpen}
+                onSuccess={() => {
+                    // Refresh data
+                    window.location.reload();
+                }}
+            />
+
+            <JoinTeamDialog
+                open={joinTeamOpen}
+                onOpenChange={setJoinTeamOpen}
                 onSuccess={() => {
                     // Refresh data
                     window.location.reload();

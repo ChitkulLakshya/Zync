@@ -5,7 +5,7 @@ const Session = require('../models/Session');
 // Start a new session
 router.post('/start', async (req, res) => {
   try {
-    console.log('POST /api/sessions/start body:', req.body);
+    // console.log('POST /api/sessions/start body:', req.body);
 
     if (!req.body) {
       console.error('Request body is missing');
@@ -29,7 +29,7 @@ router.post('/start', async (req, res) => {
     });
 
     await session.save();
-    console.log('Session started successfully:', session._id);
+    // console.log('Session started successfully:', session._id);
     res.status(201).json(session);
   } catch (error) {
     console.error('Error starting session:', error);
