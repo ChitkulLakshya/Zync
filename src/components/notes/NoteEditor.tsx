@@ -136,17 +136,36 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   };
 
   // Debounced Save for Content
-  const handleContentChange = useCallback(async () => {
+  // Debounced Save for Content
+  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleContentChange = useCallback(() => {
     setStatus('Saving...');
-    try {
-      const blocks = editor.document;
-      await updateNote(note.id, { content: blocks });
-      setStatus('Saved');
-    } catch (error) {
-      console.error("Failed to save content", error);
-      toast.error("Failed to save changes");
+
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
     }
+
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const blocks = editor.document;
+        await updateNote(note.id, { content: blocks });
+        setStatus('Saved');
+      } catch (error) {
+        console.error("Failed to save content", error);
+        toast.error("Failed to save changes");
+      }
+    }, 2000); // Wait 2 seconds of inactivity before saving
   }, [editor, note.id]);
+
+  // Clean up timeout on unmount or note switch
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [note.id]);
 
   // Smart Feature Handlers
   const openTaskCreation = () => {
@@ -211,6 +230,32 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
 
     setTaskLinkDialogOpen(false);
   };
+
+  // Manual Content Sync implementation for Firestore (Last Write Wins)
+  useEffect(() => {
+    if (!editor || !note.content) return;
+
+    // Check if content is actually different to avoid cursor jumps
+    // We do a simple JSON comparison. Ideally we would use Yjs for this.
+    try {
+      const currentContent = JSON.stringify(editor.document);
+      const newContent = JSON.stringify(note.content);
+
+      if (currentContent !== newContent) {
+        // Only update if we are not currently typing (simple heuristic: no focus? or just accept jump for collabs)
+        // For now, we will update. This mimics "live" updates but might interrupt typing.
+        // To be safer, we could check if timestamp is significantly newer.
+
+        // BlockNote requires parsing blocks if they came from Firestore as objects
+        // Array check
+        if (Array.isArray(note.content)) {
+          editor.replaceBlocks(editor.document, note.content);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to sync content", e);
+    }
+  }, [note.content, editor]);
 
   if (!editor) {
     return <div className="flex h-full items-center justify-center text-muted-foreground"><Loader2 className="animate-spin mr-2" /> Loading editor...</div>;
@@ -348,9 +393,13 @@ export default React.memo(NoteEditor, (prev, next) => {
   const isSameNote = prev.note.id === next.note.id;
   const isSameTitle = prev.note.title === next.note.title;
   const isSameUser = prev.user.uid === next.user.uid;
+  // Allow content re-renders now so we can sync edits via useEffect
+  const isSameContent = prev.note.content === next.note.content;
 
-  // We explicitly ignore 'note.content', 'note.updatedAt', and 'note.folderId' for re-rendering purposes
-  // as they don't affect the editor UI once mounted (controlled by BlockNote internally or local state).
-  // We only care if the Note ID changes (switch note) or Title changes (external update).
-  return isSameNote && isSameTitle && isSameUser;
+  // If content is DIFFERENT, we MUST re-render to let useEffect run and sync blocks
+  // BUT: if we re-render, does it lose focus? 
+  // No, React.memo only stops the *WRAPPER* render. The internal editor state is preserved by useCreateBlockNote (singleton-ish hook per mount).
+  // The useEffect will handle the update.
+
+  return isSameNote && isSameTitle && isSameUser && isSameContent;
 });
