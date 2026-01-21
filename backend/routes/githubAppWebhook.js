@@ -110,7 +110,7 @@ router.post('/', verifySignature, async (req, res) => {
 
                                 if (storedUsername === senderLogin) {
                                     // AUTHORIZED
-                                    targetTask.status = 'In Progress';
+                                    targetTask.status = 'Completed';
                                     targetTask.commitInfo = {
                                         message: commit.message,
                                         url: commit.url,
@@ -121,7 +121,7 @@ router.post('/', verifySignature, async (req, res) => {
                                     taskTitle = targetTask.title;
 
                                     await project.save();
-                                    console.log(`Task ${taskId} marked as In Progress by ${senderLogin}.`);
+                                    console.log(`Task ${taskId} marked as Completed by ${senderLogin}.`);
 
                                     // 2. Post Bot Comment to GitHub
                                     if (installToken) {
@@ -129,7 +129,7 @@ router.post('/', verifySignature, async (req, res) => {
                                             await axios.post(
                                                 `https://api.github.com/repos/${repository.full_name}/commits/${commit.id}/comments`,
                                                 {
-                                                    body: `🚀 **Zync Bot**: Task **#${taskId}** ("${taskTitle}") has been set to **In Progress** by @${senderLogin}! Verified assignment. ✅`
+                                                    body: `🚀 **Zync Bot**: Task **#${taskId}** ("${taskTitle}") has been set to **Completed** by @${senderLogin}! Verified assignment. ✅`
                                                 },
                                                 {
                                                     headers: {
@@ -150,8 +150,14 @@ router.post('/', verifySignature, async (req, res) => {
                                         io.emit('taskUpdated', {
                                             taskId: taskId,
                                             projectId: project._id,
-                                            status: 'In Progress',
+                                            status: 'Completed',
                                             message: `Task status updated via commit`
+                                        });
+
+                                        // Emit full project update for Kanban Board
+                                        io.emit('projectUpdate', {
+                                            projectId: project._id,
+                                            project: project
                                         });
                                     }
                                 } else {
