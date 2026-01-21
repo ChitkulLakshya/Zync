@@ -28,17 +28,35 @@ export const NotesView: React.FC<NotesViewProps> = ({ user, users = [], initialN
       setFolders(fetchedFolders);
     });
 
-    // Subscribe to Notes
-    const unsubscribeNotes = subscribeToNotes(user.uid, (fetchedNotes) => {
+    return () => {
+      unsubscribeFolders();
+    };
+  }, [user?.uid]);
+
+  // Subscribe to Notes depends on Folders (for shared folders)
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const sharedFolderIds = folders
+      .filter(f => f.ownerId !== user.uid && f.collaborators?.includes(user.uid))
+      .map(f => f.id);
+
+    // Only resubscribe if shared folders change or user changes.
+    // Ideally we want to avoid thrashing, but this is simple.
+    // NOTE: Firestore 'in' query supports max 10 items.
+    // If user has > 10 shared folders, we should slice or rethink.
+    // For now, we slice to 10 to avoid crash.
+    const safeSharedIds = sharedFolderIds.slice(0, 10);
+
+    const unsubscribeNotes = subscribeToNotes(user.uid, safeSharedIds, (fetchedNotes) => {
       setNotes(fetchedNotes);
       setIsLoading(false);
     });
 
     return () => {
-      unsubscribeFolders();
       unsubscribeNotes();
     };
-  }, [user?.uid]);
+  }, [user?.uid, JSON.stringify(folders.map(f => f.id))]);
 
   // Sync selectedNote with updates from subscription
   useEffect(() => {

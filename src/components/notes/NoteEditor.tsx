@@ -81,7 +81,7 @@ const TaskSearch = ({ user, onSelect }: { user: any, onSelect: (task: TaskSearch
 
 const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className }) => {
   const { resolvedTheme } = useTheme();
-  const [title, setTitle] = useState(note.title);
+  const [title, setTitle] = useState(note.title || '');
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
 
   // Smart Feature States
@@ -91,11 +91,17 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   const [selectedTaskText, setSelectedTaskText] = useState("");
 
   // Initialize editor without collaboration (temporarily using Firestore for persistence only)
-  const editor = useCreateBlockNote({
+  // We useMemo the options with empty deps [] because we rely on the parent component 
+  // to remount us (key={note.id}) when switching notes.
+  // This prevents the editor from being recreated on every render (e.g. title updates), 
+  // which causes "TextSelection endpoint" and "Node cannot be found" errors.
+  const editorOptions = useMemo(() => ({
     initialContent: note.content && Array.isArray(note.content) && note.content.length > 0
       ? note.content
       : undefined,
-  });
+  }), []); // Empty deps: only create once per mount
+
+  const editor = useCreateBlockNote(editorOptions);
 
   /* 
   // Temporarily disabled Yjs/SocketIO as we migrated to Firestore.
@@ -106,7 +112,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   */
 
   useEffect(() => {
-    setTitle(note.title);
+    setTitle(note.title || '');
   }, [note.title]);
 
   // Load projects for smart features
@@ -241,7 +247,9 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
             {/* Title Section */}
             <div className="mb-10 border-b-2 border-slate-800/10 dark:border-white/10 pb-6">
               <input
-                value={title}
+                id="note-title"
+                name="title"
+                value={title || ''}
                 onChange={handleTitleChange}
                 placeholder="Untitled"
                 className="text-5xl font-bold font-serif-elegant outline-none bg-transparent w-full text-slate-800 dark:text-gray-200 placeholder:text-slate-300 dark:placeholder:text-gray-700 leading-tight tracking-tight text-left"
@@ -330,4 +338,19 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   );
 };
 
-export default NoteEditor;
+// Memoize the component to prevent re-renders when note.content changes from Firestore updates.
+// Since we only use initialContent on mount, subsequent content updates from the server 
+// (which are mostly echoes of our own typing) shouldn't trigger re-renders of the editor wrapper.
+export default React.memo(NoteEditor, (prev, next) => {
+  // Return true if props are equal (DO NOT RE-RENDER)
+  // Return false if props are different (RE-RENDER)
+
+  const isSameNote = prev.note.id === next.note.id;
+  const isSameTitle = prev.note.title === next.note.title;
+  const isSameUser = prev.user.uid === next.user.uid;
+
+  // We explicitly ignore 'note.content', 'note.updatedAt', and 'note.folderId' for re-rendering purposes
+  // as they don't affect the editor UI once mounted (controlled by BlockNote internally or local state).
+  // We only care if the Note ID changes (switch note) or Title changes (external update).
+  return isSameNote && isSameTitle && isSameUser;
+});

@@ -129,20 +129,82 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
 
   const handleCreateNote = async (folderId?: string) => {
     try {
-      const note = await createNote({
+      const initialData = {
         title: 'Untitled',
         ownerId: userId,
         folderId: folderId || null
-      });
+      };
+      const noteRef = await createNote(initialData);
+
+      const newNote: Note = {
+        id: noteRef.id,
+        _id: noteRef.id,
+        content: [],
+        createdAt: new Date(), // Local optimisitc update
+        updatedAt: new Date(),
+        ...initialData
+      };
+
       onRefresh();
-      onSelectNote(note);
+      onSelectNote(newNote);
     } catch (error) {
       console.error("Failed to create note", error);
     }
   };
 
-  // Group notes by folder
-  const unorganizedNotes = notes.filter((n) => !n.folderId);
+  // Split folders and notes
+  const myFolders = folders.filter(f => f.ownerId === userId);
+  const sharedFolders = folders.filter(f => f.ownerId !== userId); // Should be covered by subscription filter
+
+  const myUnorganizedNotes = notes.filter(n => !n.folderId && n.ownerId === userId);
+
+  // DnD State
+  const handleDragStart = (e: React.DragEvent, noteId: string) => {
+    e.dataTransfer.setData("noteId", noteId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault(); // Allow drop
+    e.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetFolderId: string | null) => {
+    e.preventDefault();
+    const noteId = e.dataTransfer.getData("noteId");
+    if (!noteId) return;
+
+    try {
+      const { updateNote } = await import('../../services/notesService');
+      await updateNote(noteId, { folderId: targetFolderId });
+      toast.success("Note moved");
+      onRefresh();
+    } catch (err) {
+      toast.error("Failed to move note");
+    }
+  };
+
+  // Clipboard State for Copy/Paste
+  const [clipboardNoteId, setClipboardNoteId] = useState<string | null>(null);
+
+  const handleCopy = (noteId: string) => {
+    setClipboardNoteId(noteId);
+    toast.info("Note copied to clipboard");
+  };
+
+  const handlePaste = async (targetFolderId: string | null) => {
+    if (!clipboardNoteId) return;
+    try {
+      const { duplicateNote } = await import('../../services/notesService');
+      await duplicateNote(clipboardNoteId, targetFolderId, userId);
+      toast.success("Note pasted");
+      onRefresh();
+      // Don't clear clipboard to allow multiple pastes
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to paste note");
+    }
+  };
 
   const effectiveCollapsed = isCollapsed && !isHovered;
   const isFloating = isCollapsed && isHovered;
@@ -196,6 +258,8 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           {newFolderMode && !effectiveCollapsed && (
             <div className="flex items-center px-2 py-1 mb-2 rounded-sm shadow-sm border bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-600">
               <input
+                id="new-folder-name"
+                name="folderName"
                 autoFocus
                 className="w-full text-sm outline-none bg-transparent px-1 py-0.5 text-gray-900 placeholder:text-gray-400 dark:text-slate-200 dark:placeholder:text-slate-500"
                 value={newFolderName}
@@ -207,46 +271,106 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
             </div>
           )}
 
-          {/* Folders Loop */}
-          {folders.map(folder => (
-            <FolderItem
-              key={folder.id}
-              folder={folder}
-              notes={notes.filter(n => n.folderId === folder.id)}
-              selectedNoteId={selectedNoteId}
-              onSelectNote={onSelectNote}
-              onCreateNote={() => handleCreateNote(folder.id)}
-              onShare={() => handleShareClick(folder)}
-              isOwner={folder.ownerId === userId}
-              isCollapsed={effectiveCollapsed}
-            />
-          ))}
+          {/* SHARED SECTION */}
+          {sharedFolders.length > 0 && (
+            <div className="mb-4">
+              {!effectiveCollapsed && (
+                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-indigo-500/80 dark:text-indigo-400/80 flex items-center gap-2">
+                  <Users size={12} /> Shared with Me
+                </div>
+              )}
+              {sharedFolders.map(folder => (
+                <FolderItem
+                  key={folder.id}
+                  folder={folder}
+                  notes={notes.filter(n => n.folderId === folder.id)}
+                  selectedNoteId={selectedNoteId}
+                  onSelectNote={onSelectNote}
+                  onCreateNote={() => handleCreateNote(folder.id)}
+                  onShare={() => handleShareClick(folder)}
+                  isOwner={false} // Shared folders not owned by me
+                  isCollapsed={effectiveCollapsed}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onCopy={handleCopy}
+                  onPaste={handlePaste}
+                  canPaste={!!clipboardNoteId}
+                />
+              ))}
+              <div className="h-px bg-border/40 my-2 mx-2" />
+            </div>
+          )}
 
-          {/* Unorganized Notes */}
-          <div className="mt-4">
+          {/* MY FOLDERS */}
+          {(!effectiveCollapsed || myFolders.length > 0) && (
+            <div className="mb-1">
+              {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70">My Folders</div>}
+              {myFolders.map(folder => (
+                <FolderItem
+                  key={folder.id}
+                  folder={folder}
+                  notes={notes.filter(n => n.folderId === folder.id)}
+                  selectedNoteId={selectedNoteId}
+                  onSelectNote={onSelectNote}
+                  onCreateNote={() => handleCreateNote(folder.id)}
+                  onShare={() => handleShareClick(folder)}
+                  isOwner={true}
+                  isCollapsed={effectiveCollapsed}
+                  onDragStart={handleDragStart}
+                  onDragOver={handleDragOver}
+                  onDrop={handleDrop}
+                  onCopy={handleCopy}
+                  onPaste={handlePaste}
+                  canPaste={!!clipboardNoteId}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* MY UNORGANIZED NOTES */}
+          <div className="mt-4"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, null)} // Drop to root
+          >
             {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70">My Notes</div>}
             {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
 
-            {unorganizedNotes.map(note => (
-              <button
-                key={note.id}
-                onClick={() => onSelectNote(note)}
-                className={cn(
-                  "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
-                  effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
-                  selectedNoteId === note.id
-                    ? (effectiveCollapsed
-                      ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
-                      : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
-                    : (effectiveCollapsed
-                      ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
-                      : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
-                )}
-                title={effectiveCollapsed ? (note.title || "Untitled") : undefined}
-              >
-                <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", effectiveCollapsed ? "" : "mr-2")} />
-                {!effectiveCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
-              </button>
+            {myUnorganizedNotes.map(note => (
+              // Context Menu Trigger Wrapper
+              <div key={note.id} onContextMenu={(e) => {
+                e.preventDefault();
+                // Simple native context menu replacement for now or custom UI?
+                // Using user request implies "drag note", "copy paste".
+                // Let's rely on sidebar Item props or a RIGHT CLICK handler.
+                // For MVP, we can add a 'Copy' button or rely on FolderItem context menu logic if we wrap this.
+                // Implemented simple right click logic inside the button for now?
+              }}>
+                <button
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, note.id)}
+                  onClick={() => onSelectNote(note)}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    handleCopy(note.id);
+                  }}
+                  className={cn(
+                    "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
+                    effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
+                    selectedNoteId === note.id
+                      ? (effectiveCollapsed
+                        ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
+                        : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
+                      : (effectiveCollapsed
+                        ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
+                        : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
+                  )}
+                  title={effectiveCollapsed ? (note.title || "Untitled") : undefined}
+                >
+                  <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", effectiveCollapsed ? "" : "mr-2")} />
+                  {!effectiveCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
+                </button>
+              </div>
             ))}
 
             <button
@@ -326,13 +450,35 @@ interface FolderItemProps {
   onCreateNote: () => void;
   onShare: () => void;
   isCollapsed: boolean;
+  // DnD & Copy/Paste Props
+  onDragStart: (e: React.DragEvent, noteId: string) => void;
+  onDragOver: (e: React.DragEvent) => void;
+  onDrop: (e: React.DragEvent, targetFolderId: string | null) => void;
+  onCopy: (noteId: string) => void;
+  onPaste: (folderId: string | null) => void;
+  canPaste: boolean;
 }
 
-const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare, isCollapsed }) => {
+const FolderItem: React.FC<FolderItemProps> = ({
+  folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare, isCollapsed,
+  onDragStart, onDragOver, onDrop, onCopy, onPaste, canPaste
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
-    <div className="mb-1 select-none">
+    <div
+      className="mb-1 select-none"
+      onDragOver={onDragOver}
+      onDrop={(e) => {
+        e.stopPropagation(); // prevent dropping on parent
+        onDrop(e, folder.id);
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        if (canPaste) onPaste(folder.id);
+        // else maybe share options? Context menu lib would be better here but simple listener works for now
+      }}
+    >
       <div
         className={cn(
           "flex items-center rounded-md cursor-pointer group text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground transition-all",
@@ -375,23 +521,33 @@ const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, 
       {isOpen && !isCollapsed && (
         <div className="ml-4 pl-3 border-l border-border/40 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
           {notes.map((note) => (
-            <button
+            <div
               key={note.id}
-              onClick={() => onSelectNote(note)}
-              className={cn(
-                "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm border-l-2",
-                selectedNoteId === note.id
-                  ? "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-primary/10 dark:border-primary dark:text-primary dark:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)]"
-                  : "border-transparent text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground"
-              )}
+              onContextMenu={(e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                onCopy(note.id);
+              }}
             >
-              <FileText size={14} className={cn("mr-2", selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70")} />
-              <span className="truncate">{note.title || "Untitled"}</span>
-            </button>
+              <button
+                draggable
+                onDragStart={(e) => { e.stopPropagation(); onDragStart(e, note.id); }}
+                onClick={(e) => { e.stopPropagation(); onSelectNote(note); }}
+                className={cn(
+                  "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm border-l-2",
+                  selectedNoteId === note.id
+                    ? "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-primary/10 dark:border-primary dark:text-primary dark:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)]"
+                    : "border-transparent text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground"
+                )}
+              >
+                <FileText size={14} className={cn("mr-2", selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70")} />
+                <span className="truncate">{note.title || "Untitled"}</span>
+              </button>
+            </div>
           ))}
           {notes.length === 0 && <div className="text-xs text-muted-foreground/50 px-2 py-1 italic">Empty folder</div>}
         </div>
       )}
     </div>
-  )
-}
+  );
+};

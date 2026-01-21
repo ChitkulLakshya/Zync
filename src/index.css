@@ -145,11 +145,13 @@
 
   html {
     scroll-behavior: smooth;
-    scrollbar-width: none; /* Firefox */
+    scrollbar-width: none;
+    /* Firefox */
   }
 
   body {
-    -ms-overflow-style: none; /* IE and Edge */
+    -ms-overflow-style: none;
+    /* IE and Edge */
   }
 
   /* Hide scrollbar for Chrome, Safari and Opera */
@@ -284,12 +286,14 @@
 /* Editor Overrides */
 .ZYNC-editor-overrides .bn-editor {
   @apply bg-transparent;
-  padding-inline: 0 !important;
+  /* padding-inline: 0 !important; Removed to fix cursor/selection issues */
 }
 
+/* 
 .ZYNC-editor-overrides .bn-block-content {
-  /* Ensure font integration */
+   Ensure font integration 
 }
+*/
 
 /* Custom Scrollbar for Editor */
 .custom-scrollbar::-webkit-scrollbar {
@@ -331,17 +335,20 @@
 
 /* Specific BlockNote overrides */
 .ZYNC-editor-overrides .bn-block-content[data-content-type="heading"] {
-  margin-top: 1.5em;
-  margin-bottom: 0.5em;
+  /* Restoring default margins to fix alignment with drag handle */
+  /* margin-top: 1.5em; */
+  /* margin-bottom: 0.5em; */
   font-family: inherit;
   font-weight: 700;
 }
 
+/* 
 .ZYNC-editor-overrides .bn-block-content[data-content-type="paragraph"] {
-  margin-bottom: 0.5em;
-  /* Better spacing for paragraphs */
-  line-height: 1.75;
-}
+   Restoring default margins and line-height to fix alignment with drag handle
+   margin-bottom: 0.5em;
+   line-height: 1.75;
+} 
+*/
 
 /* Hide the default side menu trigger if it clashes, or style it */
 .dark .bn-side-menu-trigger {
@@ -438,8 +445,13 @@
 }
 
 /* Make editor content match formal aesthetic */
-.ZYNC-editor-overrides .bn-editor * {
-  font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', serif !important;
+/* Make editor content match formal aesthetic - target main text elements instead of * */
+.ZYNC-editor-overrides p,
+.ZYNC-editor-overrides h1,
+.ZYNC-editor-overrides h2,
+.ZYNC-editor-overrides h3,
+.ZYNC-editor-overrides li {
+  font-family: 'Merriweather', 'Georgia', 'Cambria', 'Times New Roman', serif;
 }
 
 /* Ensure placeholder is elegant and serif */
@@ -471,8 +483,13 @@
   /* neutral-600 */
 }
 
-/* Update editor text color for dark mode */
-.dark .ZYNC-editor-overrides .bn-editor * {
+/* Update editor text color for dark mode - targeting specific elements to avoid layout issues */
+.dark .ZYNC-editor-overrides p,
+.dark .ZYNC-editor-overrides h1,
+.dark .ZYNC-editor-overrides h2,
+.dark .ZYNC-editor-overrides h3,
+.dark .ZYNC-editor-overrides li,
+.dark .ZYNC-editor-overrides span {
   color: #e5e5e5;
   /* neutral-200 */
 }
