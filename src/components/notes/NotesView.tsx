@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { NotesSidebar } from './NotesSidebar';
-import { NoteEditor } from '@/components/notes/NoteEditor';
-import { fetchFolders, fetchNotes, Note, Folder } from '../../api/notes';
+import NoteEditor from './NoteEditor';
+import { Note, Folder, subscribeToFolders, subscribeToNotes } from '../../services/notesService';
 import { Loader2, FilePenLine } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from "@/lib/utils";
@@ -19,57 +20,53 @@ export const NotesView: React.FC<NotesViewProps> = ({ user, users = [], initialN
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadData = async () => {
+  useEffect(() => {
     if (!user?.uid) return;
-    
-    try {
-      const [fetchedFolders, fetchedNotes] = await Promise.all([
-        fetchFolders(user.uid),
-        fetchNotes(user.uid)
-      ]);
-      setFolders(fetchedFolders);
-      setNotes(fetchedNotes);
-      
-      if (initialNoteId) {
-          const target = fetchedNotes.find(n => n._id === initialNoteId);
-          if (target) setSelectedNote(target);
-      }
-    } catch (error) {
-      console.error("Failed to load notes data", error);
-      toast.error("Failed to load your notes");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
-  useEffect(() => {
-    if (user?.uid) {
-      loadData();
-    }
+    // Subscribe to Folders
+    const unsubscribeFolders = subscribeToFolders(user.uid, (fetchedFolders) => {
+      setFolders(fetchedFolders);
+    });
+
+    // Subscribe to Notes
+    const unsubscribeNotes = subscribeToNotes(user.uid, (fetchedNotes) => {
+      setNotes(fetchedNotes);
+      setIsLoading(false);
+    });
+
+    return () => {
+      unsubscribeFolders();
+      unsubscribeNotes();
+    };
   }, [user?.uid]);
-  
-  // Handle initialNoteId change if it updates after mount (e.g. reused component)
+
+  // Sync selectedNote with updates from subscription
   useEffect(() => {
-      if (initialNoteId && notes.length > 0) {
-          const target = notes.find(n => n._id === initialNoteId);
-          if (target && target._id !== selectedNote?._id) setSelectedNote(target);
+    if (selectedNote) {
+      const updated = notes.find(n => n.id === selectedNote.id);
+      if (updated && updated !== selectedNote) {
+        // Only update if content/title actually changed to avoid unnecessary re-renders
+        // For simplicity, we just update. Note: Deep comparison might be better if optimization needed.
+        setSelectedNote(updated);
       }
+    }
+  }, [notes, selectedNote?.id]);
+
+  // Handle initialNoteId change if it updates after mount
+  useEffect(() => {
+    if (initialNoteId && notes.length > 0) {
+      const target = notes.find(n => n.id === initialNoteId || n._id === initialNoteId);
+      if (target && (target.id !== selectedNote?.id)) setSelectedNote(target);
+    }
   }, [initialNoteId, notes]);
 
   const handleNoteUpdate = (updatedNote: Note) => {
-    // Update local list
-    setNotes(prev => prev.map(n => n._id === updatedNote._id ? updatedNote : n));
-    // Update selected note reference
-    if (selectedNote?._id === updatedNote._id) {
-       setSelectedNote(updatedNote);
+    if (selectedNote?.id === updatedNote.id) {
+      setSelectedNote(updatedNote);
     }
   };
 
   const handleSelectNote = (note: Note) => {
-    // If selecting a bare note object from creation, ensure it exists in the list
-    if (!notes.find(n => n._id === note._id)) {
-        setNotes([note, ...notes]);
-    }
     setSelectedNote(note);
   };
 
@@ -79,33 +76,33 @@ export const NotesView: React.FC<NotesViewProps> = ({ user, users = [], initialN
 
   return (
     <div className={cn("flex h-full bg-background overflow-hidden", className)}>
-      <NotesSidebar 
+      <NotesSidebar
         userId={user?.uid || ''}
         users={users}
         folders={folders}
         notes={notes}
-        selectedNoteId={selectedNote?._id || null}
+        selectedNoteId={selectedNote?.id || selectedNote?._id || null}
         onSelectNote={handleSelectNote}
-        onRefresh={loadData}
+        onRefresh={() => { /* Real-time subscription handles updates, but we can refetch if needed */ }}
         className="shrink-0"
       />
       <div className="flex-1 bg-background relative flex flex-col min-w-0">
         {selectedNote && user ? (
-          <NoteEditor 
-            key={selectedNote._id} 
-            note={selectedNote} 
+          <NoteEditor
+            key={selectedNote.id}
+            note={selectedNote}
             user={{ uid: user.uid, displayName: user.displayName, email: user.email }}
-            onUpdate={handleNoteUpdate} 
+            onUpdate={handleNoteUpdate}
           />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-muted-foreground animate-in fade-in duration-500">
-             <div className="mb-6 p-6 bg-secondary/30 rounded-full ring-1 ring-border/50">
-                <FilePenLine size={48} className="text-muted-foreground/50" />
-             </div>
-             <h3 className="text-xl font-semibold text-foreground/80 mb-2">Select a note to view</h3>
-             <p className="text-sm text-center max-w-xs text-muted-foreground/70">
-               Choose a note from the sidebar or create a new one to start documenting your ideas.
-             </p>
+            <div className="mb-6 p-6 bg-secondary/30 rounded-full ring-1 ring-border/50">
+              <FilePenLine size={48} className="text-muted-foreground/50" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground/80 mb-2">Select a note to view</h3>
+            <p className="text-sm text-center max-w-xs text-muted-foreground/70">
+              Choose a note from the sidebar or create a new one to start documenting your ideas.
+            </p>
           </div>
         )}
       </div>
