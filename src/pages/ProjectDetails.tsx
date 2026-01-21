@@ -276,7 +276,6 @@ const ProjectDetails = () => {
 
         const newSteps = prevProject.steps.map(step => {
           const newTasks = step.tasks.map(task => {
-            // Check against both id (display ID) and _id (database ID)
             if (task.id === data.taskId || task._id === data.taskId) {
               return {
                 ...task,
@@ -294,7 +293,8 @@ const ProjectDetails = () => {
 
     // Listen for full project updates (e.g. from task moves/edits elsewhere)
     socket.on('projectUpdate', (data: any) => {
-      if (data.projectId && (data.projectId === id || (project && data.projectId === project._id))) {
+      // Use 'id' from closure which is stable, avoid 'project' dependency
+      if (data.projectId && (data.projectId === id)) {
         console.log("Received live project update");
         setProject(data.project);
       }
@@ -303,7 +303,7 @@ const ProjectDetails = () => {
     return () => {
       socket.disconnect();
     };
-  }, [project, id]); // Re-bind if project/id changes to ensure correct ID check
+  }, [id]);
 
   const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
     console.log("handleTaskUpdate called with:", { stepId, taskId, updates });
@@ -480,7 +480,22 @@ const ProjectDetails = () => {
   }
 
   if (!project) {
-    return <div>Project not found</div>;
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen bg-background p-4">
+        <div className="text-center space-y-4 max-w-md">
+          <div className="bg-red-500/10 p-4 rounded-full w-fit mx-auto">
+            <FolderKanban className="h-8 w-8 text-red-500" />
+          </div>
+          <h1 className="text-2xl font-bold">Project Not Found</h1>
+          <p className="text-muted-foreground">
+            The project you are looking for does not exist or has been deleted.
+          </p>
+          <Button onClick={() => navigate('/dashboard')} className="gap-2">
+            <ArrowLeft className="h-4 w-4" /> Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   const isOwner = project.ownerId === auth.currentUser?.uid;

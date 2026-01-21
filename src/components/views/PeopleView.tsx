@@ -171,13 +171,13 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                 {/* Sidebar */}
                 <div
                     ref={sidebarRef}
-                    className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/50 supports-[backdrop-filter]:bg-background/60")}
+                    className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/50 supports-[backdrop-filter]:bg-background/60 z-50")}
                     style={{ width: isCollapsed ? 64 : sidebarWidth }}
                 >
                     <div
                         className={cn(
                             "h-full flex flex-col bg-transparent text-foreground overflow-hidden",
-                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r bg-background/95 backdrop-blur-xl" : "w-full"
+                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-xl w-[width]px border-r bg-background" : "w-full"
                         )}
                         style={{ width: isFloating ? sidebarWidth : '100%', transition: 'width 0.2s ease-out' }}
                         onMouseEnter={() => {

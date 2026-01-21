@@ -226,68 +226,141 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                 </Card>
             ) : (
                 <ScrollArea className="flex-1 pr-4">
-                    <div className="grid gap-4">
-                        {tasks.map((task) => (
-                            <Card
-                                key={task.id}
-                                className="hover:bg-secondary/10 transition-colors cursor-pointer group relative"
-                                onClick={() => handleTaskClick(task)}
-                            >
-                                <CardContent className="p-4 flex items-start gap-4">
+                    <div className="space-y-8">
+                        {/* Live Tasks Section */}
+                        <div>
+                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                                <span className="bg-green-500/10 text-green-500 p-1.5 rounded-md">
+                                    <FolderKanban className="w-4 h-4" />
+                                </span>
+                                Live Tasks
+                                <Badge variant="secondary" className="ml-2">{tasks.filter(t => !['Done', 'Completed', 'completed', 'done'].includes(t.status)).length}</Badge>
+                            </h3>
+                            <div className="grid gap-3">
+                                {tasks.filter(t => !['Done', 'Completed', 'completed', 'done'].includes(t.status)).length === 0 && (
+                                    <p className="text-muted-foreground text-sm italic py-2">No active tasks.</p>
+                                )}
+                                {tasks.filter(t => !['Done', 'Completed', 'completed', 'done'].includes(t.status)).map((task) => (
+                                    <Card
+                                        key={task.id}
+                                        className="hover:bg-secondary/10 transition-colors cursor-pointer group relative border-l-4 border-l-green-500"
+                                        onClick={() => handleTaskClick(task)}
+                                    >
+                                        <CardContent className="p-4 flex items-start gap-4">
+                                            {/* Delete Button - Owner Only */}
+                                            {currentUser && task.projectOwnerId === currentUser.uid && (
+                                                <button
+                                                    className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    title="Delete Task"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm("Delete this task?")) deleteTask(task);
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
 
-                                    {/* Delete Button (Visible mainly on hover) - Owner Only */}
-                                    {currentUser && task.projectOwnerId === currentUser.uid && (
-                                        <button
-                                            className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                                            title="Delete Task"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                if (confirm("Delete this task?")) {
-                                                    deleteTask(task);
-                                                }
-                                            }}
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </button>
-                                    )}
+                                            <div className="mt-1">
+                                                <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-base font-medium">{task.title}</h4>
+                                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                                    <Badge variant="outline" className="text-xs font-normal gap-1">
+                                                        <FolderKanban className="w-3 h-3" />
+                                                        {task.projectName}
+                                                    </Badge>
+                                                    <span>•</span>
+                                                    <span>{task.stepName}</span>
+                                                </div>
+                                            </div>
 
-                                    <div className="mt-1">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${task.status === 'completed' ? 'bg-green-500 border-green-500' : 'border-muted-foreground'}`}>
-                                            {task.status === 'completed' && <CheckSquare className="w-3 h-3 text-white" />}
-                                        </div>
-                                    </div>
-                                    <div className="flex-1">
-                                        <h4 className={`text-base font-medium ${task.status === 'completed' ? 'line-through text-muted-foreground' : ''}`}>{task.title}</h4>
-                                        <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                            <Badge variant="outline" className="text-xs font-normal gap-1">
-                                                <FolderKanban className="w-3 h-3" />
-                                                {task.projectName}
-                                            </Badge>
-                                            <span>•</span>
-                                            <span>{task.stepName}</span>
-                                        </div>
-                                    </div>
+                                            <div className="flex items-center gap-3">
+                                                {['Backlog', 'Ready', 'Pending', 'pending'].includes(task.status) && (
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline"
+                                                        className="h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            updateTaskStatus(task, 'Active');
+                                                        }}
+                                                    >
+                                                        Start Task
+                                                    </Button>
+                                                )}
+                                                <Badge variant="secondary" className="capitalize">
+                                                    {task.status}
+                                                </Badge>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
 
-                                    <div className="flex items-center gap-3">
-                                        {['Backlog', 'Ready', 'Pending', 'pending'].includes(task.status) && (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700"
-                                                onClick={() => {
-                                                    updateTaskStatus(task, 'Active');
-                                                }}
-                                            >
-                                                Start Task
-                                            </Button>
-                                        )}
-                                        <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="capitalize">
-                                            {task.status}
-                                        </Badge>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                        ))}
+                        {/* Completed Tasks Section */}
+                        <div>
+                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 mt-8">
+                                <span className="bg-blue-500/10 text-blue-500 p-1.5 rounded-md">
+                                    <CheckSquare className="w-4 h-4" />
+                                </span>
+                                Completed
+                                <Badge variant="secondary" className="ml-2">{tasks.filter(t => ['Done', 'Completed', 'completed', 'done'].includes(t.status)).length}</Badge>
+                            </h3>
+                            <div className="grid gap-3 opacity-75">
+                                {tasks.filter(t => ['Done', 'Completed', 'completed', 'done'].includes(t.status)).length === 0 && (
+                                    <p className="text-muted-foreground text-sm italic py-2">No completed tasks.</p>
+                                )}
+                                {tasks.filter(t => ['Done', 'Completed', 'completed', 'done'].includes(t.status)).map((task) => (
+                                    <Card
+                                        key={task.id}
+                                        className="hover:bg-secondary/10 transition-colors cursor-pointer group relative bg-secondary/5 border-l-4 border-l-blue-500/30"
+                                        onClick={() => handleTaskClick(task)}
+                                    >
+                                        <CardContent className="p-4 flex items-start gap-4">
+                                            {/* Delete Button */}
+                                            {currentUser && task.projectOwnerId === currentUser.uid && (
+                                                <button
+                                                    className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                                                    title="Delete Task"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        if (confirm("Delete this task?")) deleteTask(task);
+                                                    }}
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+
+                                            <div className="mt-1">
+                                                <div className="w-5 h-5 rounded-full border-2 bg-green-500 border-green-500 flex items-center justify-center">
+                                                    <CheckSquare className="w-3 h-3 text-white" />
+                                                </div>
+                                            </div>
+                                            <div className="flex-1">
+                                                <h4 className="text-base font-medium line-through text-muted-foreground">{task.title}</h4>
+                                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
+                                                    <Badge variant="outline" className="text-xs font-normal gap-1">
+                                                        <FolderKanban className="w-3 h-3" />
+                                                        {task.projectName}
+                                                    </Badge>
+                                                    <span>•</span>
+                                                    <span>{task.stepName}</span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3">
+                                                <Badge variant="default" className="capitalize bg-green-600 hover:bg-green-700">
+                                                    {task.status}
+                                                </Badge>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
                     </div>
                 </ScrollArea>
             )}

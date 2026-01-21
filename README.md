@@ -128,29 +128,56 @@ Combine these variables into your `.env` files.
 
 | Variable | Description |
 | :--- | :--- |
-| **Database** | |
+| **Core & Database** | |
+| `PORT` | Server port (default: 5000) |
+| `FRONTEND_URL` | URL of the frontend (e.g., `http://localhost:5173`) |
 | `MONGO_URI` | Connection string for MongoDB Atlas/Local |
 | `REDIS_URL` | Redis connection (default: `redis://localhost:6379`) |
-| **Auth & Security** | |
-| `ENCRYPTION_KEY` | Random string (32 chars) to encrypt OAuth tokens |
-| `GOOGLE_REFRESH_TOKEN` | **Critical**: Run `node scripts/get-refresh-token.js` to get this |
-| `GCP_SERVICE_ACCOUNT_KEY`| JSON string of Firebase Admin Service Account |
-| **Integrations** | |
-| `GITHUB_APP_ID` | From GitHub App Settings |
-| `GITHUB_PRIVATE_KEY` | PEM format key for GitHub App (use `\n` for newlines) |
-| `GITHUB_WEBHOOK_SECRET` | Secret you set in GitHub Webhook settings |
-| `GEMINI_API_KEY` | Google AI Studio Key |
-| `GROQ_API_KEY` | Groq Cloud Key |
-| `UNSPLASH_ACCESS_KEY` | Unsplash Client ID for image search |
-| `PINTEREST_TOKEN` | Pinterest User Access Token (Bearer) |
-| `PINTEREST_BOARD_ID` | Specific board ID to fetch pins from |
+| **Security** | |
+| `ENCRYPTION_KEY` | 32-char string for token encryption |
+| `MASTER_ENCRYPTION_KEY` | Master key for system-level encryption |
+| `GCP_SERVICE_ACCOUNT_KEY` | Firebase Admin Service Account JSON string |
+| **Google & Email** | |
+| `GOOGLE_CLIENT_ID` | OAuth2 Client ID |
+| `GOOGLE_CLIENT_SECRET` | OAuth2 Client Secret |
+| `GOOGLE_REDIRECT_URI` | OAuth2 Redirect URI (e.g., `http://localhost:5000/auth/google/callback`) |
+| `GOOGLE_REFRESH_TOKEN` | User-scoped refresh token for Calendar/Mail |
+| `GOOGLE_CALENDAR_API_KEY` | API Key for public calendar operations |
+| `GMAIL_USER` | Email address for sending notifications |
+| `GMAIL_PASS` | App Password (if using 2FA) or Password |
+| **GitHub Integration** | |
+| `GITHUB_APP_ID` | App ID from GitHub App Settings |
+| `GITHUB_CLIENT_ID` | Client ID for GitHub App |
+| `GITHUB_CLIENT_SECRET` | Client Secret for GitHub App |
+| `GITHUB_PRIVATE_KEY` | Private Key (PEM format, use `\n` for newlines) |
+| `GITHUB_WEBHOOK_SECRET` | Secret for verifying webhook signatures |
+| **AI Services** | |
+| `GEMINI_API_KEY` | Google AI Studio Key (Primary) |
+| `GEMINI_API_KEY_SECONDARY` | Backup Key |
+| `GROQ_API_KEY` | Groq Cloud Key (Llama 3) |
+| **Design Integrations** | |
+| `UNSPLASH_ACCESS_KEY` | Access Key |
+| `UNSPLASH_SECRET_KEY` | Secret Key |
+| `UNSPLASH_APP_ID` | Application ID |
+| `PINTEREST_APP_ID` | App ID |
+| `PINTEREST_APP_SECRET` | App Secret |
+| `PINTEREST_TOKEN` | Access Token |
+| `PINTEREST_BOARD_ID` | Board ID to scrape |
+| `DRIBBBLE_CLIENT_ID` | Client ID |
+| `DRIBBBLE_CLIENT_SECRET` | Client Secret |
+| `DRIBBBLE_REDIRECT_URI` | Redirect URI |
 
 ### 2. Frontend (`.env`)
 
 | Variable | Description |
 | :--- | :--- |
-| `VITE_API_URL` | `http://localhost:5000` (or your production URL) |
-| `VITE_FIREBASE_Config` | All standard Firebase SDK keys (`API_KEY`, `AUTH_DOMAIN`, etc.) |
+| `VITE_API_URL` | Backend URL (e.g. `http://localhost:5000`) |
+| `VITE_FIREBASE_API_KEY` | Firebase API Key |
+| `VITE_FIREBASE_AUTH_DOMAIN` | Firebase Auth Domain |
+| `VITE_FIREBASE_PROJECT_ID` | Firebase Project ID |
+| `VITE_FIREBASE_STORAGE_BUCKET` | Firebase Storage Bucket |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Messaging Sender ID |
+| `VITE_FIREBASE_APP_ID` | Firebase App ID |
 
 ---
 
@@ -187,3 +214,4 @@ This project was architected and built by:
 
 *   **Chitkul Lakshya** ([@ChitkulLakshya](https://github.com/ChitkulLakshya))
 *   **Prem Sai Kota** ([@prem22k](https://github.com/prem22k))
+*   **Eeshitha Gone** ([@eesha264](https://github.com/eesha264))
