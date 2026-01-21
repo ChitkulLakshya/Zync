@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Folder, Note, createFolder, createNote, shareFolder } from '../../api/notes';
-import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown, Share2, Users, PanelLeftClose, PanelLeftOpen, GripVertical } from 'lucide-react';
+import { Folder, Note, createFolder, createNote, shareFolder } from '../../services/notesService';
+import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown, Share2, Users, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -105,7 +105,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   const executeShare = async () => {
     if (!folderToShare || !selectedUserId) return;
     try {
-      await shareFolder(folderToShare._id, [selectedUserId]);
+      await shareFolder(folderToShare.id, [selectedUserId]);
       toast.success(`Folder shared successfully`);
       setShareDialogOpen(false);
       onRefresh();
@@ -132,7 +132,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
       const note = await createNote({
         title: 'Untitled',
         ownerId: userId,
-        folderId: folderId
+        folderId: folderId || null
       });
       onRefresh();
       onSelectNote(note);
@@ -210,12 +210,12 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           {/* Folders Loop */}
           {folders.map(folder => (
             <FolderItem
-              key={folder._id}
+              key={folder.id}
               folder={folder}
-              notes={notes.filter(n => n.folderId === folder._id)}
+              notes={notes.filter(n => n.folderId === folder.id)}
               selectedNoteId={selectedNoteId}
               onSelectNote={onSelectNote}
-              onCreateNote={() => handleCreateNote(folder._id)}
+              onCreateNote={() => handleCreateNote(folder.id)}
               onShare={() => handleShareClick(folder)}
               isOwner={folder.ownerId === userId}
               isCollapsed={effectiveCollapsed}
@@ -229,12 +229,12 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
 
             {unorganizedNotes.map(note => (
               <button
-                key={note._id}
+                key={note.id}
                 onClick={() => onSelectNote(note)}
                 className={cn(
                   "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
                   effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
-                  selectedNoteId === note._id
+                  selectedNoteId === note.id
                     ? (effectiveCollapsed
                       ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
                       : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
@@ -244,7 +244,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                 )}
                 title={effectiveCollapsed ? (note.title || "Untitled") : undefined}
               >
-                <FileText size={16} className={cn(selectedNoteId === note._id ? "text-indigo-600 dark:text-primary" : "opacity-70", effectiveCollapsed ? "" : "mr-2")} />
+                <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", effectiveCollapsed ? "" : "mr-2")} />
                 {!effectiveCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
               </button>
             ))}
@@ -273,9 +273,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
 
       </div>
 
-      { /* ... Dialogs ... */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        {/* ... Dialog Content ... (Keep existing) */}
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Share Folder</DialogTitle>
@@ -378,16 +376,16 @@ const FolderItem: React.FC<FolderItemProps> = ({ folder, notes, selectedNoteId, 
         <div className="ml-4 pl-3 border-l border-border/40 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
           {notes.map((note) => (
             <button
-              key={note._id}
+              key={note.id}
               onClick={() => onSelectNote(note)}
               className={cn(
                 "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm border-l-2",
-                selectedNoteId === note._id
+                selectedNoteId === note.id
                   ? "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-primary/10 dark:border-primary dark:text-primary dark:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)]"
                   : "border-transparent text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground"
               )}
             >
-              <FileText size={14} className={cn("mr-2", selectedNoteId === note._id ? "text-indigo-600 dark:text-primary" : "opacity-70")} />
+              <FileText size={14} className={cn("mr-2", selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70")} />
               <span className="truncate">{note.title || "Untitled"}</span>
             </button>
           ))}

@@ -1,32 +1,28 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import * as Y from 'yjs';
+// import * as Y from 'yjs';
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
-import { updateNote, Note } from '../../api/notes';
+import { updateNote, Note } from '../../services/notesService';
 import { fetchProjects, createQuickTask, searchTasks, Project, TaskSearchResult } from '../../api/projects';
 import { cn } from "@/lib/utils";
 import {
   Loader2,
   CheckCircle2,
   CheckSquare,
-  Sparkles,
   Link as LinkIcon,
-  Search,
   Calendar,
   Clock,
   User as UserIcon,
-  SmilePlus
 } from 'lucide-react';
 
-import { SocketIOProvider } from '@/lib/SocketIOProvider';
+// import { SocketIOProvider } from '@/lib/SocketIOProvider';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Command,
@@ -36,11 +32,6 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -53,7 +44,42 @@ interface NoteEditorProps {
   className?: string;
 }
 
-export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className }) => {
+// TaskSearch Component for Linking - Moved to top
+const TaskSearch = ({ user, onSelect }: { user: any, onSelect: (task: TaskSearchResult) => void }) => {
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState<TaskSearchResult[]>([]);
+
+  useEffect(() => {
+    if (query.length > 2) {
+      const timer = setTimeout(async () => {
+        const res = await searchTasks(query, user.uid);
+        setResults(res);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [query, user.uid]);
+
+  return (
+    <Command className="border rounded-md">
+      <CommandInput placeholder="Search tasks by title..." onValueChange={setQuery} />
+      <CommandList>
+        <CommandEmpty>No tasks found.</CommandEmpty>
+        <CommandGroup heading="Tasks">
+          {results.map(task => (
+            <CommandItem key={task.id} onSelect={() => onSelect(task)}>
+              <div className="flex flex-col">
+                <span>{task.title}</span>
+                <span className="text-xs text-muted-foreground">{task.projectName} • {task.status}</span>
+              </div>
+            </CommandItem>
+          ))}
+        </CommandGroup>
+      </CommandList>
+    </Command>
+  )
+}
+
+const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className }) => {
   const { resolvedTheme } = useTheme();
   const [title, setTitle] = useState(note.title);
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
@@ -64,37 +90,20 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, cl
   const [taskLinkDialogOpen, setTaskLinkDialogOpen] = useState(false);
   const [selectedTaskText, setSelectedTaskText] = useState("");
 
-  // Create Yjs Doc and Provider
-  const doc = useMemo(() => new Y.Doc(), []);
-
-  const provider = useMemo(() => {
-    return new SocketIOProvider(note._id, doc, {
-      name: user.displayName || user.email || 'Anonymous',
-      color: '#' + Math.floor(Math.random() * 16777215).toString(16)
-    });
-  }, [note._id, doc, user]);
-
-  useEffect(() => {
-    return () => {
-      provider.destroy();
-      doc.destroy();
-    }
-  }, [provider, doc]);
-
-  // Initialize editor with collaboration
+  // Initialize editor without collaboration (temporarily using Firestore for persistence only)
   const editor = useCreateBlockNote({
-    collaboration: {
-      fragment: doc.getXmlFragment("document-store"),
-      user: {
-        name: user.displayName || user.email || 'Anonymous',
-        color: provider.awareness.getLocalState()?.user.color || '#3b82f6',
-      },
-      provider: provider,
-    },
     initialContent: note.content && Array.isArray(note.content) && note.content.length > 0
       ? note.content
       : undefined,
   });
+
+  /* 
+  // Temporarily disabled Yjs/SocketIO as we migrated to Firestore.
+  // We need a Firestore-based Yjs provider for true collaboration.
+  const doc = useMemo(() => new Y.Doc(), []);
+  const provider = useMemo(() => { ... }, [note.id, doc, user]);
+  useEffect(() => { ... }, [provider, doc]);
+  */
 
   useEffect(() => {
     setTitle(note.title);
@@ -112,7 +121,7 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, cl
     setTitle(newTitle);
     setStatus('Saving...');
     try {
-      await updateNote(note._id, { title: newTitle });
+      await updateNote(note.id, { title: newTitle });
       setStatus('Saved');
       onUpdate({ ...note, title: newTitle });
     } catch (error) {
@@ -125,13 +134,13 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, cl
     setStatus('Saving...');
     try {
       const blocks = editor.document;
-      await updateNote(note._id, { content: blocks });
+      await updateNote(note.id, { content: blocks });
       setStatus('Saved');
     } catch (error) {
       console.error("Failed to save content", error);
       toast.error("Failed to save changes");
     }
-  }, [editor, note._id]);
+  }, [editor, note.id]);
 
   // Smart Feature Handlers
   const openTaskCreation = () => {
@@ -321,36 +330,4 @@ export const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, cl
   );
 };
 
-const TaskSearch = ({ user, onSelect }: { user: any, onSelect: (task: TaskSearchResult) => void }) => {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<TaskSearchResult[]>([]);
-
-  useEffect(() => {
-    if (query.length > 2) {
-      const timer = setTimeout(async () => {
-        const res = await searchTasks(query, user.uid);
-        setResults(res);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [query, user.uid]);
-
-  return (
-    <Command className="border rounded-md">
-      <CommandInput placeholder="Search tasks by title..." onValueChange={setQuery} />
-      <CommandList>
-        <CommandEmpty>No tasks found.</CommandEmpty>
-        <CommandGroup heading="Tasks">
-          {results.map(task => (
-            <CommandItem key={task.id} onSelect={() => onSelect(task)}>
-              <div className="flex flex-col">
-                <span>{task.title}</span>
-                <span className="text-xs text-muted-foreground">{task.projectName} • {task.status}</span>
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </Command>
-  )
-}
+export default NoteEditor;

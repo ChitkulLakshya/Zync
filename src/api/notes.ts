@@ -1,4 +1,8 @@
 // src/api/notes.ts
+/**
+ * @deprecated This API service is being replaced by src/services/notesService.ts which uses Firebase Firestore directly.
+ * Please do not use this for new features.
+ */
 import { API_BASE_URL } from '../lib/utils';
 const API_URL = `${API_BASE_URL}/api/notes`;
 
@@ -50,8 +54,8 @@ export const shareFolder = async (folderId: string, collaboratorIds: string[]) =
 };
 
 export const fetchNotes = async (userId: string, folderId?: string): Promise<Note[]> => {
-  const url = folderId 
-    ? `${API_URL}?userId=${userId}&folderId=${folderId}` 
+  const url = folderId
+    ? `${API_URL}?userId=${userId}&folderId=${folderId}`
     : `${API_URL}?userId=${userId}`;
   const response = await fetch(url);
   if (!response.ok) throw new Error('Failed to fetch notes');
