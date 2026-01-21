@@ -216,21 +216,33 @@ router.post('/chat-request', verifyToken, async (req, res) => {
 // Get all users (filtered by Team)
 router.get('/', verifyToken, async (req, res) => {
   try {
+    const { teamId } = req.query;
     const currentUser = await User.findOne({ uid: req.user.uid });
+
     if (!currentUser) return res.status(404).json({ message: 'User not found' });
 
-    let query = {};
+    let targetTeamId = teamId;
 
-    // Only show users in the same team
-    if (currentUser.teamId) {
-      query.teamId = currentUser.teamId;
-    } else {
-      // If user has no team, they shouldn't see anyone (or maybe just themselves/admin?)
-      // For now, return empty if no team to enforce isolation
+    // If no specific team requested, fallback to user's primary team
+    if (!targetTeamId && currentUser.teamId) {
+      targetTeamId = currentUser.teamId;
+    }
+
+    if (!targetTeamId) {
+      // If still no team, return empty (or handle as global scope if desired, but isolation is safer)
       return res.status(200).json([]);
     }
 
-    const users = await User.find(query).sort({ lastSeen: -1 });
+    // Find the Team to get reliable member list
+    const team = await Team.findById(targetTeamId);
+    if (!team) {
+      return res.status(404).json({ message: 'Team not found' });
+    }
+
+    // Fetch users who are in the team's member list
+    // We use $in operator to match any UID in the team.members array
+    const users = await User.find({ uid: { $in: team.members } }).sort({ lastSeen: -1 });
+
     res.status(200).json(users);
   } catch (error) {
     console.error('Error fetching users:', error);

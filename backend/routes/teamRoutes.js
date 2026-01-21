@@ -28,6 +28,18 @@ router.get('/owned', verifyToken, async (req, res) => {
     }
 });
 
+// Get All Teams User is Member Of
+router.get('/mine', verifyToken, async (req, res) => {
+    const uid = req.user.uid;
+    try {
+        const teams = await Team.find({ members: uid });
+        res.json(teams);
+    } catch (error) {
+        console.error('Error fetching my teams:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // Create Team
 router.post('/create', verifyToken, async (req, res) => {
     const { name, type, initialInvites } = req.body;
