@@ -1,11 +1,8 @@
 import { useState, useMemo } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-// import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { MoreHorizontal, Plus, GripVertical } from "lucide-react";
+import { GripVertical } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Task {
@@ -32,34 +29,32 @@ interface KanbanBoardProps {
   isOwner?: boolean;
 }
 
-// Map task statuses to Kanban columns
 const COLUMN_MAPPING: Record<string, string> = {
   'Pending': 'Ready',
   'Backlog': 'Ready',
   'Ready': 'Ready',
+  'Active': 'Active',
+  'In Review': 'In Progress', // Mapping In Review to In Progress if needed, or keep logic consistent with status
   'In Progress': 'In Progress',
-  'In Review': 'In Progress',
   'Completed': 'Done',
   'Done': 'Done'
 };
 
-const COLUMNS = ['Ready', 'In Progress', 'Done'];
+const COLUMNS = ['Ready', 'Active', 'In Progress', 'Done'];
 
 const KanbanBoard = ({ steps, onUpdateTask, users, isOwner }: KanbanBoardProps) => {
   const [draggedTask, setDraggedTask] = useState<{ task: Task, stepId: string } | null>(null);
 
-  // Flatten tasks logic for the board, while preserving step reference
   const allTasks = useMemo(() => {
     return steps.flatMap(step =>
       step.tasks.map(task => ({
         ...task,
-        status: COLUMN_MAPPING[task.status] || 'Backlog',
+        status: COLUMN_MAPPING[task.status] || 'Ready',
         stepId: step._id
       }))
     );
   }, [steps]);
 
-  // Group by column
   const columns = useMemo(() => {
     const cols: Record<string, typeof allTasks> = {};
     COLUMNS.forEach(c => cols[c] = []);
@@ -84,164 +79,177 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner }: KanbanBoardProps) 
     if (!draggedTask) return;
 
     if (draggedTask.task.status !== targetStatus) {
-      // Map back to schema valid status
       let schemaStatus = targetStatus;
       if (targetStatus === 'Done') schemaStatus = 'Completed';
-
       onUpdateTask(draggedTask.stepId, draggedTask.task._id, { status: schemaStatus });
     }
     setDraggedTask(null);
   };
 
-  // Helper for border colors
-  const getBorderColor = (status: string) => {
-    if (status === 'In Progress') return 'border-l-green-500 bg-green-500/10 shadow-[0_0_15px_rgba(34,197,94,0.1)]';
-    if (status === 'Done') return 'border-l-blue-500 bg-blue-500/10';
-    return 'border-l-muted-foreground/30';
+  const getThemeColor = (status: string) => {
+    switch (status) {
+      case 'Ready': return 'blue';
+      case 'Active': return 'green';
+      case 'In Progress': return 'orange';
+      case 'Done': return 'yellow';
+      default: return 'gray';
+    }
   };
 
-  // Helper for column header colors
-  const getHeaderColor = (column: string) => {
-    if (column === 'In Progress') return 'border-b-green-500/50 bg-green-500/5 text-green-500';
-    if (column === 'Done') return 'border-b-blue-500/50 bg-blue-500/5 text-blue-500';
-    return 'border-b-border/50 bg-secondary/10';
+  const getColumnColor = (column: string) => {
+    switch (column) {
+      case 'Ready': return 'text-blue-400 border-blue-500/20 shadow-blue-500/10';
+      case 'Active': return 'text-green-400 border-green-500/20 shadow-green-500/10';
+      case 'In Progress': return 'text-orange-400 border-orange-500/20 shadow-orange-500/10';
+      case 'Done': return 'text-yellow-400 border-yellow-500/20 shadow-yellow-500/10';
+      default: return 'text-muted-foreground border-white/10';
+    }
+  };
+
+  const getCardHoverBorder = (status: string) => {
+    switch (status) {
+      case 'Ready': return 'group-hover:border-blue-500/50';
+      case 'Active': return 'group-hover:border-green-500/50';
+      case 'In Progress': return 'group-hover:border-orange-500/50';
+      case 'Done': return 'group-hover:border-yellow-500/50';
+      default: return 'group-hover:border-white/30';
+    }
   };
 
   return (
-    // Allow natural height, enable x-overflow for the board container but y-visible for columns
-    <div className="flex h-full gap-4 overflow-x-auto pb-4 items-start">
-      {COLUMNS.map(column => (
-        <div
-          key={column}
-          className={`flex-shrink-0 w-72 bg-secondary/20 rounded-lg flex flex-col border border-border/50 ${column === 'In Progress' ? 'ring-1 ring-green-500/20' : ''}`}
-          onDragOver={handleDragOver}
-          onDrop={(e) => handleDrop(e, column)}
-        >
-          <div className={`p-3 font-semibold text-sm flex justify-between items-center rounded-t-lg border-b ${getHeaderColor(column)}`}>
-            {column}
-            <Badge variant="secondary" className="ml-2 bg-background/50">{columns[column].length}</Badge>
-          </div>
+    <div className="w-full h-full flex flex-col items-center bg-black/40 overflow-hidden">
+      <div className="w-full max-w-7xl h-full px-6 py-4 grid grid-cols-4 gap-6">
+        {COLUMNS.map(column => (
+          <div
+            key={column}
+            className="flex flex-col h-full gap-4 min-w-0"
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, column)}
+          >
+            {/* Sticky Header */}
+            <div className={`
+              sticky top-0 z-20 backdrop-blur-xl bg-black/20 p-4 rounded-xl border flex items-center justify-between
+              ${getColumnColor(column)} shadow-lg
+            `}>
+              <span className="font-bold tracking-wide">{column}</span>
+              <Badge variant="secondary" className="bg-white/10 text-white border-none">{columns[column].length}</Badge>
+            </div>
 
-          <div className="flex-1 p-2 min-h-[100px]">
-            <motion.div
-              className="space-y-2"
-              initial="hidden"
-              animate="visible"
-              variants={{
-                hidden: { opacity: 0 },
-                visible: {
-                  opacity: 1,
-                  transition: {
-                    staggerChildren: 0.1 // Slower stagger
-                  }
-                }
-              }}
-            >
+            {/* Scrollable Column Content */}
+            <div className="flex-1 overflow-y-auto pr-2 pb-20 custom-scrollbar space-y-3">
               <AnimatePresence mode="popLayout">
                 {columns[column].map(task => (
                   <motion.div
                     key={task._id}
-                    layout // Enable layout animations
-                    layoutId={task._id} // Unique ID for layout animations
-                    initial={{
-                      opacity: 0,
-                      x: column === 'In Progress' ? -310 : column === 'Done' ? -620 : -20,
-                      zIndex: 10
-                    }}
-                    animate={{ opacity: 1, x: 0, zIndex: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    transition={{
-                      type: "tween",
-                      duration: 0.5,
-                      ease: "circOut"
-                    }}
-                    className="relative"
+                    layoutId={task._id}
+                    layout // Enable full layout animation
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                    whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                    className="relative group"
                   >
-                    <Card
+                    <div
                       draggable
                       onDragStart={(e) => handleDragStart(e, task, task.stepId)}
-                      className={`cursor-grab active:cursor-grabbing hover:shadow-lg transition-all border-l-4 ${getBorderColor(task.status)} relative overflow-hidden`}
+                      className={`
+                        relative w-full p-4 rounded-xl backdrop-blur-md transition-all duration-300
+                        bg-white/5 border border-white/10 shadow-sm
+                        ${getCardHoverBorder(task.status)}
+                        hover:shadow-xl hover:bg-white/[0.07]
+                        cursor-grab active:cursor-grabbing
+                      `}
                     >
-                      <CardContent className="p-3 space-y-2">
-                        <div className="flex justify-between items-start gap-2">
-                          <span className="text-sm font-medium leading-tight z-10 relative">{task.title}</span>
-                          <GripVertical className="w-4 h-4 text-muted-foreground opacity-50" />
+                      <div className="flex justify-between items-start gap-2 mb-3">
+                        <span className="text-sm font-medium leading-tight text-white/90 z-10 relative">
+                          {task.title}
+                        </span>
+                        <GripVertical className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                      </div>
+
+                      {task.assignedTo && (
+                        <div className="flex items-center gap-2 mb-3">
+                          <Avatar className="w-5 h-5 ring-1 ring-white/20">
+                            <AvatarFallback className="text-[10px] bg-white/10 text-white/80">
+                              {task.assignedToName?.substring(0, 2).toUpperCase() || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-xs text-white/50 truncate max-w-[120px]">
+                            {task.assignedToName}
+                          </span>
                         </div>
+                      )}
 
-                        {task.assignedTo && (
-                          <div className="flex items-center gap-2 pt-2">
-                            <Avatar className="w-5 h-5">
-                              <AvatarFallback className="text-[10px] bg-primary/20 text-primary">
-                                {task.assignedToName?.substring(0, 2).toUpperCase() || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span className="text-xs text-muted-foreground truncate max-w-[100px]">
-                              {task.assignedToName}
-                            </span>
-                          </div>
-                        )}
+                      {/* Visual Progress Stepper */}
+                      <div className="flex items-center pt-3 border-t border-white/10 w-full">
+                        {['Ready', 'Active', 'In Progress', 'Done'].map((step, index) => {
+                          const STATUS_ORDER = ['Ready', 'Active', 'In Progress', 'Done'];
+                          const currentStatusIndex = STATUS_ORDER.indexOf(task.status === 'Completed' ? 'Done' : (task.status === 'Pending' || task.status === 'Backlog' ? 'Ready' : task.status === 'In Review' ? 'In Progress' : task.status));
+                          const isCompleted = index <= currentStatusIndex;
+                          const isCurrent = index === currentStatusIndex;
 
-                        {/* Visual Progress Stepper */}
-                        <div className="flex items-center mt-3 pt-2 border-t border-border/30 w-full">
-                          {['Ready', 'In Progress', 'Done'].map((step, index) => {
-                            const STATUS_ORDER = ['Ready', 'In Progress', 'Done'];
-                            const currentStatusIndex = STATUS_ORDER.indexOf(task.status === 'Completed' ? 'Done' : (task.status === 'Pending' || task.status === 'Backlog' ? 'Ready' : task.status === 'In Review' ? 'In Progress' : task.status));
-                            const isCompleted = index <= currentStatusIndex;
-                            const isCurrent = index === currentStatusIndex;
+                          // Color logic based on status
+                          let activeColorClass = 'bg-white/40';
+                          if (task.status === 'Active') activeColorClass = 'bg-green-500';
+                          else if (task.status === 'In Progress') activeColorClass = 'bg-orange-500';
+                          else if (task.status === 'Done' || task.status === 'Completed') activeColorClass = 'bg-yellow-500';
+                          else if (task.status === 'Ready') activeColorClass = 'bg-blue-500';
 
-                            return (
-                              <div key={step} className="flex items-center flex-1 last:flex-none">
-                                <motion.div
-                                  initial={{ scale: 0 }}
-                                  animate={{ scale: 1 }}
-                                  transition={{ delay: 0.3 + (index * 0.1), type: "spring", stiffness: 400, damping: 20 }}
-                                  className={`w-2 h-2 rounded-full transition-colors duration-300 z-10 shrink-0 ${isCompleted
-                                    ? (task.status === 'In Progress' || task.status === 'In Review' || task.status === 'Done' || task.status === 'Completed' ? 'bg-green-500' : 'bg-primary/60')
-                                    : 'bg-muted'
-                                    } ${isCurrent ? 'ring-2 ring-offset-1 ring-offset-card ' + (task.status === 'In Progress' || task.status === 'Ready' || task.status === 'In Review' || task.status === 'Done' ? 'ring-green-500' : 'ring-primary/60') : ''}`}
-                                  title={step}
-                                />
-                                {index < 2 && (
-                                  <div className="h-[2px] w-full -mx-0.5 relative z-0 bg-muted/50 overflow-hidden">
-                                    {isCompleted && index < currentStatusIndex && (
-                                      <motion.div
-                                        initial={{ width: "0%" }}
-                                        animate={{ width: "100%" }}
-                                        transition={{ delay: 0.35 + (index * 0.1), duration: 0.2, ease: "easeInOut" }}
-                                        className={`h-full w-full ${task.status === 'In Progress' || task.status === 'Done' || task.status === 'Completed' ? 'bg-green-500' : 'bg-primary/30'}`}
-                                      />
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
+                          let ringColorClass = '';
+                          if (task.status === 'Active') ringColorClass = 'ring-green-500';
+                          else if (task.status === 'In Progress') ringColorClass = 'ring-orange-500';
+                          else if (task.status === 'Done') ringColorClass = 'ring-yellow-500';
+                          else ringColorClass = 'ring-blue-500';
 
-                        {/* Start Task Button - Hidden for Owner */}
-                        {['Ready', 'Pending', 'Backlog'].includes(task.status) && !isOwner && (
+                          return (
+                            <div key={step} className="flex items-center flex-1 last:flex-none">
+                              <div
+                                className={`w-1.5 h-1.5 rounded-full transition-all duration-300 z-10 shrink-0 
+                                     ${isCompleted ? activeColorClass : 'bg-white/10'} 
+                                     ${isCurrent ? `ring-2 ring-offset-1 ring-offset-transparent ${ringColorClass} scale-125` : ''}
+                                   `}
+                                title={step}
+                              />
+                              {index < 3 && (
+                                <div className="h-[1px] w-full -mx-0.5 relative z-0 bg-white/5 overflow-hidden">
+                                  {isCompleted && index < currentStatusIndex && (
+                                    <motion.div
+                                      initial={{ width: "0%" }}
+                                      animate={{ width: "100%" }}
+                                      className={`h-full w-full ${activeColorClass}`}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Start Task Button */}
+                      {['Ready', 'Pending', 'Backlog'].includes(task.status) && !isOwner && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
                           <Button
                             size="sm"
-                            variant="outline"
-                            className="w-full mt-2 h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700 bg-white"
+                            variant="ghost"
+                            className="w-full h-7 text-xs border border-green-500/30 text-green-400 hover:bg-green-500/10 hover:text-green-300"
                             onClick={(e) => {
                               e.stopPropagation();
-                              console.log("Start Task Triggered for Task ID:", task._id, "Step ID:", task.stepId);
-                              onUpdateTask(task.stepId, task._id, { status: 'In Progress' });
+                              onUpdateTask(task.stepId, task._id, { status: 'Active' });
                             }}
                           >
                             Start Task
                           </Button>
-                        )}
-                      </CardContent>
-                    </Card>
+                        </motion.div>
+                      )}
+                    </div>
                   </motion.div>
                 ))}
               </AnimatePresence>
-            </motion.div>
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

@@ -275,7 +275,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                 variant="outline"
                                                 className="h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700"
                                                 onClick={() => {
-                                                    updateTaskStatus(task, 'In Progress');
+                                                    updateTaskStatus(task, 'Active');
                                                 }}
                                             >
                                                 Start Task

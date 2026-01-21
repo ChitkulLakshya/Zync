@@ -66,7 +66,7 @@ interface Task {
   id: string;
   title: string;
   description: string;
-  status: "Pending" | "In Progress" | "Completed";
+  status: "Pending" | "In Progress" | "Active" | "Completed";
   assignedTo?: string;
   assignedToName?: string;
   commitInfo?: {

@@ -6,7 +6,7 @@ const TaskSchema = new mongoose.Schema({
   description: { type: String },
   status: {
     type: String,
-    enum: ['Pending', 'Backlog', 'Ready', 'In Progress', 'In Review', 'Completed', 'Done'],
+    enum: ['Pending', 'Backlog', 'Ready', 'In Progress', 'Active', 'In Review', 'Completed', 'Done'],
     default: 'Backlog'
   },
   assignedTo: { type: String, default: null }, // User UID

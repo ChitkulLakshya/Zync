@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
+const Team = require('../models/Team');
 const { encrypt } = require('../utils/encryption');
 // const { sendEmail } = require('../utils/emailService'); // Replaced by mailer
 const { sendZyncEmail } = require('../services/mailer');
@@ -337,6 +338,12 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
     if (user.deleteConfirmationExpires < Date.now()) {
       return res.status(400).json({ message: 'Code expired' });
     }
+
+    // Remove user from any teams
+    await Team.updateMany(
+      { members: uid },
+      { $pull: { members: uid } }
+    );
 
     await User.findOneAndDelete({ uid });
     // TODO: also trigger Firebase Authentication deletion via Admin SDK if possible, 

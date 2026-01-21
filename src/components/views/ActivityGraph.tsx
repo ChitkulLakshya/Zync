@@ -137,7 +137,7 @@ export const ActivityGraph = ({ tasks = [], users, teamSessions = [], currentTea
 
             relevantTasks.forEach(task => {
                 if (task.assignedTo && userMap[task.assignedTo]) {
-                    const statusKey = task.status === 'In Progress' ? 'InProgress' : (task.status === 'Done' || task.status === 'Completed' ? 'Done' : 'Ready');
+                    const statusKey = (task.status === 'In Progress' || task.status === 'Active') ? 'InProgress' : (task.status === 'Done' || task.status === 'Completed' ? 'Done' : 'Ready');
                     userMap[task.assignedTo][statusKey] = (userMap[task.assignedTo][statusKey] || 0) + 1;
                 }
             });

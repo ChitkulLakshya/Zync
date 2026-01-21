@@ -3,6 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const axios = require('axios');
 const Project = require('../models/Project');
+const User = require('../models/User');
 const { getInstallationAccessToken } = require('../utils/githubAppAuth');
 
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
@@ -87,59 +88,78 @@ router.post('/', verifySignature, async (req, res) => {
                     if (project) {
                         let taskFound = false;
                         let taskTitle = "";
+                        const senderLogin = payload.sender.login;
 
-                        // Locate and update the exact task object
-                        project.steps.forEach(step => {
-                            step.tasks.forEach(task => {
-                                if (task.id === taskId || (task._id && task._id.toString() === taskId)) {
-                                    task.status = 'Completed';
-                                    task.commitInfo = {
+                        // Locate the task first
+                        let targetTask = null;
+                        for (const step of project.steps) {
+                            const found = step.tasks.find(t => t.id === taskId || (t._id && t._id.toString() === taskId));
+                            if (found) {
+                                targetTask = found;
+                                break;
+                            }
+                        }
+
+                        if (targetTask) {
+                            // Check Assignment
+                            if (!targetTask.assignedTo) {
+                                console.log(`Task ${taskId} is unassigned. Ignoring commit from ${senderLogin}.`);
+                            } else {
+                                const assignedUser = await User.findOne({ uid: targetTask.assignedTo });
+                                const storedUsername = assignedUser?.integrations?.github?.username;
+
+                                if (storedUsername === senderLogin) {
+                                    // AUTHORIZED
+                                    targetTask.status = 'In Progress';
+                                    targetTask.commitInfo = {
                                         message: commit.message,
                                         url: commit.url,
                                         author: commit.author.name,
                                         timestamp: commit.timestamp
                                     };
                                     taskFound = true;
-                                    taskTitle = task.title;
-                                }
-                            });
-                        });
+                                    taskTitle = targetTask.title;
 
-                        if (taskFound) {
-                            await project.save();
-                            console.log(`Task ${taskId} marked as completed in DB.`);
+                                    await project.save();
+                                    console.log(`Task ${taskId} marked as In Progress by ${senderLogin}.`);
 
-                            // 2. Post Bot Comment to GitHub
-                            if (installToken) {
-                                try {
-                                    await axios.post(
-                                        `https://api.github.com/repos/${repository.full_name}/commits/${commit.id}/comments`,
-                                        {
-                                            body: `✅ **Zync Bot**: Task **#${taskId}** ("${taskTitle}") has been automatically marked as completed in your workspace! 🚀`
-                                        },
-                                        {
-                                            headers: {
-                                                'Authorization': `token ${installToken}`,
-                                                'Accept': 'application/vnd.github.v3+json'
-                                            }
+                                    // 2. Post Bot Comment to GitHub
+                                    if (installToken) {
+                                        try {
+                                            await axios.post(
+                                                `https://api.github.com/repos/${repository.full_name}/commits/${commit.id}/comments`,
+                                                {
+                                                    body: `🚀 **Zync Bot**: Task **#${taskId}** ("${taskTitle}") has been set to **In Progress** by @${senderLogin}! Verified assignment. ✅`
+                                                },
+                                                {
+                                                    headers: {
+                                                        'Authorization': `token ${installToken}`,
+                                                        'Accept': 'application/vnd.github.v3+json'
+                                                    }
+                                                }
+                                            );
+                                            console.log(`Posted comment on commit ${commit.id}`);
+                                        } catch (commentErr) {
+                                            console.error("Failed to post GitHub comment:", commentErr.message);
                                         }
-                                    );
-                                    console.log(`Posted comment on commit ${commit.id}`);
-                                } catch (commentErr) {
-                                    console.error("Failed to post GitHub comment:", commentErr.message);
+                                    }
+
+                                    // Emit socket event for real-time update
+                                    const io = req.app.get('io');
+                                    if (io) {
+                                        io.emit('taskUpdated', {
+                                            taskId: taskId,
+                                            projectId: project._id,
+                                            status: 'In Progress',
+                                            message: `Task status updated via commit`
+                                        });
+                                    }
+                                } else {
+                                    console.log(`Unauthorized commit attempt by ${senderLogin} for task ${taskId}`);
                                 }
                             }
-
-                            // Emit socket event for real-time update
-                            const io = req.app.get('io');
-                            if (io) {
-                                io.emit('taskUpdated', {
-                                    taskId: taskId,
-                                    projectId: project._id,
-                                    status: 'Completed',
-                                    message: `Task completed via commit`
-                                });
-                            }
+                        } else {
+                            console.log(`Task ${taskId} found in query but not in loop.`);
                         }
                     } else {
                         console.log(`Task ${taskId} not found in any project.`);

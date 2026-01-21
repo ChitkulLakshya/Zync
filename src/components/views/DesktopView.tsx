@@ -206,16 +206,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   // Determine if we should show the landing page (DashboardHome)
   // Only show if we are effectively on the "Dashboard" root path and haven't navigated yet
-  const [isLanding, setIsLanding] = useState(() => {
-    // If we are deep linking to a specific section (e.g. /dashboard/messages), don't show landing
-    if (location.pathname !== '/dashboard') return false;
-    // Otherwise show landing on first load
-    return true;
-  });
+  const [isLanding, setIsLanding] = useState(false);
 
   // Update URL when section changes (only if not caused by URL change)
   const handleSectionChange = (section: string) => {
     setIsLanding(false); // Dismiss landing page on any navigation
+    localStorage.setItem("ZYNC_HAS_SEEN_LANDING", "true"); // Persist dismissal
     setActiveSection(section);
     const path = sectionToPath[section];
     if (path && location.pathname !== path) {
@@ -553,6 +549,14 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
+
+      // Show landing page ONLY for new users (first login)
+      if (user && user.metadata.creationTime === user.metadata.lastSignInTime && !localStorage.getItem("ZYNC_HAS_SEEN_LANDING")) {
+        if (location.pathname === '/dashboard') {
+          setIsLanding(true);
+        }
+      }
+
       setLoading(false);
 
       if (user && !isPreview) {
@@ -1107,6 +1111,14 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="h-screen w-full bg-black flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-white" />
+      </div>
+    );
+  }
+
   return (
 
     <div className="h-screen w-full bg-black text-foreground overflow-hidden relative font-sans">
@@ -1218,6 +1230,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   <DropdownMenuItem onClick={async () => {
                     if (isPreview) return;
                     localStorage.removeItem("ZYNC-active-section");
+                    localStorage.removeItem("ZYNC_HAS_SEEN_LANDING"); // Reset landing page state
                     await signOut(auth);
                     navigate("/login");
                   }} className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer py-2">
