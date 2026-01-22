@@ -96,22 +96,22 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
 
   // Determine IsEditable state on mount and when note/user changes
   useEffect(() => {
-    const isCreator = user.uid === note.ownerId;
-
-    if (isCreator) {
+    // Logic 1: Default to true if owner
+    if (user.uid === note.ownerId) {
       setIsEditable(true);
-    } else {
-      // Check permission level from note data
-      // note.permissions might be a map of userId -> role ('viewer', 'editor')
-      const noteAny = note as any;
-      const userRole = noteAny.permissions?.[user.uid] || noteAny.role;
+      return;
+    }
 
-      if (userRole === 'viewer') {
-        setIsEditable(false);
-      } else {
-        // Default to true if not explicitly restricted
-        setIsEditable(true);
-      }
+    // Logic 2: Check permissions/role from 'session data' (note object proxy)
+    const noteAny = note as any;
+    const userRole = noteAny.permissions?.[user.uid] || noteAny.role;
+
+    // Logic 3: If explicitly viewer, set false
+    if (userRole === 'viewer') {
+      setIsEditable(false);
+    } else {
+      // Default to editable for others (collaborators)
+      setIsEditable(true);
     }
   }, [note, user.uid]);
 
@@ -163,6 +163,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   }, [user.uid]);
 
   const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isEditable) return;
     const newTitle = e.target.value;
     setTitle(newTitle);
     setStatus('Saving...');
@@ -517,6 +518,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
               <BlockNoteView
                 editor={editor}
                 editable={isEditable}
+                slashMenu={isEditable}
                 onChange={handleContentChange}
                 theme="dark"
                 className="ZYNC-editor-overrides"
