@@ -209,7 +209,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         toast.error("Failed to save changes");
       }
     }, 2000); // Wait 2 seconds of inactivity before saving
-  }, [editor, note.id, updateCursorPosition]);
+  }, [editor, note.id, updateCursorPosition, isEditable]);
 
   // Track block focus for cursor awareness
   const handleBlockFocus = useCallback(() => {
