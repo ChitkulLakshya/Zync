@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import MessagesPage from "./MessagesPage";
 
 interface PeopleViewProps {
     users?: any[];
@@ -44,6 +45,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const [inviteLoading, setInviteLoading] = useState(false);
     const [createTeamOpen, setCreateTeamOpen] = useState(false);
     const [joinTeamOpen, setJoinTeamOpen] = useState(false);
+    const [showMessages, setShowMessages] = useState(false);
 
     // Sidebar State
     const [sidebarWidth, setSidebarWidth] = useState(256);
@@ -134,18 +136,30 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                 }
             } catch (err) {
                 console.error("Error checking teams:", err);
+            } finally {
+                // We only mark loading as false here if we have NO teams. 
+                // If we HAVE teams, we let the fetchUsers effect handle the loading state finishing.
+                // Actually, we need a flag to say "teams are ready".
+                setTeamsLoaded(true);
             }
         };
 
         if (!isPreview) {
             fetchTeams();
+        } else {
+            setTeamsLoaded(true);
         }
     }, [currentUser, isPreview]);
 
-    // Fetch users if has team
+    const [teamsLoaded, setTeamsLoaded] = useState(false);
+
     // Fetch users if has team
     useEffect(() => {
+        // Wait until teams are loaded before deciding what to do
+        if (!teamsLoaded && !isPreview) return;
+
         if (!isPreview && hasTeam && teamInfo) {
+            setLoading(true); // Ensure loading is true while fetching users
             const fetchUsers = async () => {
                 if (!currentUser) return;
                 try {
@@ -155,9 +169,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                     });
                     if (response.ok) {
                         const data = await response.json();
-                        // Filter out current user
-                        const filteredUsers = data.filter((u: any) => u.uid !== currentUser?.uid);
-                        setUsers(filteredUsers);
+                        setUsers(data);
                     }
                 } catch (error) {
                     console.error("Error fetching users:", error);
@@ -172,7 +184,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
         } else {
             setLoading(false);
         }
-    }, [isPreview, currentUser?.uid, hasTeam, propUsers, teamInfo?._id]);
+    }, [isPreview, currentUser?.uid, hasTeam, propUsers, teamInfo?._id, teamsLoaded]);
 
     if (!hasTeam && !isPreview) {
         return <TeamOnboarding onSuccess={() => {
@@ -244,7 +256,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                 {myTeams.map((team) => (
                                     <div
                                         key={team._id}
-                                        onClick={() => setTeamInfo(team)}
+                                        onClick={() => {
+                                            setTeamInfo(team);
+                                            setShowMessages(false);
+                                        }}
                                         className={cn(
                                             "flex items-center rounded-md transition-all cursor-pointer select-none border border-transparent",
                                             effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
@@ -281,237 +296,259 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                 </div>
 
                 {/* Main Content */}
-                <div className="flex-1 overflow-y-auto p-6 md:pl-8 space-y-8">
-                    {/* Team Action Header */}
-                    <div className="flex justify-end mb-2">
-                        {onMessages && (
-                            <Button variant="outline" className="gap-2" onClick={onMessages}>
-                                <MessageSquare className="w-4 h-4" />
-                                All Messages
-                            </Button>
-                        )}
+                <div className="flex-1 relative flex flex-col overflow-hidden">
+                    {/* Fixed Header */}
+                    <div className="flex justify-between items-center p-6 md:pl-8 pb-4 shrink-0 bg-background border-b border-border/40 z-10">
+                        <div>
+                            <h1 className="text-2xl font-bold tracking-tight">People</h1>
+                            <p className="text-sm text-muted-foreground">Manage your team</p>
+                        </div>
+                        <Button variant="outline" className="gap-2" onClick={() => setShowMessages(true)}>
+                            <MessageSquare className="w-4 h-4" />
+                            All Messages
+                        </Button>
                     </div>
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <h3 className="text-sm text-muted-foreground mb-1">Team Owner</h3>
-                                <div className="flex items-center gap-3">
-                                    {(() => {
-                                        // Resolve Team Owner
-                                        let ownerUser = null;
-                                        if (teamInfo?.ownerId) {
-                                            if (currentUser?.uid === teamInfo.ownerId) {
-                                                ownerUser = currentUser;
-                                            } else {
-                                                ownerUser = users.find(u => u.uid === teamInfo.ownerId);
+
+                    {/* People Content - Scrollable Area */}
+                    <div className="flex-1 w-full overflow-y-auto p-6 md:pl-8 space-y-8">
+
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <h3 className="text-sm text-muted-foreground mb-1">Team Owner</h3>
+                                    <div className="flex items-center gap-3">
+                                        {(() => {
+                                            // Resolve Team Owner
+                                            let ownerUser = null;
+                                            if (teamInfo?.ownerId) {
+                                                if (currentUser?.uid === teamInfo.ownerId) {
+                                                    ownerUser = currentUser;
+                                                } else {
+                                                    ownerUser = users.find(u => u.uid === teamInfo.ownerId);
+                                                }
                                             }
-                                        }
-                                        // Fallback to current user if logic fails or data missing (safe default)
-                                        const displayUser = ownerUser || currentUser;
+                                            // Fallback to current user if logic fails or data missing (safe default)
+                                            const displayUser = ownerUser || currentUser;
 
-                                        return (
-                                            <>
-                                                <Avatar className="h-10 w-10 border shadow-sm">
-                                                    <AvatarImage src={getFullUrl(displayUser?.photoURL || "")} referrerPolicy="no-referrer" />
-                                                    <AvatarFallback>{getUserInitials(displayUser)}</AvatarFallback>
-                                                </Avatar>
-                                                <div className="flex flex-col">
-                                                    <span className="font-semibold text-sm">{getUserName(displayUser)}</span>
-                                                    <span className="text-xs text-muted-foreground">{displayUser?.email}</span>
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
+                                            return (
+                                                <>
+                                                    <Avatar className="h-10 w-10 border shadow-sm">
+                                                        <AvatarImage src={getFullUrl(displayUser?.photoURL || "")} referrerPolicy="no-referrer" />
+                                                        <AvatarFallback>{getUserInitials(displayUser)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-semibold text-sm">{getUserName(displayUser)}</span>
+                                                        <span className="text-xs text-muted-foreground">{displayUser?.email}</span>
+                                                    </div>
+                                                </>
+                                            );
+                                        })()}
 
-                                    {/* Invite Dialog Trigger */}
-                                    <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-                                        <DialogTrigger asChild>
-                                            <Button size="icon" className="rounded-full h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white shadow-md">
-                                                <Plus className="h-4 w-4" />
-                                            </Button>
-                                        </DialogTrigger>
-                                        <DialogContent className="sm:max-w-[425px]">
-                                            <DialogHeader>
-                                                <DialogTitle>Invite to Team</DialogTitle>
-                                                <DialogDescription>
-                                                    Send an invitation email to add a new member to your team.
-                                                </DialogDescription>
-                                            </DialogHeader>
-                                            <div className="grid gap-4 py-4">
-                                                <div className="grid grid-cols-4 items-center gap-4">
-                                                    <Label htmlFor="email" className="text-right">
-                                                        Email
-                                                    </Label>
-                                                    <Input
-                                                        id="email"
-                                                        placeholder="colleague@example.com"
-                                                        className="col-span-3"
-                                                        value={inviteEmail}
-                                                        onChange={(e) => setInviteEmail(e.target.value)}
-                                                    />
-                                                </div>
-                                            </div>
-                                            <DialogFooter>
-                                                <Button type="submit" disabled={inviteLoading} onClick={async () => {
-                                                    if (!inviteEmail) return;
-                                                    setInviteLoading(true);
-                                                    try {
-                                                        const token = await currentUser?.getIdToken();
-                                                        const res = await fetch(`${API_BASE_URL}/api/teams/invite`, {
-                                                            method: 'POST',
-                                                            headers: {
-                                                                'Content-Type': 'application/json',
-                                                                'Authorization': `Bearer ${token}`
-                                                            },
-                                                            body: JSON.stringify({ email: inviteEmail })
-                                                        });
-
-                                                        if (res.ok) {
-                                                            toast({ title: "Invitation Sent", description: `Invite sent to ${inviteEmail}` });
-                                                            setInviteOpen(false);
-                                                            setInviteEmail("");
-                                                        } else {
-                                                            const err = await res.json();
-                                                            toast({ title: "Error", description: err.message, variant: "destructive" });
-                                                            if (err.message.includes("Invited user already exists")) {
-                                                                alert("User already in team");
-                                                            }
-                                                        }
-                                                    } catch (e) {
-                                                        console.error(e);
-                                                        toast({ title: "Error", description: "Failed to send invite", variant: "destructive" });
-                                                    } finally {
-                                                        setInviteLoading(false);
-                                                    }
-                                                }}>
-                                                    {inviteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                                    Send Invite
+                                        {/* Invite Dialog Trigger */}
+                                        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+                                            <DialogTrigger asChild>
+                                                <Button size="icon" className="rounded-full h-8 w-8 bg-blue-600 hover:bg-blue-700 text-white shadow-md">
+                                                    <Plus className="h-4 w-4" />
                                                 </Button>
-                                            </DialogFooter>
-                                        </DialogContent>
-                                    </Dialog>
+                                            </DialogTrigger>
+                                            <DialogContent className="sm:max-w-[425px]">
+                                                <DialogHeader>
+                                                    <DialogTitle>Invite to Team</DialogTitle>
+                                                    <DialogDescription>
+                                                        Send an invitation email to add a new member to your team.
+                                                    </DialogDescription>
+                                                </DialogHeader>
+                                                <div className="grid gap-4 py-4">
+                                                    <div className="grid grid-cols-4 items-center gap-4">
+                                                        <Label htmlFor="email" className="text-right">
+                                                            Email
+                                                        </Label>
+                                                        <Input
+                                                            id="email"
+                                                            placeholder="colleague@example.com"
+                                                            className="col-span-3"
+                                                            value={inviteEmail}
+                                                            onChange={(e) => setInviteEmail(e.target.value)}
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <DialogFooter>
+                                                    <Button type="submit" disabled={inviteLoading} onClick={async () => {
+                                                        if (!inviteEmail) return;
+                                                        setInviteLoading(true);
+                                                        try {
+                                                            const token = await currentUser?.getIdToken();
+                                                            const res = await fetch(`${API_BASE_URL}/api/teams/invite`, {
+                                                                method: 'POST',
+                                                                headers: {
+                                                                    'Content-Type': 'application/json',
+                                                                    'Authorization': `Bearer ${token}`
+                                                                },
+                                                                body: JSON.stringify({ email: inviteEmail })
+                                                            });
+
+                                                            if (res.ok) {
+                                                                toast({ title: "Invitation Sent", description: `Invite sent to ${inviteEmail}` });
+                                                                setInviteOpen(false);
+                                                                setInviteEmail("");
+                                                            } else {
+                                                                const err = await res.json();
+                                                                toast({ title: "Error", description: err.message, variant: "destructive" });
+                                                                if (err.message.includes("Invited user already exists")) {
+                                                                    alert("User already in team");
+                                                                }
+                                                            }
+                                                        } catch (e) {
+                                                            console.error(e);
+                                                            toast({ title: "Error", description: "Failed to send invite", variant: "destructive" });
+                                                        } finally {
+                                                            setInviteLoading(false);
+                                                        }
+                                                    }}>
+                                                        {inviteLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                        Send Invite
+                                                    </Button>
+                                                </DialogFooter>
+                                            </DialogContent>
+                                        </Dialog>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="border rounded-xl bg-gradient-to-br from-card to-secondary/10 p-6 shadow-sm border-border/50 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-500" />
+                            <div className="border rounded-xl bg-gradient-to-br from-card to-secondary/10 p-6 shadow-sm border-border/50 relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-500" />
 
-                            <div className="relative z-10">
-                                <h1 className="text-3xl font-bold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">{teamInfo?.name || "Your Team"}</h1>
-                                {teamInfo && (
-                                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <span>Invite Code:</span>
-                                            <div
-                                                className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-md border border-border/50 cursor-pointer hover:border-primary/50 transition-colors group/code"
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(teamInfo.inviteCode);
-                                                    toast({ description: "Invite code copied to clipboard" });
-                                                }}
-                                            >
-                                                <code className="font-mono font-bold tracking-wider text-primary">{teamInfo.inviteCode}</code>
-                                                <div className="bg-primary/10 p-1 rounded-md ml-1 group-hover/code:bg-primary/20 transition-colors">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                <div className="relative z-10">
+                                    <h1 className="text-3xl font-bold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">{teamInfo?.name || "Your Team"}</h1>
+                                    {teamInfo && (
+                                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                                <span>Invite Code:</span>
+                                                <div
+                                                    className="flex items-center gap-2 bg-background/50 px-3 py-1.5 rounded-md border border-border/50 cursor-pointer hover:border-primary/50 transition-colors group/code"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(teamInfo.inviteCode);
+                                                        toast({ description: "Invite code copied to clipboard" });
+                                                    }}
+                                                >
+                                                    <code className="font-mono font-bold tracking-wider text-primary">{teamInfo.inviteCode}</code>
+                                                    <div className="bg-primary/10 p-1 rounded-md ml-1 group-hover/code:bg-primary/20 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                )}
+                                    )}
+                                </div>
                             </div>
+                        </div>
+
+                        {/* Members Grid */}
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-lg font-semibold">Members</h3>
+                            </div>
+
+                            {users.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center p-12 border rounded-lg border-dashed bg-muted/10 text-center">
+                                    <div className="bg-muted p-4 rounded-full mb-3">
+                                        <div className="bg-muted p-4 rounded-full mb-3">
+                                            <Plus className="h-6 w-6 text-muted-foreground" />
+                                        </div>
+                                    </div>
+                                    <h3 className="text-lg font-semibold">No members yet</h3>
+                                    <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
+                                        Use the (+) button above to invite members to your team.
+                                    </p>
+                                </div>
+                            ) : (
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    {users.map((user) => {
+                                        const statusData = !isPreview && userStatuses[user.uid]
+                                            ? userStatuses[user.uid]
+                                            : { status: user.status, lastSeen: user.lastSeen };
+
+                                        const status = statusData.status || 'offline';
+                                        const lastSeenDate = statusData.lastSeen ? new Date(statusData.lastSeen) : null;
+
+                                        let statusText = status;
+                                        if (lastSeenDate && !isNaN(lastSeenDate.getTime())) {
+                                            try {
+                                                // Shorten the status text
+                                                const duration = formatDistanceToNow(lastSeenDate, { addSuffix: false })
+                                                    .replace('less than a minute', '1m')
+                                                    .replace(' minutes', 'm')
+                                                    .replace(' minute', 'm')
+                                                    .replace(' hours', 'h')
+                                                    .replace(' hour', 'h')
+                                                    .replace(' days', 'd')
+                                                    .replace(' day', 'd');
+
+                                                if (status === 'online') {
+                                                    statusText = `Online (${duration})`;
+                                                } else {
+                                                    statusText = `Offline ${duration}`;
+                                                }
+                                            } catch (e) {
+                                                // Fallback
+                                            }
+                                        }
+
+                                        const displayName = getUserName(user);
+
+                                        return (
+                                            <Card key={user._id || user.id} className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative">
+                                                {/* Glow Effect */}
+                                                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+
+                                                <div className="relative shrink-0">
+                                                    <Avatar className="h-14 w-14 border-2 border-background ring-2 ring-border/20 group-hover:ring-primary/20 transition-all">
+                                                        <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
+                                                        <AvatarFallback className="bg-primary/5 text-primary font-bold">{getUserInitials(user)}</AvatarFallback>
+                                                    </Avatar>
+                                                    <span className={cn("absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background shadow-sm",
+                                                        status === "online" ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" :
+                                                            status === "away" ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"
+                                                    )} />
+                                                </div>
+
+                                                <div className="flex-1 min-w-0 text-left z-10">
+                                                    <div className="flex items-center justify-between">
+                                                        <h4 className="font-bold truncate text-base group-hover:text-primary transition-colors">{displayName}</h4>
+                                                        <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity -mr-2" onClick={() => onChat(user)}>
+                                                            <MessageSquare className="w-4 h-4 text-primary" />
+                                                        </Button>
+                                                    </div>
+                                                    <p className="text-xs text-muted-foreground truncate font-medium opacity-80">{user.email}</p>
+
+                                                    <div className="flex items-center gap-2 mt-3">
+                                                        <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-medium capitalize border-0",
+                                                            status === 'online' ? "bg-green-500/10 text-green-600 dark:text-green-400" :
+                                                                "bg-secondary text-muted-foreground"
+                                                        )}>
+                                                            {statusText}
+                                                        </Badge>
+                                                    </div>
+                                                </div>
+                                            </Card>
+                                        )
+                                    })}
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* Members Grid */}
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold">Members</h3>
-                        </div>
-
-                        {users.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center p-12 border rounded-lg border-dashed bg-muted/10 text-center">
-                                <div className="bg-muted p-4 rounded-full mb-3">
-                                    <Plus className="h-6 w-6 text-muted-foreground" />
-                                </div>
-                                <h3 className="text-lg font-semibold">No members yet</h3>
-                                <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
-                                    Use the (+) button above to invite members to your team.
-                                </p>
-                            </div>
-                        ) : (
-                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                {users.map((user) => {
-                                    const statusData = !isPreview && userStatuses[user.uid]
-                                        ? userStatuses[user.uid]
-                                        : { status: user.status, lastSeen: user.lastSeen };
-
-                                    const status = statusData.status || 'offline';
-                                    const lastSeenDate = statusData.lastSeen ? new Date(statusData.lastSeen) : null;
-
-                                    let statusText = status;
-                                    if (lastSeenDate && !isNaN(lastSeenDate.getTime())) {
-                                        try {
-                                            // Shorten the status text
-                                            const duration = formatDistanceToNow(lastSeenDate, { addSuffix: false })
-                                                .replace('less than a minute', '1m')
-                                                .replace(' minutes', 'm')
-                                                .replace(' minute', 'm')
-                                                .replace(' hours', 'h')
-                                                .replace(' hour', 'h')
-                                                .replace(' days', 'd')
-                                                .replace(' day', 'd');
-
-                                            if (status === 'online') {
-                                                statusText = `Online (${duration})`;
-                                            } else {
-                                                statusText = `Offline ${duration}`;
-                                            }
-                                        } catch (e) {
-                                            // Fallback
-                                        }
-                                    }
-
-                                    const displayName = getUserName(user);
-
-                                    return (
-                                        <Card key={user._id || user.id} className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative">
-                                            {/* Glow Effect */}
-                                            <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-
-                                            <div className="relative shrink-0">
-                                                <Avatar className="h-14 w-14 border-2 border-background ring-2 ring-border/20 group-hover:ring-primary/20 transition-all">
-                                                    <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
-                                                    <AvatarFallback className="bg-primary/5 text-primary font-bold">{getUserInitials(user)}</AvatarFallback>
-                                                </Avatar>
-                                                <span className={cn("absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background shadow-sm",
-                                                    status === "online" ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" :
-                                                        status === "away" ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"
-                                                )} />
-                                            </div>
-
-                                            <div className="flex-1 min-w-0 text-left z-10">
-                                                <div className="flex items-center justify-between">
-                                                    <h4 className="font-bold truncate text-base group-hover:text-primary transition-colors">{displayName}</h4>
-                                                    <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity -mr-2" onClick={() => onChat(user)}>
-                                                        <MessageSquare className="w-4 h-4 text-primary" />
-                                                    </Button>
-                                                </div>
-                                                <p className="text-xs text-muted-foreground truncate font-medium opacity-80">{user.email}</p>
-
-                                                <div className="flex items-center gap-2 mt-3">
-                                                    <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-medium capitalize border-0",
-                                                        status === 'online' ? "bg-green-500/10 text-green-600 dark:text-green-400" :
-                                                            "bg-secondary text-muted-foreground"
-                                                    )}>
-                                                        {statusText}
-                                                    </Badge>
-                                                </div>
-                                            </div>
-                                        </Card>
-                                    )
-                                })}
-                            </div>
-                        )}
+                    {/* Sliding Messages Panel */}
+                    <div className={cn(
+                        "absolute inset-0 bg-background z-50 transition-transform duration-300 ease-in-out will-change-transform shadow-2xl",
+                        showMessages ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
+                    )}>
+                        <MessagesPage
+                            users={users}
+                            currentUser={currentUser}
+                            userStatuses={userStatuses}
+                            onNavigateBack={() => setShowMessages(false)}
+                        />
                     </div>
                 </div>
             </div>

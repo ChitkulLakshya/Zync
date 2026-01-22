@@ -13,7 +13,9 @@ export const usePresence = (userId: string | undefined) => {
     useEffect(() => {
         if (!userId) return;
 
-        const socket = io(`${API_BASE_URL}/presence`, {
+        const socketUrl = import.meta.env.DEV ? "http://localhost:5000" : API_BASE_URL;
+
+        const socket = io(`${socketUrl}/presence`, {
             query: { userId },
             transports: ['websocket']
         });

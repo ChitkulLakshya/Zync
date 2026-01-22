@@ -47,7 +47,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
   const [newMessage, setNewMessage] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const currentUser = auth.currentUser;
 
@@ -95,7 +95,12 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
 
     if (isNewMessage) {
       if (isMyMessage || isNearBottomRef.current) {
-        scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+        if (containerRef.current) {
+          containerRef.current.scrollTo({
+            top: containerRef.current.scrollHeight,
+            behavior: "smooth"
+          });
+        }
       }
     } else if (messages.length === 0) {
       // Reset or empty
@@ -231,7 +236,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
   return (
     <div className="flex flex-col h-full bg-background relative">
       {/* Chat Header */}
-      <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-background/95 backdrop-blur z-10">
+      <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-background z-10">
         {onBack && (
           <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
             ← Back
@@ -263,7 +268,7 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
       </div >
 
       {/* Messages Area */}
-      < ScrollArea className="flex-1 p-4" onScroll={handleScroll} >
+      <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-secondary" onScroll={handleScroll} ref={containerRef}>
         <div className="space-y-4 pb-4">
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid;
@@ -364,9 +369,8 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
               </div>
             );
           })}
-          <div ref={scrollRef} />
         </div>
-      </ScrollArea >
+      </div>
 
       {/* Input Area */}
       < div className="p-4 border-t border-border/50 bg-background" >

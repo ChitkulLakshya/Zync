@@ -403,7 +403,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         }
       };
       fetchLogs();
-      fetchLogs();
     }
   }, [activeSection, currentUser, isPreview]);
 
@@ -782,9 +781,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <CalendarView />;
 
       case "Chat":
+        // Allow chat even without team (for connections)
+        /*
         if (userData && !userData.teamId) {
           return <TeamGateway title="Team Chat Locked" description="Join a team to start chatting with your colleagues." />;
         }
+        */
         return (
           <ChatLayout
             users={displayUsers}

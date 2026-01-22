@@ -25,70 +25,113 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
     const [isSendingRequest, setIsSendingRequest] = useState(false);
     const { toast } = useToast();
 
-    // Filter Team Users based on search
-    const filteredTeamUsers = teamUsers.filter(user =>
-        getUserName(user).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const [allContacts, setAllContacts] = useState<any[]>([]);
+    const [loadingContacts, setLoadingContacts] = useState(true);
+    const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+    const [loadingRequests, setLoadingRequests] = useState(true);
 
-    // Debounced Search for Global Users
+    // Fetch all contacts (Teams + Connections)
     useEffect(() => {
-        const controller = new AbortController();
-        const signal = controller.signal;
+        const fetchContacts = async () => {
+            if (!currentUser) return;
+            try {
+                const token = await currentUser.getIdToken();
+                const res = await fetch(`${API_BASE_URL}/api/users`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    setAllContacts(data);
+                }
+            } catch (error) {
+                console.error("Error fetching contacts:", error);
+            } finally {
+                setLoadingContacts(false);
+            }
+        };
+        fetchContacts();
+    }, [currentUser]);
 
-        const delayDebounceFn = setTimeout(async () => {
-            if (searchTerm.trim().length > 1) {
-                setIsSearching(true);
-                try {
+    // Fetch pending requests
+    const fetchRequests = async () => {
+        if (!currentUser) return;
+        try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/users/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                // Filter pending requests
+                const requests = (data.chatRequests || []).filter((r: any) => r.status === 'pending');
+                setPendingRequests(requests);
+            }
+        } catch (error) {
+            console.error("Error fetching requests:", error);
+        } finally {
+            setLoadingRequests(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchRequests();
+    }, [currentUser]);
+
+    const handleRespond = async (senderId: string, status: 'accepted' | 'rejected') => {
+        try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/users/chat-request/respond`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ senderId, status })
+            });
+
+            if (res.ok) {
+                toast({ title: `Request ${status}` });
+                fetchRequests(); // Refresh list
+
+                // Refresh contacts list too if accepted
+                if (status === 'accepted') {
+                    // Quick re-fetch of contacts
                     const token = await currentUser.getIdToken();
-                    const response = await fetch(`${API_BASE_URL}/api/users/search?query=${encodeURIComponent(searchTerm)}`, {
-                        headers: { Authorization: `Bearer ${token}` },
-                        signal
+                    const contactsRes = await fetch(`${API_BASE_URL}/api/users`, {
+                        headers: { Authorization: `Bearer ${token}` }
                     });
-                    if (response.ok) {
-                        const data = await response.json();
-                        // Filter out users already in teamUsers to avoid duplicates
-                        const teamIds = new Set(teamUsers.map(u => u.uid));
-                        const globalResults = data.filter((u: any) => !teamIds.has(u.uid));
-                        setSearchResults(globalResults);
+                    if (contactsRes.ok) {
+                        setAllContacts(await contactsRes.json());
                     }
-                } catch (error: any) {
-                    if (error.name !== 'AbortError') {
-                        console.error("Search failed", error);
-                    }
-                } finally {
-                    if (!signal.aborted) {
-                        setIsSearching(false);
-                    }
+                    setSelectedUser(null);
+                } else {
+                    setSelectedUser(null);
                 }
             } else {
-                setSearchResults([]);
-                setIsSearching(false);
+                toast({ title: "Error", description: "Failed to respond", variant: "destructive" });
             }
-        }, 500);
+        } catch (error) {
+            console.error(error);
+            toast({ title: "Error", description: "Failed to respond", variant: "destructive" });
+        }
+    };
 
-        return () => {
-            controller.abort();
-            clearTimeout(delayDebounceFn);
-        };
-    }, [searchTerm, currentUser, teamUsers]);
+    // Filter Contacts based on search
+    // We use allContacts for the main list, effectively merging team and external
+    const filteredContacts = allContacts.filter(user =>
+        user.uid !== currentUser?.uid && (
+            getUserName(user).toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user.email?.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+    );
 
     // Derived list for display
-    // If searching, show Search Results under a "Global Search" header
-    // Always show "Team Members" if search is empty or as a section
     const showSearchResults = searchTerm.trim().length > 1;
 
-
-    // Check if selected user is in the same team
+    // Check if selected user is in the same team (for UI distinction)
     const isSameTeam = (user: any) => {
         if (!user || !currentUser) return false;
-        // Compare teamId strings/objects
-        const userTeamId = typeof user.teamId === 'object' ? user.teamId?._id : user.teamId;
-        const myTeamId = typeof currentUser.teamId === 'object' ? currentUser.teamId?._id : currentUser.teamId;
-
-        // If userData Prop for currentUser doesn't have teamId populated properly here (it might be just Auth User object),
-        // we might need to rely on the 'teamUsers' list which contains ONLY team members.
-        // If the selected user is in 'teamUsers', they are in the team.
+        // Compare with the props.users (which represent the current team members view)
         return teamUsers.some(u => u.uid === user.uid);
     };
 
@@ -98,7 +141,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
         try {
             const token = await currentUser.getIdToken();
 
-            // 1. Send Request API (Email Notification)
+            // 1. Send Request API
             const response = await fetch(`${API_BASE_URL}/api/users/chat-request`, {
                 method: 'POST',
                 headers: {
@@ -113,8 +156,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
 
             if (!response.ok) throw new Error('Failed to send request');
 
-            // 2. Optimistically start the chat in Firestore so they can continue
-            // We insert the message as a normal message but maybe with a flag or just text
+            // 2. Optimistically start the chat in Firestore
             const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
             await addDoc(collection(db, "messages"), {
                 chatId,
@@ -125,32 +167,11 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
                 timestamp: serverTimestamp(),
                 seen: false,
                 delivered: false,
-                type: 'request' // Special type if we want to style it differently
+                type: 'request'
             });
 
             toast({ title: "Request Sent", description: "User has been notified via email." });
             setRequestMessage("");
-
-            // Optional: Auto-add to team or allow chat now?
-            // For now, after request, we could allow chatting or keep them in "Request Sent" state.
-            // The constraint was: "User must be prompted to send a request message first".
-            // After sending, logic implies we can probably chat or wait.
-            // To make it usable, let's treat it as "Connection Open" after request is sent, 
-            // OR refresh the "isSameTeam" check if backend auto-adds.
-            // Since backend just sends email, we'll rely on the fact that we created a Firestore message.
-            // If we reload `ChatView`, it will show the message. 
-            // But `MessagesPage` logic `isSameTeam` will still prevent `ChatView` rendering unless we override.
-
-            // HACK for UX: Temporarily treat as chat-able or refresh.
-            // Better: Just check if we have a conversation history? 
-            // Requirements said: "If NOT in same team... trigger Request ... User must send request message first".
-            // It doesn't explicitly say "Block chat until accepted". It just says "prompt to send request first".
-
-            // I will clear the `isSendingRequest` and maybe we can show the ChatView now?
-            // But `isSameTeam` will still return false.
-            // I should allow chatting IF there is a message history OR if valid team.
-            // For this iteration, I will just show a success state in the placeholder.
-
         } catch (error) {
             console.error(error);
             toast({ title: "Error", description: "Failed to send request.", variant: "destructive" });
@@ -159,16 +180,22 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
         }
     };
 
+    // Helper: Is this a REQUEST user?
+    const isRequestUser = (user: any) => {
+        return pendingRequests.some(r => r.senderId === user.uid || r.senderId === user._id); // Handle both formats if mapped
+    };
+
     return (
         <div className="flex h-full w-full bg-background overflow-hidden relative">
-            {/* LEFT SIDEBAR - Users List */}
-            <div className="w-80 shrink-0 border-r border-border flex flex-col bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                <div className="p-4 border-b border-border/40 space-y-4">
-                    <div className="flex items-center gap-2">
-                        <Button variant="ghost" size="icon" onClick={onNavigateBack} className="md:hidden">
+            {/* LEFT SIDEBAR */}
+            <div className="w-80 shrink-0 border-r border-border flex flex-col bg-background">
+                {/* Header */}
+                <div className="p-4 border-b border-border/40 space-y-4 flex-none">
+                    <div className="flex items-center">
+                        <Button variant="ghost" onClick={onNavigateBack} className="gap-2 pl-0 hover:bg-transparent hover:text-primary -ml-2" title="Back to Team">
                             <ChevronLeft className="w-5 h-5" />
+                            <span className="font-semibold text-lg">Back</span>
                         </Button>
-                        <h2 className="text-xl font-bold tracking-tight">Messages</h2>
                     </div>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
@@ -185,6 +212,42 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin scrollbar-thumb-secondary">
+
+                    {/* REQUESTS SECTION */}
+                    {pendingRequests.length > 0 && !searchTerm && (
+                        <div>
+                            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2 flex items-center justify-between">
+                                Requests <span className="text-[10px] bg-red-500 text-white px-1.5 rounded-full">{pendingRequests.length}</span>
+                            </h3>
+                            {pendingRequests.map(req => (
+                                <div
+                                    key={req.senderId}
+                                    onClick={() => setSelectedUser({
+                                        uid: req.senderId,
+                                        displayName: req.senderName,
+                                        email: req.senderEmail,
+                                        photoURL: req.senderPhoto,
+                                        isRequest: true, // Marker
+                                        requestMessage: req.message
+                                    })}
+                                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${selectedUser?.uid === req.senderId ? 'bg-primary/10' : 'hover:bg-secondary/40'}`}
+                                >
+                                    <Avatar className="w-10 h-10 border border-border/50">
+                                        <AvatarImage src={getFullUrl(req.senderPhoto)} referrerPolicy="no-referrer" />
+                                        <AvatarFallback className="text-xs">{req.senderName?.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                    </Avatar>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-sm font-semibold truncate text-foreground">{req.senderName}</span>
+                                            <span className="text-[10px] text-blue-500 font-medium">New</span>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground truncate opacity-80">wants to connect</p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     {/* Global Search Results */}
                     {showSearchResults && (
                         <div>
@@ -221,11 +284,11 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
                         </div>
                     )}
 
-                    {/* Team Members */}
+                    {/* Team Members / All Contacts */}
                     <div>
-                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">My Team</h3>
-                        {filteredTeamUsers.length > 0 ? (
-                            filteredTeamUsers.map((user) => {
+                        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2">Contacts</h3>
+                        {filteredContacts.length > 0 ? (
+                            filteredContacts.map((user) => {
                                 const status = userStatuses[user.uid]?.status || user.status || 'offline';
                                 const isSelected = selectedUser?.uid === user.uid;
 
@@ -256,15 +319,20 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
                                                     {status === 'online' ? 'Now' : ''}
                                                 </span>
                                             </div>
-                                            <p className="text-xs text-muted-foreground truncate opacity-80">
-                                                {status}
-                                            </p>
+                                            <div className="flex justify-between items-center">
+                                                <p className="text-xs text-muted-foreground truncate opacity-80">
+                                                    {status}
+                                                </p>
+                                                {!isSameTeam(user) && (
+                                                    <span className="text-[9px] bg-secondary/80 px-1 py-0.5 rounded text-muted-foreground">Ext</span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 );
                             })
                         ) : (
-                            <p className="text-xs text-muted-foreground px-3">No team members found.</p>
+                            <p className="text-xs text-muted-foreground px-3">No contacts found.</p>
                         )}
                     </div>
                 </div>
@@ -282,8 +350,34 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
                                 }}
                             />
                         </div>
+                    ) : selectedUser.isRequest ? (
+                        // REQUEST ACCEPTANCE UI
+                        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
+                            <Avatar className="w-24 h-24 mb-4 ring-4 ring-secondary/30">
+                                <AvatarImage src={getFullUrl(selectedUser.photoURL)} referrerPolicy="no-referrer" className="object-cover" />
+                                <AvatarFallback className="text-2xl bg-secondary">{getUserInitials(selectedUser)}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <h2 className="text-2xl font-bold tracking-tight">{selectedUser.displayName}</h2>
+                                <p className="text-muted-foreground">{selectedUser.email}</p>
+                            </div>
+
+                            <div className="bg-secondary/20 p-4 rounded-xl max-w-md w-full border border-border/50 relative">
+                                <span className="absolute -top-2.5 left-4 bg-background px-2 text-xs text-muted-foreground font-medium">Message</span>
+                                <p className="text-sm italic text-foreground/80">"{selectedUser.requestMessage}"</p>
+                            </div>
+
+                            <div className="flex gap-4 w-full max-w-xs">
+                                <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleRespond(selectedUser.uid, 'accepted')}>
+                                    Accept
+                                </Button>
+                                <Button variant="outline" className="flex-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 border-red-200 dark:border-red-900/30" onClick={() => handleRespond(selectedUser.uid, 'rejected')}>
+                                    Decline
+                                </Button>
+                            </div>
+                        </div>
                     ) : (
-                        // Chat Request UI
+                        // SEND Request UI (existing)
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
                             <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center mb-2 ring-1 ring-border">
                                 <UserPlus className="w-10 h-10 text-muted-foreground" />

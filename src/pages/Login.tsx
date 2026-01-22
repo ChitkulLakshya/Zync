@@ -1,29 +1,51 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword, signInWithPopup, GithubAuthProvider, GoogleAuthProvider, onAuthStateChanged } from "firebase/auth";
+import { signInWithEmailAndPassword, signInWithPopup, GithubAuthProvider, GoogleAuthProvider, onAuthStateChanged, signOut, User } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Github } from "lucide-react";
+import { Github, LogOut, ArrowRight } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { getFullUrl, getUserInitials } from "@/lib/utils";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        navigate("/dashboard");
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
       }
     });
     return () => unsubscribe();
-  }, [navigate]);
+  }, []);
+
+  const handleContinue = () => {
+    navigate("/dashboard");
+  };
+
+  const handleSwitchAccount = async () => {
+    try {
+      setLoading(true);
+      await signOut(auth);
+      setCurrentUser(null);
+      toast({ title: "Signed out", description: "You can now sign in with a different account." });
+    } catch (error) {
+      console.error("Sign out error", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +56,7 @@ const Login = () => {
         title: "Success",
         description: "Logged in successfully",
       });
-      // Navigation handled by onAuthStateChanged
+      navigate("/dashboard");
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -58,7 +80,6 @@ const Login = () => {
       }
 
       try {
-        // Get existing providers
         const { fetchSignInMethodsForEmail } = await import("firebase/auth");
         const { linkWithCredential } = await import("firebase/auth");
 
@@ -74,14 +95,11 @@ const Login = () => {
             const confirmLink = window.confirm(`You already have an account with ${providerId}. Sign in with it to link your new credential?`);
             if (!confirmLink) return;
 
-            // Sign in with existing provider
             const result = await signInWithPopup(auth, provider);
-
-            // Link the new credential
             await linkWithCredential(result.user, pendingCred);
 
             toast({ title: "Success", description: "Accounts linked successfully!" });
-            // Navigation will happen via onAuthStateChanged
+            navigate("/dashboard");
           }
         }
       } catch (linkError: any) {
@@ -102,7 +120,6 @@ const Login = () => {
 
       const result = await signInWithPopup(auth, provider);
 
-      // Get GitHub access token and sync
       const credential = GithubAuthProvider.credentialFromResult(result);
       const githubToken = credential?.accessToken;
 
@@ -123,6 +140,7 @@ const Login = () => {
       }
 
       toast({ title: "Success", description: "Logged in with GitHub successfully" });
+      navigate("/dashboard");
     } catch (error: any) {
       await handleAccountLinking(error);
     } finally {
@@ -134,14 +152,59 @@ const Login = () => {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({
+        prompt: 'select_account'
+      });
       await signInWithPopup(auth, provider);
       toast({ title: "Success", description: "Logged in with Google successfully" });
+      navigate("/dashboard");
     } catch (error: any) {
       await handleAccountLinking(error);
     } finally {
       setLoading(false);
     }
   };
+
+  if (currentUser) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader className="text-center">
+            <div className="flex justify-center mb-4">
+              <Avatar className="w-20 h-20">
+                <AvatarImage src={getFullUrl(currentUser.photoURL)} referrerPolicy="no-referrer" />
+                <AvatarFallback className="text-xl">{getUserInitials(currentUser)}</AvatarFallback>
+              </Avatar>
+            </div>
+            <CardTitle className="text-2xl font-bold">Welcome Back</CardTitle>
+            <CardDescription>
+              You are currently logged in as <br />
+              <span className="font-medium text-foreground">{currentUser.email}</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button onClick={handleContinue} className="w-full h-12 text-lg">
+              Continue to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+            </Button>
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  OR
+                </span>
+              </div>
+            </div>
+            <Button variant="outline" onClick={handleSwitchAccount} className="w-full" disabled={loading}>
+              <LogOut className="mr-2 h-4 w-4" />
+              {loading ? "Signing out..." : "Switch Account"}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">

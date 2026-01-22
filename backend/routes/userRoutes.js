@@ -192,6 +192,23 @@ router.post('/chat-request', verifyToken, async (req, res) => {
     }
     */
 
+    // Check if request already exists
+    const existingRequest = recipient.chatRequests.find(req => req.senderId === senderUid && req.status === 'pending');
+    if (existingRequest) {
+      return res.status(400).json({ message: 'Request already sent' });
+    }
+
+    // Add to specific requests list
+    recipient.chatRequests.push({
+      senderId: senderUid,
+      senderName: sender.displayName,
+      senderEmail: sender.email,
+      senderPhoto: sender.photoURL,
+      message: message,
+      status: 'pending'
+    });
+    await recipient.save();
+
     // Send Email
     await sendZyncEmail(
       recipient.email,
@@ -213,7 +230,49 @@ router.post('/chat-request', verifyToken, async (req, res) => {
   }
 });
 
+// Respond to Chat Request
+router.post('/chat-request/respond', verifyToken, async (req, res) => {
+  const { senderId, status } = req.body; // status: 'accepted' | 'rejected'
+  const recipientUid = req.user.uid;
+
+  if (!['accepted', 'rejected'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid status' });
+  }
+
+  try {
+    const recipient = await User.findOne({ uid: recipientUid });
+    const sender = await User.findOne({ uid: senderId });
+
+    if (!recipient || !sender) return res.status(404).json({ message: 'User not found' });
+
+    // Find the request
+    const request = recipient.chatRequests.find(r => r.senderId === senderId && r.status === 'pending');
+    if (!request) {
+      return res.status(404).json({ message: 'Pending request not found' });
+    }
+
+    // Update Request Status
+    request.status = status;
+
+    if (status === 'accepted') {
+      // Add to connections for BOTH users
+      if (!recipient.connections.includes(senderId)) recipient.connections.push(senderId);
+      if (!sender.connections.includes(recipientUid)) sender.connections.push(recipientUid);
+
+      await sender.save();
+    }
+
+    await recipient.save();
+
+    res.json({ message: `Request ${status}` });
+  } catch (error) {
+    console.error('Error responding to request:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get all users (filtered by Team)
+// Get all users (filtered by Team OR Aggregated)
 router.get('/', verifyToken, async (req, res) => {
   try {
     const { teamId } = req.query;
@@ -221,29 +280,38 @@ router.get('/', verifyToken, async (req, res) => {
 
     if (!currentUser) return res.status(404).json({ message: 'User not found' });
 
-    let targetTeamId = teamId;
-
-    // If no specific team requested, fallback to user's primary team
-    if (!targetTeamId && currentUser.teamId) {
-      targetTeamId = currentUser.teamId;
+    // 1. Specific Team Requested (Backwards Compatibility / Strict Filter)
+    if (teamId) {
+      const team = await Team.findById(teamId);
+      if (!team) return res.status(404).json({ message: 'Team not found' });
+      const users = await User.find({ uid: { $in: team.members } }).sort({ lastSeen: -1 });
+      return res.status(200).json(users);
     }
 
-    if (!targetTeamId) {
-      // If still no team, return empty (or handle as global scope if desired, but isolation is safer)
-      return res.status(200).json([]);
-    }
+    // 2. Unified List (Chat / Dashboard view)
+    // Aggregate: All Teams user is a member of (including owned) + Connections
+    const relatedUids = new Set(currentUser.connections || []);
 
-    // Find the Team to get reliable member list
-    const team = await Team.findById(targetTeamId);
-    if (!team) {
-      return res.status(404).json({ message: 'Team not found' });
-    }
+    // Find ALL teams where the user is a member
+    // This handles: Active Team, Other Joined Teams, Owned Teams (if owner is in members)
+    const allMyTeams = await Team.find({ members: req.user.uid });
 
-    // Fetch users who are in the team's member list
-    // We use $in operator to match any UID in the team.members array
-    const users = await User.find({ uid: { $in: team.members } }).sort({ lastSeen: -1 });
+    // Also fetch owned teams just in case owner isn't in members array for some reason
+    const ownedTeams = await Team.find({ ownerId: req.user.uid });
 
+    // Combine teams
+    const uniqueTeams = [...allMyTeams, ...ownedTeams];
+
+    uniqueTeams.forEach(t => {
+      if (t.members) t.members.forEach(m => relatedUids.add(m));
+    });
+
+    // Explicitly add self (optional, but harmless)
+    if (req.user.uid) relatedUids.add(req.user.uid);
+
+    const users = await User.find({ uid: { $in: Array.from(relatedUids) } }).sort({ lastSeen: -1 });
     res.status(200).json(users);
+
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });

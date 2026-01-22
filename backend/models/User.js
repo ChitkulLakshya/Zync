@@ -13,7 +13,26 @@ const userSchema = new mongoose.Schema({
   birthday: Date,
   isPhoneVerified: { type: Boolean, default: false },
   role: { type: String, enum: ['user', 'admin'], default: 'user' }, // Added Admin Role
-  teamId: { type: mongoose.Schema.Types.ObjectId, ref: 'Team' }, // Reference to Team Model
+  teamId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Team',
+    required: false
+  },
+  // Tracks accepted external contacts
+  connections: [{
+    type: String, // Store UIDs of connected users
+    ref: 'User'
+  }],
+  // Tracks incoming chat requests
+  chatRequests: [{
+    senderId: { type: String, required: true }, // UID
+    senderName: String,
+    senderEmail: String,
+    senderPhoto: String,
+    message: String,
+    status: { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+    timestamp: { type: Date, default: Date.now }
+  }],
 
   // Deletion Verification
   deleteConfirmationCode: String,

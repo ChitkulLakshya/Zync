@@ -20,8 +20,10 @@ export class SocketIOProvider extends Observable<string> {
       color: user.color || '#3b82f6',
     });
 
-    this.socket = io(`${API_BASE_URL}/notes`, {
-        transports: ['websocket'], // Force websocket
+    const socketUrl = import.meta.env.DEV ? "http://localhost:5000" : API_BASE_URL;
+
+    this.socket = io(`${socketUrl}/notes`, {
+      transports: ['websocket'], // Force websocket
     });
 
     this.socket.on('connect', () => {
