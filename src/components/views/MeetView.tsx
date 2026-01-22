@@ -10,7 +10,9 @@ import {
     Search,
     CheckCircle2,
     Circle,
-    Users
+    Users,
+    Building2,
+    Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -20,7 +22,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { useToast } from "@/hooks/use-toast";
 import { getFullUrl, getUserInitials, getUserName, API_BASE_URL } from "@/lib/utils";
 import { cn } from "@/lib/utils";
-import { Loader2 } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 interface MeetViewProps {
@@ -40,6 +41,14 @@ interface Meeting {
     organizerName: string;
 }
 
+interface Team {
+    _id: string;
+    name: string;
+    type?: string;
+    members: string[];
+    ownerId: string;
+}
+
 export default function MeetView({ currentUser, usersList, userStatuses = {} }: MeetViewProps) {
     const { toast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
@@ -56,10 +65,37 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
         time: ""
     });
 
+    // Team Selection State
+    const [teams, setTeams] = useState<Team[]>([]);
+    const [isLoadingTeams, setIsLoadingTeams] = useState(false);
+    const [isTeamSelectDialogOpen, setIsTeamSelectDialogOpen] = useState(false);
+    const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+
+    // Fetch Teams
+    const fetchTeams = async () => {
+        if (!currentUser?.uid) return;
+        setIsLoadingTeams(true);
+        try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/teams/mine`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setTeams(data);
+            }
+        } catch (err) {
+            console.error("Failed to fetch teams", err);
+        } finally {
+            setIsLoadingTeams(false);
+        }
+    };
+
     // Fetch Meetings
     useEffect(() => {
         if (currentUser?.uid) {
             fetchMeetings();
+            fetchTeams();
             // Poll for updates every 30s
             const interval = setInterval(fetchMeetings, 30000);
             return () => clearInterval(interval);
@@ -95,9 +131,20 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
         );
     };
 
-    const handleStartInstantMeeting = async (includeInvites = false) => {
+    const handleStartInstantMeeting = async (teamId: string | null = null, customReceiverIds: string[] | null = null) => {
         setIsGenerating(true);
         try {
+            // Get team members if a team is selected, or use custom receiver IDs
+            let receiverIds: string[] = [];
+            if (customReceiverIds && customReceiverIds.length > 0) {
+                receiverIds = customReceiverIds;
+            } else if (teamId) {
+                const selectedTeam = teams.find(t => t._id === teamId);
+                if (selectedTeam) {
+                    receiverIds = selectedTeam.members.filter(uid => uid !== currentUser?.uid);
+                }
+            }
+
             // 1. Open Placeholder Window
             const newWindow = window.open("", "_blank");
             if (newWindow) {
@@ -117,7 +164,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
             const idToken = await currentUser?.getIdToken();
             const body: any = {
                 senderId: currentUser?.uid,
-                receiverIds: includeInvites ? invitedUserIds : [],
+                receiverIds: receiverIds,
             };
 
             const res = await fetch(`${API_BASE_URL}/api/meet/invite`, {
@@ -135,9 +182,15 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                 if (newWindow) newWindow.location.href = data.meetingUrl;
                 else window.open(data.meetingUrl, "_blank");
 
-                toast({ title: "Meeting Started", description: includeInvites ? "Invites sent successfully." : "Instant meeting ready." });
+                const teamName = teamId ? teams.find(t => t._id === teamId)?.name : null;
+                toast({ 
+                    title: "Meeting Started", 
+                    description: teamName ? `Invites sent to ${teamName} team members.` : "Instant meeting ready." 
+                });
                 setInvitedUserIds([]);
                 setIsInviteDialogOpen(false);
+                setIsTeamSelectDialogOpen(false);
+                setSelectedTeamId(null);
                 fetchMeetings(); // Refresh list immediately
             } else {
                 if (newWindow) newWindow.close();
@@ -327,10 +380,139 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                         </Button>
                     </Dialog>
 
+                    {/* Team Selection Dialog for Instant Meeting */}
+                    <Dialog open={isTeamSelectDialogOpen} onOpenChange={(open) => {
+                        setIsTeamSelectDialogOpen(open);
+                        if (!open) setSelectedTeamId(null);
+                    }}>
+                        <DialogContent className="sm:max-w-[480px] bg-[#0F0F10] border-white/10 text-white">
+                            <DialogHeader>
+                                <DialogTitle className="flex items-center gap-2">
+                                    <Video className="w-5 h-5 text-blue-400" />
+                                    Start Instant Meeting
+                                </DialogTitle>
+                                <DialogDescription>
+                                    Select a team to invite all members, or start a meeting alone.
+                                </DialogDescription>
+                            </DialogHeader>
+                            <div className="py-4">
+                                {isLoadingTeams ? (
+                                    <div className="flex items-center justify-center py-8">
+                                        <Loader2 className="w-6 h-6 animate-spin text-zinc-400" />
+                                    </div>
+                                ) : teams.length === 0 ? (
+                                    <div className="text-center py-8">
+                                        <Building2 className="w-10 h-10 mx-auto mb-3 text-zinc-600" />
+                                        <p className="text-zinc-400">You're not a member of any teams yet.</p>
+                                        <p className="text-zinc-500 text-sm mt-1">Create or join a team to invite members.</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-400 text-xs uppercase tracking-wider">Select a Team</Label>
+                                        <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
+                                            {teams.map((team) => {
+                                                const memberCount = team.members.filter(uid => uid !== currentUser?.uid).length;
+                                                const isSelected = selectedTeamId === team._id;
+                                                const teamMembers = usersList.filter(u => team.members.includes(u.uid) && u.uid !== currentUser?.uid);
+
+                                                return (
+                                                    <div
+                                                        key={team._id}
+                                                        onClick={() => setSelectedTeamId(isSelected ? null : team._id)}
+                                                        className={cn(
+                                                            "p-4 rounded-xl border cursor-pointer transition-all",
+                                                            isSelected 
+                                                                ? "bg-blue-500/10 border-blue-500/30" 
+                                                                : "bg-white/[0.02] border-white/5 hover:bg-white/[0.04] hover:border-white/10"
+                                                        )}
+                                                    >
+                                                        <div className="flex items-center justify-between mb-2">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={cn(
+                                                                    "w-10 h-10 rounded-lg flex items-center justify-center",
+                                                                    isSelected ? "bg-blue-500/20" : "bg-white/5"
+                                                                )}>
+                                                                    <Users className={cn("w-5 h-5", isSelected ? "text-blue-400" : "text-zinc-400")} />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className={cn("font-medium", isSelected ? "text-blue-200" : "text-white")}>
+                                                                        {team.name}
+                                                                    </h4>
+                                                                    <p className="text-xs text-zinc-500">
+                                                                        {memberCount} member{memberCount !== 1 ? 's' : ''} will receive invite
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                            <div className={cn(
+                                                                "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                                                                isSelected ? "border-blue-500 bg-blue-500" : "border-zinc-600"
+                                                            )}>
+                                                                {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {/* Team Members Preview */}
+                                                        {isSelected && teamMembers.length > 0 && (
+                                                            <div className="mt-3 pt-3 border-t border-white/5">
+                                                                <div className="flex items-center gap-2">
+                                                                    <div className="flex -space-x-2">
+                                                                        {teamMembers.slice(0, 5).map((user) => (
+                                                                            <Avatar key={user.uid} className="w-7 h-7 border-2 border-[#0F0F10]">
+                                                                                <AvatarImage src={getFullUrl(user.photoURL)} />
+                                                                                <AvatarFallback className="bg-zinc-800 text-[10px]">
+                                                                                    {getUserInitials(user)}
+                                                                                </AvatarFallback>
+                                                                            </Avatar>
+                                                                        ))}
+                                                                        {teamMembers.length > 5 && (
+                                                                            <div className="w-7 h-7 rounded-full bg-zinc-800 border-2 border-[#0F0F10] flex items-center justify-center text-[10px] text-zinc-400">
+                                                                                +{teamMembers.length - 5}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="text-xs text-zinc-500">
+                                                                        {teamMembers.map(u => getUserName(u).split(' ')[0]).slice(0, 3).join(', ')}
+                                                                        {teamMembers.length > 3 && ` +${teamMembers.length - 3} more`}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                            <DialogFooter className="flex gap-2 sm:gap-2">
+                                <Button 
+                                    variant="outline" 
+                                    onClick={() => {
+                                        setIsTeamSelectDialogOpen(false);
+                                        handleStartInstantMeeting(null);
+                                    }} 
+                                    className="border-white/10 text-white hover:bg-white/5 flex-1"
+                                    disabled={isGenerating}
+                                >
+                                    {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                                    Start Alone
+                                </Button>
+                                <Button 
+                                    onClick={() => handleStartInstantMeeting(selectedTeamId)} 
+                                    disabled={isGenerating || !selectedTeamId}
+                                    className="bg-blue-600 hover:bg-blue-700 flex-1"
+                                >
+                                    {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Users className="w-4 h-4 mr-2" />}
+                                    Invite Team
+                                </Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+
                     <Button
                         size="lg"
                         className="h-12 px-6 bg-blue-600 hover:bg-blue-700 text-white shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all"
-                        onClick={() => handleStartInstantMeeting(false)}
+                        onClick={() => setIsTeamSelectDialogOpen(true)}
                         disabled={isGenerating}
                     >
                         {isGenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Video className="w-5 h-5 mr-2" />}
@@ -422,7 +604,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                         <Button
                             size="sm"
                             className="bg-blue-600 text-white hover:bg-blue-700 animate-in fade-in zoom-in duration-200"
-                            onClick={() => handleStartInstantMeeting(true)}
+                            onClick={() => handleStartInstantMeeting(null, invitedUserIds)}
                             disabled={isGenerating}
                         >
                             {isGenerating ? <Loader2 className="w-3 h-3 mr-2 animate-spin" /> : <Video className="w-3 h-3 mr-2" />}
