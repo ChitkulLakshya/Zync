@@ -35,13 +35,16 @@ import { format } from "date-fns";
 import EmojiPicker from 'emoji-picker-react';
 import { API_BASE_URL, getFullUrl, getUserName, getUserInitials } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Star } from "lucide-react";
 
 interface ChatViewProps {
   selectedUser: any;
   onBack?: () => void;
+  currentUserData?: any;
 }
 
-const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
+const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
   const { toast } = useToast();
   const [messages, setMessages] = useState<any[]>([]);
   const [newMessage, setNewMessage] = useState("");
@@ -231,6 +234,39 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
     }
   };
 
+  const [isCloseFriend, setIsCloseFriend] = useState(false);
+
+  useEffect(() => {
+    if (currentUserData && currentUserData.closeFriends && selectedUser) {
+        setIsCloseFriend(currentUserData.closeFriends.includes(selectedUser.uid));
+    }
+  }, [currentUserData, selectedUser]);
+
+  const handleToggleCloseFriend = async () => {
+      try {
+          const token = await currentUser?.getIdToken();
+          const response = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ friendId: selectedUser.uid })
+          });
+          
+          if (response.ok) {
+              const data = await response.json();
+              setIsCloseFriend(data.isCloseFriend);
+              toast({ title: "Success", description: data.message });
+          } else {
+              throw new Error("Failed to update close friend status");
+          }
+      } catch (error) {
+          console.error("Error toggling close friend:", error);
+          toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+      }
+  };
+
 
 
   return (
@@ -242,18 +278,50 @@ const ChatView = ({ selectedUser, onBack }: ChatViewProps) => {
             ← Back
           </Button>
         )}
-        <div className="relative">
-          <Avatar>
-            <AvatarImage src={getFullUrl(selectedUser.photoURL)} referrerPolicy="no-referrer" />
-            <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
-          </Avatar >
-          <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"
-            }`} />
-        </div >
-        <div>
-          <div className="font-semibold">{getUserName(selectedUser)}</div>
-          <div className="text-xs text-muted-foreground capitalize">{selectedUser.status}</div>
-        </div>
+        <Dialog>
+            <DialogTrigger asChild>
+                <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                    <div className="relative">
+                        <Avatar>
+                            <AvatarImage src={getFullUrl(selectedUser.photoURL)} referrerPolicy="no-referrer" />
+                            <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
+                        </Avatar >
+                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"
+                            }`} />
+                    </div >
+                    <div>
+                        <div className="font-semibold flex items-center gap-2">
+                            {getUserName(selectedUser)}
+                            {isCloseFriend && <Star className="w-3 h-3 fill-yellow-400 text-yellow-500" strokeWidth={0} />}
+                        </div>
+                        <div className="text-xs text-muted-foreground capitalize">{selectedUser.status}</div>
+                    </div>
+                </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>User Profile</DialogTitle>
+                </DialogHeader>
+                <div className="flex flex-col items-center justify-center p-6 space-y-4">
+                     <Avatar className="w-32 h-32 ring-4 ring-background shadow-xl">
+                        <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
+                        <AvatarFallback className="text-4xl">{getUserInitials(selectedUser)}</AvatarFallback>
+                    </Avatar>
+                    <div className="text-center">
+                        <h2 className="text-2xl font-bold">{getUserName(selectedUser)}</h2>
+                        <p className="text-muted-foreground">{selectedUser.email}</p>
+                    </div>
+                    <Button 
+                        onClick={handleToggleCloseFriend} 
+                        variant={isCloseFriend ? "secondary" : "default"}
+                        className="gap-2 w-full max-w-xs"
+                    >
+                        <Star className={`w-4 h-4 ${isCloseFriend ? "fill-current" : ""}`} />
+                        {isCloseFriend ? "Remove from Close Friends" : "Add to Close Friends"}
+                    </Button>
+                </div>
+            </DialogContent>
+        </Dialog>
         <div className="ml-auto">
           <Button
             variant="ghost"

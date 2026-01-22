@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Plus, MessageSquare, Loader2, Mail, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Plus, MessageSquare, Loader2, Mail, PanelLeftClose, PanelLeftOpen, Star, Check } from "lucide-react";
 import { getFullUrl, API_BASE_URL, getUserName, getUserInitials, cn } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import TeamOnboarding from "./TeamOnboarding";
@@ -38,6 +38,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const [myTeams, setMyTeams] = useState<any[]>([]);
     const currentUser = auth.currentUser;
     const { toast } = useToast();
+
+    // Close Friends State
+    const [localCloseFriendsIds, setLocalCloseFriendsIds] = useState<string[]>([]);
+    const [allKnownUsers, setAllKnownUsers] = useState<any[]>([]);
 
     // Invite State
     const [inviteOpen, setInviteOpen] = useState(false);
@@ -100,6 +104,80 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
         localStorage.setItem('ZYNC-people-sidebar-collapsed', newState.toString());
         if (!newState) setIsHovered(false);
     };
+
+    // Fetch User Data for Close Friends and All Users
+    useEffect(() => {
+        const fetchUserData = async () => {
+            if (!currentUser) return;
+            try {
+                const token = await currentUser.getIdToken();
+                // Fetch Me
+                const meRes = await fetch(`${API_BASE_URL}/api/users/me`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (meRes.ok) {
+                    const data = await meRes.json();
+                    setLocalCloseFriendsIds(data.closeFriends || []);
+                }
+
+                // Fetch All Known Users (for adding friends)
+                const usersRes = await fetch(`${API_BASE_URL}/api/users`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (usersRes.ok) {
+                    const data = await usersRes.json();
+                    setAllKnownUsers(data);
+                }
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+            }
+        };
+        fetchUserData();
+    }, [currentUser]);
+
+    const toggleCloseFriend = async (friendId: string) => {
+        if (isPreview) return;
+
+        // Optimistic update
+        const isCurrentlyCloseFriend = localCloseFriendsIds.includes(friendId);
+        let newIds;
+        if (isCurrentlyCloseFriend) {
+            newIds = localCloseFriendsIds.filter(id => id !== friendId);
+        } else {
+            newIds = [...localCloseFriendsIds, friendId];
+        }
+        setLocalCloseFriendsIds(newIds);
+
+        try {
+            const token = await currentUser?.getIdToken();
+            if (!token) return;
+
+            const res = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ friendId })
+            });
+
+            if (!res.ok) {
+                // Revert on error
+                setLocalCloseFriendsIds(localCloseFriendsIds);
+                console.error("Failed to toggle close friend");
+                toast({
+                     title: "Error",
+                     description: "Failed to update close friends.",
+                     variant: "destructive"
+                });
+            }
+        } catch (error) {
+            console.error("Error toggling close friend:", error);
+            setLocalCloseFriendsIds(localCloseFriendsIds);
+        }
+    };
+
+    const closeFriendUsers = allKnownUsers.filter(u => localCloseFriendsIds.includes(u.uid));
 
     // Check if user has team and fetch all teams
     useEffect(() => {
@@ -193,13 +271,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
         }} />;
     }
 
-    if (loading) {
-        return (
-            <div className="flex-1 w-full p-6 h-full flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-            </div>
-        );
-    }
+    // Removed global loading check to prevent sidebar unmount
+    // if (loading) { return ... }
 
     const effectiveCollapsed = isCollapsed && !isHovered;
     const isFloating = isCollapsed && isHovered;
@@ -246,43 +319,129 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto p-2 scrollbar-hide space-y-1">
-                            <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70 mt-4">
-                                {!effectiveCollapsed && "My Team"}
+                        <div className="flex-1 flex flex-col min-h-0">
+                            {/* My Teams Section */}
+                            <div className="flex-1 overflow-y-auto p-2 scrollbar-hide space-y-1">
+                                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70 mt-4">
+                                    {!effectiveCollapsed && "My Team"}
+                                </div>
+                                {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
+
+                                <div className="space-y-1">
+                                    {myTeams.map((team) => (
+                                        <div
+                                            key={team._id}
+                                            onClick={() => {
+                                                setTeamInfo(team);
+                                                setShowMessages(false);
+                                            }}
+                                            className={cn(
+                                                "flex items-center rounded-md transition-all cursor-pointer select-none border border-transparent",
+                                                effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
+                                                teamInfo?._id === team._id
+                                                    ? "bg-secondary/80 text-foreground border-border/50 shadow-sm"
+                                                    : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                                            )}
+                                        >
+                                            {!effectiveCollapsed && <span className="font-medium truncate flex-1">{team.name}</span>}
+                                            {effectiveCollapsed && <span className="text-xs font-bold">{team.name.substring(0, 2).toUpperCase()}</span>}
+
+                                            {!effectiveCollapsed && teamInfo?._id === team._id && (
+                                                <div className="w-1.5 h-1.5 rounded-full bg-primary ml-2" />
+                                            )}
+                                        </div>
+                                    ))}
+
+                                    {myTeams.length === 0 && (
+                                        <div className="p-2 text-sm text-muted-foreground text-center">
+                                            {effectiveCollapsed ? "-" : "No teams"}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
-                            {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
 
-                            <div className="space-y-1">
-                                {myTeams.map((team) => (
-                                    <div
-                                        key={team._id}
-                                        onClick={() => {
-                                            setTeamInfo(team);
-                                            setShowMessages(false);
-                                        }}
-                                        className={cn(
-                                            "flex items-center rounded-md transition-all cursor-pointer select-none border border-transparent",
-                                            effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
-                                            teamInfo?._id === team._id
-                                                ? "bg-secondary/80 text-foreground border-border/50 shadow-sm"
-                                                : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
-                                        )}
-                                    >
-                                        {!effectiveCollapsed && <span className="font-medium truncate flex-1">{team.name}</span>}
-                                        {effectiveCollapsed && <span className="text-xs font-bold">{team.name.substring(0, 2).toUpperCase()}</span>}
+                             {/* Close Friends Section */}
+                             <div className="flex-1 overflow-y-auto p-2 scrollbar-hide border-t border-border/20">
+                                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70 flex justify-between items-center group/section mt-2">
+                                    {!effectiveCollapsed && <span>Close Friends</span>}
+                                    {!effectiveCollapsed && (
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <button className="text-primary hover:text-primary/80 opacity-0 group-hover/section:opacity-100 transition-opacity p-0.5 rounded hover:bg-secondary">
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                </button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-md">
+                                                <DialogHeader>
+                                                    <DialogTitle>Manage Close Friends</DialogTitle>
+                                                    <DialogDescription>Add or remove people from your close friends list.</DialogDescription>
+                                                </DialogHeader>
+                                                <div className="space-y-2 max-h-[60vh] overflow-y-auto mt-2 pr-1">
+                                                    {allKnownUsers.filter(u => u.uid !== currentUser?.uid).map(user => {
+                                                        const isSelected = localCloseFriendsIds.includes(user.uid);
+                                                        return (
+                                                            <div key={user.uid} className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/20 border border-transparent hover:border-border/30 transition-colors">
+                                                                <div className="flex items-center gap-3 overflow-hidden">
+                                                                    <Avatar className="w-8 h-8 shrink-0">
+                                                                        <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer"/>
+                                                                        <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
+                                                                    </Avatar>
+                                                                    <div className="flex flex-col min-w-0">
+                                                                        <span className="text-sm font-medium truncate">{getUserName(user)}</span>
+                                                                        <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => toggleCloseFriend(user.uid)}
+                                                                    className={cn("p-1.5 rounded-full transition-all shrink-0 ml-2", isSelected 
+                                                                        ? 'bg-primary text-primary-foreground hover:opacity-90' 
+                                                                        : 'bg-secondary hover:bg-secondary/80 text-muted-foreground')}
+                                                                >
+                                                                    {isSelected ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                                                                </button>
+                                                            </div>
+                                                        );
+                                                    })}
+                                                    {allKnownUsers.length <= 1 && (
+                                                        <p className="text-center text-sm text-muted-foreground py-4">No other users found to add.</p>
+                                                    )}
+                                                </div>
+                                            </DialogContent>
+                                        </Dialog>
+                                    )}
+                                </div>
+                                {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
 
-                                        {!effectiveCollapsed && teamInfo?._id === team._id && (
-                                            <div className="w-1.5 h-1.5 rounded-full bg-primary ml-2" />
-                                        )}
-                                    </div>
-                                ))}
-
-                                {myTeams.length === 0 && (
-                                    <div className="p-2 text-sm text-muted-foreground text-center">
-                                        {effectiveCollapsed ? "-" : "No teams"}
-                                    </div>
-                                )}
-                            </div>
+                                <div className="space-y-1">
+                                    {closeFriendUsers.map((friend) => (
+                                        <div
+                                            key={friend.uid}
+                                            className={cn(
+                                                "flex items-center rounded-md transition-all select-none border border-transparent",
+                                                effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
+                                                "text-primary hover:bg-secondary/50"
+                                            )}
+                                        >
+                                            <div className="relative shrink-0">
+                                                 <Avatar className={cn("ring-2 ring-transparent transition-all", effectiveCollapsed ? "w-8 h-8" : "w-6 h-6")}>
+                                                    <AvatarImage src={getFullUrl(friend.photoURL)} referrerPolicy="no-referrer" />
+                                                    <AvatarFallback className="text-[10px]">{getUserInitials(friend)}</AvatarFallback>
+                                                </Avatar>
+                                                 {userStatuses[friend.uid]?.status === "online" && (
+                                                    <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-background bg-green-500" />
+                                                )}
+                                            </div>
+                                            
+                                            {!effectiveCollapsed && <span className="font-medium truncate flex-1 ml-2">{getUserName(friend)}</span>}
+                                        </div>
+                                    ))}
+                                    {closeFriendUsers.length === 0 && (
+                                        <div className="p-2 text-sm text-muted-foreground text-center">
+                                            {effectiveCollapsed ? "-" : "No close friends"}
+                                        </div>
+                                    )}
+                                </div>
+                             </div>
                         </div>
                     </div>
 
@@ -449,7 +608,19 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                 <h3 className="text-lg font-semibold">Members</h3>
                             </div>
 
-                            {users.length === 0 ? (
+                            {loading ? (
+                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    {[1, 2, 3, 4, 5, 6].map((i) => (
+                                        <div key={i} className="flex flex-row items-center p-4 gap-4 h-24 border rounded-xl bg-secondary/20 animate-pulse">
+                                            <div className="h-14 w-14 rounded-full bg-secondary/50" />
+                                            <div className="space-y-2 flex-1">
+                                                <div className="h-4 w-1/3 bg-secondary/50 rounded" />
+                                                <div className="h-3 w-1/2 bg-secondary/30 rounded" />
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : users.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center p-12 border rounded-lg border-dashed bg-muted/10 text-center">
                                     <div className="bg-muted p-4 rounded-full mb-3">
                                         <div className="bg-muted p-4 rounded-full mb-3">
@@ -462,8 +633,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                     </p>
                                 </div>
                             ) : (
-                                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                                    {users.map((user) => {
+                                <div key={teamInfo?._id || 'members-list'} className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                    {users.map((user, index) => {
                                         const statusData = !isPreview && userStatuses[user.uid]
                                             ? userStatuses[user.uid]
                                             : { status: user.status, lastSeen: user.lastSeen };
@@ -497,7 +668,11 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                         const displayName = getUserName(user);
 
                                         return (
-                                            <Card key={user._id || user.id} className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative">
+                                            <Card 
+                                                key={user._id || user.id} 
+                                                className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative animate-fade-in-up opacity-0"
+                                                style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
+                                            >
                                                 {/* Glow Effect */}
                                                 <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
 

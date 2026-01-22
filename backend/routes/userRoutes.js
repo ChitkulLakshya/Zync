@@ -271,6 +271,36 @@ router.post('/chat-request/respond', verifyToken, async (req, res) => {
   }
 });
 
+// Toggle Close Friend
+router.post('/close-friends/toggle', verifyToken, async (req, res) => {
+  const { friendId } = req.body;
+  const uid = req.user.uid;
+
+  try {
+    const user = await User.findOne({ uid });
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Ensure closeFriends array exists
+    if (!user.closeFriends) user.closeFriends = [];
+
+    const index = user.closeFriends.indexOf(friendId);
+    if (index > -1) {
+      // Remove
+      user.closeFriends.splice(index, 1);
+      await user.save();
+      return res.json({ message: 'Removed from Close Friends', isCloseFriend: false });
+    } else {
+      // Add
+      user.closeFriends.push(friendId);
+      await user.save();
+      return res.json({ message: 'Added to Close Friends', isCloseFriend: true });
+    }
+  } catch (error) {
+    console.error('Error toggling close friend:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Get all users (filtered by Team)
 // Get all users (filtered by Team OR Aggregated)
 router.get('/', verifyToken, async (req, res) => {

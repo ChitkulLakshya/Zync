@@ -34,6 +34,12 @@ const userSchema = new mongoose.Schema({
     timestamp: { type: Date, default: Date.now }
   }],
 
+  // Close Friends List
+  closeFriends: [{
+    type: String, // Store UIDs
+    ref: 'User'
+  }],
+
   // Deletion Verification
   deleteConfirmationCode: String,
   deleteConfirmationExpires: Date,

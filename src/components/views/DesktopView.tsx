@@ -841,9 +841,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <CalendarView />;
 
       case "Chat":
+        /*
         if (userData && !userData.teamId) {
           return <TeamGateway title="Team Chat Locked" description="Join a team to start chatting with your colleagues." />;
         }
+        */
         return (
           <ChatLayout
             users={displayUsers}
@@ -851,6 +853,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             userStatuses={userStatuses}
             onSelectUser={setSelectedChatUser}
             isPreview={isPreview}
+            currentUserData={userData}
           />
         );
 

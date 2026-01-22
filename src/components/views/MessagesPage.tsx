@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Phone, Video, MoreVertical, FileText, Link as LinkIcon, Image as ImageIcon, ChevronLeft, Send, UserPlus, Lock } from "lucide-react";
+import { Search, Phone, Video, MoreVertical, FileText, Link as LinkIcon, Image as ImageIcon, ChevronLeft, Send, UserPlus, Lock, Star } from "lucide-react";
 import ChatView from "./ChatView"; // Re-using existing ChatView for core logic
 import { getFullUrl, getUserName, getUserInitials, API_BASE_URL } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -12,11 +12,12 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 interface MessagesPageProps {
     users: any[];
     currentUser: any;
+    currentUserData?: any;
     userStatuses: Record<string, any>;
     onNavigateBack: () => void;
 }
 
-const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateBack }: MessagesPageProps) => {
+const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUserData, userStatuses, onNavigateBack }: MessagesPageProps) => {
     const [selectedUser, setSelectedUser] = useState<any>(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -29,6 +30,73 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
     const [loadingContacts, setLoadingContacts] = useState(true);
     const [pendingRequests, setPendingRequests] = useState<any[]>([]);
     const [loadingRequests, setLoadingRequests] = useState(true);
+
+    const [userData, setUserData] = useState<any>(propUserData || null);
+    const [localCloseFriendsIds, setLocalCloseFriendsIds] = useState<string[]>([]);
+
+    useEffect(() => {
+        const fetchMe = async () => {
+             if (propUserData) {
+                setUserData(propUserData);
+                setLocalCloseFriendsIds(propUserData.closeFriends || []);
+             } else if (currentUser) {
+                 try {
+                    const token = await currentUser.getIdToken();
+                    const res = await fetch(`${API_BASE_URL}/api/users/me`, {
+                         headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        setUserData(data);
+                        setLocalCloseFriendsIds(data.closeFriends || []);
+                    }
+                 } catch (e) {
+                     console.error("Error fetching user data", e);
+                 }
+             }
+        };
+        fetchMe();
+    }, [currentUser, propUserData]);
+
+    const toggleCloseFriend = async () => {
+        if (!selectedUser || !currentUser) return;
+        const friendId = selectedUser.uid;
+        const isClose = localCloseFriendsIds.includes(friendId);
+        
+        // Optimistic update
+        if (isClose) {
+            setLocalCloseFriendsIds(prev => prev.filter(id => id !== friendId));
+        } else {
+             setLocalCloseFriendsIds(prev => [...prev, friendId]);
+        }
+        
+        try {
+             const token = await currentUser.getIdToken();
+             const res = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
+                 method: 'POST',
+                 headers: { 
+                     'Content-Type': 'application/json',
+                     Authorization: `Bearer ${token}` 
+                 },
+                 body: JSON.stringify({ friendId })
+             });
+
+             if (res.ok) {
+                 const data = await res.json();
+                 toast({ description: data.message });
+             } else {
+                 // Revert
+                 setLocalCloseFriendsIds(prev => isClose ? [...prev, friendId] : prev.filter(id => id !== friendId));
+                 toast({ description: "Failed to update close friend status", variant: "destructive" });
+             }
+        } catch (error) {
+            console.error(error);
+             setLocalCloseFriendsIds(prev => isClose ? [...prev, friendId] : prev.filter(id => id !== friendId));
+             toast({ description: "Error updating close friend status", variant: "destructive" });
+        }
+    }
+
+    const isCloseFriend = (uid: string) => localCloseFriendsIds.includes(uid);
 
     // Fetch all contacts (Teams + Connections)
     useEffect(() => {
@@ -133,6 +201,10 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
         if (!user || !currentUser) return false;
         // Compare with the props.users (which represent the current team members view)
         return teamUsers.some(u => u.uid === user.uid);
+    };
+
+    const isKnownContact = (user: any) => {
+        return allContacts.some(c => c.uid === user.uid);
     };
 
     const handleSendRequest = async () => {
@@ -341,7 +413,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
             {/* MIDDLE - Chat Area or Request UI */}
             <div className="flex-1 flex flex-col min-w-0 bg-background relative z-0">
                 {selectedUser ? (
-                    isSameTeam(selectedUser) ? (
+                    (isSameTeam(selectedUser) || isKnownContact(selectedUser)) ? (
                         <div className="flex-1 flex flex-col h-full">
                             <ChatView
                                 selectedUser={{
@@ -434,20 +506,31 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
                             {selectedUser.email}
                         </p>
 
-                        {isSameTeam(selectedUser) && (
-                            <div className="flex items-center gap-4">
-                                <Button variant="outline" size="icon" className="rounded-full w-10 h-10" onClick={() => toast({ description: "Call feature coming soon" })}>
-                                    <Phone className="w-4 h-4" />
-                                </Button>
-                                <Button variant="outline" size="icon" className="rounded-full w-10 h-10" onClick={() => toast({ description: "Video call feature coming soon" })}>
-                                    <Video className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        )}
+                        <div className="flex items-center gap-4">
+                            {(isSameTeam(selectedUser) || isKnownContact(selectedUser)) && (
+                                <>
+                                    <Button variant="outline" size="icon" className="rounded-full w-10 h-10" onClick={() => toast({ description: "Call feature coming soon" })}>
+                                        <Phone className="w-4 h-4" />
+                                    </Button>
+                                    <Button variant="outline" size="icon" className="rounded-full w-10 h-10" onClick={() => toast({ description: "Video call feature coming soon" })}>
+                                        <Video className="w-4 h-4" />
+                                    </Button>
+                                </>
+                            )}
+                            <Button 
+                                variant={isCloseFriend(selectedUser.uid) ? "default" : "outline"}
+                                size="icon"
+                                className={`rounded-full w-10 h-10 transition-colors ${isCloseFriend(selectedUser.uid) ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" : ""}`}
+                                onClick={toggleCloseFriend}
+                                title={isCloseFriend(selectedUser.uid) ? "Remove from Close Friends" : "Add to Close Friends"}
+                            >
+                                <Star className={`w-4 h-4 ${isCloseFriend(selectedUser.uid) ? "fill-current" : ""}`} />
+                            </Button>
+                        </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                        {!isSameTeam(selectedUser) && (
+                        {(!isSameTeam(selectedUser) && !isKnownContact(selectedUser)) && (
                             <div className="p-3 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 text-sm border border-orange-500/20">
                                 <p className="font-semibold mb-1">External User</p>
                                 <p className="text-xs opacity-90">This user is outside your team. Be careful with what you share.</p>
@@ -456,38 +539,17 @@ const MessagesPage = ({ users: teamUsers, currentUser, userStatuses, onNavigateB
 
                         <div>
                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Shared Photos</h4>
-                            <div className="grid grid-cols-2 gap-2">
-                                {/* Placeholders for shared media */}
-                                <div className="aspect-square bg-secondary/50 rounded-md flex items-center justify-center text-muted-foreground/50">
-                                    <ImageIcon className="w-6 h-6" />
-                                </div>
-                                <div className="aspect-square bg-secondary/50 rounded-md flex items-center justify-center text-muted-foreground/50">
-                                    <ImageIcon className="w-6 h-6" />
-                                </div>
+                            <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/20 rounded-lg border border-border/30 border-dashed">
+                                <ImageIcon className="w-8 h-8 opacity-20 mb-2" />
+                                <span className="text-xs text-muted-foreground/50 font-medium">Empty</span>
                             </div>
                         </div>
 
                         <div>
                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Shared Files</h4>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer">
-                                    <div className="w-8 h-8 rounded bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600">
-                                        <FileText className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">Project_Specs.pdf</p>
-                                        <p className="text-[10px] text-muted-foreground">1.2 MB • 2d ago</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/50 transition-colors cursor-pointer">
-                                    <div className="w-8 h-8 rounded bg-orange-100 dark:bg-orange-900/30 flex items-center justify-center text-orange-600">
-                                        <LinkIcon className="w-4 h-4" />
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-sm font-medium truncate">Design Assets</p>
-                                        <p className="text-[10px] text-muted-foreground">Link • 5d ago</p>
-                                    </div>
-                                </div>
+                            <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/20 rounded-lg border border-border/30 border-dashed">
+                                <FileText className="w-8 h-8 opacity-20 mb-2" />
+                                <span className="text-xs text-muted-foreground/50 font-medium">Empty</span>
                             </div>
                         </div>
                     </div>
