@@ -1,5 +1,28 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Note, Folder, createFolder, createNote, shareFolder, subscribeToFolders, subscribeToNotes } from '../../services/notesService';
+import { Note, Folder, createFolder, createNote, shareFolder, subscribeToFolders, subscribeToNotes, deleteNote, updateNote } from '../../services/notesService';
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  defaultDropAnimationSideEffects,
+  DragStartEvent,
+  DragEndEvent,
+  useDroppable
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+  AnimateLayoutChanges,
+  defaultAnimateLayoutChanges
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import NoteEditor from './NoteEditor';
 import { useNotePresence, ActiveUser } from '@/hooks/useNotePresence';
 import { cn } from "@/lib/utils";
@@ -15,7 +38,9 @@ import {
   MoreHorizontal,
   Link as LinkIcon,
   Loader2,
-  FilePenLine
+  FilePenLine,
+  Trash,
+  Edit
 } from 'lucide-react';
 import {
   Dialog,
@@ -32,6 +57,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -49,12 +76,41 @@ interface NotesLayoutProps {
   className?: string;
 }
 
+// Sortable Note Item Wrapper
+const SortableNoteListItem = ({ note, ...props }: { note: Note; [key: string]: any }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging
+  } = useSortable({ id: note.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.3 : 1,
+    zIndex: isDragging ? 100 : 1,
+    position: 'relative' as 'relative',
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <NoteListItem note={note} {...props} />
+    </div>
+  );
+};
+
 // Note List Item Component
 const NoteListItem: React.FC<{
   note: Note;
   isSelected: boolean;
   onClick: () => void;
-}> = ({ note, isSelected, onClick }) => {
+  onDelete: (id: string) => void;
+  onRename: (note: Note) => void;
+  onShare: (note: Note) => void;
+}> = ({ note, isSelected, onClick, onDelete, onRename, onShare }) => {
   const formattedDate = useMemo(() => {
     if (!note.updatedAt && !note.createdAt) return '';
     const date = new Date(note.updatedAt || note.createdAt);
@@ -70,16 +126,18 @@ const NoteListItem: React.FC<{
   }, [note.updatedAt, note.createdAt]);
 
   return (
-    <button
-      onClick={onClick}
+    <div
       className={cn(
-        "w-full text-left px-3 py-2.5 rounded-md transition-colors duration-200 group",
+        "w-full flex items-center gap-1 px-3 py-2.5 rounded-md transition-colors duration-200 group relative",
         isSelected 
           ? "bg-sidebar-accent border-l-2 border-l-primary" 
           : "hover:bg-sidebar-accent/50 border-l-2 border-l-transparent"
       )}
     >
-      <div className="flex items-start gap-2">
+      <div 
+        onClick={onClick}
+        className="flex-1 flex items-start gap-2 min-w-0 cursor-pointer"
+      >
         <FileText size={14} className={cn(
           "mt-0.5 shrink-0 transition-colors duration-200",
           isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
@@ -96,7 +154,38 @@ const NoteListItem: React.FC<{
           </p>
         </div>
       </div>
-    </button>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+          >
+            <MoreHorizontal size={14} />
+            <span className="sr-only">More options</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onRename(note); }}>
+            <Edit className="mr-2 h-4 w-4" />
+            Rename
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onShare(note); }}>
+            <Share2 className="mr-2 h-4 w-4" />
+            Share
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem 
+            className="text-red-600 focus:text-red-600"
+            onClick={(e) => { e.stopPropagation(); onDelete(note.id); }}
+          >
+            <Trash className="mr-2 h-4 w-4" />
+            Delete
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 
@@ -109,12 +198,35 @@ const FolderListItem: React.FC<{
   onSelectNote: (note: Note) => void;
   onCreateNote: () => void;
   onShare: () => void;
-}> = ({ folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare }) => {
+  onDeleteNote: (id: string) => void;
+  onRenameNote: (note: Note) => void;
+  onShareNote: (note: Note) => void;
+}> = ({ 
+  folder, 
+  notes, 
+  selectedNoteId, 
+  isOwner, 
+  onSelectNote, 
+  onCreateNote, 
+  onShare,
+  onDeleteNote,
+  onRenameNote,
+  onShareNote
+}) => {
   const [isOpen, setIsOpen] = useState(true);
+  const { setNodeRef, isOver } = useDroppable({
+    id: folder.id,
+    data: { type: 'folder', folder: folder }
+  });
 
   return (
-    <div className="mb-1">
-      <div className="flex items-center group">
+    <div className="mb-1" ref={setNodeRef}>
+      <div 
+        className={cn(
+          "flex items-center group rounded-md transition-colors duration-200",
+          isOver && "bg-sidebar-accent border-2 border-primary/50"
+        )}
+      >
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="flex items-center gap-1.5 px-2 py-1.5 text-sm text-muted-foreground hover:text-sidebar-foreground transition-colors duration-200 flex-1 min-w-0"
@@ -147,16 +259,21 @@ const FolderListItem: React.FC<{
       </div>
 
       {isOpen && notes.length > 0 && (
-        <div className="ml-4 space-y-0.5">
-          {notes.map(note => (
-            <NoteListItem
-              key={note.id}
-              note={note}
-              isSelected={selectedNoteId === note.id}
-              onClick={() => onSelectNote(note)}
-            />
-          ))}
-        </div>
+        <SortableContext items={notes.map(n => n.id)} strategy={verticalListSortingStrategy}>
+          <div className="ml-4 space-y-0.5">
+            {notes.map(note => (
+              <SortableNoteListItem
+                key={note.id}
+                note={note}
+                isSelected={selectedNoteId === note.id}
+                onClick={() => onSelectNote(note)}
+                onDelete={onDeleteNote}
+                onRename={onRenameNote}
+                onShare={onShareNote}
+              />
+            ))}
+          </div>
+        </SortableContext>
       )}
     </div>
   );
@@ -168,6 +285,103 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // DnD Sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
+  const { setNodeRef: setUnorganizedRef, isOver: isUnorganizedOver } = useDroppable({
+    id: 'unorganized-notes',
+    data: { type: 'unorganized' }
+  });
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    
+    if (!over) return;
+
+    const activeNoteId = active.id as string;
+    const overId = over.id as string;
+
+    // Helper to find note by ID
+    const activeNote = notes.find(n => n.id === activeNoteId);
+    if (!activeNote) return;
+
+    // Case 1: Drop onto a Folder (Move)
+    if (over.data.current?.type === 'folder') {
+      const targetFolderId = overId;
+      if (activeNote.folderId !== targetFolderId) {
+        // Update local state temporarily for smooth UI
+        // (Real update happens via subscription, but this prevents jumpiness)
+        try {
+          // Optimistic update
+          setNotes(prev => prev.map(n => 
+            n.id === activeNoteId ? { ...n, folderId: targetFolderId } : n
+          ));
+          await updateNote(activeNoteId, { folderId: targetFolderId });
+          toast.success("Note moved");
+        } catch (error) {
+          toast.error("Failed to move note");
+        }
+      }
+      return;
+    }
+
+    // Case 2: Drop onto Unorganized area (Move to root)
+    if (overId === 'unorganized-notes') {
+      if (activeNote.folderId) {
+        try {
+          setNotes(prev => prev.map(n => 
+            n.id === activeNoteId ? { ...n, folderId: null } : n
+          ));
+          await updateNote(activeNoteId, { folderId: null });
+          toast.success("Note moved to root");
+        } catch (error) {
+          toast.error("Failed to move note");
+        }
+      }
+      return;
+    }
+
+    // Case 3: Reordering or sorting
+    if (active.id !== over.id) {
+       // Check if we are moving between folders via list sorting
+       const overNote = notes.find(n => n.id === overId);
+       
+       if (overNote && activeNote.folderId !== overNote.folderId) {
+        // Moving to a new folder by dropping onto a note in that folder
+        try {
+          setNotes(prev => prev.map(n => 
+            n.id === activeNoteId ? { ...n, folderId: overNote.folderId } : n
+          ));
+          await updateNote(activeNoteId, { folderId: overNote.folderId });
+          // toast.success("Note moved");
+        } catch (error) {
+          console.error(error);
+        }
+       } else {
+         // Just reordering within same context
+         setNotes((items) => {
+           const oldIndex = items.findIndex((item) => item.id === active.id);
+           const newIndex = items.findIndex((item) => item.id === over.id);
+           return arrayMove(items, oldIndex, newIndex);
+         });
+       }
+    }
+  };
+
+  // Context Menu States
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false);
+  const [noteToRename, setNoteToRename] = useState<Note | null>(null);
+  const [newNoteTitle, setNewNoteTitle] = useState('');
   
   // 🔍 DEBUG: Log hook inputs
   console.log('[NotesLayout] 🔌 useNotePresence inputs:', {
@@ -294,6 +508,48 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
     }
   };
 
+  const handleDeleteNote = async (id: string) => {
+    // Confirm dialog is a bit aggressive, maybe just do it? Or use a custom dialog. 
+    // Standard confirm is fine for now/MVP.
+    if (!window.confirm("Are you sure you want to delete this note?")) return;
+    
+    try {
+      await deleteNote(id);
+      toast.success("Note deleted");
+      if (selectedNote?.id === id) {
+        setSelectedNote(null);
+      }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("Failed to delete note");
+    }
+  };
+
+  const handleRenameStart = (note: Note) => {
+    setNoteToRename(note);
+    setNewNoteTitle(note.title);
+    setRenameDialogOpen(true);
+  };
+
+  const handleRenameSubmit = async () => {
+    if (!noteToRename) return;
+    try {
+      await updateNote(noteToRename.id, { title: newNoteTitle });
+      toast.success("Note renamed");
+      setRenameDialogOpen(false);
+      setNoteToRename(null);
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to rename note");
+    }
+  };
+
+  const handleShareNote = (note: Note) => {
+    toast("Note sharing is coming soon!", {
+      description: "For now, move this note to a Shared Folder to collaborate."
+    });
+  };
+
   // Breadcrumb path
   const breadcrumb = useMemo(() => {
     if (!selectedNote) return [];
@@ -358,7 +614,12 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
         </div>
 
         {/* Scrollable List */}
-        <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin">
+        <DndContext 
+          sensors={sensors} 
+          collisionDetection={closestCenter} 
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin">
           
           {/* Shared With Me */}
           {sharedFolders.length > 0 && (
@@ -376,6 +637,9 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                   onSelectNote={setSelectedNote}
                   onCreateNote={() => handleCreateNote(folder.id)}
                   onShare={() => {}}
+                  onDeleteNote={handleDeleteNote}
+                  onRenameNote={handleRenameStart}
+                  onShareNote={handleShareNote}
                 />
               ))}
             </div>
@@ -397,34 +661,52 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                   onSelectNote={setSelectedNote}
                   onCreateNote={() => handleCreateNote(folder.id)}
                   onShare={() => { setFolderToShare(folder); setShareDialogOpen(true); }}
+                  onDeleteNote={handleDeleteNote}
+                  onRenameNote={handleRenameStart}
+                  onShareNote={handleShareNote}
                 />
               ))}
             </div>
           )}
 
           {/* My Unorganized Notes */}
-          <div>
+          <div 
+            ref={setUnorganizedRef}
+            className={cn(
+              "rounded-md transition-colors duration-200",
+              isUnorganizedOver && "bg-sidebar-accent/30 border-2 border-primary/20 border-dashed"
+            )}
+          >
             <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
               Notes
             </div>
-            <div className="space-y-0.5">
-              {myUnorganizedNotes.map(note => (
-                <NoteListItem
-                  key={note.id}
-                  note={note}
-                  isSelected={selectedNote?.id === note.id}
-                  onClick={() => setSelectedNote(note)}
-                />
-              ))}
-              {myUnorganizedNotes.length === 0 && !searchQuery && (
-                <p className="text-xs text-muted-foreground/60 px-3 py-2">No notes yet</p>
-              )}
-              {searchQuery && filteredNotes.length === 0 && (
-                <p className="text-xs text-muted-foreground/60 px-3 py-2">No results found</p>
-              )}
-            </div>
+            <SortableContext 
+              items={myUnorganizedNotes.map(n => n.id)} 
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="space-y-0.5 min-h-[50px]">
+                {myUnorganizedNotes.map(note => (
+                  <SortableNoteListItem
+                    key={note.id}
+                    note={note}
+                    isSelected={selectedNote?.id === note.id}
+                    onClick={() => setSelectedNote(note)}
+                    onDelete={handleDeleteNote}
+                    onRename={handleRenameStart}
+                    onShare={handleShareNote}
+                  />
+                ))}
+                {myUnorganizedNotes.length === 0 && !searchQuery && (
+                  <p className="text-xs text-muted-foreground/60 px-3 py-2">No notes yet</p>
+                )}
+                {searchQuery && filteredNotes.length === 0 && (
+                  <p className="text-xs text-muted-foreground/60 px-3 py-2">No results found</p>
+                )}
+              </div>
+            </SortableContext>
           </div>
         </div>
+        </DndContext>
       </div>
 
       {/* ═══════════════════════════════════════════════════════════════════
@@ -525,22 +807,21 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
               </div>
             </div>
 
-            {/* Editor Canvas - Centered with max-width */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin">
-              <div className="max-w-3xl mx-auto py-8 px-6">
-                <NoteEditor
-                  key={selectedNote.id}
-                  note={selectedNote}
-                  user={{ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL }}
-                  onUpdate={(updated) => setSelectedNote(updated)}
-                />
-              </div>
+            {/* Editor Canvas - Full height, NoteEditor handles paper styling */}
+            <div className="flex-1 overflow-hidden bg-zinc-950">
+              <NoteEditor
+                key={selectedNote.id}
+                note={selectedNote}
+                user={{ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL }}
+                onUpdate={(updated) => setSelectedNote(updated)}
+                className="h-full"
+              />
             </div>
           </>
         ) : (
           /* Empty State */
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground">
-            <div className="mb-6 p-6 bg-secondary/30 rounded-2xl border border-border">
+          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-zinc-950">
+            <div className="mb-6 p-6 bg-zinc-900/50 rounded-2xl border border-zinc-800">
               <FilePenLine size={40} className="text-muted-foreground/50" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No note selected</h3>
@@ -556,6 +837,34 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
           </div>
         )}
       </div>
+
+      {/* Rename Note Dialog */}
+      <Dialog open={renameDialogOpen} onOpenChange={setRenameDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Rename Note</DialogTitle>
+            <DialogDescription>
+              Enter a new title for "{noteToRename?.title}".
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-2">
+            <Label htmlFor="note-title">Title</Label>
+            <Input 
+              id="note-title"
+              value={newNoteTitle} 
+              onChange={(e) => setNewNoteTitle(e.target.value)} 
+              onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
+              autoFocus
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setRenameDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleRenameSubmit} disabled={!newNoteTitle.trim()}>
+              Rename
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>

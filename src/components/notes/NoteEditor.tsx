@@ -18,6 +18,7 @@ import {
 
 import { useNotePresence } from '@/hooks/useNotePresence';
 import { CollaboratorAvatars } from './CollaboratorAvatars';
+import FixedToolbar from './FixedToolbar';
 import {
   Dialog,
   DialogContent,
@@ -91,14 +92,36 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   const { resolvedTheme } = useTheme();
   const [title, setTitle] = useState(note.title || '');
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
+  const [isEditable, setIsEditable] = useState(true);
+
+  // Determine IsEditable state on mount and when note/user changes
+  useEffect(() => {
+    const isCreator = user.uid === note.ownerId;
+
+    if (isCreator) {
+      setIsEditable(true);
+    } else {
+      // Check permission level from note data
+      // note.permissions might be a map of userId -> role ('viewer', 'editor')
+      const noteAny = note as any;
+      const userRole = noteAny.permissions?.[user.uid] || noteAny.role;
+
+      if (userRole === 'viewer') {
+        setIsEditable(false);
+      } else {
+        // Default to true if not explicitly restricted
+        setIsEditable(true);
+      }
+    }
+  }, [note, user.uid]);
 
   // Collaborative Presence with cursor awareness
-  const { 
-    activeUsers, 
-    remoteCursors, 
-    updateCursorPosition, 
+  const {
+    activeUsers,
+    remoteCursors,
+    updateCursorPosition,
     getRemoteUserForBlock,
-    isConnected 
+    isConnected
   } = useNotePresence(note.id, user);
 
   // Smart Feature States
@@ -157,6 +180,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleContentChange = useCallback(() => {
+    if (!isEditable) return;
+
     setStatus('Saving...');
 
     // Update cursor position for collaborators
@@ -223,21 +248,21 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     console.log('🎨 [NoteEditor] activeUsers:', activeUsers.map(u => ({ id: u.id, name: u.name, blockId: u.blockId })));
     console.log('🎨 [NoteEditor] remoteCursors keys:', Object.keys(remoteCursors));
     console.log('🎨 [NoteEditor] remoteCursors full:', remoteCursors);
-    
+
     if (!editor) return;
-    
+
     // Get all blocks from the editor
     const blocks = editor.document;
-    
+
     // 🔍 DEBUG: Log all block IDs in the document
     console.log('🎨 [NoteEditor] All block IDs in document:', blocks.map(b => b.id));
-    
+
     // 🔍 DEBUG: Check for matches before iterating
     const remoteCursorKeys = Object.keys(remoteCursors);
     const blockIds = blocks.map(b => b.id);
     const matchingBlocks = blockIds.filter(id => remoteCursorKeys.includes(id));
     console.log('🎨 [NoteEditor] Block IDs that have remoteCursors:', matchingBlocks);
-    
+
     // Clear all previous highlights first
     const previousHighlights = document.querySelectorAll('[data-collab-user]');
     previousHighlights.forEach(el => {
@@ -246,7 +271,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
       el.removeAttribute('data-collab-name');
       (el as HTMLElement).style.removeProperty('--collab-color');
     });
-    
+
     if (activeUsers.length === 0) {
       console.log('🎨 [NoteEditor] No active users, all highlights cleared');
       return;
@@ -256,50 +281,66 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     // This is the equivalent of: blocks.map(block => <Block activeCollaborator={remoteCursors[block.id]} />)
     blocks.forEach(block => {
       const activeCollaborator = remoteCursors[block.id] || null;
-      
-      // 🔍 DEBUG: Log every block render with its collaborator status
-      console.log('Block rendering. ID:', block.id, 'Collaborator:', activeCollaborator);
-      
+
+      // 🔍 DEBUG: Log every block and its collaborator (equivalent to passing prop)
+      console.log('Passing user to block:', block.id, remoteCursors[block.id]);
+
       if (activeCollaborator) {
         // Apply styling: borderLeft: 3px solid activeCollaborator.color
-        console.log(`✅ [NoteEditor] Applying activeCollaborator to block ${block.id}:`, {
+        console.log(`✅ [NoteEditor] Block ${block.id} has activeCollaborator:`, {
           id: activeCollaborator.id,
           name: activeCollaborator.name,
           color: activeCollaborator.color
         });
-        
-        // Try multiple selectors to find the block element
-        let blockEl = document.querySelector(`[data-id="${block.id}"]`);
-        
-        // Fallback: try data-node-id (some BlockNote versions use this)
+
+        // BlockNote DOM structure: .bn-block-outer[data-id] > .bn-block > .bn-block-content
+        // Try the outer wrapper first (has data-id)
+        let blockEl = document.querySelector(`.bn-block-outer[data-id="${block.id}"]`);
+
+        // Fallback: try direct data-id selector
+        if (!blockEl) {
+          blockEl = document.querySelector(`[data-id="${block.id}"]`);
+        }
+
+        // Fallback: try data-node-id (some BlockNote versions)
         if (!blockEl) {
           blockEl = document.querySelector(`[data-node-id="${block.id}"]`);
         }
-        
+
         // Fallback: try data-block-id
         if (!blockEl) {
           blockEl = document.querySelector(`[data-block-id="${block.id}"]`);
         }
-        
+
         if (blockEl) {
-          // Apply the activeCollaborator styling via DOM attributes
-          // CSS will handle: borderLeft: 3px solid activeCollaborator.color
-          //                  transition: 'border-color 0.2s ease'
-          //                  Name tag with backgroundColor: activeCollaborator.color
+          // Apply the activeCollaborator styling via DOM (simulating prop)
+          // This is equivalent to: <EditorBlock activeCollaborator={activeCollaborator} />
+          // With style: borderLeft: activeCollaborator ? '3px solid ' + activeCollaborator.color : '3px solid transparent'
           blockEl.setAttribute('data-collab-user', activeCollaborator.id);
           blockEl.setAttribute('data-collab-color', activeCollaborator.color);
           blockEl.setAttribute('data-collab-name', activeCollaborator.name || 'Someone');
           (blockEl as HTMLElement).style.setProperty('--collab-color', activeCollaborator.color);
-          console.log(`✅ [NoteEditor] DOM styled. key=${block.id}, id=${block.id}`);
+          // Apply inline style for immediate visual (CSS also handles this)
+          (blockEl as HTMLElement).style.borderLeft = `3px solid ${activeCollaborator.color}`;
+          (blockEl as HTMLElement).style.position = 'relative';
+          console.log(`✅ [NoteEditor] DOM styled for block ${block.id}`);
         } else {
-          // 🔍 DEBUG: List all data-* attributes in the editor to find the right selector
+          // 🔍 DEBUG: Dump all block elements to find correct selector
           console.log(`❌ [NoteEditor] DOM element NOT found for block ${block.id}`);
-          const allBlockEls = document.querySelectorAll('.bn-block');
-          console.log('🔍 [NoteEditor] All .bn-block elements:', allBlockEls.length);
-          if (allBlockEls.length > 0) {
-            const firstBlock = allBlockEls[0];
-            console.log('🔍 [NoteEditor] First block attributes:', 
-              Array.from(firstBlock.attributes).map(a => `${a.name}="${a.value}"`).join(', ')
+
+          // Try to find ALL block-like elements and log their attributes
+          const allOuters = document.querySelectorAll('.bn-block-outer');
+          console.log('🔍 [NoteEditor] All .bn-block-outer elements:', allOuters.length);
+          allOuters.forEach((el, i) => {
+            const dataId = el.getAttribute('data-id');
+            console.log(`🔍 [NoteEditor] Block ${i}: data-id="${dataId}"`);
+          });
+
+          const allBlocks = document.querySelectorAll('.bn-block');
+          console.log('🔍 [NoteEditor] All .bn-block elements:', allBlocks.length);
+          if (allBlocks.length > 0) {
+            console.log('🔍 [NoteEditor] First .bn-block attributes:',
+              Array.from(allBlocks[0].attributes).map(a => `${a.name}="${a.value}"`).join(', ')
             );
           }
         }
@@ -402,68 +443,87 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   }
 
   return (
-    <div className={cn("flex flex-col", className)}>
-      {/* Collaborators & Status Bar - Always visible */}
-      <div className="flex items-center gap-3 mb-6 min-h-[28px]">
-        {/* Collaborators Avatars - Using the new component */}
-        <CollaboratorAvatars activeUsers={activeUsers} maxVisible={5} size="md" />
-        
-        {/* Save Status - Always on right */}
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
-          {status === 'Saving...' ? (
-            <>
-              <Clock size={11} className="animate-spin" />
-              <span>Saving...</span>
-            </>
-          ) : (
-            <>
-              <CheckCircle2 size={11} className="text-emerald-500" />
-              <span className="text-emerald-500">Saved</span>
-            </>
-          )}
-        </div>
-      </div>
+    <div className={cn("flex flex-col h-full", className)}>
+      {/* Fixed Word-Style Toolbar - Only if Editable */}
+      {isEditable && <FixedToolbar editor={editor} />}
 
-      {/* Title Input */}
-      <input
-        id="note-title"
-        name="title"
-        value={title || ''}
-        onChange={handleTitleChange}
-        placeholder="Untitled"
-        className="text-3xl font-semibold outline-none bg-transparent w-full text-foreground placeholder:text-muted-foreground/50 mb-2 tracking-tight"
-      />
+      {/* Paper Container - Google Docs style */}
+      <div className="flex-1 overflow-y-auto bg-zinc-950 scrollbar-thin">
+        <div className="max-w-4xl mx-auto min-h-screen bg-zinc-900 border-x border-zinc-800 shadow-2xl">
+          {/* Paper Content */}
+          <div className="px-16 py-12">
+            {/* Collaborators & Status Bar */}
+            <div className="flex items-center gap-3 mb-8 min-h-[28px]">
+              <CollaboratorAvatars activeUsers={activeUsers} maxVisible={5} size="md" />
 
-      {/* Metadata Row */}
-      <div className="flex items-center gap-3 text-xs text-muted-foreground mb-6 pb-4 border-b border-border">
-        <div className="flex items-center gap-1.5">
-          <UserIcon size={11} />
-          <span>{user.displayName || "You"}</span>
-        </div>
-        <span className="text-border">·</span>
-        <div className="flex items-center gap-1.5">
-          <Calendar size={11} />
-          <span>
-            {note.createdAt ? (() => {
-              const date = new Date(note.createdAt);
-              return isNaN(date.getTime()) ? 'Just now' : date.toLocaleDateString();
-            })() : 'Just now'}
-          </span>
-        </div>
-      </div>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
+                {status === 'Saving...' ? (
+                  <>
+                    <Clock size={11} className="animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={11} className="text-emerald-500" />
+                    <span className="text-emerald-500">Saved</span>
+                  </>
+                )}
+                {!isEditable && (
+                  <span className="ml-2 px-2 py-0.5 bg-yellow-500/10 text-yellow-500 rounded text-[10px] uppercase font-bold tracking-wider border border-yellow-500/20">
+                    Read Only
+                  </span>
+                )}
+              </div>
+            </div>
 
-      {/* Editor Content with cursor awareness */}
-      <div 
-        className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-200 prose-p:text-zinc-300 prose-a:text-indigo-400"
-        onClick={handleBlockFocus}
-        onKeyUp={handleBlockFocus}
-      >
-        <BlockNoteView
-          editor={editor}
-          onChange={handleContentChange}
-          theme="dark"
-          className="ZYNC-editor-overrides"
-        />
+            {/* Title Input - Disabled if not editable */}
+            <input
+              id="note-title"
+              name="title"
+              value={title || ''}
+              onChange={handleTitleChange}
+              placeholder="Untitled"
+              disabled={!isEditable}
+              className={cn(
+                "text-4xl font-bold outline-none bg-transparent w-full text-foreground placeholder:text-muted-foreground/40 mb-4 tracking-tight leading-tight",
+                !isEditable && "cursor-default opacity-80"
+              )}
+            />
+
+            {/* Metadata Row */}
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-8 pb-6 border-b border-zinc-800">
+              <div className="flex items-center gap-1.5">
+                <UserIcon size={11} />
+                <span>{user.displayName || "You"}</span>
+              </div>
+              <span className="text-zinc-700">·</span>
+              <div className="flex items-center gap-1.5">
+                <Calendar size={11} />
+                <span>
+                  {note.createdAt ? (() => {
+                    const date = new Date(note.createdAt);
+                    return isNaN(date.getTime()) ? 'Just now' : date.toLocaleDateString();
+                  })() : 'Just now'}
+                </span>
+              </div>
+            </div>
+
+            {/* Editor Content with cursor awareness */}
+            <div
+              className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-a:text-indigo-400 prose-lg"
+              onClick={handleBlockFocus}
+              onKeyUp={handleBlockFocus}
+            >
+              <BlockNoteView
+                editor={editor}
+                editable={isEditable}
+                onChange={handleContentChange}
+                theme="dark"
+                className="ZYNC-editor-overrides"
+              />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Create Task Dialog */}
