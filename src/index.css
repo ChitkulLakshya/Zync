@@ -525,59 +525,66 @@
    COLLABORATIVE EDITING - Remote Cursor Visualization
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Block being edited by a collaborator (remoteUser visualization) */
+/* 
+ * These styles are applied when activeCollaborator prop is present.
+ * Since BlockNote renders blocks internally, we use data attributes:
+ *   - data-collab-user: collaborator's userId
+ *   - data-collab-name: collaborator's name (for name tag)
+ *   - --collab-color: collaborator's color (CSS variable)
+ * 
+ * This is equivalent to passing: activeCollaborator={{ name, color }}
+ */
+
+/* Block being edited by a collaborator (activeCollaborator !== null) */
 .ZYNC-editor-overrides [data-collab-user] {
-  position: relative;
-  border-left-width: 3px;
-  border-left-style: solid;
-  border-left-color: var(--collab-color, #3b82f6);
+  position: relative; /* Required for absolute positioned name tag */
+  border-left: 4px solid var(--collab-color, #3b82f6);
   background: linear-gradient(90deg, 
     color-mix(in srgb, var(--collab-color, #3b82f6) 6%, transparent) 0%, 
     transparent 100%
   );
   border-radius: 4px;
-  margin-left: -3px;
+  margin-left: -4px;
   padding-left: 12px;
   transition: 
-    border-left-width 200ms ease-out,
     border-left-color 200ms ease-out,
     background 200ms ease-out;
 }
 
-/* Blocks without remoteUser - transparent border (for smooth transition) */
+/* Blocks without activeCollaborator - transparent border (for smooth transition) */
 .ZYNC-editor-overrides [data-id]:not([data-collab-user]) {
-  border-left: 3px solid transparent;
+  border-left: 4px solid transparent;
   transition: 
     border-left-color 200ms ease-out,
     background 200ms ease-out;
 }
 
-/* Floating Name Tag - positioned absolute top-right */
+/* Name Tag - absolute positioned top-right (activeCollaborator.name) */
 .ZYNC-editor-overrides [data-collab-user]::before {
   content: attr(data-collab-name);
   position: absolute;
   right: 0;
-  top: -20px;
+  top: -20px; /* -top-5 equivalent */
   z-index: 50;
-  font-size: 12px; /* text-xs */
+  font-size: 10px; /* text-[10px] */
   font-weight: 500;
   color: white;
-  background-color: var(--collab-color, #3b82f6);
-  padding: 2px 8px;
-  border-radius: 4px 4px 0 0;
+  background-color: var(--collab-color, #3b82f6); /* activeCollaborator.color */
+  padding: 2px 6px; /* py-0.5 px-1.5 */
+  border-radius: 4px 4px 0 0; /* rounded-t */
   white-space: nowrap;
   pointer-events: none;
   animation: collab-label-enter 0.2s ease-out;
 }
 
-/* Subtle glow effect on left border */
+/* Glow effect on left border for emphasis */
 .ZYNC-editor-overrides [data-collab-user]::after {
   content: '';
   position: absolute;
-  left: -3px;
+  left: -4px;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 4px;
   background: var(--collab-color, #3b82f6);
   box-shadow: 0 0 8px var(--collab-color, #3b82f6);
   border-radius: 2px 0 0 2px;
