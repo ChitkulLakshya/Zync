@@ -92,8 +92,14 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   const [title, setTitle] = useState(note.title || '');
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
 
-  // Collaborative Presence
-  const { activeUsers, updateCursorPosition, isConnected } = useNotePresence(note.id, user);
+  // Collaborative Presence with cursor awareness
+  const { 
+    activeUsers, 
+    remoteCursors, 
+    updateCursorPosition, 
+    getRemoteUserForBlock,
+    isConnected 
+  } = useNotePresence(note.id, user);
 
   // Smart Feature States
   const [projects, setProjects] = useState<Project[]>([]);
@@ -178,6 +184,18 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
       }
     }, 2000); // Wait 2 seconds of inactivity before saving
   }, [editor, note.id, updateCursorPosition]);
+
+  // Track block focus for cursor awareness
+  const handleBlockFocus = useCallback(() => {
+    try {
+      const cursorPos = editor?.getTextCursorPosition();
+      if (cursorPos?.block?.id) {
+        updateCursorPosition(cursorPos.block.id);
+      }
+    } catch (e) {
+      // Ignore cursor position errors during transitions
+    }
+  }, [editor, updateCursorPosition]);
 
   // Clean up timeout on unmount or note switch
   useEffect(() => {
@@ -370,8 +388,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         </div>
       </div>
 
-      {/* Editor Content */}
-      <div className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-200 prose-p:text-zinc-300 prose-a:text-indigo-400">
+      {/* Editor Content with cursor awareness */}
+      <div 
+        className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-200 prose-p:text-zinc-300 prose-a:text-indigo-400"
+        onClick={handleBlockFocus}
+        onKeyUp={handleBlockFocus}
+      >
         <BlockNoteView
           editor={editor}
           onChange={handleContentChange}

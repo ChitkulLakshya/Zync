@@ -58,6 +58,7 @@ export const useNotePresence = (
   user: CurrentUser | undefined
 ) => {
   const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
+  const [remoteCursors, setRemoteCursors] = useState<Record<string, ActiveUser>>({});
   const [isConnected, setIsConnected] = useState(false);
   const socketRef = useRef<Socket | null>(null);
 
@@ -121,18 +122,50 @@ export const useNotePresence = (
         (now - u.lastActive) < 60000
       );
       setActiveUsers(filteredUsers);
+      
+      // Rebuild remoteCursors map from filtered users
+      const newRemoteCursors: Record<string, ActiveUser> = {};
+      filteredUsers.forEach(u => {
+        if (u.blockId) {
+          newRemoteCursors[u.blockId] = u;
+        }
+      });
+      setRemoteCursors(newRemoteCursors);
     });
 
     // A specific user left
     socket.on('user_left', (userId: string) => {
       setActiveUsers(prev => prev.filter(u => u.id !== userId));
+      setRemoteCursors(prev => {
+        const updated = { ...prev };
+        // Remove any blocks owned by this user
+        Object.keys(updated).forEach(blockId => {
+          if (updated[blockId]?.id === userId) {
+            delete updated[blockId];
+          }
+        });
+        return updated;
+      });
     });
 
     // A user's cursor position changed
     socket.on('cursor_update', ({ userId, blockId }: { userId: string; blockId: string }) => {
-      setActiveUsers(prev => prev.map(u =>
-        u.id === userId ? { ...u, blockId, lastActive: Date.now() } : u
-      ));
+      setActiveUsers(prev => {
+        const updatedUsers = prev.map(u =>
+          u.id === userId ? { ...u, blockId, lastActive: Date.now() } : u
+        );
+        
+        // Update remoteCursors map: blockId → user
+        const newRemoteCursors: Record<string, ActiveUser> = {};
+        updatedUsers.forEach(u => {
+          if (u.blockId) {
+            newRemoteCursors[u.blockId] = u;
+          }
+        });
+        setRemoteCursors(newRemoteCursors);
+        
+        return updatedUsers;
+      });
     });
 
     // ─────────────────────────────────────────────────────────────────────
@@ -144,6 +177,7 @@ export const useNotePresence = (
       socket.disconnect();
       socketRef.current = null;
       setActiveUsers([]);
+      setRemoteCursors({});
       setIsConnected(false);
     };
   }, [noteId, user?.uid, user?.displayName, user?.photoURL]);
@@ -163,6 +197,11 @@ export const useNotePresence = (
     }
   }, [noteId, user]);
 
+  // Get remote user for a specific block (if any)
+  const getRemoteUserForBlock = useCallback((blockId: string): ActiveUser | undefined => {
+    return remoteCursors[blockId];
+  }, [remoteCursors]);
+
   // Legacy accessor for backwards compatibility
   const collaborators: Collaborator[] = activeUsers.map(u => ({
     ...u,
@@ -174,7 +213,9 @@ export const useNotePresence = (
   return {
     activeUsers,
     collaborators, // Legacy
+    remoteCursors,
     isConnected,
     updateCursorPosition,
+    getRemoteUserForBlock,
   };
 };
