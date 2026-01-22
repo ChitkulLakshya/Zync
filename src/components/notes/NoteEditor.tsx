@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 import { useNotePresence } from '@/hooks/useNotePresence';
+import { CollaboratorAvatars } from './CollaboratorAvatars';
 import {
   Dialog,
   DialogContent,
@@ -91,8 +92,14 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   const [title, setTitle] = useState(note.title || '');
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
 
-  // Collaborative Presence
-  const { collaborators, updateCursorPosition } = useNotePresence(note.id, user);
+  // Collaborative Presence with cursor awareness
+  const { 
+    activeUsers, 
+    remoteCursors, 
+    updateCursorPosition, 
+    getRemoteUserForBlock,
+    isConnected 
+  } = useNotePresence(note.id, user);
 
   // Smart Feature States
   const [projects, setProjects] = useState<Project[]>([]);
@@ -178,6 +185,18 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     }, 2000); // Wait 2 seconds of inactivity before saving
   }, [editor, note.id, updateCursorPosition]);
 
+  // Track block focus for cursor awareness
+  const handleBlockFocus = useCallback(() => {
+    try {
+      const cursorPos = editor?.getTextCursorPosition();
+      if (cursorPos?.block?.id) {
+        updateCursorPosition(cursorPos.block.id);
+      }
+    } catch (e) {
+      // Ignore cursor position errors during transitions
+    }
+  }, [editor, updateCursorPosition]);
+
   // Clean up timeout on unmount or note switch
   useEffect(() => {
     return () => {
@@ -189,7 +208,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
 
   // Apply collaborator cursor highlights to blocks
   useEffect(() => {
-    if (!editor || collaborators.length === 0) {
+    if (!editor || activeUsers.length === 0) {
       // Clear all highlights when no collaborators
       const highlighted = document.querySelectorAll('[data-collab-user]');
       highlighted.forEach(el => {
@@ -211,18 +230,18 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     });
 
     // Apply new highlights for each collaborator's current block
-    collaborators.forEach(collab => {
-      if (collab.blockId) {
-        const blockEl = document.querySelector(`[data-id="${collab.blockId}"]`);
+    activeUsers.forEach(user => {
+      if (user.blockId) {
+        const blockEl = document.querySelector(`[data-id="${user.blockId}"]`);
         if (blockEl) {
-          blockEl.setAttribute('data-collab-user', collab.odId);
-          blockEl.setAttribute('data-collab-color', collab.color);
-          blockEl.setAttribute('data-collab-name', collab.displayName || 'Someone');
-          (blockEl as HTMLElement).style.setProperty('--collab-color', collab.color);
+          blockEl.setAttribute('data-collab-user', user.id);
+          blockEl.setAttribute('data-collab-color', user.color);
+          blockEl.setAttribute('data-collab-name', user.name || 'Someone');
+          (blockEl as HTMLElement).style.setProperty('--collab-color', user.color);
         }
       }
     });
-  }, [editor, collaborators]);
+  }, [editor, activeUsers]);
 
   // Smart Feature Handlers
   const openTaskCreation = () => {
@@ -322,60 +341,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     <div className={cn("flex flex-col", className)}>
       {/* Collaborators & Status Bar - Always visible */}
       <div className="flex items-center gap-3 mb-6 min-h-[28px]">
-        {/* Collaborators Avatars */}
-        {collaborators.length > 0 && (
-          <TooltipProvider>
-            <div className="flex items-center gap-2">
-              <div className="flex -space-x-2">
-                {collaborators.slice(0, 5).map((collab) => (
-                  <Tooltip key={collab.odId}>
-                    <TooltipTrigger asChild>
-                      <div 
-                        className="relative cursor-default transition-all hover:scale-110 hover:z-10"
-                        style={{ zIndex: 5 }}
-                      >
-                        <Avatar 
-                          className="w-7 h-7 border-2 border-background shadow-sm"
-                          style={{ boxShadow: `0 0 0 2px ${collab.color}` }}
-                        >
-                          <AvatarImage 
-                            src={getFullUrl(collab.photoURL)} 
-                            className="object-cover" 
-                            referrerPolicy="no-referrer" 
-                          />
-                          <AvatarFallback 
-                            className="text-[10px] font-semibold text-white"
-                            style={{ backgroundColor: collab.color }}
-                          >
-                            {collab.displayName?.charAt(0).toUpperCase() || '?'}
-                          </AvatarFallback>
-                        </Avatar>
-                        {/* Active indicator dot */}
-                        <span 
-                          className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-background"
-                          style={{ backgroundColor: collab.color }}
-                        />
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent 
-                      side="bottom" 
-                      className="text-xs px-2 py-1"
-                      style={{ backgroundColor: collab.color, color: 'white', border: 'none' }}
-                    >
-                      <span className="font-medium">{collab.displayName}</span> is editing
-                    </TooltipContent>
-                  </Tooltip>
-                ))}
-              </div>
-              {collaborators.length > 5 && (
-                <span className="text-xs text-muted-foreground ml-1">+{collaborators.length - 5}</span>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {collaborators.length === 1 ? '1 person' : `${collaborators.length} people`} editing
-              </span>
-            </div>
-          </TooltipProvider>
-        )}
+        {/* Collaborators Avatars - Using the new component */}
+        <CollaboratorAvatars activeUsers={activeUsers} maxVisible={5} size="md" />
         
         {/* Save Status - Always on right */}
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
@@ -421,8 +388,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         </div>
       </div>
 
-      {/* Editor Content */}
-      <div className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-200 prose-p:text-zinc-300 prose-a:text-indigo-400">
+      {/* Editor Content with cursor awareness */}
+      <div 
+        className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-200 prose-p:text-zinc-300 prose-a:text-indigo-400"
+        onClick={handleBlockFocus}
+        onKeyUp={handleBlockFocus}
+      >
         <BlockNoteView
           editor={editor}
           onChange={handleContentChange}

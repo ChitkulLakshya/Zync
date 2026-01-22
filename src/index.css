@@ -525,60 +525,71 @@
    COLLABORATIVE EDITING - Google Docs Style Block Highlighting
    ═══════════════════════════════════════════════════════════════════════════ */
 
-/* Block being edited by a collaborator */
+/* Block being edited by a collaborator (remoteUser visualization) */
 .ZYNC-editor-overrides [data-collab-user] {
   position: relative;
-  border-left: 3px solid var(--collab-color, #3b82f6);
+  border-left: 4px solid var(--collab-color, #3b82f6);
   background: linear-gradient(90deg, 
     color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%, 
     transparent 100%
   );
   border-radius: 4px;
-  margin-left: -3px;
+  margin-left: -4px;
   padding-left: 12px;
-  transition: all 0.2s ease-out;
+  transition: all 200ms ease-out;
 }
 
-/* Collaborator name label on the block */
+/* Collaborator name tag - positioned top-right */
 .ZYNC-editor-overrides [data-collab-user]::before {
   content: attr(data-collab-name);
   position: absolute;
-  left: -3px;
-  top: -20px;
-  font-size: 10px;
-  font-weight: 600;
+  right: 0;
+  top: -16px;
+  font-size: 12px; /* text-xs */
+  font-weight: 500;
   color: white;
   background: var(--collab-color, #3b82f6);
-  padding: 2px 8px;
-  border-radius: 4px 4px 0 0;
+  padding: 2px 8px; /* py-0.5 px-2 */
+  border-radius: 6px 6px 0 0; /* rounded-t-md */
   white-space: nowrap;
   z-index: 10;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  animation: collab-fade-in 0.2s ease-out;
+  pointer-events: none;
+  animation: collab-label-enter 0.2s ease-out;
 }
 
-/* Subtle glow effect for emphasis */
+/* Subtle glow effect on left border */
 .ZYNC-editor-overrides [data-collab-user]::after {
   content: '';
   position: absolute;
-  left: -3px;
+  left: -4px;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 4px;
   background: var(--collab-color, #3b82f6);
-  box-shadow: 0 0 8px var(--collab-color, #3b82f6);
+  box-shadow: 0 0 10px var(--collab-color, #3b82f6);
   border-radius: 2px 0 0 2px;
+  animation: collab-glow-pulse 2s ease-in-out infinite;
 }
 
 /* Animation for collaborator label appearing */
-@keyframes collab-fade-in {
+@keyframes collab-label-enter {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    transform: translateY(4px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Subtle pulsing glow on the left border */
+@keyframes collab-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--collab-color, #3b82f6);
+  }
+  50% {
+    box-shadow: 0 0 14px var(--collab-color, #3b82f6);
   }
 }
 

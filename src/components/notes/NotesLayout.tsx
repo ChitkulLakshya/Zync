@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Note, Folder, createFolder, createNote, shareFolder, subscribeToFolders, subscribeToNotes } from '../../services/notesService';
 import NoteEditor from './NoteEditor';
+import { useNotePresence, ActiveUser } from '@/hooks/useNotePresence';
 import { cn } from "@/lib/utils";
 import { 
   Search, 
@@ -167,6 +168,12 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Collaborative Presence - track users viewing the selected note
+  const { activeUsers } = useNotePresence(
+    selectedNote?.id,
+    user ? { uid: user.uid, displayName: user.displayName, photoURL: user.photoURL } : undefined
+  );
   
   // Share Dialog
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -432,6 +439,40 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
 
               {/* Actions */}
               <div className="flex items-center gap-1">
+                {/* User Facepile - Connected users */}
+                {activeUsers.length > 0 && (
+                  <div className="flex items-center mr-4">
+                    {activeUsers.slice(0, 5).map((activeUser, index) => (
+                      <div
+                        key={activeUser.id}
+                        className={cn(
+                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white border-2 border-background",
+                          index > 0 && "-ml-2"
+                        )}
+                        style={{ backgroundColor: activeUser.color, zIndex: 5 - index }}
+                        title={activeUser.name || 'Anonymous'}
+                      >
+                        {activeUser.avatarUrl ? (
+                          <img
+                            src={activeUser.avatarUrl}
+                            alt={activeUser.name || 'User'}
+                            className="w-full h-full rounded-full object-cover"
+                          />
+                        ) : (
+                          (activeUser.name || 'A').charAt(0).toUpperCase()
+                        )}
+                      </div>
+                    ))}
+                    {activeUsers.length > 5 && (
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-muted text-muted-foreground border-2 border-background -ml-2"
+                        style={{ zIndex: 0 }}
+                      >
+                        +{activeUsers.length - 5}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <Button variant="ghost" size="sm" className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
                   <LinkIcon size={14} className="mr-1.5" /> Link Task
                 </Button>
