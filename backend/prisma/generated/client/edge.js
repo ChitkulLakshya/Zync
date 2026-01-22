@@ -130,7 +130,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/generated/client",
+      "value": "/Users/eesha/Desktop/VS/zync/Zync/backend/prisma/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -139,12 +139,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "debian-openssl-3.0.x",
+        "value": "darwin-arm64",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/schema.prisma",
+    "sourceFilePath": "/Users/eesha/Desktop/VS/zync/Zync/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
@@ -158,7 +158,7 @@ const config = {
     "db"
   ],
   "activeProvider": "mongodb",
-  "postinstall": false,
+  "postinstall": true,
   "inlineDatasources": {
     "db": {
       "url": {

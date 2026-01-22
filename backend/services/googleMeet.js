@@ -62,7 +62,7 @@ const create_meeting = async () => {
     }
 };
 
-const send_ZYNC_email = async (to, subject, bodyHtml) => {
+const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
     try {
         console.log(`Sending email to ${to}...`);
 
@@ -73,14 +73,44 @@ const send_ZYNC_email = async (to, subject, bodyHtml) => {
         const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
         const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
-        const messageParts = [
-            `To: ${to}`,
-            'Content-Type: text/html; charset=utf-8',
-            'MIME-Version: 1.0',
-            `Subject: ${utf8Subject}`,
-            '',
-            bodyHtml
-        ];
+        const boundary = `boundary_${Date.now().toString(36)}`;
+
+        let messageParts;
+
+        if (bodyText) {
+            // Multipart email with both plain text and HTML
+            messageParts = [
+                `To: ${to}`,
+                `Subject: ${utf8Subject}`,
+                'MIME-Version: 1.0',
+                `Content-Type: multipart/alternative; boundary="${boundary}"`,
+                '',
+                `--${boundary}`,
+                'Content-Type: text/plain; charset=utf-8',
+                'Content-Transfer-Encoding: quoted-printable',
+                '',
+                bodyText,
+                '',
+                `--${boundary}`,
+                'Content-Type: text/html; charset=utf-8',
+                'Content-Transfer-Encoding: quoted-printable',
+                '',
+                bodyHtml,
+                '',
+                `--${boundary}--`
+            ];
+        } else {
+            // HTML only (legacy behavior)
+            messageParts = [
+                `To: ${to}`,
+                'Content-Type: text/html; charset=utf-8',
+                'MIME-Version: 1.0',
+                `Subject: ${utf8Subject}`,
+                '',
+                bodyHtml
+            ];
+        }
+
         const message = messageParts.join('\n');
 
         // Base64url encoding

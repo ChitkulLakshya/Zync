@@ -26,6 +26,15 @@ module.exports = (io) => {
                 }
             );
 
+            // Send initial state of ALL online users to this new client
+            // This fixes "other users appearing offline" bug
+            const onlineUsers = await User.find({
+                status: { $in: ['online', 'away'] },
+                uid: { $ne: userId } // exclude self
+            }).select('uid status lastSeen');
+
+            socket.emit('initial-status', onlineUsers);
+
             // Broadcast to everyone
             socket.broadcast.emit('user-status-changed', {
                 userId,
