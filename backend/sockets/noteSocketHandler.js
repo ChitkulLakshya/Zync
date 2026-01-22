@@ -10,17 +10,26 @@ module.exports = (io) => {
     
     const users = notePresence.get(noteId);
     const userList = Array.from(users.values());
+    
+    // 🔍 DEBUG: Log broadcast data
+    console.log(`[NoteSocket] 📡 Broadcasting presence_update for note ${noteId}:`);
+    console.log(`[NoteSocket] 📡 User count: ${userList.length}`);
+    console.log(`[NoteSocket] 📡 Users:`, userList.map(u => ({ id: u.id, name: u.name })));
+    
     notesNamespace.to(noteId).emit('presence_update', userList);
   };
 
   notesNamespace.on('connection', (socket) => {
-    console.log('[NoteSocket] User connected:', socket.id);
+    console.log('[NoteSocket] ✅ User connected:', socket.id);
 
     // ═══════════════════════════════════════════════════════════════════════
     // JOIN NOTE - User joins a note room and announces presence
     // ═══════════════════════════════════════════════════════════════════════
     
     socket.on('join_note', ({ noteId, userId, userName, userAvatar, userColor }) => {
+      // 🔍 DEBUG: Log join request
+      console.log(`[NoteSocket] 🚪 join_note received:`, { noteId, userId, userName });
+      
       // Join the socket room
       socket.join(noteId);
       socket.noteId = noteId;
@@ -42,7 +51,8 @@ module.exports = (io) => {
         lastActive: Date.now()
       });
 
-      console.log(`[NoteSocket] ${userName} joined note ${noteId}`);
+      console.log(`[NoteSocket] ✅ ${userName} (${userId}) joined note ${noteId}`);
+      console.log(`[NoteSocket] 📊 Total users in note ${noteId}: ${users.size}`);
       
       // Broadcast updated presence to all users
       broadcastPresence(noteId);

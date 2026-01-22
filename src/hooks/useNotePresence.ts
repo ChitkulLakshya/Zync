@@ -64,12 +64,19 @@ export const useNotePresence = (
 
   useEffect(() => {
     if (!noteId || !user?.uid) {
+      console.log('[NotePresence] ❌ Missing noteId or user:', { noteId, userId: user?.uid });
       setActiveUsers([]);
       return;
     }
 
     const userColor = getColorForUser(user.uid);
     const socketUrl = import.meta.env.DEV ? 'http://localhost:5000' : API_BASE_URL;
+    
+    // 🔍 DEBUG: Log socket URL to verify correct server
+    console.log('[NotePresence] 🔌 Socket URL:', socketUrl);
+    console.log('[NotePresence] 🔌 Is DEV mode:', import.meta.env.DEV);
+    console.log('[NotePresence] 🔌 API_BASE_URL:', API_BASE_URL);
+    console.log('[NotePresence] 👤 Current User ID:', user.uid);
 
     // Create socket connection to /notes namespace
     const socket = io(`${socketUrl}/notes`, {
@@ -115,12 +122,25 @@ export const useNotePresence = (
 
     // Receive full list of active users
     socket.on('presence_update', (users: ActiveUser[]) => {
+      // 🔍 DEBUG: Log raw data from socket
+      console.log('[NotePresence] 📡 Socket received presence_update:', users);
+      console.log('[NotePresence] 📡 Raw user IDs:', users.map(u => u.id));
+      console.log('[NotePresence] 👤 Current user ID to filter:', user.uid);
+      
       // Filter out self and stale users (inactive > 60 seconds)
       const now = Date.now();
-      const filteredUsers = users.filter(u =>
-        u.id !== user.uid &&
-        (now - u.lastActive) < 60000
-      );
+      const filteredUsers = users.filter(u => {
+        const isSelf = u.id === user.uid;
+        const isStale = (now - u.lastActive) >= 60000;
+        // 🔍 DEBUG: Log each filter decision
+        console.log(`[NotePresence] 🔍 User ${u.id} (${u.name}): isSelf=${isSelf}, isStale=${isStale}, keep=${!isSelf && !isStale}`);
+        return !isSelf && !isStale;
+      });
+      
+      // 🔍 DEBUG: Log state update
+      console.log('[NotePresence] ✅ Setting activeUsers state:', filteredUsers);
+      console.log('[NotePresence] ✅ Filtered count:', filteredUsers.length);
+      
       setActiveUsers(filteredUsers);
       
       // Rebuild remoteCursors map from filtered users

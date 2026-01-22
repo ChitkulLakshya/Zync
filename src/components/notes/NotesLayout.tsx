@@ -169,11 +169,25 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   
+  // 🔍 DEBUG: Log hook inputs
+  console.log('[NotesLayout] 🔌 useNotePresence inputs:', {
+    noteId: selectedNote?.id,
+    userId: user?.uid,
+    userName: user?.displayName
+  });
+  
   // Collaborative Presence - track users viewing the selected note
-  const { activeUsers } = useNotePresence(
+  const { activeUsers, isConnected } = useNotePresence(
     selectedNote?.id,
     user ? { uid: user.uid, displayName: user.displayName, photoURL: user.photoURL } : undefined
   );
+  
+  // 🔍 DEBUG: Log hook outputs
+  console.log('[NotesLayout] 📊 useNotePresence outputs:', {
+    activeUsers,
+    activeUsersCount: activeUsers.length,
+    isConnected
+  });
   
   // Share Dialog
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -439,6 +453,13 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
 
               {/* Actions */}
               <div className="flex items-center gap-1">
+                {/* 🔍 DEBUG: Log render with activeUsers */}
+                {(() => {
+                  console.log('[NotesHeader] 🎨 Rendering Header with activeUsers:', activeUsers);
+                  console.log('[NotesHeader] 🎨 activeUsers count:', activeUsers.length);
+                  return null;
+                })()}
+                
                 {/* User Facepile - Connected users */}
                 {activeUsers.length > 0 && (
                   <div className="flex items-center mr-4">
