@@ -1,6 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Folder, Note, createFolder, createNote, shareFolder } from '../../services/notesService';
-import { Plus, Folder as FolderIcon, FileText, ChevronRight, ChevronDown, Share2, Users, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
+import { Folder, Note, createFolder, createNote, shareFolder, updateNote, deleteNote, duplicateNote } from '../../services/notesService';
+import {
+  Plus,
+  Folder as FolderIcon,
+  FileText,
+  ChevronRight,
+  ChevronDown,
+  Share2,
+  Users,
+  PanelLeftClose,
+  PanelLeftOpen,
+  MoreVertical,
+  Pencil,
+  Copy,
+  Trash2,
+  File
+} from 'lucide-react';
 import { cn } from "@/lib/utils";
 import {
   Dialog,
@@ -17,6 +32,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -36,6 +58,9 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
 }) => {
   const [newFolderMode, setNewFolderMode] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
+
+  // Optimistic deletion state
+  const [hiddenNoteIds, setHiddenNoteIds] = useState<Set<string>>(new Set());
 
   // Resizable & Collapsible State
   const [width, setWidth] = useState(256);
@@ -152,11 +177,51 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
     }
   };
 
+  // Note actions
+  const handleDeleteNote = async (noteId: string) => {
+    // Optimistic UI update
+    setHiddenNoteIds(prev => new Set(prev).add(noteId));
+
+    try {
+      await deleteNote(noteId);
+      toast.success("Note deleted");
+      onRefresh();
+    } catch (error) {
+      setHiddenNoteIds(prev => {
+        const next = new Set(prev);
+        next.delete(noteId);
+        return next;
+      });
+      toast.error("Failed to delete note");
+    }
+  };
+
+  const handleDuplicateNote = async (noteId: string) => {
+    try {
+      await duplicateNote(noteId, null, userId); // Duplicate to root or same folder? Service handles logic
+      toast.success("Note duplicated");
+      onRefresh();
+    } catch (error) {
+      toast.error("Failed to duplicate note");
+    }
+  };
+
+  const handleRenameNote = async (noteId: string, newTitle: string) => {
+    try {
+      await updateNote(noteId, { title: newTitle });
+      onRefresh();
+    } catch (error) {
+      toast.error("Failed to rename note");
+    }
+  };
+
   // Split folders and notes
   const myFolders = folders.filter(f => f.ownerId === userId);
   const sharedFolders = folders.filter(f => f.ownerId !== userId); // Should be covered by subscription filter
 
-  const myUnorganizedNotes = notes.filter(n => !n.folderId && n.ownerId === userId);
+  // Filter out hidden notes (optimistic delete)
+  const visibleNotes = notes.filter(n => !hiddenNoteIds.has(n.id));
+  const myUnorganizedNotes = visibleNotes.filter(n => !n.folderId && n.ownerId === userId);
 
   // DnD State
   const handleDragStart = (e: React.DragEvent, noteId: string) => {
@@ -175,7 +240,6 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
     if (!noteId) return;
 
     try {
-      const { updateNote } = await import('../../services/notesService');
       await updateNote(noteId, { folderId: targetFolderId });
       toast.success("Note moved");
       onRefresh();
@@ -195,7 +259,6 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   const handlePaste = async (targetFolderId: string | null) => {
     if (!clipboardNoteId) return;
     try {
-      const { duplicateNote } = await import('../../services/notesService');
       await duplicateNote(clipboardNoteId, targetFolderId, userId);
       toast.success("Note pasted");
       onRefresh();
@@ -283,7 +346,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                 <FolderItem
                   key={folder.id}
                   folder={folder}
-                  notes={notes.filter(n => n.folderId === folder.id)}
+                  notes={visibleNotes.filter(n => n.folderId === folder.id)}
                   selectedNoteId={selectedNoteId}
                   onSelectNote={onSelectNote}
                   onCreateNote={() => handleCreateNote(folder.id)}
@@ -296,6 +359,9 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                   onCopy={handleCopy}
                   onPaste={handlePaste}
                   canPaste={!!clipboardNoteId}
+                  onDeleteNote={handleDeleteNote}
+                  onDuplicateNote={handleDuplicateNote}
+                  onRenameNote={handleRenameNote}
                 />
               ))}
               <div className="h-px bg-border/40 my-2 mx-2" />
@@ -310,7 +376,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                 <FolderItem
                   key={folder.id}
                   folder={folder}
-                  notes={notes.filter(n => n.folderId === folder.id)}
+                  notes={visibleNotes.filter(n => n.folderId === folder.id)}
                   selectedNoteId={selectedNoteId}
                   onSelectNote={onSelectNote}
                   onCreateNote={() => handleCreateNote(folder.id)}
@@ -323,6 +389,9 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                   onCopy={handleCopy}
                   onPaste={handlePaste}
                   canPaste={!!clipboardNoteId}
+                  onDeleteNote={handleDeleteNote}
+                  onDuplicateNote={handleDuplicateNote}
+                  onRenameNote={handleRenameNote}
                 />
               ))}
             </div>
@@ -337,40 +406,18 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
             {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
 
             {myUnorganizedNotes.map(note => (
-              // Context Menu Trigger Wrapper
-              <div key={note.id} onContextMenu={(e) => {
-                e.preventDefault();
-                // Simple native context menu replacement for now or custom UI?
-                // Using user request implies "drag note", "copy paste".
-                // Let's rely on sidebar Item props or a RIGHT CLICK handler.
-                // For MVP, we can add a 'Copy' button or rely on FolderItem context menu logic if we wrap this.
-                // Implemented simple right click logic inside the button for now?
-              }}>
-                <button
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, note.id)}
-                  onClick={() => onSelectNote(note)}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    handleCopy(note.id);
-                  }}
-                  className={cn(
-                    "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
-                    effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
-                    selectedNoteId === note.id
-                      ? (effectiveCollapsed
-                        ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
-                        : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
-                      : (effectiveCollapsed
-                        ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
-                        : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
-                  )}
-                  title={effectiveCollapsed ? (note.title || "Untitled") : undefined}
-                >
-                  <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", effectiveCollapsed ? "" : "mr-2")} />
-                  {!effectiveCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
-                </button>
-              </div>
+              <NoteItem
+                key={note.id}
+                note={note}
+                selectedNoteId={selectedNoteId}
+                isCollapsed={effectiveCollapsed}
+                onSelect={onSelectNote}
+                onDragStart={handleDragStart}
+                onDelete={handleDeleteNote}
+                onDuplicate={handleDuplicateNote}
+                onRename={handleRenameNote}
+                onCopy={handleCopy}
+              />
             ))}
 
             <button
@@ -457,26 +504,39 @@ interface FolderItemProps {
   onCopy: (noteId: string) => void;
   onPaste: (folderId: string | null) => void;
   canPaste: boolean;
+  // Actions
+  onDeleteNote: (id: string) => void;
+  onDuplicateNote: (id: string) => void;
+  onRenameNote: (id: string, newTitle: string) => void;
 }
 
 const FolderItem: React.FC<FolderItemProps> = ({
   folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare, isCollapsed,
-  onDragStart, onDragOver, onDrop, onCopy, onPaste, canPaste
+  onDragStart, onDragOver, onDrop, onCopy, onPaste, canPaste,
+  onDeleteNote, onDuplicateNote, onRenameNote
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isDragOverFolder, setIsDragOverFolder] = useState(false);
 
   return (
     <div
-      className="mb-1 select-none"
-      onDragOver={onDragOver}
+      className={cn(
+        "mb-1 select-none rounded-md transition-colors",
+        isDragOverFolder && "bg-zinc-800/50 ring-2 ring-primary/20"
+      )}
+      onDragOver={(e) => {
+        onDragOver(e);
+        if (!isDragOverFolder) setIsDragOverFolder(true);
+      }}
+      onDragLeave={() => setIsDragOverFolder(false)}
       onDrop={(e) => {
         e.stopPropagation(); // prevent dropping on parent
+        setIsDragOverFolder(false);
         onDrop(e, folder.id);
       }}
       onContextMenu={(e) => {
         e.preventDefault();
         if (canPaste) onPaste(folder.id);
-        // else maybe share options? Context menu lib would be better here but simple listener works for now
       }}
     >
       <div
@@ -521,33 +581,121 @@ const FolderItem: React.FC<FolderItemProps> = ({
       {isOpen && !isCollapsed && (
         <div className="ml-4 pl-3 border-l border-border/40 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
           {notes.map((note) => (
-            <div
+            <NoteItem
               key={note.id}
-              onContextMenu={(e) => {
-                e.stopPropagation();
-                e.preventDefault();
-                onCopy(note.id);
-              }}
-            >
-              <button
-                draggable
-                onDragStart={(e) => { e.stopPropagation(); onDragStart(e, note.id); }}
-                onClick={(e) => { e.stopPropagation(); onSelectNote(note); }}
-                className={cn(
-                  "w-full text-left flex items-center px-2 py-1.5 rounded-md text-sm border-l-2",
-                  selectedNoteId === note.id
-                    ? "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-primary/10 dark:border-primary dark:text-primary dark:shadow-[0_0_15px_-3px_hsl(var(--primary)/0.3)]"
-                    : "border-transparent text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground"
-                )}
-              >
-                <FileText size={14} className={cn("mr-2", selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70")} />
-                <span className="truncate">{note.title || "Untitled"}</span>
-              </button>
-            </div>
+              note={note}
+              selectedNoteId={selectedNoteId}
+              isCollapsed={false}
+              onSelect={onSelectNote}
+              onDragStart={onDragStart}
+              onDelete={onDeleteNote}
+              onDuplicate={onDuplicateNote}
+              onRename={onRenameNote}
+              onCopy={onCopy}
+            />
           ))}
           {notes.length === 0 && <div className="text-xs text-muted-foreground/50 px-2 py-1 italic">Empty folder</div>}
         </div>
       )}
     </div>
+  );
+};
+
+interface NoteItemProps {
+  note: Note;
+  selectedNoteId: string | null;
+  isCollapsed: boolean;
+  onSelect: (note: Note) => void;
+  onDragStart: (e: React.DragEvent, id: string) => void;
+  onDelete: (id: string) => void;
+  onDuplicate: (id: string) => void;
+  onRename: (id: string, title: string) => void;
+  onCopy: (id: string) => void;
+}
+
+const NoteItem: React.FC<NoteItemProps> = ({
+  note, selectedNoteId, isCollapsed, onSelect, onDragStart,
+  onDelete, onDuplicate, onRename, onCopy
+}) => {
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [renameValue, setRenameValue] = useState(note.title);
+
+  const handleRenameSubmit = () => {
+    if (renameValue.trim() && renameValue !== note.title) {
+      onRename(note.id, renameValue);
+    }
+    setIsRenaming(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') handleRenameSubmit();
+    if (e.key === 'Escape') {
+      setRenameValue(note.title);
+      setIsRenaming(false);
+    }
+  };
+
+  if (isRenaming) {
+    return (
+      <div className="px-2 py-1">
+        <input
+          autoFocus
+          className="w-full text-sm bg-background border border-primary px-1 py-0.5 rounded outline-none"
+          value={renameValue}
+          onChange={(e) => setRenameValue(e.target.value)}
+          onBlur={handleRenameSubmit}
+          onKeyDown={handleKeyDown}
+          onClick={(e) => e.stopPropagation()}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger>
+        <button
+          draggable
+          onDragStart={(e) => onDragStart(e, note.id)}
+          onClick={() => onSelect(note)}
+          onContextMenu={() => onCopy(note.id)} // Keep existing quick copy or let Context Menu handle it? Context Menu will override this naturally on right click.
+          // Note: ContextMenuTrigger handles the right click automatically.
+          className={cn(
+            "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
+            isCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
+            selectedNoteId === note.id
+              ? (isCollapsed
+                ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
+                : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
+              : (isCollapsed
+                ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
+                : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
+          )}
+          title={isCollapsed ? (note.title || "Untitled") : undefined}
+        >
+          <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", isCollapsed ? "" : "mr-2")} />
+          {!isCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
+        </button>
+      </ContextMenuTrigger>
+
+      <ContextMenuContent className="w-48">
+        <ContextMenuItem onClick={() => setIsRenaming(true)}>
+          <Pencil className="mr-2 h-4 w-4" />
+          <span>Rename</span>
+        </ContextMenuItem>
+        <ContextMenuItem onClick={() => onDuplicate(note.id)}>
+          <Copy className="mr-2 h-4 w-4" />
+          <span>Duplicate</span>
+        </ContextMenuItem>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={() => onDelete(note.id)}
+          className="text-red-500 focus:text-red-500 focus:bg-red-100 dark:focus:bg-red-900/20"
+        >
+          <Trash2 className="mr-2 h-4 w-4" />
+          <span>Delete</span>
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   );
 };
