@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,17 +32,142 @@ interface PeopleViewProps {
 }
 
 const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPreview }: PeopleViewProps) => {
-    const [users, setUsers] = useState<any[]>(propUsers || []);
-    const [loading, setLoading] = useState(true);
-    const [hasTeam, setHasTeam] = useState<boolean>(true);
-    const [teamInfo, setTeamInfo] = useState<any>(null);
-    const [myTeams, setMyTeams] = useState<any[]>([]);
     const currentUser = auth.currentUser;
     const { toast } = useToast();
+    const queryClient = useQueryClient();
 
-    // Close Friends State
-    const [localCloseFriendsIds, setLocalCloseFriendsIds] = useState<string[]>([]);
-    const [allKnownUsers, setAllKnownUsers] = useState<any[]>([]);
+    // Queries
+    const { data: userData } = useQuery({
+        queryKey: ['me', currentUser?.uid],
+        queryFn: async () => {
+            if (!currentUser) return null;
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/users/me`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch user');
+            return res.json();
+        },
+        enabled: !!currentUser && !isPreview,
+        staleTime: 300000
+    });
+
+    const { data: myTeamsData, isLoading: myTeamsLoading } = useQuery({
+        queryKey: ['myTeams', currentUser?.uid],
+        queryFn: async () => {
+             if (!currentUser) return [];
+             const token = await currentUser.getIdToken();
+             const res = await fetch(`${API_BASE_URL}/api/teams/mine`, {
+                 headers: { Authorization: `Bearer ${token}` }
+             });
+             if (!res.ok) throw new Error('Failed to fetch teams');
+             return res.json();
+        },
+        enabled: !!currentUser && !isPreview,
+        staleTime: 300000
+    });
+
+    const { data: allUsersData } = useQuery({
+        queryKey: ['allUsers', currentUser?.uid],
+        queryFn: async () => {
+              if (!currentUser) return [];
+              const token = await currentUser.getIdToken();
+              const res = await fetch(`${API_BASE_URL}/api/users`, {
+                  headers: { Authorization: `Bearer ${token}` }
+              });
+              if (!res.ok) throw new Error('Failed to fetch users');
+              return res.json();
+        },
+        enabled: !!currentUser && !isPreview,
+        staleTime: 300000
+    });
+
+    const [teamInfo, setTeamInfo] = useState<any>(null);
+    const [hasTeam, setHasTeam] = useState<boolean>(true);
+
+    const myTeams = myTeamsData || [];
+    
+    useEffect(() => {
+        if (myTeams.length > 0) {
+            setHasTeam(true);
+            if (!teamInfo || !myTeams.find((t: any) => t._id === teamInfo._id)) {
+                const activeTeam = myTeams.find((t: any) => t._id === userData?.teamId) || myTeams[0];
+                setTeamInfo(activeTeam);
+            }
+        } else if (!myTeamsLoading && myTeams.length === 0 && !isPreview) {
+            setHasTeam(false);
+        }
+    }, [myTeams, teamInfo, userData, myTeamsLoading, isPreview]);
+
+    const { data: teamUsersData, isLoading: usersLoading } = useQuery({
+        queryKey: ['teamUsers', teamInfo?._id],
+        queryFn: async () => {
+             if (!teamInfo?._id || !currentUser) return [];
+             const token = await currentUser.getIdToken();
+             const res = await fetch(`${API_BASE_URL}/api/users?teamId=${teamInfo._id}`, {
+                 headers: { Authorization: `Bearer ${token}` }
+             });
+             if (!res.ok) throw new Error('Failed to fetch team users');
+             return res.json();
+        },
+        enabled: !!teamInfo?._id && !isPreview,
+        staleTime: 300000
+    });
+
+    const users = isPreview ? (propUsers || []) : (teamUsersData || []);
+    const loading = !isPreview && (myTeamsLoading || (hasTeam && teamUsersData === undefined && usersLoading));
+
+    const localCloseFriendsIds = userData?.closeFriends || [];
+    const allKnownUsers = allUsersData || [];
+    const closeFriendUsers = allKnownUsers.filter((u: any) => localCloseFriendsIds.includes(u.uid));
+
+    const toggleCloseFriendMutation = useMutation({
+        mutationFn: async (friendId: string) => {
+             const token = await currentUser?.getIdToken();
+             if (!token) throw new Error("No token");
+             const res = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
+                 method: 'POST',
+                 headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                 },
+                 body: JSON.stringify({ friendId })
+             });
+             if (!res.ok) throw new Error("Failed");
+             return res.json();
+        },
+        onMutate: async (friendId) => {
+            await queryClient.cancelQueries({ queryKey: ['me', currentUser?.uid] });
+            const previousUserData = queryClient.getQueryData(['me', currentUser?.uid]);
+            queryClient.setQueryData(['me', currentUser?.uid], (old: any) => {
+                 if (!old) return old;
+                 const isFriend = old.closeFriends?.includes(friendId);
+                 const newFriends = isFriend 
+                     ? old.closeFriends.filter((id: string) => id !== friendId)
+                     : [...(old.closeFriends || []), friendId];
+                 return { ...old, closeFriends: newFriends };
+            });
+            return { previousUserData };
+        },
+        onError: (err, newTodo, context: any) => {
+             queryClient.setQueryData(['me', currentUser?.uid], context.previousUserData);
+             toast({
+                 title: "Error",
+                 description: "Failed to update close friend.",
+                 variant: "destructive"
+             });
+        },
+        onSettled: () => {
+             queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
+        }
+    });
+
+    const toggleCloseFriend = async (friendId: string) => {
+         if (isPreview) return;
+         toggleCloseFriendMutation.mutate(friendId);
+    };
+
+
 
     // Invite State
     const [inviteOpen, setInviteOpen] = useState(false);
@@ -105,164 +231,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
         if (!newState) setIsHovered(false);
     };
 
-    // Fetch User Data for Close Friends and All Users
-    useEffect(() => {
-        const fetchUserData = async () => {
-            if (!currentUser) return;
-            try {
-                const token = await currentUser.getIdToken();
-                // Fetch Me
-                const meRes = await fetch(`${API_BASE_URL}/api/users/me`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (meRes.ok) {
-                    const data = await meRes.json();
-                    setLocalCloseFriendsIds(data.closeFriends || []);
-                }
 
-                // Fetch All Known Users (for adding friends)
-                const usersRes = await fetch(`${API_BASE_URL}/api/users`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-                if (usersRes.ok) {
-                    const data = await usersRes.json();
-                    setAllKnownUsers(data);
-                }
-            } catch (err) {
-                console.error("Error fetching user data:", err);
-            }
-        };
-        fetchUserData();
-    }, [currentUser]);
 
-    const toggleCloseFriend = async (friendId: string) => {
-        if (isPreview) return;
 
-        // Optimistic update
-        const isCurrentlyCloseFriend = localCloseFriendsIds.includes(friendId);
-        let newIds;
-        if (isCurrentlyCloseFriend) {
-            newIds = localCloseFriendsIds.filter(id => id !== friendId);
-        } else {
-            newIds = [...localCloseFriendsIds, friendId];
-        }
-        setLocalCloseFriendsIds(newIds);
-
-        try {
-            const token = await currentUser?.getIdToken();
-            if (!token) return;
-
-            const res = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ friendId })
-            });
-
-            if (!res.ok) {
-                // Revert on error
-                setLocalCloseFriendsIds(localCloseFriendsIds);
-                console.error("Failed to toggle close friend");
-                toast({
-                     title: "Error",
-                     description: "Failed to update close friends.",
-                     variant: "destructive"
-                });
-            }
-        } catch (error) {
-            console.error("Error toggling close friend:", error);
-            setLocalCloseFriendsIds(localCloseFriendsIds);
-        }
-    };
-
-    const closeFriendUsers = allKnownUsers.filter(u => localCloseFriendsIds.includes(u.uid));
-
-    // Check if user has team and fetch all teams
-    useEffect(() => {
-        const fetchTeams = async () => {
-            if (!currentUser) return;
-            try {
-                const token = await currentUser.getIdToken();
-
-                // Fetch All My Teams
-                const teamsRes = await fetch(`${API_BASE_URL}/api/teams/mine`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
-
-                if (teamsRes.ok) {
-                    const teams = await teamsRes.json();
-                    setMyTeams(teams);
-
-                    if (teams.length > 0) {
-                        setHasTeam(true);
-                        // If no team selected, or selected team not in list, default to first
-                        if (!teamInfo || !teams.find((t: any) => t._id === teamInfo._id)) {
-                            // Prefer the one from user profile if it exists, otherwise first one
-                            const userRes = await fetch(`${API_BASE_URL}/api/users/me`, {
-                                headers: { Authorization: `Bearer ${token}` }
-                            });
-                            const userData = await userRes.json();
-
-                            const activeTeam = teams.find((t: any) => t._id === userData.teamId) || teams[0];
-                            setTeamInfo(activeTeam);
-                        }
-                    } else {
-                        setHasTeam(false);
-                    }
-                }
-            } catch (err) {
-                console.error("Error checking teams:", err);
-            } finally {
-                // We only mark loading as false here if we have NO teams. 
-                // If we HAVE teams, we let the fetchUsers effect handle the loading state finishing.
-                // Actually, we need a flag to say "teams are ready".
-                setTeamsLoaded(true);
-            }
-        };
-
-        if (!isPreview) {
-            fetchTeams();
-        } else {
-            setTeamsLoaded(true);
-        }
-    }, [currentUser, isPreview]);
-
-    const [teamsLoaded, setTeamsLoaded] = useState(false);
-
-    // Fetch users if has team
-    useEffect(() => {
-        // Wait until teams are loaded before deciding what to do
-        if (!teamsLoaded && !isPreview) return;
-
-        if (!isPreview && hasTeam && teamInfo) {
-            setLoading(true); // Ensure loading is true while fetching users
-            const fetchUsers = async () => {
-                if (!currentUser) return;
-                try {
-                    const token = await currentUser.getIdToken();
-                    const response = await fetch(`${API_BASE_URL}/api/users?teamId=${teamInfo._id}`, {
-                        headers: { Authorization: `Bearer ${token}` }
-                    });
-                    if (response.ok) {
-                        const data = await response.json();
-                        setUsers(data);
-                    }
-                } catch (error) {
-                    console.error("Error fetching users:", error);
-                } finally {
-                    setLoading(false);
-                }
-            };
-            fetchUsers();
-        } else if (propUsers) {
-            setUsers(propUsers);
-            setLoading(false);
-        } else {
-            setLoading(false);
-        }
-    }, [isPreview, currentUser?.uid, hasTeam, propUsers, teamInfo?._id, teamsLoaded]);
 
     if (!hasTeam && !isPreview) {
         return <TeamOnboarding onSuccess={() => {
@@ -419,11 +390,20 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                             className={cn(
                                                 "flex items-center rounded-md transition-all select-none border border-transparent",
                                                 effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
-                                                "text-primary hover:bg-secondary/50"
+                                                /* -------------------------------------------------------------------------- */
+                                                /*                          CUSTOMIZE TEXT COLOR HERE                         */
+                                                /* -------------------------------------------------------------------------- */
+                                                "text-white hover:bg-secondary/50" 
                                             )}
                                         >
                                             <div className="relative shrink-0">
-                                                 <Avatar className={cn("ring-2 ring-transparent transition-all", effectiveCollapsed ? "w-8 h-8" : "w-6 h-6")}>
+                                                 <Avatar className={cn(
+                                                    "ring-2 ring-transparent transition-all", 
+                                                    /* -------------------------------------------------------------------------- */
+                                                    /*                            CUSTOMIZE SIZE HERE                             */
+                                                    /* -------------------------------------------------------------------------- */
+                                                    effectiveCollapsed ? "w-10 h-10" : "w-10 h-10" 
+                                                  )}>
                                                     <AvatarImage src={getFullUrl(friend.photoURL)} referrerPolicy="no-referrer" />
                                                     <AvatarFallback className="text-[10px]">{getUserInitials(friend)}</AvatarFallback>
                                                 </Avatar>
