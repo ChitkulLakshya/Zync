@@ -236,25 +236,8 @@ router.post('/invite', verifyToken, async (req, res) => {
                         }
                     }
 
-                    // 2. Send Chat Message (Directly to Firestore)
-                    try {
-                        const db = getFirestore(); // Lazy load instance
-                        const chatId = [senderId, receiver.uid].sort().join("_");
-                        await db.collection('messages').add({
-                            chatId,
-                            text: `🎥 I've started a Google Meet. Join me here: ${meetingUrl}`,
-                            senderId: senderId,
-                            senderName: sender.displayName || "Unknown User",
-                            receiverId: receiver.uid,
-                            timestamp: new Date(),
-                            seen: false,
-                            delivered: false,
-                            type: 'text',
-                            isSystem: true
-                        });
-                    } catch (chatErr) {
-                        console.error(`Failed to chat ${receiver.uid}:`, chatErr);
-                    }
+                    // 2. Send Chat Message (Directly to Firestore) - REMOVED as per request
+                    // The user requested to stop sending chat messages during meething creation.
                 }
             } catch (bgError) {
                 console.error("Background notification error:", bgError);
