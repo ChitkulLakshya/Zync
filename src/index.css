@@ -538,25 +538,21 @@
 /* Block being edited by a collaborator (activeCollaborator !== null) */
 .ZYNC-editor-overrides [data-collab-user] {
   position: relative; /* Required for absolute positioned name tag */
-  border-left: 4px solid var(--collab-color, #3b82f6);
+  border-left: 3px solid var(--collab-color, #3b82f6);
   background: linear-gradient(90deg, 
     color-mix(in srgb, var(--collab-color, #3b82f6) 6%, transparent) 0%, 
     transparent 100%
   );
   border-radius: 4px;
-  margin-left: -4px;
+  margin-left: -3px;
   padding-left: 12px;
-  transition: 
-    border-left-color 200ms ease-out,
-    background 200ms ease-out;
+  transition: border-color 0.2s ease;
 }
 
 /* Blocks without activeCollaborator - transparent border (for smooth transition) */
 .ZYNC-editor-overrides [data-id]:not([data-collab-user]) {
-  border-left: 4px solid transparent;
-  transition: 
-    border-left-color 200ms ease-out,
-    background 200ms ease-out;
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s ease;
 }
 
 /* Name Tag - absolute positioned top-right (activeCollaborator.name) */
@@ -581,10 +577,10 @@
 .ZYNC-editor-overrides [data-collab-user]::after {
   content: '';
   position: absolute;
-  left: -4px;
+  left: -3px;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 3px;
   background: var(--collab-color, #3b82f6);
   box-shadow: 0 0 8px var(--collab-color, #3b82f6);
   border-radius: 2px 0 0 2px;

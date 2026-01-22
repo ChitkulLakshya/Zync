@@ -221,7 +221,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     // 🔍 DEBUG: Log when this effect runs
     console.log('🎨 [NoteEditor] Block highlight effect running');
     console.log('🎨 [NoteEditor] activeUsers:', activeUsers.map(u => ({ id: u.id, name: u.name, blockId: u.blockId })));
-    console.log('🎨 [NoteEditor] remoteCursors:', remoteCursors);
+    console.log('🎨 [NoteEditor] remoteCursors keys:', Object.keys(remoteCursors));
+    console.log('🎨 [NoteEditor] remoteCursors full:', remoteCursors);
     
     if (!editor) return;
     
@@ -230,6 +231,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     
     // 🔍 DEBUG: Log all block IDs in the document
     console.log('🎨 [NoteEditor] All block IDs in document:', blocks.map(b => b.id));
+    
+    // 🔍 DEBUG: Check for matches before iterating
+    const remoteCursorKeys = Object.keys(remoteCursors);
+    const blockIds = blocks.map(b => b.id);
+    const matchingBlocks = blockIds.filter(id => remoteCursorKeys.includes(id));
+    console.log('🎨 [NoteEditor] Block IDs that have remoteCursors:', matchingBlocks);
     
     // Clear all previous highlights first
     const previousHighlights = document.querySelectorAll('[data-collab-user]');
@@ -250,24 +257,51 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     blocks.forEach(block => {
       const activeCollaborator = remoteCursors[block.id] || null;
       
+      // 🔍 DEBUG: Log every block render with its collaborator status
+      console.log('Block rendering. ID:', block.id, 'Collaborator:', activeCollaborator);
+      
       if (activeCollaborator) {
-        // 🔍 DEBUG: Log when we find a block with an active collaborator
-        console.log(`✅ [NoteEditor] Block ${block.id} has activeCollaborator:`, {
+        // Apply styling: borderLeft: 3px solid activeCollaborator.color
+        console.log(`✅ [NoteEditor] Applying activeCollaborator to block ${block.id}:`, {
+          id: activeCollaborator.id,
           name: activeCollaborator.name,
           color: activeCollaborator.color
         });
         
-        const blockEl = document.querySelector(`[data-id="${block.id}"]`);
+        // Try multiple selectors to find the block element
+        let blockEl = document.querySelector(`[data-id="${block.id}"]`);
+        
+        // Fallback: try data-node-id (some BlockNote versions use this)
+        if (!blockEl) {
+          blockEl = document.querySelector(`[data-node-id="${block.id}"]`);
+        }
+        
+        // Fallback: try data-block-id
+        if (!blockEl) {
+          blockEl = document.querySelector(`[data-block-id="${block.id}"]`);
+        }
         
         if (blockEl) {
-          // Apply the collaborator styling (equivalent to passing prop to component)
+          // Apply the activeCollaborator styling via DOM attributes
+          // CSS will handle: borderLeft: 3px solid activeCollaborator.color
+          //                  transition: 'border-color 0.2s ease'
+          //                  Name tag with backgroundColor: activeCollaborator.color
           blockEl.setAttribute('data-collab-user', activeCollaborator.id);
           blockEl.setAttribute('data-collab-color', activeCollaborator.color);
           blockEl.setAttribute('data-collab-name', activeCollaborator.name || 'Someone');
           (blockEl as HTMLElement).style.setProperty('--collab-color', activeCollaborator.color);
-          console.log(`✅ [NoteEditor] Applied activeCollaborator to block ${block.id}`);
+          console.log(`✅ [NoteEditor] DOM styled. key=${block.id}, id=${block.id}`);
         } else {
+          // 🔍 DEBUG: List all data-* attributes in the editor to find the right selector
           console.log(`❌ [NoteEditor] DOM element NOT found for block ${block.id}`);
+          const allBlockEls = document.querySelectorAll('.bn-block');
+          console.log('🔍 [NoteEditor] All .bn-block elements:', allBlockEls.length);
+          if (allBlockEls.length > 0) {
+            const firstBlock = allBlockEls[0];
+            console.log('🔍 [NoteEditor] First block attributes:', 
+              Array.from(firstBlock.attributes).map(a => `${a.name}="${a.value}"`).join(', ')
+            );
+          }
         }
       }
     });

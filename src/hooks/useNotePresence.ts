@@ -147,9 +147,11 @@ export const useNotePresence = (
       const newRemoteCursors: Record<string, ActiveUser> = {};
       filteredUsers.forEach(u => {
         if (u.blockId) {
+          console.log(`[NotePresence] 🗺️ Mapping blockId "${u.blockId}" → user "${u.name}"`);
           newRemoteCursors[u.blockId] = u;
         }
       });
+      console.log('[NotePresence] 🗺️ Final remoteCursors:', Object.keys(newRemoteCursors));
       setRemoteCursors(newRemoteCursors);
     });
 
