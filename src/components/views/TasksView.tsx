@@ -1,11 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { fetchProjects, Project } from "@/api/projects";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckSquare, Loader2, FolderKanban, Trash2 } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { CheckSquare, Loader2, Terminal, Layout, Github, ExternalLink, Inbox, ArrowUpCircle, MinusCircle, ArrowDownCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
-import TaskDetailDrawer from "./TaskDetailDrawer";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,6 +13,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { GitCommandsDrawer } from "./GitCommandsDrawer";
+import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 
 interface TasksViewProps {
     currentUser: any;
@@ -23,11 +23,12 @@ interface TasksViewProps {
 }
 
 export interface FlattenedTask {
-    id: string; // This should be the functional ID for the view (can be _id)
-    _id: string; // The real Mongoose ID
+    id: string;
+    _id: string;
     title: string;
     description?: string;
     status: string;
+    priority?: 'High' | 'Medium' | 'Low';
     projectName: string;
     projectId: string;
     projectOwnerId?: string;
@@ -36,55 +37,84 @@ export interface FlattenedTask {
     assignedTo?: string;
     assignedToName?: string;
     createdAt?: string;
+    githubRepoName?: string;
+    githubRepoOwner?: string;
+}
+
+interface ProjectGroup {
+    projectId: string;
+    projectName: string;
+    isOwner: boolean;
+    githubRepoName?: string;
+    githubRepoOwner?: string;
+    tasks: FlattenedTask[];
 }
 
 const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
+    const navigate = useNavigate();
     const [loading, setLoading] = useState(true);
-    const [tasks, setTasks] = useState<FlattenedTask[]>([]);
-    const [selectedTask, setSelectedTask] = useState<FlattenedTask | null>(null);
-    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-    const { toast } = useToast();
-
-    // Create Task State
-    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [groupedTasks, setGroupedTasks] = useState<ProjectGroup[]>([]);
     const [projects, setProjects] = useState<Project[]>([]);
+
+    const [isGitDrawerOpen, setIsGitDrawerOpen] = useState(false);
+    const [selectedGitTask, setSelectedGitTask] = useState<FlattenedTask | null>(null);
+
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState("");
     const [newTaskDesc, setNewTaskDesc] = useState("");
     const [newTaskProjectId, setNewTaskProjectId] = useState("");
     const [newTaskAssignedTo, setNewTaskAssignedTo] = useState<string>("");
     const [isCreating, setIsCreating] = useState(false);
 
-    // Refresh function
+    const { toast } = useToast();
+
     const loadTasks = async () => {
         if (!currentUser?.uid) return;
         try {
-            const projects = await fetchProjects(currentUser.uid);
+            const fetchedProjects = await fetchProjects(currentUser.uid);
+            const groups: Record<string, ProjectGroup> = {};
 
-            const allTasks: FlattenedTask[] = projects.flatMap((p: Project) =>
-                p.steps.flatMap((step: any) =>
-                    (step.tasks || []).map((t: any, idx: number) => ({
-                        id: t._id || t.id || `${p._id}-${step.id || step.name}-${idx}`,
-                        _id: t._id, // Ensure we have the DB ID
-                        title: t.title || t.name || t,
-                        description: t.description,
-                        status: t.status || "pending",
-                        projectName: p.name,
-                        projectId: p._id,
-                        projectOwnerId: p.ownerId,
-                        stepName: step.title || step.name,
-                        stepId: step._id || step.id,
-                        assignedTo: t.assignedTo,
-                        assignedToName: t.assignedToName,
-                        createdAt: t.createdAt
-                    }))
-                )
-            );
+            fetchedProjects.forEach(p => {
+                p.steps.forEach((step: any) => {
+                    (step.tasks || []).forEach((t: any, idx: number) => {
+                        if (t.assignedTo !== currentUser.uid) return;
 
-            // Filter for only tasks assigned to current user
-            const myTasks = allTasks.filter(t => t.assignedTo === currentUser.uid);
+                        if (!groups[p._id]) {
+                            groups[p._id] = {
+                                projectId: p._id,
+                                projectName: p.name,
+                                isOwner: p.ownerId === currentUser.uid,
+                                githubRepoName: p.githubRepoName,
+                                githubRepoOwner: p.githubRepoOwner,
+                                tasks: []
+                            };
+                        }
 
-            setTasks(myTasks);
-            setProjects(projects);
+                        groups[p._id].tasks.push({
+                            id: t._id || t.id || `${p._id}-${step.id || step.name}-${idx}`,
+                            _id: t._id,
+                            title: t.title || t.name || t,
+                            description: t.description,
+                            status: t.status || "Pending",
+                            priority: t.priority || 'Medium',
+                            projectName: p.name,
+                            projectId: p._id,
+                            projectOwnerId: p.ownerId,
+                            stepName: step.title || step.name,
+                            stepId: step._id || step.id,
+                            assignedTo: t.assignedTo,
+                            assignedToName: t.assignedToName,
+                            createdAt: t.createdAt,
+                            githubRepoName: p.githubRepoName,
+                            githubRepoOwner: p.githubRepoOwner
+                        });
+                    });
+                });
+            });
+
+            const sortedGroups = Object.values(groups).sort((a, b) => a.projectName.localeCompare(b.projectName));
+            setGroupedTasks(sortedGroups);
+            setProjects(fetchedProjects);
         } catch (error) {
             console.error("Failed to fetch tasks", error);
         } finally {
@@ -100,9 +130,42 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         }
     }, [currentUser]);
 
-    const handleTaskClick = (task: FlattenedTask) => {
-        setSelectedTask(task);
-        setIsDrawerOpen(true);
+    // Helper to mark task as Active when user interacts with it
+    const markTaskActive = async (task: FlattenedTask) => {
+        // Only update if currently Pending
+        if (task.status !== 'Pending') return;
+
+        try {
+            const token = await auth.currentUser?.getIdToken();
+            await fetch(`${API_BASE_URL}/api/projects/${task.projectId}/steps/${task.stepId}/tasks/${task._id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                },
+                body: JSON.stringify({ status: 'Active' })
+            });
+            // Silently update local state
+            loadTasks();
+        } catch (error) {
+            console.error("Failed to mark task active", error);
+        }
+    };
+
+    const handleOpenGitHelper = (task: FlattenedTask) => {
+        markTaskActive(task);
+        setSelectedGitTask(task);
+        setIsGitDrawerOpen(true);
+    };
+
+    const handleOpenArchitecture = (task: FlattenedTask) => {
+        markTaskActive(task);
+        navigate(`/projects/${task.projectId}`);
+    };
+
+    const handleOpenRepository = (task: FlattenedTask) => {
+        markTaskActive(task);
+        window.open(`https://github.com/${task.githubRepoOwner}/${task.githubRepoName}`, '_blank');
     };
 
     const handleCreateTask = async () => {
@@ -129,14 +192,13 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
             });
 
             if (response.ok) {
-                const data = await response.json();
                 toast({ title: "Success", description: "Task created successfully." });
                 setIsCreateDialogOpen(false);
                 setNewTaskTitle("");
                 setNewTaskDesc("");
                 setNewTaskProjectId("");
                 setNewTaskAssignedTo("");
-                loadTasks(); // Reload tasks to see the new one
+                loadTasks();
             } else {
                 throw new Error("Failed to create task");
             }
@@ -148,51 +210,47 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         }
     };
 
-    const updateTaskStatus = async (task: FlattenedTask, newStatus: string) => {
-        try {
-            const token = await auth.currentUser?.getIdToken();
-            const response = await fetch(`${API_BASE_URL}/api/projects/${task.projectId}/steps/${task.stepId}/tasks/${task._id}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`
-                },
-                body: JSON.stringify({ status: newStatus })
-            });
+    const getStatusColor = (status: string) => {
+        if (['Completed', 'Done'].includes(status)) return 'bg-emerald-500';
+        if (['In Progress'].includes(status)) return 'bg-amber-500';
+        if (['Active'].includes(status)) return 'bg-sky-500';
+        return 'bg-zinc-500'; // Pending
+    };
 
-            if (response.ok) {
-                toast({ title: "Success", description: "Task status updated." });
-                loadTasks(); // Refresh list
-            } else {
-                throw new Error("Failed to update status");
-            }
-        } catch (error) {
-            console.error("Update failed", error);
-            toast({ title: "Error", description: "Failed to update task status.", variant: "destructive" });
+    const getStatusLabel = (status: string) => {
+        if (['Completed', 'Done'].includes(status)) return 'Done';
+        if (['In Progress'].includes(status)) return 'In Progress';
+        if (['Active'].includes(status)) return 'Active';
+        return 'Pending';
+    };
+
+    const getPriorityIcon = (priority?: string) => {
+        switch (priority) {
+            case 'High':
+                return <ArrowUpCircle className="w-3.5 h-3.5 text-rose-400" />;
+            case 'Low':
+                return <ArrowDownCircle className="w-3.5 h-3.5 text-sky-400" />;
+            default:
+                return <MinusCircle className="w-3.5 h-3.5 text-zinc-500" />;
         }
     };
 
-    const deleteTask = async (task: FlattenedTask) => {
-        try {
-            const token = await auth.currentUser?.getIdToken();
-            const response = await fetch(`${API_BASE_URL}/api/projects/${task.projectId}/steps/${task.stepId}/tasks/${task._id}`, {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-
-            if (response.ok) {
-                toast({ title: "Success", description: "Task deleted." });
-                loadTasks(); // Refresh list
-            } else {
-                throw new Error("Failed to delete task");
-            }
-        } catch (error) {
-            console.error("Delete failed", error);
-            toast({ title: "Error", description: "Failed to delete task.", variant: "destructive" });
-        }
+    const getPriorityLabel = (priority?: string) => {
+        return priority || 'Medium';
     };
+
+    // Calculate task statistics
+    const taskStats = useMemo(() => {
+        const allTasks = groupedTasks.flatMap(g => g.tasks);
+        return {
+            total: allTasks.length,
+            pending: allTasks.filter(t => t.status === 'Pending').length,
+            active: allTasks.filter(t => t.status === 'Active').length,
+            inProgress: allTasks.filter(t => t.status === 'In Progress').length,
+            done: allTasks.filter(t => ['Done', 'Completed'].includes(t.status)).length,
+            projectCount: groupedTasks.length
+        };
+    }, [groupedTasks]);
 
     if (loading) {
         return (
@@ -203,172 +261,164 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
     }
 
     return (
-        <div className="flex-1 p-8 h-full flex flex-col">
-            <div className="mb-6 flex items-center justify-between">
+        <div className="flex-1 p-6 md:p-8 h-full flex flex-col overflow-hidden bg-background">
+            {/* Header */}
+            <div className="mb-8 flex items-start justify-between shrink-0">
                 <div>
-                    <h2 className="text-3xl font-bold tracking-tight">My Tasks</h2>
-                    <p className="text-muted-foreground mt-1">
-                        Tasks assigned to you across all projects.
+                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">My Tasks</h2>
+                    <p className="text-sm text-muted-foreground mt-1">
+                        Your assigned work across all projects
                     </p>
                 </div>
-                <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
+                <Button onClick={() => setIsCreateDialogOpen(true)} size="sm" className="gap-2 shrink-0">
                     <Plus className="w-4 h-4" /> New Task
                 </Button>
             </div>
 
-            {tasks.length === 0 ? (
-                <Card className="border-dashed">
-                    <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-                        <CheckSquare className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                        <h3 className="text-xl font-medium">No tasks assigned</h3>
-                        <p className="text-muted-foreground">You have no tasks assigned to you.</p>
-                    </CardContent>
-                </Card>
+            {groupedTasks.length === 0 ? (
+                <div className="flex flex-col items-center justify-center flex-1 text-center px-4">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-zinc-800 to-zinc-900 border border-zinc-700/50 flex items-center justify-center mb-6 shadow-lg">
+                        <Inbox className="w-9 h-9 text-zinc-500" strokeWidth={1.5} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground">All caught up!</h3>
+                    <p className="text-sm text-muted-foreground mt-2 max-w-sm leading-relaxed">
+                        You have no tasks assigned at the moment. When a project owner assigns you work, it will appear here.
+                    </p>
+                    <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-6 gap-2"
+                        onClick={() => setIsCreateDialogOpen(true)}
+                    >
+                        <Plus className="w-4 h-4" />
+                        Create your first task
+                    </Button>
+                </div>
             ) : (
-                <ScrollArea className="flex-1 pr-4">
-                    <div className="space-y-8">
-                        {/* Live Tasks Section */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                                <span className="bg-green-500/10 text-green-500 p-1.5 rounded-md">
-                                    <FolderKanban className="w-4 h-4" />
-                                </span>
-                                Live Tasks
-                                <Badge variant="secondary" className="ml-2">{tasks.filter(t => !['Done', 'Completed', 'completed', 'done'].includes(t.status)).length}</Badge>
-                            </h3>
-                            <div className="grid gap-3">
-                                {tasks.filter(t => !['Done', 'Completed', 'completed', 'done'].includes(t.status)).length === 0 && (
-                                    <p className="text-muted-foreground text-sm italic py-2">No active tasks.</p>
-                                )}
-                                {tasks.filter(t => !['Done', 'Completed', 'completed', 'done'].includes(t.status)).map((task) => (
-                                    <Card
-                                        key={task.id}
-                                        className="hover:bg-secondary/10 transition-colors cursor-pointer group relative border-l-4 border-l-green-500"
-                                        onClick={() => handleTaskClick(task)}
-                                    >
-                                        <CardContent className="p-4 flex items-start gap-4">
-                                            {/* Delete Button - Owner Only */}
-                                            {currentUser && task.projectOwnerId === currentUser.uid && (
-                                                <button
-                                                    className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                    title="Delete Task"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm("Delete this task?")) deleteTask(task);
-                                                    }}
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
+                <ScrollArea className="flex-1">
+                    <div className="space-y-10 pb-20 max-w-4xl">
+                        {groupedTasks.map((group) => (
+                            <section key={group.projectId}>
+                                {/* Project Header */}
+                                <div className="flex items-center gap-3 mb-4">
+                                    <h3 className="text-base font-medium text-foreground">{group.projectName}</h3>
+                                    <span className="text-[11px] font-medium text-muted-foreground bg-zinc-800 px-2 py-0.5 rounded-full tabular-nums">
+                                        {group.tasks.length}
+                                    </span>
+                                    <div className="flex-1 h-px bg-border/40" />
+                                </div>
 
-                                            <div className="mt-1">
-                                                <div className="w-5 h-5 rounded-full border-2 border-muted-foreground flex items-center justify-center" />
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="text-base font-medium">{task.title}</h4>
-                                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                                    <Badge variant="outline" className="text-xs font-normal gap-1">
-                                                        <FolderKanban className="w-3 h-3" />
-                                                        {task.projectName}
-                                                    </Badge>
-                                                    <span>•</span>
-                                                    <span>{task.stepName}</span>
+                                {/* Task List */}
+                                <div className="space-y-3">
+                                    {group.tasks.map((task) => (
+                                        <div
+                                            key={task.id}
+                                            className="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-4 transition-all duration-200 hover:border-zinc-700 hover:shadow-md hover:shadow-zinc-900/50"
+                                        >
+                                            {/* Top Row: Status + Title + Priority */}
+                                            <div className="flex items-start gap-3 mb-4">
+                                                <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${getStatusColor(task.status)}`} />
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2">
+                                                        <h4 className={`text-[15px] font-medium leading-snug ${['Completed', 'Done'].includes(task.status) ? 'line-through text-muted-foreground' : ''}`}>
+                                                            {task.title}
+                                                        </h4>
+                                                        <div className="flex items-center gap-1 text-[11px] text-muted-foreground" title={`${getPriorityLabel(task.priority)} priority`}>
+                                                            {getPriorityIcon(task.priority)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
+                                                        <span className="px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">{task.stepName}</span>
+                                                        <span className="text-zinc-600">·</span>
+                                                        <span className={`px-1.5 py-0.5 rounded text-xs ${['Completed', 'Done'].includes(task.status) ? 'bg-emerald-500/20 text-emerald-400' :
+                                                                ['In Progress'].includes(task.status) ? 'bg-amber-500/20 text-amber-400' :
+                                                                    ['Active'].includes(task.status) ? 'bg-sky-500/20 text-sky-400' :
+                                                                        'bg-zinc-700/50 text-zinc-400'
+                                                            }`}>
+                                                            {getStatusLabel(task.status)}
+                                                        </span>
+                                                        {task.createdAt && (
+                                                            <>
+                                                                <span className="text-zinc-600">·</span>
+                                                                <span className="tabular-nums">{format(new Date(task.createdAt), 'MMM d')}</span>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
 
-                                            <div className="flex items-center gap-3">
-                                                {['Backlog', 'Ready', 'Pending', 'pending'].includes(task.status) && (
+                                            {/* Action Bar - Always Visible, No Manual Status Change */}
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                {/* Git Helper */}
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 gap-2 text-xs border-zinc-700 hover:bg-zinc-800"
+                                                    onClick={() => handleOpenGitHelper(task)}
+                                                >
+                                                    <Terminal className="w-3.5 h-3.5" />
+                                                    Git Commands
+                                                </Button>
+
+                                                {/* Architecture */}
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-8 gap-2 text-xs border-zinc-700 hover:bg-zinc-800"
+                                                    onClick={() => handleOpenArchitecture(task)}
+                                                >
+                                                    <Layout className="w-3.5 h-3.5" />
+                                                    Architecture
+                                                </Button>
+
+                                                {/* GitHub Repo */}
+                                                {task.githubRepoName && task.githubRepoOwner && (
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="h-7 text-xs border-green-200 hover:bg-green-50 hover:text-green-700"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            updateTaskStatus(task, 'Active');
-                                                        }}
+                                                        className="h-8 gap-2 text-xs border-zinc-700 hover:bg-zinc-800"
+                                                        onClick={() => handleOpenRepository(task)}
                                                     >
-                                                        Start Task
+                                                        <Github className="w-3.5 h-3.5" />
+                                                        Repository
+                                                        <ExternalLink className="w-3 h-3 text-muted-foreground" />
                                                     </Button>
                                                 )}
-                                                <Badge variant="secondary" className="capitalize">
-                                                    {task.status}
-                                                </Badge>
                                             </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        ))}
 
-                        {/* Completed Tasks Section */}
-                        <div>
-                            <h3 className="text-lg font-semibold mb-3 flex items-center gap-2 mt-8">
-                                <span className="bg-blue-500/10 text-blue-500 p-1.5 rounded-md">
-                                    <CheckSquare className="w-4 h-4" />
+                        {/* Simple Stats Footer */}
+                        <div className="pt-8 border-t border-zinc-800/40">
+                            <div className="flex items-center gap-6 text-xs text-muted-foreground">
+                                <span>{taskStats.total} total</span>
+                                <span className="text-zinc-700">·</span>
+                                <span className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                    {taskStats.inProgress} in progress
                                 </span>
-                                Completed
-                                <Badge variant="secondary" className="ml-2">{tasks.filter(t => ['Done', 'Completed', 'completed', 'done'].includes(t.status)).length}</Badge>
-                            </h3>
-                            <div className="grid gap-3 opacity-75">
-                                {tasks.filter(t => ['Done', 'Completed', 'completed', 'done'].includes(t.status)).length === 0 && (
-                                    <p className="text-muted-foreground text-sm italic py-2">No completed tasks.</p>
-                                )}
-                                {tasks.filter(t => ['Done', 'Completed', 'completed', 'done'].includes(t.status)).map((task) => (
-                                    <Card
-                                        key={task.id}
-                                        className="hover:bg-secondary/10 transition-colors cursor-pointer group relative bg-secondary/5 border-l-4 border-l-blue-500/30"
-                                        onClick={() => handleTaskClick(task)}
-                                    >
-                                        <CardContent className="p-4 flex items-start gap-4">
-                                            {/* Delete Button */}
-                                            {currentUser && task.projectOwnerId === currentUser.uid && (
-                                                <button
-                                                    className="absolute top-2 right-2 p-1 text-muted-foreground hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                                                    title="Delete Task"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        if (confirm("Delete this task?")) deleteTask(task);
-                                                    }}
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
-
-                                            <div className="mt-1">
-                                                <div className="w-5 h-5 rounded-full border-2 bg-green-500 border-green-500 flex items-center justify-center">
-                                                    <CheckSquare className="w-3 h-3 text-white" />
-                                                </div>
-                                            </div>
-                                            <div className="flex-1">
-                                                <h4 className="text-base font-medium line-through text-muted-foreground">{task.title}</h4>
-                                                <div className="flex items-center gap-2 mt-1 text-sm text-muted-foreground">
-                                                    <Badge variant="outline" className="text-xs font-normal gap-1">
-                                                        <FolderKanban className="w-3 h-3" />
-                                                        {task.projectName}
-                                                    </Badge>
-                                                    <span>•</span>
-                                                    <span>{task.stepName}</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex items-center gap-3">
-                                                <Badge variant="default" className="capitalize bg-green-600 hover:bg-green-700">
-                                                    {task.status}
-                                                </Badge>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
+                                <span className="text-zinc-700">·</span>
+                                <span className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                    {taskStats.done} done
+                                </span>
                             </div>
                         </div>
                     </div>
                 </ScrollArea>
             )}
 
-            <TaskDetailDrawer
-                task={selectedTask}
-                open={isDrawerOpen}
-                onOpenChange={setIsDrawerOpen}
+            <GitCommandsDrawer
+                open={isGitDrawerOpen}
+                onOpenChange={setIsGitDrawerOpen}
+                task={selectedGitTask}
+                project={selectedGitTask ? {
+                    githubRepoOwner: selectedGitTask.githubRepoOwner,
+                    githubRepoName: selectedGitTask.githubRepoName
+                } : null}
             />
 
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>

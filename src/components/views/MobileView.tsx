@@ -179,7 +179,7 @@ const MobileView = () => {
         {activeTab === "notes" && (
           <div className="h-full">
             <NotesView
-              user={currentUser ? { uid: currentUser.uid, displayName: currentUser.displayName || undefined, email: currentUser.email || undefined } : null}
+              user={currentUser ? { uid: currentUser.uid, displayName: currentUser.displayName || undefined, email: currentUser.email || undefined, photoURL: currentUser.photoURL || undefined } : null}
               users={usersList}
             />
           </div>

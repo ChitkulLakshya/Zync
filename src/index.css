@@ -313,6 +313,33 @@
   @apply bg-muted-foreground/40;
 }
 
+/* Premium Thin Scrollbar Utilities */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: #27272a;
+  border-radius: 3px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: #3f3f46;
+}
+
+.scrollbar-thumb-zinc-800::-webkit-scrollbar-thumb {
+  background: #27272a;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
 /* Dark Mode Fixes for BlockNote */
 .dark .ZYNC-editor-overrides .bn-editor {
   /* Ensure text is readable */

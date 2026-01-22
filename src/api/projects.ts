@@ -8,6 +8,8 @@ export interface Project {
     ownerId: string;
     steps: any[];
     createdAt: string;
+    githubRepoName?: string;
+    githubRepoOwner?: string;
 }
 
 export interface TaskSearchResult {

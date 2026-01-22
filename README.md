@@ -1,6 +1,6 @@
 # ZYNC ⚡
 
-![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue) ![Version](https://img.shields.io/badge/version-1.0.0-orange) ![Tech](https://img.shields.io/badge/stack-MERN%20%2B%20Firebase-blueviolet)
+![Build Status](https://img.shields.io/badge/build-passing-brightgreen) ![License](https://img.shields.io/badge/license-MIT-blue) ![Version](https://img.shields.io/badge/version-1.0.0-orange) ![Tech](https://img.shields.io/badge/stack-MERN%20%2B%20Firebase-blueviolet) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/prem22k/Zync?utm_source=oss&utm_medium=github&utm_campaign=prem22k%2FZync&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 > **The Intelligent All-in-One Workspace for Teams and Developers.**
 
 ZYNC is a production-grade collaboration platform designed to unify project management, real-time communication, and developer workflows. It distinguishes itself by integrating **AI agents** for project planning and **automated git operations** for task tracking, bridging the gap between planning (Jira/Linear) and execution (GitHub).

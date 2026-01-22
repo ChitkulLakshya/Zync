@@ -799,7 +799,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           user={currentUser ? {
             uid: currentUser.uid,
             displayName: currentUser.displayName || undefined,
-            email: currentUser.email || undefined
+            email: currentUser.email || undefined,
+            photoURL: currentUser.photoURL || undefined
           } : null}
           users={usersList}
           initialNoteId={activeNoteId}
@@ -914,7 +915,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           user={currentUser ? {
             uid: currentUser.uid,
             displayName: currentUser.displayName || undefined,
-            email: currentUser.email || undefined
+            email: currentUser.email || undefined,
+            photoURL: currentUser.photoURL || undefined
           } : null}
           users={usersList}
           initialNoteId={activeNoteId}
