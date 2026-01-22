@@ -12,7 +12,8 @@ import {
     Circle,
     Users,
     Building2,
-    Loader2
+    Loader2,
+    Trash2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -39,6 +40,7 @@ interface Meeting {
     meetLink: string;
     participants: any[];
     organizerName: string;
+    organizerId: string;
 }
 
 interface Team {
@@ -115,6 +117,29 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
             }
         } catch (err) {
             console.error("Failed to fetch meetings", err);
+        }
+    };
+
+    const handleDeleteMeeting = async (meetingId: string) => {
+        if (!currentUser?.uid) return;
+        
+        try {
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/meet/${meetingId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (res.ok) {
+                toast({ title: "Deleted", description: "Meeting removed successfully." });
+                setMeetings(prev => prev.filter(m => m._id !== meetingId));
+            } else {
+                const data = await res.json();
+                throw new Error(data.message || "Failed to delete meeting");
+            }
+        } catch (err: any) {
+            console.error("Failed to delete meeting", err);
+            toast({ title: "Error", description: err.message || "Could not delete meeting.", variant: "destructive" });
         }
     };
 
@@ -570,6 +595,22 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                     </div>
 
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {/* Delete button - only show for organizer and ended meetings */}
+                                        {meeting.organizerId === currentUser?.uid && (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-8 w-8 p-0 text-zinc-500 hover:text-red-400 hover:bg-red-500/10"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    if (window.confirm('Are you sure you want to delete this meeting?')) {
+                                                        handleDeleteMeeting(meeting._id);
+                                                    }
+                                                }}
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </Button>
+                                        )}
                                         <Button
                                             size="sm"
                                             variant="ghost"

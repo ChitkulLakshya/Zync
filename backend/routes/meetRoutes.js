@@ -26,30 +26,61 @@ router.get('/user/:uid', verifyToken, async (req, res) => {
         }).sort({ startTime: -1 }).limit(20);
 
         // Update status logic
+        const now = new Date();
         const updatedMeetings = meetings.map(m => {
-            const now = new Date();
-            const meetingEnd = m.endTime || new Date(m.startTime.getTime() + 60 * 60 * 1000); // Assume 1 hr if no end
+            const meetingObj = m.toObject();
+            const startTime = new Date(m.startTime);
+            // Default meeting duration: 1 hour if no end time specified
+            const meetingEnd = m.endTime ? new Date(m.endTime) : new Date(startTime.getTime() + 60 * 60 * 1000);
 
             let status = m.status;
 
             // Don't change cancelled meetings
             if (status === 'cancelled') {
-                return { ...m.toObject(), status };
+                return { ...meetingObj, status };
             }
 
             // Check time-based status
-            if (now > meetingEnd) {
+            if (now.getTime() > meetingEnd.getTime()) {
                 status = 'ended';
-            } else if (now >= m.startTime && now <= meetingEnd) {
+            } else if (now.getTime() >= startTime.getTime() && now.getTime() <= meetingEnd.getTime()) {
                 status = 'live';
+            } else if (now.getTime() < startTime.getTime()) {
+                status = 'scheduled';
             }
 
-            return { ...m.toObject(), status };
+            return { ...meetingObj, status };
         });
 
         res.json(updatedMeetings);
     } catch (error) {
         console.error('Error fetching meetings:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+// Delete a Meeting
+router.delete('/:meetingId', verifyToken, async (req, res) => {
+    const { meetingId } = req.params;
+    const uid = req.user.uid;
+
+    try {
+        const meeting = await Meeting.findById(meetingId);
+        
+        if (!meeting) {
+            return res.status(404).json({ message: 'Meeting not found' });
+        }
+
+        // Only organizer can delete the meeting
+        if (meeting.organizerId !== uid) {
+            return res.status(403).json({ message: 'Only the organizer can delete this meeting' });
+        }
+
+        await Meeting.findByIdAndDelete(meetingId);
+        
+        res.json({ message: 'Meeting deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting meeting:', error);
         res.status(500).json({ message: 'Server error' });
     }
 });
