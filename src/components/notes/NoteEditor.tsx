@@ -452,23 +452,4 @@ export default React.memo(NoteEditor, (prev, next) => {
   return isSameNote && isSameTitle && isSameUser && isSameContent;
 });
 
-// Memoize the component to prevent re-renders when note.content changes from Firestore updates.
-// Since we only use initialContent on mount, subsequent content updates from the server 
-// (which are mostly echoes of our own typing) shouldn't trigger re-renders of the editor wrapper.
-export default React.memo(NoteEditor, (prev, next) => {
-  // Return true if props are equal (DO NOT RE-RENDER)
-  // Return false if props are different (RE-RENDER)
 
-  const isSameNote = prev.note.id === next.note.id;
-  const isSameTitle = prev.note.title === next.note.title;
-  const isSameUser = prev.user.uid === next.user.uid;
-  // Allow content re-renders now so we can sync edits via useEffect
-  const isSameContent = prev.note.content === next.note.content;
-
-  // If content is DIFFERENT, we MUST re-render to let useEffect run and sync blocks
-  // BUT: if we re-render, does it lose focus? 
-  // No, React.memo only stops the *WRAPPER* render. The internal editor state is preserved by useCreateBlockNote (singleton-ish hook per mount).
-  // The useEffect will handle the update.
-
-  return isSameNote && isSameTitle && isSameUser && isSameContent;
-});
