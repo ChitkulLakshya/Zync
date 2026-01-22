@@ -529,6 +529,9 @@
 .ZYNC-editor-overrides [data-collab-user] {
   position: relative;
   border-left: 3px solid var(--collab-color, #3b82f6);
+  box-shadow: 
+    0 0 0 1px color-mix(in srgb, var(--collab-color, #3b82f6) 20%, transparent),
+    0 0 12px color-mix(in srgb, var(--collab-color, #3b82f6) 15%, transparent);
   background: linear-gradient(90deg, 
     color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%, 
     transparent 100%
@@ -536,7 +539,12 @@
   border-radius: 4px;
   margin-left: -3px;
   padding-left: 12px;
-  transition: all 0.2s ease-out;
+  transition: 
+    border-color 0.3s ease-out,
+    box-shadow 0.3s ease-out,
+    background 0.3s ease-out,
+    opacity 0.3s ease-out;
+  animation: collab-block-enter 0.3s ease-out;
 }
 
 /* Collaborator name label on the block */
@@ -544,17 +552,19 @@
   content: attr(data-collab-name);
   position: absolute;
   left: -3px;
-  top: -20px;
-  font-size: 10px;
+  top: -22px;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.02em;
   color: white;
   background: var(--collab-color, #3b82f6);
-  padding: 2px 8px;
-  border-radius: 4px 4px 0 0;
+  padding: 3px 10px;
+  border-radius: 6px 6px 0 0;
   white-space: nowrap;
   z-index: 10;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  animation: collab-fade-in 0.2s ease-out;
+  box-shadow: 0 -2px 8px color-mix(in srgb, var(--collab-color, #3b82f6) 30%, transparent);
+  animation: collab-label-enter 0.3s ease-out;
+  pointer-events: none;
 }
 
 /* Subtle glow effect for emphasis */
@@ -566,19 +576,46 @@
   bottom: 0;
   width: 3px;
   background: var(--collab-color, #3b82f6);
-  box-shadow: 0 0 8px var(--collab-color, #3b82f6);
+  box-shadow: 0 0 10px var(--collab-color, #3b82f6);
   border-radius: 2px 0 0 2px;
+  animation: collab-glow-pulse 2s ease-in-out infinite;
 }
 
-/* Animation for collaborator label appearing */
-@keyframes collab-fade-in {
+/* Animation for block highlight appearing */
+@keyframes collab-block-enter {
   from {
     opacity: 0;
-    transform: translateY(4px);
+    border-left-width: 0;
+    box-shadow: none;
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    border-left-width: 3px;
+    box-shadow: 
+      0 0 0 1px color-mix(in srgb, var(--collab-color, #3b82f6) 20%, transparent),
+      0 0 12px color-mix(in srgb, var(--collab-color, #3b82f6) 15%, transparent);
+  }
+}
+
+/* Animation for collaborator label appearing */
+@keyframes collab-label-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Subtle pulsing glow on the left border */
+@keyframes collab-glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 8px var(--collab-color, #3b82f6);
+  }
+  50% {
+    box-shadow: 0 0 14px var(--collab-color, #3b82f6);
   }
 }
 
@@ -588,4 +625,7 @@
     color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%, 
     transparent 100%
   );
+  box-shadow: 
+    0 0 0 1px color-mix(in srgb, var(--collab-color, #3b82f6) 25%, transparent),
+    0 0 16px color-mix(in srgb, var(--collab-color, #3b82f6) 20%, transparent);
 }
