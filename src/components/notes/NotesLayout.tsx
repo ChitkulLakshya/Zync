@@ -442,30 +442,39 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                 {/* User Facepile - Connected users */}
                 {activeUsers.length > 0 && (
                   <div className="flex items-center mr-4">
-                    {activeUsers.slice(0, 5).map((activeUser, index) => (
-                      <div
-                        key={activeUser.id}
-                        className={cn(
-                          "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white border-2 border-background",
-                          index > 0 && "-ml-2"
-                        )}
-                        style={{ backgroundColor: activeUser.color, zIndex: 5 - index }}
-                        title={activeUser.name || 'Anonymous'}
-                      >
-                        {activeUser.avatarUrl ? (
-                          <img
-                            src={activeUser.avatarUrl}
-                            alt={activeUser.name || 'User'}
-                            className="w-full h-full rounded-full object-cover"
-                          />
-                        ) : (
-                          (activeUser.name || 'A').charAt(0).toUpperCase()
-                        )}
-                      </div>
-                    ))}
+                    {activeUsers.slice(0, 5).map((activeUser, index) => {
+                      // Generate initials from name (e.g., "Prem Sai K" -> "PK")
+                      const initials = (activeUser.name || 'A')
+                        .split(' ')
+                        .map(part => part.charAt(0).toUpperCase())
+                        .slice(0, 2)
+                        .join('');
+                      
+                      return (
+                        <div
+                          key={activeUser.id}
+                          className={cn(
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white border-2 border-black",
+                            index > 0 && "-ml-2"
+                          )}
+                          style={{ backgroundColor: activeUser.color, zIndex: 5 - index }}
+                          title={activeUser.name || 'Anonymous'}
+                        >
+                          {activeUser.avatarUrl ? (
+                            <img
+                              src={activeUser.avatarUrl}
+                              alt={activeUser.name || 'User'}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            initials
+                          )}
+                        </div>
+                      );
+                    })}
                     {activeUsers.length > 5 && (
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-muted text-muted-foreground border-2 border-background -ml-2"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-muted text-muted-foreground border-2 border-black -ml-2"
                         style={{ zIndex: 0 }}
                       >
                         +{activeUsers.length - 5}
