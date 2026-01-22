@@ -2,19 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Folder, Note, createFolder, createNote, shareFolder, updateNote, deleteNote, duplicateNote } from '../../services/notesService';
 import {
   Plus,
-  Folder as FolderIcon,
-  FileText,
-  ChevronRight,
-  ChevronDown,
-  Share2,
   Users,
   PanelLeftClose,
   PanelLeftOpen,
-  MoreVertical,
-  Pencil,
-  Copy,
-  Trash2,
-  File
 } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import {
@@ -32,15 +22,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { FolderItem } from './sidebar/FolderItem';
+import { NoteItem } from './sidebar/NoteItem';
 
 interface NotesSidebarProps {
   userId: string;
@@ -485,217 +470,5 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
         </DialogContent>
       </Dialog>
     </div>
-  );
-};
-
-interface FolderItemProps {
-  folder: Folder;
-  notes: Note[];
-  selectedNoteId: string | null;
-  isOwner: boolean;
-  onSelectNote: (note: Note) => void;
-  onCreateNote: () => void;
-  onShare: () => void;
-  isCollapsed: boolean;
-  // DnD & Copy/Paste Props
-  onDragStart: (e: React.DragEvent, noteId: string) => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: (e: React.DragEvent, targetFolderId: string | null) => void;
-  onCopy: (noteId: string) => void;
-  onPaste: (folderId: string | null) => void;
-  canPaste: boolean;
-  // Actions
-  onDeleteNote: (id: string) => void;
-  onDuplicateNote: (id: string) => void;
-  onRenameNote: (id: string, newTitle: string) => void;
-}
-
-const FolderItem: React.FC<FolderItemProps> = ({
-  folder, notes, selectedNoteId, isOwner, onSelectNote, onCreateNote, onShare, isCollapsed,
-  onDragStart, onDragOver, onDrop, onCopy, onPaste, canPaste,
-  onDeleteNote, onDuplicateNote, onRenameNote
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isDragOverFolder, setIsDragOverFolder] = useState(false);
-
-  return (
-    <div
-      className={cn(
-        "mb-1 select-none rounded-md transition-colors",
-        isDragOverFolder && "bg-zinc-800/50 ring-2 ring-primary/20"
-      )}
-      onDragOver={(e) => {
-        onDragOver(e);
-        if (!isDragOverFolder) setIsDragOverFolder(true);
-      }}
-      onDragLeave={() => setIsDragOverFolder(false)}
-      onDrop={(e) => {
-        e.stopPropagation(); // prevent dropping on parent
-        setIsDragOverFolder(false);
-        onDrop(e, folder.id);
-      }}
-      onContextMenu={(e) => {
-        e.preventDefault();
-        if (canPaste) onPaste(folder.id);
-      }}
-    >
-      <div
-        className={cn(
-          "flex items-center rounded-md cursor-pointer group text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground transition-all",
-          isCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm"
-        )}
-        onClick={() => !isCollapsed && setIsOpen(!isOpen)}
-        title={isCollapsed ? folder.name : undefined}
-      >
-        {!isCollapsed && (
-          <span className="mr-1 opacity-70">
-            {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-          </span>
-        )}
-        <FolderIcon size={isCollapsed ? 18 : 14} className={cn("transition-colors", isCollapsed ? "" : "mr-2", folder.collaborators?.length ? "text-blue-500" : "text-gray-400 group-hover:text-indigo-600 dark:text-muted-foreground dark:group-hover:text-primary")} />
-
-        {!isCollapsed && <span className="font-medium flex-1 truncate">{folder.name}</span>}
-
-        {!isCollapsed && (
-          <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-            {isOwner && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onShare(); }}
-                className="p-1 mr-1 hover:bg-background rounded text-muted-foreground hover:text-blue-500 shadow-sm"
-                title="Share folder"
-              >
-                <Share2 size={12} />
-              </button>
-            )}
-            <button
-              onClick={(e) => { e.stopPropagation(); onCreateNote(); setIsOpen(true); }}
-              className="p-1 hover:bg-background rounded text-muted-foreground hover:text-primary shadow-sm"
-              title="New note"
-            >
-              <Plus size={12} />
-            </button>
-          </div>
-        )}
-      </div>
-
-      {isOpen && !isCollapsed && (
-        <div className="ml-4 pl-3 border-l border-border/40 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
-          {notes.map((note) => (
-            <NoteItem
-              key={note.id}
-              note={note}
-              selectedNoteId={selectedNoteId}
-              isCollapsed={false}
-              onSelect={onSelectNote}
-              onDragStart={onDragStart}
-              onDelete={onDeleteNote}
-              onDuplicate={onDuplicateNote}
-              onRename={onRenameNote}
-              onCopy={onCopy}
-            />
-          ))}
-          {notes.length === 0 && <div className="text-xs text-muted-foreground/50 px-2 py-1 italic">Empty folder</div>}
-        </div>
-      )}
-    </div>
-  );
-};
-
-interface NoteItemProps {
-  note: Note;
-  selectedNoteId: string | null;
-  isCollapsed: boolean;
-  onSelect: (note: Note) => void;
-  onDragStart: (e: React.DragEvent, id: string) => void;
-  onDelete: (id: string) => void;
-  onDuplicate: (id: string) => void;
-  onRename: (id: string, title: string) => void;
-  onCopy: (id: string) => void;
-}
-
-const NoteItem: React.FC<NoteItemProps> = ({
-  note, selectedNoteId, isCollapsed, onSelect, onDragStart,
-  onDelete, onDuplicate, onRename, onCopy
-}) => {
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [renameValue, setRenameValue] = useState(note.title);
-
-  const handleRenameSubmit = () => {
-    if (renameValue.trim() && renameValue !== note.title) {
-      onRename(note.id, renameValue);
-    }
-    setIsRenaming(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleRenameSubmit();
-    if (e.key === 'Escape') {
-      setRenameValue(note.title);
-      setIsRenaming(false);
-    }
-  };
-
-  if (isRenaming) {
-    return (
-      <div className="px-2 py-1">
-        <input
-          autoFocus
-          className="w-full text-sm bg-background border border-primary px-1 py-0.5 rounded outline-none"
-          value={renameValue}
-          onChange={(e) => setRenameValue(e.target.value)}
-          onBlur={handleRenameSubmit}
-          onKeyDown={handleKeyDown}
-          onClick={(e) => e.stopPropagation()}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <ContextMenu>
-      <ContextMenuTrigger>
-        <button
-          draggable
-          onDragStart={(e) => onDragStart(e, note.id)}
-          onClick={() => onSelect(note)}
-          onContextMenu={() => onCopy(note.id)} // Keep existing quick copy or let Context Menu handle it? Context Menu will override this naturally on right click.
-          // Note: ContextMenuTrigger handles the right click automatically.
-          className={cn(
-            "w-full text-left flex items-center rounded-sm text-sm mb-1 font-serif-elegant tracking-wide transition-all",
-            isCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
-            selectedNoteId === note.id
-              ? (isCollapsed
-                ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
-                : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
-              : (isCollapsed
-                ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
-                : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
-          )}
-          title={isCollapsed ? (note.title || "Untitled") : undefined}
-        >
-          <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", isCollapsed ? "" : "mr-2")} />
-          {!isCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
-        </button>
-      </ContextMenuTrigger>
-
-      <ContextMenuContent className="w-48">
-        <ContextMenuItem onClick={() => setIsRenaming(true)}>
-          <Pencil className="mr-2 h-4 w-4" />
-          <span>Rename</span>
-        </ContextMenuItem>
-        <ContextMenuItem onClick={() => onDuplicate(note.id)}>
-          <Copy className="mr-2 h-4 w-4" />
-          <span>Duplicate</span>
-        </ContextMenuItem>
-        <ContextMenuSeparator />
-        <ContextMenuItem
-          onClick={() => onDelete(note.id)}
-          className="text-red-500 focus:text-red-500 focus:bg-red-100 dark:focus:bg-red-900/20"
-        >
-          <Trash2 className="mr-2 h-4 w-4" />
-          <span>Delete</span>
-        </ContextMenuItem>
-      </ContextMenuContent>
-    </ContextMenu>
   );
 };

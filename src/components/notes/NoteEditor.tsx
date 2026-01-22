@@ -4,88 +4,22 @@ import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
 import "@blocknote/mantine/style.css";
 import { updateNote, Note } from '../../services/notesService';
-import { fetchProjects, createQuickTask, searchTasks, Project, TaskSearchResult } from '../../api/projects';
-import { cn, getFullUrl } from "@/lib/utils";
-import {
-  Loader2,
-  CheckCircle2,
-  CheckSquare,
-  Link as LinkIcon,
-  Calendar,
-  Clock,
-  User as UserIcon,
-} from 'lucide-react';
+import { fetchProjects, createQuickTask, Project, TaskSearchResult } from '../../api/projects';
+import { cn } from "@/lib/utils";
+import { Loader2 } from 'lucide-react';
 
 import { useNotePresence } from '@/hooks/useNotePresence';
-import { CollaboratorAvatars } from './CollaboratorAvatars';
 import FixedToolbar from './FixedToolbar';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { toast } from "sonner";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-
 import { useTheme } from "next-themes";
+import { EditorHeader } from './editor/EditorHeader';
+import { TaskDialogs } from './editor/TaskDialogs';
 
 interface NoteEditorProps {
   note: Note;
   user: { uid: string; displayName?: string; email?: string; photoURL?: string };
   onUpdate: (note: Note) => void;
   className?: string;
-}
-
-// TaskSearch Component for Linking - Moved to top
-const TaskSearch = ({ user, onSelect }: { user: any, onSelect: (task: TaskSearchResult) => void }) => {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<TaskSearchResult[]>([]);
-
-  useEffect(() => {
-    if (query.length > 2) {
-      const timer = setTimeout(async () => {
-        const res = await searchTasks(query, user.uid);
-        setResults(res);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
-  }, [query, user.uid]);
-
-  return (
-    <Command className="border rounded-md">
-      <CommandInput placeholder="Search tasks by title..." onValueChange={setQuery} />
-      <CommandList>
-        <CommandEmpty>No tasks found.</CommandEmpty>
-        <CommandGroup heading="Tasks">
-          {results.map(task => (
-            <CommandItem key={task.id} onSelect={() => onSelect(task)}>
-              <div className="flex flex-col">
-                <span>{task.title}</span>
-                <span className="text-xs text-muted-foreground">{task.projectName} • {task.status}</span>
-              </div>
-            </CommandItem>
-          ))}
-        </CommandGroup>
-      </CommandList>
-    </Command>
-  )
 }
 
 const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className }) => {
@@ -120,7 +54,6 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     activeUsers,
     remoteCursors,
     updateCursorPosition,
-    getRemoteUserForBlock,
     isConnected
   } = useNotePresence(note.id, user);
 
@@ -453,61 +386,16 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         <div className="max-w-4xl mx-auto min-h-screen bg-zinc-900 border-x border-zinc-800 shadow-2xl">
           {/* Paper Content */}
           <div className="px-16 py-12">
-            {/* Collaborators & Status Bar */}
-            <div className="flex items-center gap-3 mb-8 min-h-[28px]">
-              <CollaboratorAvatars activeUsers={activeUsers} maxVisible={5} size="md" />
 
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground ml-auto">
-                {status === 'Saving...' ? (
-                  <>
-                    <Clock size={11} className="animate-spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={11} className="text-emerald-500" />
-                    <span className="text-emerald-500">Saved</span>
-                  </>
-                )}
-                {!isEditable && (
-                  <span className="ml-2 px-2 py-0.5 bg-yellow-500/10 text-yellow-500 rounded text-[10px] uppercase font-bold tracking-wider border border-yellow-500/20">
-                    Read Only
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Title Input - Disabled if not editable */}
-            <input
-              id="note-title"
-              name="title"
-              value={title || ''}
-              onChange={handleTitleChange}
-              placeholder="Untitled"
-              disabled={!isEditable}
-              className={cn(
-                "text-4xl font-bold outline-none bg-transparent w-full text-foreground placeholder:text-muted-foreground/40 mb-4 tracking-tight leading-tight",
-                !isEditable && "cursor-default opacity-80"
-              )}
+            <EditorHeader
+              note={note}
+              user={user}
+              title={title}
+              status={status}
+              isEditable={isEditable}
+              activeUsers={activeUsers}
+              onTitleChange={handleTitleChange}
             />
-
-            {/* Metadata Row */}
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-8 pb-6 border-b border-zinc-800">
-              <div className="flex items-center gap-1.5">
-                <UserIcon size={11} />
-                <span>{user.displayName || "You"}</span>
-              </div>
-              <span className="text-zinc-700">·</span>
-              <div className="flex items-center gap-1.5">
-                <Calendar size={11} />
-                <span>
-                  {note.createdAt ? (() => {
-                    const date = new Date(note.createdAt);
-                    return isNaN(date.getTime()) ? 'Just now' : date.toLocaleDateString();
-                  })() : 'Just now'}
-                </span>
-              </div>
-            </div>
 
             {/* Editor Content with cursor awareness */}
             <div
@@ -528,49 +416,41 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         </div>
       </div>
 
-      {/* Create Task Dialog */}
-      <Dialog open={taskDialogOpen} onOpenChange={setTaskDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Convert to Task</DialogTitle>
-            <DialogDescription>
-              Create a new task in ZYNC Project Management from this line.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="p-3 bg-muted/30 rounded-md text-sm italic mb-4 border border-border/50">
-              "{selectedTaskText}"
-            </div>
-            <label className="text-sm font-medium mb-2 block">Select Project</label>
-            <Command className="border rounded-md">
-              <CommandInput placeholder="Search projects..." />
-              <CommandList>
-                <CommandEmpty>No projects found.</CommandEmpty>
-                <CommandGroup>
-                  {projects.map(p => (
-                    <CommandItem key={p._id} onSelect={() => handleCreateTask(p._id)}>
-                      {p.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      {/* Link Task Dialog */}
-      <Dialog open={taskLinkDialogOpen} onOpenChange={setTaskLinkDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Link Exisiting Task</DialogTitle>
-          </DialogHeader>
-          <TaskSearch user={user} onSelect={handleInsertTaskLink} />
-        </DialogContent>
-      </Dialog>
+      <TaskDialogs
+        user={user}
+        projects={projects}
+        taskDialogOpen={taskDialogOpen}
+        setTaskDialogOpen={setTaskDialogOpen}
+        taskLinkDialogOpen={taskLinkDialogOpen}
+        setTaskLinkDialogOpen={setTaskLinkDialogOpen}
+        selectedTaskText={selectedTaskText}
+        onCreateTask={(pid) => handleCreateTask(pid)}
+        onLinkTask={handleInsertTaskLink}
+      />
     </div>
   );
 };
+
+// Memoize the component to prevent re-renders when note.content changes from Firestore updates.
+// Since we only use initialContent on mount, subsequent content updates from the server 
+// (which are mostly echoes of our own typing) shouldn't trigger re-renders of the editor wrapper.
+export default React.memo(NoteEditor, (prev, next) => {
+  // Return true if props are equal (DO NOT RE-RENDER)
+  // Return false if props are different (RE-RENDER)
+
+  const isSameNote = prev.note.id === next.note.id;
+  const isSameTitle = prev.note.title === next.note.title;
+  const isSameUser = prev.user.uid === next.user.uid;
+  // Allow content re-renders now so we can sync edits via useEffect
+  const isSameContent = prev.note.content === next.note.content;
+
+  // If content is DIFFERENT, we MUST re-render to let useEffect run and sync blocks
+  // BUT: if we re-render, does it lose focus? 
+  // No, React.memo only stops the *WRAPPER* render. The internal editor state is preserved by useCreateBlockNote (singleton-ish hook per mount).
+  // The useEffect will handle the update.
+
+  return isSameNote && isSameTitle && isSameUser && isSameContent;
+});
 
 // Memoize the component to prevent re-renders when note.content changes from Firestore updates.
 // Since we only use initialContent on mount, subsequent content updates from the server 
