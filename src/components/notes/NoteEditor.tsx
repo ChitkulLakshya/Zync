@@ -208,6 +208,14 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     };
   }, [note.id]);
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // COLLABORATIVE BLOCK HIGHLIGHTING
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Note: BlockNote renders blocks internally, so we can't pass props directly.
+  // Instead, we use DOM manipulation to apply data attributes that CSS targets.
+  // This is equivalent to: <Block activeCollaborator={remoteCursors[block.id]} />
+  // ═══════════════════════════════════════════════════════════════════════════
+
   // Apply collaborator cursor highlights to blocks
   useEffect(() => {
     // 🔍 DEBUG: Log when this effect runs
@@ -215,20 +223,15 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     console.log('🎨 [NoteEditor] activeUsers:', activeUsers.map(u => ({ id: u.id, name: u.name, blockId: u.blockId })));
     console.log('🎨 [NoteEditor] remoteCursors:', remoteCursors);
     
-    if (!editor || activeUsers.length === 0) {
-      console.log('🎨 [NoteEditor] No active users, clearing highlights');
-      // Clear all highlights when no collaborators
-      const highlighted = document.querySelectorAll('[data-collab-user]');
-      highlighted.forEach(el => {
-        el.removeAttribute('data-collab-user');
-        el.removeAttribute('data-collab-color');
-        el.removeAttribute('data-collab-name');
-        (el as HTMLElement).style.removeProperty('--collab-color');
-      });
-      return;
-    }
-
-    // Clear previous highlights
+    if (!editor) return;
+    
+    // Get all blocks from the editor
+    const blocks = editor.document;
+    
+    // 🔍 DEBUG: Log all block IDs in the document
+    console.log('🎨 [NoteEditor] All block IDs in document:', blocks.map(b => b.id));
+    
+    // Clear all previous highlights first
     const previousHighlights = document.querySelectorAll('[data-collab-user]');
     previousHighlights.forEach(el => {
       el.removeAttribute('data-collab-user');
@@ -236,27 +239,36 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
       el.removeAttribute('data-collab-name');
       (el as HTMLElement).style.removeProperty('--collab-color');
     });
+    
+    if (activeUsers.length === 0) {
+      console.log('🎨 [NoteEditor] No active users, all highlights cleared');
+      return;
+    }
 
-    // Apply new highlights for each collaborator's current block
-    activeUsers.forEach(user => {
-      if (user.blockId) {
-        const blockEl = document.querySelector(`[data-id="${user.blockId}"]`);
+    // Iterate through all blocks and check if any has an active collaborator
+    // This is the equivalent of: blocks.map(block => <Block activeCollaborator={remoteCursors[block.id]} />)
+    blocks.forEach(block => {
+      const activeCollaborator = remoteCursors[block.id] || null;
+      
+      if (activeCollaborator) {
+        // 🔍 DEBUG: Log when we find a block with an active collaborator
+        console.log(`✅ [NoteEditor] Block ${block.id} has activeCollaborator:`, {
+          name: activeCollaborator.name,
+          color: activeCollaborator.color
+        });
         
-        // 🔍 DEBUG: Log block rendering decision
-        console.log(`✅ [NoteEditor] Rendering Block ${user.blockId} with active user:`, { userId: user.id, userName: user.name, color: user.color });
-        console.log(`✅ [NoteEditor] Block element found:`, !!blockEl);
+        const blockEl = document.querySelector(`[data-id="${block.id}"]`);
         
         if (blockEl) {
-          blockEl.setAttribute('data-collab-user', user.id);
-          blockEl.setAttribute('data-collab-color', user.color);
-          blockEl.setAttribute('data-collab-name', user.name || 'Someone');
-          (blockEl as HTMLElement).style.setProperty('--collab-color', user.color);
-          console.log(`✅ [NoteEditor] Applied attributes to block ${user.blockId}`);
+          // Apply the collaborator styling (equivalent to passing prop to component)
+          blockEl.setAttribute('data-collab-user', activeCollaborator.id);
+          blockEl.setAttribute('data-collab-color', activeCollaborator.color);
+          blockEl.setAttribute('data-collab-name', activeCollaborator.name || 'Someone');
+          (blockEl as HTMLElement).style.setProperty('--collab-color', activeCollaborator.color);
+          console.log(`✅ [NoteEditor] Applied activeCollaborator to block ${block.id}`);
         } else {
-          console.log(`❌ [NoteEditor] Block element NOT found for id: ${user.blockId}`);
+          console.log(`❌ [NoteEditor] DOM element NOT found for block ${block.id}`);
         }
-      } else {
-        console.log(`⚠️ [NoteEditor] User ${user.name} has no blockId`);
       }
     });
   }, [editor, activeUsers, remoteCursors]);
