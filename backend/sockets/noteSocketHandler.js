@@ -93,7 +93,13 @@ module.exports = (io) => {
     // ═══════════════════════════════════════════════════════════════════════
     
     socket.on('cursor_move', ({ noteId, userId, blockId }) => {
-      if (!notePresence.has(noteId)) return;
+      // 🔍 DEBUG: Log incoming cursor_move
+      console.log(`[NoteSocket] 📍 cursor_move received:`, { noteId, userId, blockId });
+      
+      if (!notePresence.has(noteId)) {
+        console.log(`[NoteSocket] ⚠️ No presence map for note ${noteId}`);
+        return;
+      }
 
       const users = notePresence.get(noteId);
       if (users.has(userId)) {
@@ -101,11 +107,16 @@ module.exports = (io) => {
         user.blockId = blockId;
         user.lastActive = Date.now();
         
+        console.log(`[NoteSocket] 📍 Updated ${user.name}'s cursor to block ${blockId}`);
+        console.log(`[NoteSocket] 📍 Emitting cursor_update to all users in note ${noteId}`);
+        
         // Broadcast cursor update to all users
         broadcastPresence(noteId);
         
         // Also emit specific cursor event for real-time updates
         notesNamespace.to(noteId).emit('cursor_update', { userId, blockId });
+      } else {
+        console.log(`[NoteSocket] ⚠️ User ${userId} not found in presence map`);
       }
     });
 

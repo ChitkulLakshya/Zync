@@ -190,6 +190,8 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     try {
       const cursorPos = editor?.getTextCursorPosition();
       if (cursorPos?.block?.id) {
+        // 🔍 DEBUG: Log outgoing focus event
+        console.log('📤 [NoteEditor] I focused block:', cursorPos.block.id);
         updateCursorPosition(cursorPos.block.id);
       }
     } catch (e) {
@@ -208,7 +210,13 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
 
   // Apply collaborator cursor highlights to blocks
   useEffect(() => {
+    // 🔍 DEBUG: Log when this effect runs
+    console.log('🎨 [NoteEditor] Block highlight effect running');
+    console.log('🎨 [NoteEditor] activeUsers:', activeUsers.map(u => ({ id: u.id, name: u.name, blockId: u.blockId })));
+    console.log('🎨 [NoteEditor] remoteCursors:', remoteCursors);
+    
     if (!editor || activeUsers.length === 0) {
+      console.log('🎨 [NoteEditor] No active users, clearing highlights');
       // Clear all highlights when no collaborators
       const highlighted = document.querySelectorAll('[data-collab-user]');
       highlighted.forEach(el => {
@@ -233,15 +241,25 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     activeUsers.forEach(user => {
       if (user.blockId) {
         const blockEl = document.querySelector(`[data-id="${user.blockId}"]`);
+        
+        // 🔍 DEBUG: Log block rendering decision
+        console.log(`✅ [NoteEditor] Rendering Block ${user.blockId} with active user:`, { userId: user.id, userName: user.name, color: user.color });
+        console.log(`✅ [NoteEditor] Block element found:`, !!blockEl);
+        
         if (blockEl) {
           blockEl.setAttribute('data-collab-user', user.id);
           blockEl.setAttribute('data-collab-color', user.color);
           blockEl.setAttribute('data-collab-name', user.name || 'Someone');
           (blockEl as HTMLElement).style.setProperty('--collab-color', user.color);
+          console.log(`✅ [NoteEditor] Applied attributes to block ${user.blockId}`);
+        } else {
+          console.log(`❌ [NoteEditor] Block element NOT found for id: ${user.blockId}`);
         }
+      } else {
+        console.log(`⚠️ [NoteEditor] User ${user.name} has no blockId`);
       }
     });
-  }, [editor, activeUsers]);
+  }, [editor, activeUsers, remoteCursors]);
 
   // Smart Feature Handlers
   const openTaskCreation = () => {

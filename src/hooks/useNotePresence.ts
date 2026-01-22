@@ -170,10 +170,16 @@ export const useNotePresence = (
 
     // A user's cursor position changed
     socket.on('cursor_update', ({ userId, blockId }: { userId: string; blockId: string }) => {
+      // 🔍 DEBUG: Log incoming cursor update
+      console.log('📡 [NotePresence] Received cursor_update:', { userId, blockId });
+      
       setActiveUsers(prev => {
         const updatedUsers = prev.map(u =>
           u.id === userId ? { ...u, blockId, lastActive: Date.now() } : u
         );
+        
+        // 🔍 DEBUG: Log updated users with blockIds
+        console.log('📡 [NotePresence] Updated users after cursor_update:', updatedUsers.map(u => ({ id: u.id, name: u.name, blockId: u.blockId })));
         
         // Update remoteCursors map: blockId → user
         const newRemoteCursors: Record<string, ActiveUser> = {};
@@ -182,6 +188,10 @@ export const useNotePresence = (
             newRemoteCursors[u.blockId] = u;
           }
         });
+        
+        // 🔍 DEBUG: Log remoteCursors map
+        console.log('📡 [NotePresence] remoteCursors map:', Object.keys(newRemoteCursors).map(blockId => ({ blockId, user: newRemoteCursors[blockId]?.name })));
+        
         setRemoteCursors(newRemoteCursors);
         
         return updatedUsers;
@@ -208,12 +218,18 @@ export const useNotePresence = (
 
   // Update cursor/block position
   const updateCursorPosition = useCallback((blockId: string | undefined) => {
+    // 🔍 DEBUG: Log outgoing cursor_move emission
+    console.log('📤 [NotePresence] updateCursorPosition called:', { blockId, socketConnected: socketRef.current?.connected, noteId, userId: user?.uid });
+    
     if (socketRef.current?.connected && noteId && user) {
+      console.log('📤 [NotePresence] Emitting cursor_move to server');
       socketRef.current.emit('cursor_move', {
         noteId,
         userId: user.uid,
         blockId,
       });
+    } else {
+      console.log('⚠️ [NotePresence] Cannot emit cursor_move - socket not connected or missing data');
     }
   }, [noteId, user]);
 
