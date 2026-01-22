@@ -434,6 +434,18 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
 // Memoize the component to prevent re-renders when note.content changes from Firestore updates.
 // Since we only use initialContent on mount, subsequent content updates from the server 
 // (which are mostly echoes of our own typing) shouldn't trigger re-renders of the editor wrapper.
+export default React.memo(NoteEditor, (prev, next) => {
+  // Return true if props are equal (DO NOT RE-RENDER)
+  // Return false if props are different (RE-RENDER)
+
+  const isSameNote = prev.note.id === next.note.id;
+  const isSameTitle = prev.note.title === next.note.title;
+  const isSameUser = prev.user.uid === next.user.uid;
+  // Allow content re-renders now so we can sync edits via useEffect
+  const isSameContent = prev.note.content === next.note.content;
+
+  return isSameNote && isSameTitle && isSameUser && isSameContent;
+});
 
 
 
