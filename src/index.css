@@ -522,37 +522,50 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   COLLABORATIVE EDITING - Google Docs Style Block Highlighting
+   COLLABORATIVE EDITING - Remote Cursor Visualization
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Block being edited by a collaborator (remoteUser visualization) */
 .ZYNC-editor-overrides [data-collab-user] {
   position: relative;
-  border-left: 4px solid var(--collab-color, #3b82f6);
+  border-left-width: 3px;
+  border-left-style: solid;
+  border-left-color: var(--collab-color, #3b82f6);
   background: linear-gradient(90deg, 
-    color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%, 
+    color-mix(in srgb, var(--collab-color, #3b82f6) 6%, transparent) 0%, 
     transparent 100%
   );
   border-radius: 4px;
-  margin-left: -4px;
+  margin-left: -3px;
   padding-left: 12px;
-  transition: all 200ms ease-out;
+  transition: 
+    border-left-width 200ms ease-out,
+    border-left-color 200ms ease-out,
+    background 200ms ease-out;
 }
 
-/* Collaborator name tag - positioned top-right */
+/* Blocks without remoteUser - transparent border (for smooth transition) */
+.ZYNC-editor-overrides [data-id]:not([data-collab-user]) {
+  border-left: 3px solid transparent;
+  transition: 
+    border-left-color 200ms ease-out,
+    background 200ms ease-out;
+}
+
+/* Floating Name Tag - positioned absolute top-right */
 .ZYNC-editor-overrides [data-collab-user]::before {
   content: attr(data-collab-name);
   position: absolute;
   right: 0;
-  top: -16px;
+  top: -20px;
+  z-index: 50;
   font-size: 12px; /* text-xs */
   font-weight: 500;
   color: white;
-  background: var(--collab-color, #3b82f6);
-  padding: 2px 8px; /* py-0.5 px-2 */
-  border-radius: 6px 6px 0 0; /* rounded-t-md */
+  background-color: var(--collab-color, #3b82f6);
+  padding: 2px 8px;
+  border-radius: 4px 4px 0 0;
   white-space: nowrap;
-  z-index: 10;
   pointer-events: none;
   animation: collab-label-enter 0.2s ease-out;
 }
@@ -561,14 +574,13 @@
 .ZYNC-editor-overrides [data-collab-user]::after {
   content: '';
   position: absolute;
-  left: -4px;
+  left: -3px;
   top: 0;
   bottom: 0;
-  width: 4px;
+  width: 3px;
   background: var(--collab-color, #3b82f6);
-  box-shadow: 0 0 10px var(--collab-color, #3b82f6);
+  box-shadow: 0 0 8px var(--collab-color, #3b82f6);
   border-radius: 2px 0 0 2px;
-  animation: collab-glow-pulse 2s ease-in-out infinite;
 }
 
 /* Animation for collaborator label appearing */
