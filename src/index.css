@@ -520,3 +520,72 @@
   color: #e5e5e5;
   /* neutral-200 */
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   COLLABORATIVE EDITING - Google Docs Style Block Highlighting
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Block being edited by a collaborator */
+.ZYNC-editor-overrides [data-collab-user] {
+  position: relative;
+  border-left: 3px solid var(--collab-color, #3b82f6);
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%, 
+    transparent 100%
+  );
+  border-radius: 4px;
+  margin-left: -3px;
+  padding-left: 12px;
+  transition: all 0.2s ease-out;
+}
+
+/* Collaborator name label on the block */
+.ZYNC-editor-overrides [data-collab-user]::before {
+  content: attr(data-collab-name);
+  position: absolute;
+  left: -3px;
+  top: -20px;
+  font-size: 10px;
+  font-weight: 600;
+  color: white;
+  background: var(--collab-color, #3b82f6);
+  padding: 2px 8px;
+  border-radius: 4px 4px 0 0;
+  white-space: nowrap;
+  z-index: 10;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  animation: collab-fade-in 0.2s ease-out;
+}
+
+/* Subtle glow effect for emphasis */
+.ZYNC-editor-overrides [data-collab-user]::after {
+  content: '';
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--collab-color, #3b82f6);
+  box-shadow: 0 0 8px var(--collab-color, #3b82f6);
+  border-radius: 2px 0 0 2px;
+}
+
+/* Animation for collaborator label appearing */
+@keyframes collab-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Dark mode adjustments */
+.dark .ZYNC-editor-overrides [data-collab-user] {
+  background: linear-gradient(90deg, 
+    color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%, 
+    transparent 100%
+  );
+}
