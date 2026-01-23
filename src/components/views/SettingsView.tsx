@@ -24,7 +24,16 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
+
 } from "@/components/ui/popover"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -794,26 +803,35 @@ export default function SettingsView() {
                   </div>
                 ) : myTeams.length > 0 ? (
                   <div className="grid gap-4">
-                    {myTeams.map((team: any) => (
-                      <div key={team._id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border rounded-lg hover:bg-secondary/10 transition-colors">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h3 className="font-semibold text-lg">{team.name}</h3>
-                            {team.ownerId === currentUser?.uid && <Badge variant="secondary">Owner</Badge>}
+                    {myTeams.map((team: any) => {
+                      const isOwner = team.ownerId === currentUser?.uid;
+                      return (
+                        <div key={team._id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border rounded-lg hover:bg-secondary/10 transition-colors">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-semibold text-lg">{team.name}</h3>
+                              {isOwner && <Badge variant="secondary">Owner</Badge>}
+                            </div>
+                            <p className="text-sm text-muted-foreground">Members: {team.members?.length || 1}</p>
+                            <div className="flex items-center gap-2 text-xs font-mono bg-muted px-2 py-1 rounded w-fit mt-2">
+                              <span>Code:</span>
+                              <span className="select-all">{team.inviteCode}</span>
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground">Members: {team.members?.length || 1}</p>
-                          <div className="flex items-center gap-2 text-xs font-mono bg-muted px-2 py-1 rounded w-fit mt-2">
-                            <span>Code:</span>
-                            <span className="select-all">{team.inviteCode}</span>
-                          </div>
-                        </div>
 
-                        <div className="mt-4 md:mt-0 flex items-center gap-3">
-                          {/* Add Leave/Delete Logic here if needed later */}
-                          <Button variant="outline" size="sm" disabled>Manage (Coming Soon)</Button>
+                          <div className="mt-4 md:mt-0 flex items-center gap-3">
+                            {isOwner ? (
+                              <Button variant="outline" size="sm" onClick={() => handleOpenTeamManage(team)}>Manage Team</Button>
+                            ) : (
+                              <Button variant="destructive" size="sm" onClick={() => handleLeaveTeam(team._id)} disabled={teamActionLoading}>
+                                {teamActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                Leave Team
+                              </Button>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
@@ -823,9 +841,64 @@ export default function SettingsView() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Manage Team Dialog */}
+            <Dialog open={teamManageDialogOpen} onOpenChange={setTeamManageDialogOpen}>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Manage Team</DialogTitle>
+                  <DialogDescription>Update team details or remove members.</DialogDescription>
+                </DialogHeader>
+
+                {selectedTeam && (
+                  <div className="space-y-6 py-4">
+                    {/* Rename Section */}
+                    <div className="space-y-2">
+                      <Label>Team Name</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                        />
+                        <Button onClick={handleUpdateTeamName} disabled={teamActionLoading}>Save</Button>
+                      </div>
+                    </div>
+
+                    <div className="bg-muted/50 p-4 rounded-lg space-y-2">
+                      <Label>Invite Code</Label>
+                      <div className="flex items-center justify-between bg-background border px-3 py-2 rounded">
+                        <code className="font-mono font-bold">{selectedTeam.inviteCode}</code>
+                        <Button size="sm" variant="ghost" className="h-6" onClick={() => {
+                          navigator.clipboard.writeText(selectedTeam.inviteCode);
+                          toast({ description: "Copied to clipboard" });
+                        }}>Copy</Button>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Share this code to invite others.</p>
+                    </div>
+
+                    {/* Danger Zone */}
+                    <div className="pt-4 border-t">
+                      <h4 className="text-sm font-semibold text-destructive mb-2">Danger Zone</h4>
+                      <Button
+                        variant="destructive"
+                        className="w-full"
+                        onClick={() => handleDeleteTeam(selectedTeam._id)}
+                        disabled={teamActionLoading}
+                      >
+                        {teamActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Delete Team Permanently
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        This will remove all team data and kick all members.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </DialogContent>
+            </Dialog>
           </TabsContent>
 
-          {/* SECURITY TAB (Existing) */}
+          {/* SECURITY TAB */}
           <TabsContent value="security">
             <Card className="border-destructive/50">
               <CardHeader>
