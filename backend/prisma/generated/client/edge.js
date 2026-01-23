@@ -130,7 +130,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/eesha/Desktop/VS/zync/Zync/backend/prisma/generated/client",
+      "value": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/generated/client",
       "fromEnvVar": null
     },
     "config": {
@@ -139,12 +139,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/eesha/Desktop/VS/zync/Zync/backend/prisma/schema.prisma",
+    "sourceFilePath": "/home/premsaik/Desktop/Projects/Zync/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {

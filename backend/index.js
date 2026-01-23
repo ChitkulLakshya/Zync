@@ -114,6 +114,7 @@ app.use('/api/github-app', githubAppWebhook);
 app.use('/api/meet', require('./routes/meetRoutes'));
 app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/google', require('./routes/googleRoutes')); // Google Integration
+app.use('/api/support', require('./routes/supportRoutes')); // Support Form
 
 
 

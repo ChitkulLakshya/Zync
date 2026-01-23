@@ -5,8 +5,9 @@ const User = require('../models/User');
 const Project = require('../models/Project');
 const Meeting = require('../models/Meeting');
 const { getFirestore } = require('firebase-admin/firestore');
-const { createInstantMeet, send_ZYNC_email } = require('../services/googleMeet');
-const { getMeetingInviteTemplate, getMeetingInviteTextVersion } = require('../utils/emailTemplates');
+const { createInstantMeet } = require('../services/googleMeet');
+const { sendZyncEmail } = require('../services/mailer');
+const { getMeetingInviteTextVersion, getMeetingEmailHtml } = require('../utils/emailTemplates');
 
 // const db = getFirestore(); // Moved inside handler to prevent startup crash if init fails
 
@@ -66,7 +67,7 @@ router.delete('/:meetingId', verifyToken, async (req, res) => {
 
     try {
         const meeting = await Meeting.findById(meetingId);
-        
+
         if (!meeting) {
             return res.status(404).json({ message: 'Meeting not found' });
         }
@@ -77,7 +78,7 @@ router.delete('/:meetingId', verifyToken, async (req, res) => {
         }
 
         await Meeting.findByIdAndDelete(meetingId);
-        
+
         res.json({ message: 'Meeting deleted successfully' });
     } catch (error) {
         console.error('Error deleting meeting:', error);
@@ -127,13 +128,13 @@ router.post('/schedule', verifyToken, async (req, res) => {
                         const recipientName = receiver.displayName || 'there';
                         const emailSubject = `Invitation: ${newMeeting.title} @ ${new Date(startTime).toLocaleString()}`;
 
-                        const htmlContent = getMeetingInviteTemplate({
-                            recipientName,
-                            senderName,
-                            meetingUrl,
-                            meetingDate: new Date(startTime),
-                            meetingTime: new Date(startTime),
-                            projectName: title,
+                        const htmlContent = getMeetingEmailHtml({
+                            inviterName: senderName,
+                            meetingTopic: title,
+                            date: new Date(startTime).toLocaleDateString(),
+                            time: new Date(startTime).toLocaleTimeString(),
+                            meetingLink: meetingUrl,
+                            attendeeName: recipientName
                         });
 
                         const textContent = getMeetingInviteTextVersion({
@@ -145,7 +146,7 @@ router.post('/schedule', verifyToken, async (req, res) => {
                             projectName: title,
                         });
 
-                        await send_ZYNC_email(receiver.email, emailSubject, htmlContent, textContent);
+                        await sendZyncEmail(receiver.email, emailSubject, htmlContent, textContent);
                     } catch (err) {
                         console.error("Invite email failed for", receiver.email, err);
                     }
@@ -236,14 +237,14 @@ router.post('/invite', verifyToken, async (req, res) => {
                             const recipientName = receiver.displayName || receiver.firstName || 'there';
                             const emailSubject = `ZYNC Meeting Invitation from ${senderName}`;
 
-                            // Generate professional HTML email
-                            const htmlContent = getMeetingInviteTemplate({
-                                recipientName,
-                                senderName,
-                                meetingUrl,
-                                meetingDate: new Date(),
-                                meetingTime: new Date(),
-                                projectName,
+                            // Generate Raw HTML email
+                            const htmlContent = getMeetingEmailHtml({
+                                inviterName: senderName,
+                                meetingTopic: newMeeting.title,
+                                date: new Date().toLocaleDateString(),
+                                time: new Date().toLocaleTimeString(),
+                                meetingLink: meetingUrl,
+                                attendeeName: recipientName
                             });
 
                             // Generate plain text fallback
@@ -256,7 +257,7 @@ router.post('/invite', verifyToken, async (req, res) => {
                                 projectName,
                             });
 
-                            await send_ZYNC_email(
+                            await sendZyncEmail(
                                 receiver.email,
                                 emailSubject,
                                 htmlContent,
@@ -266,9 +267,6 @@ router.post('/invite', verifyToken, async (req, res) => {
                             console.error(`Failed to email ${receiver.email}:`, emailErr);
                         }
                     }
-
-                    // 2. Send Chat Message (Directly to Firestore) - REMOVED as per request
-                    // The user requested to stop sending chat messages during meething creation.
                 }
             } catch (bgError) {
                 console.error("Background notification error:", bgError);

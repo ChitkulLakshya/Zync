@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserSync } from "@/hooks/use-user-sync";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Github, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
+import { Loader2, Camera, Github, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -102,7 +102,7 @@ export default function SettingsView() {
       setCurrentUser(user);
     });
   }, []);
-
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, setTheme } = useTheme()
 
   const [openCountry, setOpenCountry] = useState(false);
@@ -152,7 +152,7 @@ export default function SettingsView() {
         country: userData.country || "",
         countryCode: userData.countryCode || "",
         phoneNumber: userData.phoneNumber || "",
-        photoURL: currentUser?.photoURL || userData.photoURL || ""
+        photoURL: userData.photoURL || currentUser?.photoURL || ""
       });
     }
   }, [userData, currentUser]);
@@ -187,7 +187,48 @@ export default function SettingsView() {
     }
   };
 
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append('file', file);
 
+      setLoading(true);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/upload`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (!response.ok) throw new Error('Upload failed');
+
+        const data = await response.json();
+        const fileUrl = data.fileUrl; // This is a relative path like /uploads/filename.jpg
+
+        // Update local state
+        setProfileForm(prev => ({ ...prev, photoURL: fileUrl }));
+
+        // Save to backend immediately
+        await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoURL: fileUrl })
+        });
+
+        // Update Firebase Profile
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL: fileUrl }); // Note: Firebase usually expects a full URL, but we'll handle this in the app
+        }
+
+        toast({ title: "Success", description: "Profile photo updated" });
+      } catch (error: any) {
+        console.error("Upload error:", error);
+        toast({ title: "Error", description: (error as Error).message || "Failed to upload photo", variant: "destructive" });
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   // --- GitHub Integration Logic ---
   const handleGithubConnect = async () => {
@@ -599,13 +640,25 @@ export default function SettingsView() {
                   </div>
                 ) : (
                   <form onSubmit={handleProfileUpdate} className="space-y-4">
-                    {/* Avatar Display - Read Only */}
+                    {/* Avatar Upload */}
                     <div className="flex flex-col items-center justify-center mb-6">
-                      <Avatar className="w-24 h-24 border-2 border-border">
-                        <AvatarImage src={getFullUrl(profileForm.photoURL)} />
-                        <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
-                      </Avatar>
-                      <p className="text-[0.8rem] text-muted-foreground mt-2">Profile photo is synced with your Google account.</p>
+                      <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <Avatar className="w-24 h-24 border-2 border-border">
+                          <AvatarImage src={getFullUrl(profileForm.photoURL)} />
+                          <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Camera className="w-8 h-8 text-white" />
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
                     </div>
 
                     <div className="space-y-2">

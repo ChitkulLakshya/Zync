@@ -625,7 +625,26 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                         <Button
                                             size="sm"
                                             className="h-8 px-4 bg-white/10 hover:bg-white/20 text-white border border-white/5"
-                                            onClick={() => window.open(meeting.meetLink, '_blank')}
+                                            onClick={() => {
+                                                if (meeting.meetLink) {
+                                                    const newWindow = window.open(meeting.meetLink, '_blank');
+                                                    if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+                                                        // Popup was blocked, copy link instead
+                                                        navigator.clipboard.writeText(meeting.meetLink);
+                                                        toast({ 
+                                                            title: "Popup Blocked", 
+                                                            description: "Meeting link copied to clipboard. Please allow popups or paste the link manually.",
+                                                            variant: "destructive"
+                                                        });
+                                                    }
+                                                } else {
+                                                    toast({ 
+                                                        title: "Error", 
+                                                        description: "Meeting link not available.",
+                                                        variant: "destructive"
+                                                    });
+                                                }
+                                            }}
                                         >
                                             Join
                                         </Button>
