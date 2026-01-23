@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserSync } from "@/hooks/use-user-sync";
 import { toast } from "@/components/ui/use-toast";
+import { uploadProfileImage } from "@/services/storageService";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Camera, Github, AlertTriangle, Check, ChevronsUpDown, Mail, Phone, Headphones, MessageSquare, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -152,34 +153,27 @@ export default function SettingsView() {
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      const formData = new FormData();
-      formData.append('file', file);
+      if (!currentUser?.uid) return;
 
       setLoading(true);
       try {
-        const response = await fetch(`${API_BASE_URL}/api/upload`, {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!response.ok) throw new Error('Upload failed');
-
-        const data = await response.json();
-        const fileUrl = data.fileUrl; // This is a relative path like /uploads/filename.jpg
+        // Upload to Firebase Storage (handles downscaling automatically)
+        const downloadURL = await uploadProfileImage(currentUser.uid, file);
 
         // Update local state
-        setProfileForm(prev => ({ ...prev, photoURL: fileUrl }));
+        setProfileForm(prev => ({ ...prev, photoURL: downloadURL }));
 
-        // Save to backend immediately
-        await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, {
+        // Save to backend
+        // We persist the Full Firebase URL in our backend now
+        await fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photoURL: fileUrl })
+          body: JSON.stringify({ photoURL: downloadURL })
         });
 
-        // Update Firebase Profile
+        // Update Firebase Auth Profile
         if (auth.currentUser) {
-          await updateProfile(auth.currentUser, { photoURL: fileUrl }); // Note: Firebase usually expects a full URL, but we'll handle this in the app
+          await updateProfile(auth.currentUser, { photoURL: downloadURL });
         }
 
         toast({ title: "Success", description: "Profile photo updated" });
