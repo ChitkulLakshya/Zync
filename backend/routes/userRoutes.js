@@ -34,6 +34,7 @@ router.get('/me', verifyToken, async (req, res) => {
 // Sync user (create or update)
 router.post('/sync', async (req, res) => {
   const { uid, email, displayName, photoURL, phoneNumber, firstName, lastName } = req.body;
+  console.log(`[SYNC] Syncing user: ${email}, PhotoURL in request: ${photoURL?.substring(0, 50)}...`);
 
   try {
     let user = await User.findOne({ uid });
@@ -374,6 +375,11 @@ router.put('/:uid', async (req, res) => {
         updates.phoneVerificationCodeExpires = undefined;
       }
     }
+
+    // BLOCK SENSITIVE UPDATES
+    // Prevent updating photoURL or email manually - these should come from Sync/Provider
+    if (updates.photoURL) delete updates.photoURL;
+    if (updates.email) delete updates.email;
 
     const user = await User.findOneAndUpdate(
       { uid },
