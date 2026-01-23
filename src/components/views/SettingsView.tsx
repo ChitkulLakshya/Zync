@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { updateProfile, updateEmail, deleteUser, GithubAuthProvider, GoogleAuthProvider, linkWithPopup, getAdditionalUserInfo, onAuthStateChanged, reauthenticateWithPopup } from "firebase/auth";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -61,6 +62,30 @@ export default function SettingsView() {
   const [userData, setUserData] = useState<any>(null); // Local state
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
+
+  // Team Data
+  const [myTeams, setMyTeams] = useState<any[]>([]);
+  const [loadingTeams, setLoadingTeams] = useState(false);
+
+  // Fetch Teams
+  useEffect(() => {
+    if (currentUser?.uid) {
+      setLoadingTeams(true);
+      currentUser.getIdToken().then(token => {
+        fetch(`${API_BASE_URL}/api/teams/mine`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+          .then(res => res.json())
+          .then(data => {
+            if (Array.isArray(data)) {
+              setMyTeams(data);
+            }
+          })
+          .catch(err => console.error("Failed to fetch teams", err))
+          .finally(() => setLoadingTeams(false));
+      });
+    }
+  }, [currentUser]);
 
   // Auth Listener to ensure we have the latest user state (e.g. after linking)
   useEffect(() => {
@@ -418,6 +443,90 @@ export default function SettingsView() {
   const [deleteCode, setDeleteCode] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
+  // --- Team Management Logic ---
+  const [teamManageDialogOpen, setTeamManageDialogOpen] = useState(false);
+  const [selectedTeam, setSelectedTeam] = useState<any>(null);
+  const [teamActionLoading, setTeamActionLoading] = useState(false);
+  const [renameValue, setRenameValue] = useState("");
+
+  const handleOpenTeamManage = (team: any) => {
+    setSelectedTeam(team);
+    setRenameValue(team.name);
+    setTeamManageDialogOpen(true);
+  };
+
+  const handleLeaveTeam = async (teamId: string) => {
+    if (!window.confirm("Are you sure you want to leave this team?")) return;
+    setTeamActionLoading(true);
+    try {
+      const token = await currentUser?.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/leave`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast({ title: "Left Team", description: "You have left the team." });
+        setMyTeams(prev => prev.filter(t => t._id !== teamId));
+      } else {
+        throw new Error("Failed to leave team");
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setTeamActionLoading(false);
+    }
+  };
+
+  const handleDeleteTeam = async (teamId: string) => {
+    if (!window.confirm("Are you sure you want to DELETE this team? This cannot be undone.")) return;
+    setTeamActionLoading(true);
+    try {
+      const token = await currentUser?.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        toast({ title: "Team Deleted", description: "The team has been permanently deleted." });
+        setMyTeams(prev => prev.filter(t => t._id !== teamId));
+        setTeamManageDialogOpen(false);
+      } else {
+        throw new Error("Failed to delete team");
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setTeamActionLoading(false);
+    }
+  };
+
+  const handleUpdateTeamName = async () => {
+    if (!selectedTeam || !renameValue.trim()) return;
+    setTeamActionLoading(true);
+    try {
+      const token = await currentUser?.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${selectedTeam._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({ name: renameValue })
+      });
+      if (res.ok) {
+        toast({ title: "Updated", description: "Team name updated." });
+        setMyTeams(prev => prev.map(t => t._id === selectedTeam._id ? { ...t, name: renameValue } : t));
+        setSelectedTeam((prev: any) => ({ ...prev, name: renameValue }));
+      } else {
+        throw new Error("Failed to update team");
+      }
+    } catch (e: any) {
+      toast({ title: "Error", description: e.message, variant: "destructive" });
+    } finally {
+      setTeamActionLoading(false);
+    }
+  };
+
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
     try {
@@ -670,7 +779,53 @@ export default function SettingsView() {
             </Card>
           </TabsContent>
 
-          {/* SECURITY TAB */}
+          {/* TEAM TAB */}
+          <TabsContent value="team">
+            <Card>
+              <CardHeader>
+                <CardTitle>Team Management</CardTitle>
+                <CardDescription>View and manage your teams.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {loadingTeams ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
+                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
+                  </div>
+                ) : myTeams.length > 0 ? (
+                  <div className="grid gap-4">
+                    {myTeams.map((team: any) => (
+                      <div key={team._id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border rounded-lg hover:bg-secondary/10 transition-colors">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h3 className="font-semibold text-lg">{team.name}</h3>
+                            {team.ownerId === currentUser?.uid && <Badge variant="secondary">Owner</Badge>}
+                          </div>
+                          <p className="text-sm text-muted-foreground">Members: {team.members?.length || 1}</p>
+                          <div className="flex items-center gap-2 text-xs font-mono bg-muted px-2 py-1 rounded w-fit mt-2">
+                            <span>Code:</span>
+                            <span className="select-all">{team.inviteCode}</span>
+                          </div>
+                        </div>
+
+                        <div className="mt-4 md:mt-0 flex items-center gap-3">
+                          {/* Add Leave/Delete Logic here if needed later */}
+                          <Button variant="outline" size="sm" disabled>Manage (Coming Soon)</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <p>You are not part of any team yet.</p>
+                    <p className="text-sm mt-1">Go to the "People" tab to create or join a team.</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* SECURITY TAB (Existing) */}
           <TabsContent value="security">
             <Card className="border-destructive/50">
               <CardHeader>
