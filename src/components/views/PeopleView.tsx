@@ -55,13 +55,13 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const { data: myTeamsData, isLoading: myTeamsLoading } = useQuery({
         queryKey: ['myTeams', currentUser?.uid],
         queryFn: async () => {
-             if (!currentUser) return [];
-             const token = await currentUser.getIdToken();
-             const res = await fetch(`${API_BASE_URL}/api/teams/mine`, {
-                 headers: { Authorization: `Bearer ${token}` }
-             });
-             if (!res.ok) throw new Error('Failed to fetch teams');
-             return res.json();
+            if (!currentUser) return [];
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/teams/mine`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch teams');
+            return res.json();
         },
         enabled: !!currentUser && !isPreview,
         staleTime: 300000
@@ -70,13 +70,13 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const { data: allUsersData } = useQuery({
         queryKey: ['allUsers', currentUser?.uid],
         queryFn: async () => {
-              if (!currentUser) return [];
-              const token = await currentUser.getIdToken();
-              const res = await fetch(`${API_BASE_URL}/api/users`, {
-                  headers: { Authorization: `Bearer ${token}` }
-              });
-              if (!res.ok) throw new Error('Failed to fetch users');
-              return res.json();
+            if (!currentUser) return [];
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/users`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch users');
+            return res.json();
         },
         enabled: !!currentUser && !isPreview,
         staleTime: 300000
@@ -86,7 +86,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const [hasTeam, setHasTeam] = useState<boolean>(true);
 
     const myTeams = myTeamsData || [];
-    
+
     useEffect(() => {
         if (myTeams.length > 0) {
             setHasTeam(true);
@@ -102,20 +102,25 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
     const { data: teamUsersData, isLoading: usersLoading } = useQuery({
         queryKey: ['teamUsers', teamInfo?._id],
         queryFn: async () => {
-             if (!teamInfo?._id || !currentUser) return [];
-             const token = await currentUser.getIdToken();
-             const res = await fetch(`${API_BASE_URL}/api/users?teamId=${teamInfo._id}`, {
-                 headers: { Authorization: `Bearer ${token}` }
-             });
-             if (!res.ok) throw new Error('Failed to fetch team users');
-             return res.json();
+            if (!teamInfo?._id || !currentUser) return [];
+            const token = await currentUser.getIdToken();
+            const res = await fetch(`${API_BASE_URL}/api/users?teamId=${teamInfo._id}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to fetch team users');
+            return res.json();
         },
         enabled: !!teamInfo?._id && !isPreview,
         staleTime: 300000
     });
 
     const users = isPreview ? (propUsers || []) : (teamUsersData || []);
-    const loading = !isPreview && (myTeamsLoading || (hasTeam && teamUsersData === undefined && usersLoading));
+
+    // Improved loading state to prevent "No members" flash during switch or init
+    const loading = !isPreview && (
+        myTeamsLoading ||
+        (hasTeam && (!teamInfo || usersLoading))
+    );
 
     const localCloseFriendsIds = userData?.closeFriends || [];
     const allKnownUsers = allUsersData || [];
@@ -123,48 +128,48 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
 
     const toggleCloseFriendMutation = useMutation({
         mutationFn: async (friendId: string) => {
-             const token = await currentUser?.getIdToken();
-             if (!token) throw new Error("No token");
-             const res = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
-                 method: 'POST',
-                 headers: {
+            const token = await currentUser?.getIdToken();
+            if (!token) throw new Error("No token");
+            const res = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
+                method: 'POST',
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
-                 },
-                 body: JSON.stringify({ friendId })
-             });
-             if (!res.ok) throw new Error("Failed");
-             return res.json();
+                },
+                body: JSON.stringify({ friendId })
+            });
+            if (!res.ok) throw new Error("Failed");
+            return res.json();
         },
         onMutate: async (friendId) => {
             await queryClient.cancelQueries({ queryKey: ['me', currentUser?.uid] });
             const previousUserData = queryClient.getQueryData(['me', currentUser?.uid]);
             queryClient.setQueryData(['me', currentUser?.uid], (old: any) => {
-                 if (!old) return old;
-                 const isFriend = old.closeFriends?.includes(friendId);
-                 const newFriends = isFriend 
-                     ? old.closeFriends.filter((id: string) => id !== friendId)
-                     : [...(old.closeFriends || []), friendId];
-                 return { ...old, closeFriends: newFriends };
+                if (!old) return old;
+                const isFriend = old.closeFriends?.includes(friendId);
+                const newFriends = isFriend
+                    ? old.closeFriends.filter((id: string) => id !== friendId)
+                    : [...(old.closeFriends || []), friendId];
+                return { ...old, closeFriends: newFriends };
             });
             return { previousUserData };
         },
         onError: (err, newTodo, context: any) => {
-             queryClient.setQueryData(['me', currentUser?.uid], context.previousUserData);
-             toast({
-                 title: "Error",
-                 description: "Failed to update close friend.",
-                 variant: "destructive"
-             });
+            queryClient.setQueryData(['me', currentUser?.uid], context.previousUserData);
+            toast({
+                title: "Error",
+                description: "Failed to update close friend.",
+                variant: "destructive"
+            });
         },
         onSettled: () => {
-             queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
+            queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
         }
     });
 
     const toggleCloseFriend = async (friendId: string) => {
-         if (isPreview) return;
-         toggleCloseFriendMutation.mutate(friendId);
+        if (isPreview) return;
+        toggleCloseFriendMutation.mutate(friendId);
     };
 
 
@@ -331,8 +336,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                 </div>
                             </div>
 
-                             {/* Close Friends Section */}
-                             <div className="flex-1 overflow-y-auto p-2 scrollbar-hide border-t border-border/20">
+                            {/* Close Friends Section */}
+                            <div className="flex-1 overflow-y-auto p-2 scrollbar-hide border-t border-border/20">
                                 <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70 flex justify-between items-center group/section mt-2">
                                     {!effectiveCollapsed && <span>Close Friends</span>}
                                     {!effectiveCollapsed && (
@@ -354,7 +359,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                                             <div key={user.uid} className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/20 border border-transparent hover:border-border/30 transition-colors">
                                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                                     <Avatar className="w-8 h-8 shrink-0">
-                                                                        <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer"/>
+                                                                        <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer" />
                                                                         <AvatarFallback>{getUserInitials(user)}</AvatarFallback>
                                                                     </Avatar>
                                                                     <div className="flex flex-col min-w-0">
@@ -362,10 +367,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                                                         <span className="text-xs text-muted-foreground truncate">{user.email}</span>
                                                                     </div>
                                                                 </div>
-                                                                <button 
+                                                                <button
                                                                     onClick={() => toggleCloseFriend(user.uid)}
-                                                                    className={cn("p-1.5 rounded-full transition-all shrink-0 ml-2", isSelected 
-                                                                        ? 'bg-primary text-primary-foreground hover:opacity-90' 
+                                                                    className={cn("p-1.5 rounded-full transition-all shrink-0 ml-2", isSelected
+                                                                        ? 'bg-primary text-primary-foreground hover:opacity-90'
                                                                         : 'bg-secondary hover:bg-secondary/80 text-muted-foreground')}
                                                                 >
                                                                     {isSelected ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
@@ -393,25 +398,25 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                                 /* -------------------------------------------------------------------------- */
                                                 /*                          CUSTOMIZE TEXT COLOR HERE                         */
                                                 /* -------------------------------------------------------------------------- */
-                                                "text-white hover:bg-secondary/50" 
+                                                "text-white hover:bg-secondary/50"
                                             )}
                                         >
                                             <div className="relative shrink-0">
-                                                 <Avatar className={cn(
-                                                    "ring-2 ring-transparent transition-all", 
+                                                <Avatar className={cn(
+                                                    "ring-2 ring-transparent transition-all",
                                                     /* -------------------------------------------------------------------------- */
                                                     /*                            CUSTOMIZE SIZE HERE                             */
                                                     /* -------------------------------------------------------------------------- */
-                                                    effectiveCollapsed ? "w-10 h-10" : "w-10 h-10" 
-                                                  )}>
+                                                    effectiveCollapsed ? "w-10 h-10" : "w-10 h-10"
+                                                )}>
                                                     <AvatarImage src={getFullUrl(friend.photoURL)} referrerPolicy="no-referrer" />
                                                     <AvatarFallback className="text-[10px]">{getUserInitials(friend)}</AvatarFallback>
                                                 </Avatar>
-                                                 {userStatuses[friend.uid]?.status === "online" && (
+                                                {userStatuses[friend.uid]?.status === "online" && (
                                                     <span className="absolute bottom-0 right-0 w-2 h-2 rounded-full border border-background bg-green-500" />
                                                 )}
                                             </div>
-                                            
+
                                             {!effectiveCollapsed && <span className="font-medium truncate flex-1 ml-2">{getUserName(friend)}</span>}
                                         </div>
                                     ))}
@@ -421,7 +426,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                         </div>
                                     )}
                                 </div>
-                             </div>
+                            </div>
                         </div>
                     </div>
 
@@ -648,8 +653,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, onMessages, isPrev
                                         const displayName = getUserName(user);
 
                                         return (
-                                            <Card 
-                                                key={user._id || user.id} 
+                                            <Card
+                                                key={user._id || user.id}
                                                 className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-border/50 bg-gradient-to-br from-card to-card/50 overflow-hidden relative animate-fade-in-up opacity-0"
                                                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                                             >

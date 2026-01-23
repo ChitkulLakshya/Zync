@@ -17,6 +17,7 @@ import {
   Minus,
   Undo2,
   Redo2,
+  Link,
 } from 'lucide-react';
 import {
   Tooltip,
@@ -40,6 +41,7 @@ interface FixedToolbarProps {
   breadcrumbs?: string[];
   activeUsers?: ActiveUser[];
   onShare?: () => void;
+  onLinkTask?: () => void;
 }
 
 // Toolbar Button Component
@@ -78,7 +80,7 @@ const ToolbarDivider = () => (
   <div className="w-px h-6 bg-zinc-700 mx-1" />
 );
 
-const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className }) => {
+const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTask }) => {
   if (!editor) return null;
 
   // Text formatting handlers
@@ -258,6 +260,18 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className }) => {
         onClick={setCheckList}
         isActive={currentBlockType === "checkListItem"}
       />
+
+      {/* Features */}
+      {onLinkTask && (
+        <>
+          <ToolbarDivider />
+          <ToolbarButton
+            icon={<Link size={16} className="text-zinc-400" />}
+            tooltip="Link Task to Project"
+            onClick={onLinkTask}
+          />
+        </>
+      )}
     </div>
   );
 };
