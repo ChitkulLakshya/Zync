@@ -654,14 +654,6 @@ export default function SettingsView() {
                         </PopoverContent>
                       </Popover>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label>Phone Number</Label>
-                      <div className="flex gap-2">
-                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
-                        <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
-                      </div>
-                    </div>
                   </div>
 
                   <div className="flex justify-end pt-4">
