@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { subDays, isAfter, parseISO } from "date-fns";
-import { getFullUrl } from "@/lib/utils";
+import { getFullUrl, getUserName } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { Label } from "@/components/ui/label";
@@ -50,16 +50,17 @@ const AvatarLabel = (props: any) => {
     const user = users.find((u: User) => u.displayName === value || u.email === value || u.uid === value); // Match by name/id logic
 
     if (!user) return null;
+    const userName = getUserName(user);
 
     return (
         <foreignObject x={x + width / 2 - 20} y={y - 50} width={40} height={40}>
             <div className="h-10 w-10 rounded-full overflow-hidden border-2 border-background shadow-md transition-transform hover:scale-110">
                 <img
-                    src={getFullUrl(user.photoURL)}
-                    alt={user.displayName}
+                    src={user.photoURL ? getFullUrl(user.photoURL) : `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`}
+                    alt={userName}
                     className="h-full w-full object-cover"
                     onError={(e) => {
-                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${user.displayName}&background=random`;
+                        e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=random`;
                     }}
                 />
             </div>

@@ -13,51 +13,40 @@ if (process.env.GOOGLE_REFRESH_TOKEN) {
 
 const create_meeting = async () => {
     try {
-        console.log('Creating meeting with Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 10) + '...');
+        console.log('Creating Google Meet space with Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 10) + '...');
 
         // Ensure credentials are set (googleapis handles refresh automatically)
         if (!process.env.GOOGLE_REFRESH_TOKEN) {
             throw new Error('GOOGLE_REFRESH_TOKEN is missing');
         }
 
-        const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
+        const meet = google.meet({ version: 'v2', auth: oauth2Client });
 
-        const event = {
-            summary: 'ZYNC Instant Meeting',
-            description: 'Instant meeting created from ZYNC workspace.',
-            start: {
-                dateTime: new Date().toISOString(),
-                timeZone: 'UTC',
-            },
-            end: {
-                dateTime: new Date(Date.now() + 3600000).toISOString(), // 1 hour later
-                timeZone: 'UTC',
-            },
-            conferenceData: {
-                createRequest: {
-                    requestId: Math.random().toString(36).substring(7),
-                    conferenceSolutionKey: {
-                        type: 'hangoutsMeet',
-                    },
-                },
-            },
-        };
-
-        const response = await calendar.events.insert({
-            calendarId: 'primary',
-            resource: event,
-            conferenceDataVersion: 1,
+        // Use spaces.create with OPEN access config
+        const response = await meet.spaces.create({
+            requestBody: {
+                config: {
+                    accessType: 'OPEN',
+                    entryPointAccess: 'ALL'
+                }
+            }
         });
 
-        if (response.data.hangoutLink) {
-            console.log('Generated Hangout Link:', response.data.hangoutLink);
-            return response.data.hangoutLink;
+        const space = response.data;
+        if (space.meetingUri) {
+            console.log('Generated Meet Space:', space.meetingUri);
+            return space.meetingUri;
         } else {
-            console.error('No hangoutLink in response data:', response.data);
+            console.error('No meetingUri in response data:', space);
             throw new Error('Failed to generate Google Meet link.');
         }
+
     } catch (error) {
-        console.error('Error in create_meeting:', error);
+        // Fallback or detailed logging
+        console.error('Error in create_meeting:', error.message);
+        if (error.response) {
+            console.error('API Response:', error.response.data);
+        }
         throw error;
     }
 };

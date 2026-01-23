@@ -16,15 +16,9 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      'http://localhost:5173',
-      'http://localhost:8080',
-      'https://zync-meet.vercel.app',
-      'https://ZYNC-meet.vercel.app',
-      'http://localhost:3000',
-      process.env.FRONTEND_URL
-    ].filter(Boolean),
-    methods: ["GET", "POST"]
+    origin: "*", // Allow all origins for debugging
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
@@ -63,7 +57,7 @@ app.use(
         "default-src": ["'self'"],
         "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://apis.google.com", "https://www.googleapis.com", "https://www.gstatic.com"],
         "connect-src": ["'self'", "https://github.com", "https://api.github.com", "http://localhost:*", "https://*.firebaseio.com", "ws://localhost:*", "wss://*.glitch.me", "https://*.googleapis.com"],
-        "img-src": ["'self'", "data:", "https://avatars.githubusercontent.com", "https://*.googleusercontent.com", "https://*.google.com", "blob:"],
+        "img-src": ["'self'", "data:", "https://avatars.githubusercontent.com", "https://*.googleusercontent.com", "https://*.google.com", "blob:", "https://ui-avatars.com"],
         "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
         "worker-src": ["'self'", "blob:"],
         "frame-src": ["'self'", "https://github.com", "https://*.firebaseapp.com", "https://*.google.com"],
