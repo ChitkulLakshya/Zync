@@ -445,9 +445,81 @@ const getGoogleMeetInviteTextVersion = ({
     return text;
 };
 
+/**
+ * ZYNC Support Notification Template (For Developers)
+ * Inform developers of a new support request
+ */
+const getSupportNotificationTemplate = ({
+    firstName,
+    lastName,
+    userEmail,
+    phone,
+    message,
+    timestamp = new Date(),
+    logoUrl = 'https://zync-pd9r.onrender.com/zync-white.webp',
+}) => {
+    const formattedDate = new Date(timestamp).toLocaleString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true
+    });
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Support Request</title>
+</head>
+<body style="font-family: 'Inter', sans-serif; background-color: #0a0c10; color: #e5e7eb; margin: 0; padding: 40px 16px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; background-color: #111318; border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+        <tr>
+            <td style="background: linear-gradient(90deg, #6366f1 0%, #a855f7 100%); height: 4px;"></td>
+        </tr>
+        <tr>
+            <td style="padding: 40px;">
+                <img src="${logoUrl}" alt="ZYNC" width="100" style="margin-bottom: 30px;" />
+                <h1 style="font-size: 24px; font-weight: 700; color: #ffffff; margin: 0 0 20px;">New Support Message</h1>
+                
+                <table role="presentation" width="100%" style="margin-bottom: 30px; background-color: rgba(30, 41, 59, 0.5); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                    <tr>
+                        <td style="padding: 20px;">
+                            <p style="margin: 0 0 10px; font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;">From User</p>
+                            <p style="margin: 0; font-size: 18px; font-weight: 600; color: #ffffff;">${firstName} ${lastName}</p>
+                            <p style="margin: 5px 0 0; font-size: 16px; color: #6366f1;">${userEmail}</p>
+                            ${phone ? `<p style="margin: 5px 0 0; font-size: 14px; color: #94a3b8;">${phone}</p>` : ''}
+                        </td>
+                    </tr>
+                </table>
+
+                <div style="margin-bottom: 30px;">
+                    <p style="font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 10px;">Message Content</p>
+                    <div style="padding: 20px; background-color: #1e293b; border-radius: 12px; border-left: 4px solid #6366f1; color: #f1f5f9; line-height: 1.6; font-size: 15px;">
+                        ${message.replace(/\n/g, '<br/>')}
+                    </div>
+                </div>
+
+                <p style="font-size: 13px; color: #64748b; margin-top: 40px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;">
+                    Received on ${formattedDate}<br/>
+                    ZYNC Internal Support System
+                </p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
+    `.trim();
+};
+
 module.exports = {
     getMeetingInviteTemplate,
     getMeetingInviteTextVersion,
     getGoogleMeetInviteTemplate,
     getGoogleMeetInviteTextVersion,
+    getSupportNotificationTemplate
 };
