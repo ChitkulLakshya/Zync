@@ -283,6 +283,20 @@
   }
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * DOCUMENT WRITER / PAPER LOOK STYLES
+ * Google Docs-like appearance for the Notes editor
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Paper container with enhanced shadow */
+.paper-container {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.03),
+    0 4px 6px -1px rgba(0, 0, 0, 0.3),
+    0 10px 15px -3px rgba(0, 0, 0, 0.4),
+    0 20px 25px -5px rgba(0, 0, 0, 0.3);
+}
+
 /* Editor Overrides */
 .ZYNC-editor-overrides .bn-editor {
   @apply bg-transparent;
@@ -533,52 +547,59 @@
  *   - --collab-color: collaborator's color (CSS variable)
  * 
  * This is equivalent to passing: activeCollaborator={{ name, color }}
+ * Target elements: .bn-block-outer[data-id] which wraps each block
  */
 
-/* Block being edited by a collaborator (activeCollaborator !== null) */
-.ZYNC-editor-overrides [data-collab-user] {
-  position: relative; /* Required for absolute positioned name tag */
-  border-left: 4px solid var(--collab-color, #3b82f6);
-  background: linear-gradient(90deg, 
-    color-mix(in srgb, var(--collab-color, #3b82f6) 6%, transparent) 0%, 
-    transparent 100%
-  );
+/* Block being edited by a collaborator (activeCollaborator !== null) 
+ * Target both .bn-block-outer (BlockNote v0.12+) and general [data-collab-user] */
+.ZYNC-editor-overrides [data-collab-user],
+.ZYNC-editor-overrides .bn-block-outer[data-collab-user] {
+  position: relative !important;
+  /* Required for absolute positioned name tag */
+  border-left: 3px solid var(--collab-color, #3b82f6) !important;
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%,
+      transparent 100%) !important;
   border-radius: 4px;
-  margin-left: -4px;
+  margin-left: -3px;
   padding-left: 12px;
-  transition: 
-    border-left-color 200ms ease-out,
-    background 200ms ease-out;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 /* Blocks without activeCollaborator - transparent border (for smooth transition) */
+.ZYNC-editor-overrides .bn-block-outer:not([data-collab-user]),
 .ZYNC-editor-overrides [data-id]:not([data-collab-user]) {
-  border-left: 4px solid transparent;
-  transition: 
-    border-left-color 200ms ease-out,
-    background 200ms ease-out;
+  border-left: 3px solid transparent;
+  transition: border-color 0.2s ease;
 }
 
-/* Name Tag - absolute positioned top-right (activeCollaborator.name) */
-.ZYNC-editor-overrides [data-collab-user]::before {
+/* Name Tag - absolute positioned top-right (-top-4) */
+.ZYNC-editor-overrides [data-collab-user]::before,
+.ZYNC-editor-overrides .bn-block-outer[data-collab-user]::before {
   content: attr(data-collab-name);
   position: absolute;
   right: 0;
-  top: -20px; /* -top-5 equivalent */
+  top: -16px;
+  /* -top-4 equivalent */
   z-index: 50;
-  font-size: 10px; /* text-[10px] */
+  font-size: 10px;
+  /* text-[10px] */
   font-weight: 500;
   color: white;
-  background-color: var(--collab-color, #3b82f6); /* activeCollaborator.color */
-  padding: 2px 6px; /* py-0.5 px-1.5 */
-  border-radius: 4px 4px 0 0; /* rounded-t */
+  background-color: var(--collab-color, #3b82f6);
+  /* activeCollaborator.color */
+  padding: 0 4px;
+  /* px-1 equivalent (4px) */
+  border-radius: 4px 4px 0 0;
+  /* rounded-t */
   white-space: nowrap;
   pointer-events: none;
   animation: collab-label-enter 0.2s ease-out;
 }
 
 /* Glow effect on left border for emphasis */
-.ZYNC-editor-overrides [data-collab-user]::after {
+.ZYNC-editor-overrides [data-collab-user]::after,
+.ZYNC-editor-overrides .bn-block-outer[data-collab-user]::after {
   content: '';
   position: absolute;
   left: -4px;
@@ -596,6 +617,7 @@
     opacity: 0;
     transform: translateY(4px) scale(0.95);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -604,9 +626,12 @@
 
 /* Subtle pulsing glow on the left border */
 @keyframes collab-glow-pulse {
-  0%, 100% {
+
+  0%,
+  100% {
     box-shadow: 0 0 8px var(--collab-color, #3b82f6);
   }
+
   50% {
     box-shadow: 0 0 14px var(--collab-color, #3b82f6);
   }
@@ -614,8 +639,7 @@
 
 /* Dark mode adjustments */
 .dark .ZYNC-editor-overrides [data-collab-user] {
-  background: linear-gradient(90deg, 
-    color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%, 
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%,
+      transparent 100%);
 }
