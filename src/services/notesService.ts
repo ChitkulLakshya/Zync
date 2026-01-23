@@ -35,6 +35,7 @@ export interface Note {
     createdAt?: any;
     updatedAt: any;
     isPinned?: boolean;
+    permissions?: Record<string, 'viewer' | 'editor' | 'owner'>;
 }
 
 // Collections
@@ -201,5 +202,13 @@ export const duplicateNote = async (originalNoteId: string, targetFolderId: stri
         ownerId: userId,
         folderId: targetFolderId,
         isPinned: false
+    });
+};
+
+export const updateNotePermissions = async (noteId: string, permissions: Record<string, string>) => {
+    const noteRef = doc(db, NOTES_COLLECTION, noteId);
+    return await updateDoc(noteRef, {
+        permissions,
+        updatedAt: serverTimestamp()
     });
 };

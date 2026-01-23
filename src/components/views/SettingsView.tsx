@@ -113,12 +113,19 @@ export default function SettingsView() {
   const isCalendarSynced = userData?.integrations?.google?.connected;
 
   // Fetch Full User Data
+  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
+
   useEffect(() => {
     if (currentUser?.uid) {
+      setIsLoadingUserData(true);
       fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`)
         .then(res => res.json())
         .then(data => setUserData(data))
-        .catch(err => console.error("Failed to fetch user data", err));
+        .catch(err => console.error("Failed to fetch user data", err))
+        .finally(() => setIsLoadingUserData(false));
+    } else {
+      // If no user, stop loading (e.g. not logged in)
+      setIsLoadingUserData(false);
     }
   }, [currentUser]);
 
@@ -610,104 +617,127 @@ export default function SettingsView() {
                 <CardDescription>Update your personal details here.</CardDescription>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleProfileUpdate} className="space-y-4">
-                  {/* Avatar Upload */}
-                  <div className="flex flex-col items-center justify-center mb-6">
-                    <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                      <Avatar className="w-24 h-24 border-2 border-border">
-                        <AvatarImage src={getFullUrl(profileForm.photoURL)} />
-                        <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
-                      </Avatar>
-                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera className="w-8 h-8 text-white" />
+                {isLoadingUserData ? (
+                  <div className="space-y-6">
+                    <div className="flex flex-col items-center justify-center mb-6">
+                      <div className="w-24 h-24 rounded-full bg-secondary/30 animate-pulse" />
+                      <div className="h-3 w-32 bg-secondary/30 rounded mt-3 animate-pulse" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 w-24 bg-secondary/30 rounded animate-pulse" />
+                      <div className="h-10 w-full bg-secondary/30 rounded animate-pulse" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="h-4 w-20 bg-secondary/30 rounded animate-pulse" />
+                        <div className="h-10 w-full bg-secondary/30 rounded animate-pulse" />
                       </div>
-                    </div>
-                    <input
-                      type="file"
-                      ref={fileInputRef}
-                      className="hidden"
-                      accept="image/*"
-                      onChange={handleFileSelect}
-                    />
-                    <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Display Name</Label>
-                    <Input
-                      value={profileForm.displayName}
-                      onChange={e => setProfileForm({ ...profileForm, displayName: e.target.value })}
-                      placeholder="e.g. John Doe"
-                    />
-                    <p className="text-[0.8rem] text-muted-foreground">This is how your name will appear to other users.</p>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label>First Name</Label>
-                      <Input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Last Name</Label>
-                      <Input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Username</Label>
-                    <Input value={profileForm.username} onChange={e => setProfileForm({ ...profileForm, username: e.target.value })} />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 flex flex-col">
-                      <Label>Country</Label>
-                      <Popover open={openCountry} onOpenChange={setOpenCountry}>
-                        <PopoverTrigger asChild>
-                          <Button variant="outline" role="combobox" aria-expanded={openCountry} className="w-full justify-between">
-                            {profileForm.countryCode
-                              ? countries.find((country) => country.dial_code === profileForm.countryCode)?.name
-                              : "Select country..."}
-                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                          </Button>
-                        </PopoverTrigger>
-                        <PopoverContent className="w-[250px] p-0">
-                          <Command>
-                            <CommandInput placeholder="Search country..." />
-                            <CommandList>
-                              <CommandEmpty>No country found.</CommandEmpty>
-                              <CommandGroup>
-                                {countries.map((country) => (
-                                  <CommandItem
-                                    key={country.code}
-                                    value={country.name}
-                                    onSelect={() => {
-                                      setProfileForm({ ...profileForm, country: country.name, countryCode: country.dial_code });
-                                      setOpenCountry(false);
-                                    }}
-                                  >
-                                    <Check className={cn("mr-2 h-4 w-4", profileForm.countryCode === country.dial_code ? "opacity-100" : "opacity-0")} />
-                                    {country.flag} {country.name}
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
-                        </PopoverContent>
-                      </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Phone Number</Label>
-                      <div className="flex gap-2">
-                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
-                        <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
+                      <div className="space-y-2">
+                        <div className="h-4 w-20 bg-secondary/30 rounded animate-pulse" />
+                        <div className="h-10 w-full bg-secondary/30 rounded animate-pulse" />
                       </div>
                     </div>
                   </div>
+                ) : (
+                  <form onSubmit={handleProfileUpdate} className="space-y-4">
+                    {/* Avatar Upload */}
+                    <div className="flex flex-col items-center justify-center mb-6">
+                      <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                        <Avatar className="w-24 h-24 border-2 border-border">
+                          <AvatarImage src={getFullUrl(profileForm.photoURL)} />
+                          <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
+                        </Avatar>
+                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Camera className="w-8 h-8 text-white" />
+                        </div>
+                      </div>
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileSelect}
+                      />
+                      <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
+                    </div>
 
-                  <div className="flex justify-end pt-4">
-                    <Button type="submit" disabled={loading}>{loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes</Button>
-                  </div>
-                </form>
+                    <div className="space-y-2">
+                      <Label>Display Name</Label>
+                      <Input
+                        value={profileForm.displayName}
+                        onChange={e => setProfileForm({ ...profileForm, displayName: e.target.value })}
+                        placeholder="e.g. John Doe"
+                      />
+                      <p className="text-[0.8rem] text-muted-foreground">This is how your name will appear to other users.</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>First Name</Label>
+                        <Input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Last Name</Label>
+                        <Input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Username</Label>
+                      <Input value={profileForm.username} onChange={e => setProfileForm({ ...profileForm, username: e.target.value })} />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2 flex flex-col">
+                        <Label>Country</Label>
+                        <Popover open={openCountry} onOpenChange={setOpenCountry}>
+                          <PopoverTrigger asChild>
+                            <Button variant="outline" role="combobox" aria-expanded={openCountry} className="w-full justify-between">
+                              {profileForm.countryCode
+                                ? countries.find((country) => country.dial_code === profileForm.countryCode)?.name
+                                : "Select country..."}
+                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[250px] p-0">
+                            <Command>
+                              <CommandInput placeholder="Search country..." />
+                              <CommandList>
+                                <CommandEmpty>No country found.</CommandEmpty>
+                                <CommandGroup>
+                                  {countries.map((country) => (
+                                    <CommandItem
+                                      key={country.code}
+                                      value={country.name}
+                                      onSelect={() => {
+                                        setProfileForm({ ...profileForm, country: country.name, countryCode: country.dial_code });
+                                        setOpenCountry(false);
+                                      }}
+                                    >
+                                      <Check className={cn("mr-2 h-4 w-4", profileForm.countryCode === country.dial_code ? "opacity-100" : "opacity-0")} />
+                                      {country.flag} {country.name}
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Phone Number</Label>
+                        <div className="flex gap-2">
+                          <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
+                          <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                      <Button type="submit" disabled={loading}>{loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes</Button>
+                    </div>
+                  </form>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -720,50 +750,59 @@ export default function SettingsView() {
                 <CardDescription>Manage your external connections to sync projects.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* GitHub Connection */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <Github className="w-8 h-8" />
-                    <div>
-                      <p className="font-medium">GitHub</p>
-                      <p className="text-sm text-muted-foreground">
-                        {userData?.integrations?.github?.connected
-                          ? `Connected as ${userData.integrations.github.username}`
-                          : "Connect repositories to ZYNC."}
-                      </p>
-                    </div>
+                {isLoadingUserData ? (
+                  <div className="flex flex-col gap-4">
+                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
+                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
                   </div>
-                  <Button
-                    variant={userData?.integrations?.github?.connected ? "destructive" : "secondary"}
-                    onClick={userData?.integrations?.github?.connected ? handleGithubDisconnect : handleGithubConnect}
-                  >
-                    {userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
-                  </Button>
-                </div>
+                ) : (
+                  <>
+                    {/* GitHub Connection */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <Github className="w-8 h-8" />
+                        <div>
+                          <p className="font-medium">GitHub</p>
+                          <p className="text-sm text-muted-foreground">
+                            {userData?.integrations?.github?.connected
+                              ? `Connected as ${userData.integrations.github.username}`
+                              : "Connect repositories to ZYNC."}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant={userData?.integrations?.github?.connected ? "destructive" : "secondary"}
+                        onClick={userData?.integrations?.github?.connected ? handleGithubDisconnect : handleGithubConnect}
+                      >
+                        {userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
+                      </Button>
+                    </div>
 
-                {/* Google Connection */}
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex items-center gap-4">
-                    <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 bg-blue-50" : "text-gray-500 bg-gray-100")}>G</div>
-                    <div>
-                      <p className="font-medium">Google Calendar</p>
-                      <p className="text-sm text-muted-foreground">
-                        {isCalendarSynced
-                          ? `Connected as ${userData.integrations.google.email}`
-                          : isGoogleLinked
-                            ? `Linked as ${googleProvider?.email}. Enable Calendar?`
-                            : "Sync meetings and events."}
-                      </p>
+                    {/* Google Connection */}
+                    <div className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 bg-blue-50" : "text-gray-500 bg-gray-100")}>G</div>
+                        <div>
+                          <p className="font-medium">Google Calendar</p>
+                          <p className="text-sm text-muted-foreground">
+                            {isCalendarSynced
+                              ? `Connected as ${userData.integrations.google.email}`
+                              : isGoogleLinked
+                                ? `Linked as ${googleProvider?.email}. Enable Calendar?`
+                                : "Sync meetings and events."}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant={isCalendarSynced ? "destructive" : "secondary"}
+                        onClick={isCalendarSynced ? handleGoogleDisconnect : handleGoogleConnect}
+                        disabled={loading}
+                      >
+                        {isCalendarSynced ? "Disconnect" : (isGoogleLinked ? "Enable Sync" : "Connect")}
+                      </Button>
                     </div>
-                  </div>
-                  <Button
-                    variant={isCalendarSynced ? "destructive" : "secondary"}
-                    onClick={isCalendarSynced ? handleGoogleDisconnect : handleGoogleConnect}
-                    disabled={loading}
-                  >
-                    {isCalendarSynced ? "Disconnect" : (isGoogleLinked ? "Enable Sync" : "Connect")}
-                  </Button>
-                </div>
+                  </>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

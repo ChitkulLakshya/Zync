@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { useTheme } from "next-themes";
 import { EditorHeader } from './editor/EditorHeader';
 import { TaskDialogs } from './editor/TaskDialogs';
+import { ShareDialog } from './editor/ShareDialog';
 
 interface NoteEditorProps {
   note: Note;
@@ -61,6 +62,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   const [projects, setProjects] = useState<Project[]>([]);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [taskLinkDialogOpen, setTaskLinkDialogOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedTaskText, setSelectedTaskText] = useState("");
 
   // Initialize editor without collaboration (temporarily using Firestore for persistence only)
@@ -379,7 +381,12 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   return (
     <div className={cn("flex flex-col h-full", className)}>
       {/* Fixed Word-Style Toolbar - Only if Editable */}
-      {isEditable && <FixedToolbar editor={editor} />}
+      {isEditable && (
+        <FixedToolbar
+          editor={editor}
+          onLinkTask={() => setTaskLinkDialogOpen(true)}
+        />
+      )}
 
       {/* Paper Container - Google Docs style */}
       <div className="flex-1 overflow-y-auto bg-zinc-950 scrollbar-thin">
@@ -426,6 +433,13 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         selectedTaskText={selectedTaskText}
         onCreateTask={(pid) => handleCreateTask(pid)}
         onLinkTask={handleInsertTaskLink}
+      />
+
+      <ShareDialog
+        noteId={note.id}
+        isOpen={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        currentPermissions={note.permissions || {}}
       />
     </div>
   );
