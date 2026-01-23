@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from "react";
 import { auth } from "@/lib/firebase";
 import { updateProfile, updateEmail, deleteUser, GithubAuthProvider, GoogleAuthProvider, linkWithPopup, getAdditionalUserInfo, onAuthStateChanged, reauthenticateWithPopup } from "firebase/auth";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useUserSync } from "@/hooks/use-user-sync";
 import { toast } from "@/components/ui/use-toast";
-import { Loader2, Camera, Github, AlertTriangle, Check, ChevronsUpDown } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Camera, Github, AlertTriangle, Check, ChevronsUpDown, Mail, Phone, Headphones, MessageSquare, Newspaper } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   Command,
@@ -24,16 +24,7 @@ import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-
 } from "@/components/ui/popover"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -43,7 +34,9 @@ import {
 } from "@/components/ui/select"
 import { useTheme } from "next-themes";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? "http://localhost:5000"
+  : (import.meta.env.VITE_API_URL || "http://localhost:5000");
 
 // Helper to get full URL (generic)
 const getFullUrl = (path: string | undefined): string | undefined => {
@@ -72,30 +65,6 @@ export default function SettingsView() {
   const [loading, setLoading] = useState(false);
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
 
-  // Team Data
-  const [myTeams, setMyTeams] = useState<any[]>([]);
-  const [loadingTeams, setLoadingTeams] = useState(false);
-
-  // Fetch Teams
-  useEffect(() => {
-    if (currentUser?.uid) {
-      setLoadingTeams(true);
-      currentUser.getIdToken().then(token => {
-        fetch(`${API_BASE_URL}/api/teams/mine`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-          .then(res => res.json())
-          .then(data => {
-            if (Array.isArray(data)) {
-              setMyTeams(data);
-            }
-          })
-          .catch(err => console.error("Failed to fetch teams", err))
-          .finally(() => setLoadingTeams(false));
-      });
-    }
-  }, [currentUser]);
-
   // Auth Listener to ensure we have the latest user state (e.g. after linking)
   useEffect(() => {
     return onAuthStateChanged(auth, (user) => {
@@ -113,19 +82,12 @@ export default function SettingsView() {
   const isCalendarSynced = userData?.integrations?.google?.connected;
 
   // Fetch Full User Data
-  const [isLoadingUserData, setIsLoadingUserData] = useState(true);
-
   useEffect(() => {
     if (currentUser?.uid) {
-      setIsLoadingUserData(true);
       fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`)
         .then(res => res.json())
         .then(data => setUserData(data))
-        .catch(err => console.error("Failed to fetch user data", err))
-        .finally(() => setIsLoadingUserData(false));
-    } else {
-      // If no user, stop loading (e.g. not logged in)
-      setIsLoadingUserData(false);
+        .catch(err => console.error("Failed to fetch user data", err));
     }
   }, [currentUser]);
 
@@ -459,87 +421,77 @@ export default function SettingsView() {
   const [deleteCode, setDeleteCode] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-  // --- Team Management Logic ---
-  const [teamManageDialogOpen, setTeamManageDialogOpen] = useState(false);
-  const [selectedTeam, setSelectedTeam] = useState<any>(null);
-  const [teamActionLoading, setTeamActionLoading] = useState(false);
-  const [renameValue, setRenameValue] = useState("");
+  // --- Support Form Logic ---
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [supportForm, setSupportForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    countryCode: "+1",
+    countryIso: "US", // Added for unique Select value
+    message: ""
+  });
 
-  const handleOpenTeamManage = (team: any) => {
-    setSelectedTeam(team);
-    setRenameValue(team.name);
-    setTeamManageDialogOpen(true);
-  };
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSupportLoading(true);
 
-  const handleLeaveTeam = async (teamId: string) => {
-    if (!window.confirm("Are you sure you want to leave this team?")) return;
-    setTeamActionLoading(true);
     try {
-      const token = await currentUser?.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/leave`, {
+      const res = await fetch(`${API_BASE_URL}/api/support`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        toast({ title: "Left Team", description: "You have left the team." });
-        setMyTeams(prev => prev.filter(t => t._id !== teamId));
-      } else {
-        throw new Error("Failed to leave team");
-      }
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setTeamActionLoading(false);
-    }
-  };
-
-  const handleDeleteTeam = async (teamId: string) => {
-    if (!window.confirm("Are you sure you want to DELETE this team? This cannot be undone.")) return;
-    setTeamActionLoading(true);
-    try {
-      const token = await currentUser?.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}`, {
-        method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        toast({ title: "Team Deleted", description: "The team has been permanently deleted." });
-        setMyTeams(prev => prev.filter(t => t._id !== teamId));
-        setTeamManageDialogOpen(false);
-      } else {
-        throw new Error("Failed to delete team");
-      }
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
-    } finally {
-      setTeamActionLoading(false);
-    }
-  };
-
-  const handleUpdateTeamName = async () => {
-    if (!selectedTeam || !renameValue.trim()) return;
-    setTeamActionLoading(true);
-    try {
-      const token = await currentUser?.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${selectedTeam._id}`, {
-        method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ name: renameValue })
+        body: JSON.stringify({
+          firstName: supportForm.firstName,
+          lastName: supportForm.lastName,
+          email: supportForm.email,
+          phone: `${supportForm.countryCode} ${supportForm.phone}`,
+          message: supportForm.message
+        })
       });
-      if (res.ok) {
-        toast({ title: "Updated", description: "Team name updated." });
-        setMyTeams(prev => prev.map(t => t._id === selectedTeam._id ? { ...t, name: renameValue } : t));
-        setSelectedTeam((prev: any) => ({ ...prev, name: renameValue }));
-      } else {
-        throw new Error("Failed to update team");
+
+      let data;
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.indexOf("application/json") !== -1) {
+        try {
+          data = await res.json();
+        } catch (jsonError) {
+          // Response was not JSON, likely a server error page (500)
+          console.error("Failed to parse JSON response:", jsonError);
+        }
       }
-    } catch (e: any) {
-      toast({ title: "Error", description: e.message, variant: "destructive" });
+
+      if (!res.ok) {
+        // Use the error message from backend if available, otherwise a generic one
+        let errorMessage = data?.message || res.statusText || "Failed to send message";
+
+        // Sanitize technical errors for the user
+        if (errorMessage.includes("Invalid login") || res.status === 500) {
+          console.error("Backend Error:", errorMessage);
+          errorMessage = "Our support system is temporarily unavailable. Please try again later or email us directly.";
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      toast({ title: "Message Sent", description: "We'll get back to you soon!" });
+      setSupportForm({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        countryCode: "+1",
+        countryIso: "US",
+        message: ""
+      });
+
+    } catch (error: any) {
+      console.error("Support Form Error:", error);
+      toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
-      setTeamActionLoading(false);
+      setSupportLoading(false);
     }
   };
 
@@ -606,6 +558,7 @@ export default function SettingsView() {
             <TabsTrigger value="team">Team</TabsTrigger>
             <TabsTrigger value="preferences">Preferences</TabsTrigger>
             <TabsTrigger value="integrations">Integrations</TabsTrigger>
+            <TabsTrigger value="support">Support</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
@@ -617,127 +570,104 @@ export default function SettingsView() {
                 <CardDescription>Update your personal details here.</CardDescription>
               </CardHeader>
               <CardContent>
-                {isLoadingUserData ? (
-                  <div className="space-y-6">
-                    <div className="flex flex-col items-center justify-center mb-6">
-                      <div className="w-24 h-24 rounded-full bg-secondary/30 animate-pulse" />
-                      <div className="h-3 w-32 bg-secondary/30 rounded mt-3 animate-pulse" />
+                <form onSubmit={handleProfileUpdate} className="space-y-4">
+                  {/* Avatar Upload */}
+                  <div className="flex flex-col items-center justify-center mb-6">
+                    <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                      <Avatar className="w-24 h-24 border-2 border-border">
+                        <AvatarImage src={getFullUrl(profileForm.photoURL)} />
+                        <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
+                      </Avatar>
+                      <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Camera className="w-8 h-8 text-white" />
+                      </div>
+                    </div>
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      className="hidden"
+                      accept="image/*"
+                      onChange={handleFileSelect}
+                    />
+                    <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Display Name</Label>
+                    <Input
+                      value={profileForm.displayName}
+                      onChange={e => setProfileForm({ ...profileForm, displayName: e.target.value })}
+                      placeholder="e.g. John Doe"
+                    />
+                    <p className="text-[0.8rem] text-muted-foreground">This is how your name will appear to other users.</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>First Name</Label>
+                      <Input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} />
                     </div>
                     <div className="space-y-2">
-                      <div className="h-4 w-24 bg-secondary/30 rounded animate-pulse" />
-                      <div className="h-10 w-full bg-secondary/30 rounded animate-pulse" />
+                      <Label>Last Name</Label>
+                      <Input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="h-4 w-20 bg-secondary/30 rounded animate-pulse" />
-                        <div className="h-10 w-full bg-secondary/30 rounded animate-pulse" />
-                      </div>
-                      <div className="space-y-2">
-                        <div className="h-4 w-20 bg-secondary/30 rounded animate-pulse" />
-                        <div className="h-10 w-full bg-secondary/30 rounded animate-pulse" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Username</Label>
+                    <Input value={profileForm.username} onChange={e => setProfileForm({ ...profileForm, username: e.target.value })} />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2 flex flex-col">
+                      <Label>Country</Label>
+                      <Popover open={openCountry} onOpenChange={setOpenCountry}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" role="combobox" aria-expanded={openCountry} className="w-full justify-between">
+                            {profileForm.countryCode
+                              ? countries.find((country) => country.dial_code === profileForm.countryCode)?.name
+                              : "Select country..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[250px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search country..." />
+                            <CommandList>
+                              <CommandEmpty>No country found.</CommandEmpty>
+                              <CommandGroup>
+                                {countries.map((country) => (
+                                  <CommandItem
+                                    key={country.code}
+                                    value={country.name}
+                                    onSelect={() => {
+                                      setProfileForm({ ...profileForm, country: country.name, countryCode: country.dial_code });
+                                      setOpenCountry(false);
+                                    }}
+                                  >
+                                    <Check className={cn("mr-2 h-4 w-4", profileForm.countryCode === country.dial_code ? "opacity-100" : "opacity-0")} />
+                                    {country.flag} {country.name}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Phone Number</Label>
+                      <div className="flex gap-2">
+                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
+                        <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <form onSubmit={handleProfileUpdate} className="space-y-4">
-                    {/* Avatar Upload */}
-                    <div className="flex flex-col items-center justify-center mb-6">
-                      <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                        <Avatar className="w-24 h-24 border-2 border-border">
-                          <AvatarImage src={getFullUrl(profileForm.photoURL)} />
-                          <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
-                        </Avatar>
-                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Camera className="w-8 h-8 text-white" />
-                        </div>
-                      </div>
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileSelect}
-                      />
-                      <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label>Display Name</Label>
-                      <Input
-                        value={profileForm.displayName}
-                        onChange={e => setProfileForm({ ...profileForm, displayName: e.target.value })}
-                        placeholder="e.g. John Doe"
-                      />
-                      <p className="text-[0.8rem] text-muted-foreground">This is how your name will appear to other users.</p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>First Name</Label>
-                        <Input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Last Name</Label>
-                        <Input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Username</Label>
-                      <Input value={profileForm.username} onChange={e => setProfileForm({ ...profileForm, username: e.target.value })} />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2 flex flex-col">
-                        <Label>Country</Label>
-                        <Popover open={openCountry} onOpenChange={setOpenCountry}>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" role="combobox" aria-expanded={openCountry} className="w-full justify-between">
-                              {profileForm.countryCode
-                                ? countries.find((country) => country.dial_code === profileForm.countryCode)?.name
-                                : "Select country..."}
-                              <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-[250px] p-0">
-                            <Command>
-                              <CommandInput placeholder="Search country..." />
-                              <CommandList>
-                                <CommandEmpty>No country found.</CommandEmpty>
-                                <CommandGroup>
-                                  {countries.map((country) => (
-                                    <CommandItem
-                                      key={country.code}
-                                      value={country.name}
-                                      onSelect={() => {
-                                        setProfileForm({ ...profileForm, country: country.name, countryCode: country.dial_code });
-                                        setOpenCountry(false);
-                                      }}
-                                    >
-                                      <Check className={cn("mr-2 h-4 w-4", profileForm.countryCode === country.dial_code ? "opacity-100" : "opacity-0")} />
-                                      {country.flag} {country.name}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Phone Number</Label>
-                        <div className="flex gap-2">
-                          <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
-                          <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex justify-end pt-4">
-                      <Button type="submit" disabled={loading}>{loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes</Button>
-                    </div>
-                  </form>
-                )}
+                  <div className="flex justify-end pt-4">
+                    <Button type="submit" disabled={loading}>{loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />} Save Changes</Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </TabsContent>
@@ -750,59 +680,50 @@ export default function SettingsView() {
                 <CardDescription>Manage your external connections to sync projects.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {isLoadingUserData ? (
-                  <div className="flex flex-col gap-4">
-                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
-                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
+                {/* GitHub Connection */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <Github className="w-8 h-8" />
+                    <div>
+                      <p className="font-medium">GitHub</p>
+                      <p className="text-sm text-muted-foreground">
+                        {userData?.integrations?.github?.connected
+                          ? `Connected as ${userData.integrations.github.username}`
+                          : "Connect repositories to ZYNC."}
+                      </p>
+                    </div>
                   </div>
-                ) : (
-                  <>
-                    {/* GitHub Connection */}
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <Github className="w-8 h-8" />
-                        <div>
-                          <p className="font-medium">GitHub</p>
-                          <p className="text-sm text-muted-foreground">
-                            {userData?.integrations?.github?.connected
-                              ? `Connected as ${userData.integrations.github.username}`
-                              : "Connect repositories to ZYNC."}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant={userData?.integrations?.github?.connected ? "destructive" : "secondary"}
-                        onClick={userData?.integrations?.github?.connected ? handleGithubDisconnect : handleGithubConnect}
-                      >
-                        {userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
-                      </Button>
-                    </div>
+                  <Button
+                    variant={userData?.integrations?.github?.connected ? "destructive" : "secondary"}
+                    onClick={userData?.integrations?.github?.connected ? handleGithubDisconnect : handleGithubConnect}
+                  >
+                    {userData?.integrations?.github?.connected ? "Unlink" : "Connect"}
+                  </Button>
+                </div>
 
-                    {/* Google Connection */}
-                    <div className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 bg-blue-50" : "text-gray-500 bg-gray-100")}>G</div>
-                        <div>
-                          <p className="font-medium">Google Calendar</p>
-                          <p className="text-sm text-muted-foreground">
-                            {isCalendarSynced
-                              ? `Connected as ${userData.integrations.google.email}`
-                              : isGoogleLinked
-                                ? `Linked as ${googleProvider?.email}. Enable Calendar?`
-                                : "Sync meetings and events."}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant={isCalendarSynced ? "destructive" : "secondary"}
-                        onClick={isCalendarSynced ? handleGoogleDisconnect : handleGoogleConnect}
-                        disabled={loading}
-                      >
-                        {isCalendarSynced ? "Disconnect" : (isGoogleLinked ? "Enable Sync" : "Connect")}
-                      </Button>
+                {/* Google Connection */}
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div className="flex items-center gap-4">
+                    <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 bg-blue-50" : "text-gray-500 bg-gray-100")}>G</div>
+                    <div>
+                      <p className="font-medium">Google Calendar</p>
+                      <p className="text-sm text-muted-foreground">
+                        {isCalendarSynced
+                          ? `Connected as ${userData.integrations.google.email}`
+                          : isGoogleLinked
+                            ? `Linked as ${googleProvider?.email}. Enable Calendar?`
+                            : "Sync meetings and events."}
+                      </p>
                     </div>
-                  </>
-                )}
+                  </div>
+                  <Button
+                    variant={isCalendarSynced ? "destructive" : "secondary"}
+                    onClick={isCalendarSynced ? handleGoogleDisconnect : handleGoogleConnect}
+                    disabled={loading}
+                  >
+                    {isCalendarSynced ? "Disconnect" : (isGoogleLinked ? "Enable Sync" : "Connect")}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -827,114 +748,164 @@ export default function SettingsView() {
             </Card>
           </TabsContent>
 
-          {/* TEAM TAB */}
-          <TabsContent value="team">
-            <Card>
-              <CardHeader>
-                <CardTitle>Team Management</CardTitle>
-                <CardDescription>View and manage your teams.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {loadingTeams ? (
-                  <div className="flex flex-col gap-4">
-                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
-                    <div className="h-24 w-full bg-secondary/30 rounded-lg animate-pulse" />
+          {/* SUPPORT TAB */}
+          <TabsContent value="support">
+            <div className="space-y-6">
+              {/* Contact Header */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left - Contact Info */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-2xl font-bold tracking-tight">Contact Us</h3>
+                    <p className="text-muted-foreground mt-2">
+                      Email, call, or complete the form to learn how Zync can solve your collaboration needs.
+                    </p>
                   </div>
-                ) : myTeams.length > 0 ? (
-                  <div className="grid gap-4">
-                    {myTeams.map((team: any) => {
-                      const isOwner = team.ownerId === currentUser?.uid;
-                      return (
-                        <div key={team._id} className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 border rounded-lg hover:bg-secondary/10 transition-colors">
-                          <div className="space-y-1">
-                            <div className="flex items-center gap-2">
-                              <h3 className="font-semibold text-lg">{team.name}</h3>
-                              {isOwner && <Badge variant="secondary">Owner</Badge>}
-                            </div>
-                            <p className="text-sm text-muted-foreground">Members: {team.members?.length || 1}</p>
-                            <div className="flex items-center gap-2 text-xs font-mono bg-muted px-2 py-1 rounded w-fit mt-2">
-                              <span>Code:</span>
-                              <span className="select-all">{team.inviteCode}</span>
-                            </div>
-                          </div>
+                </div>
 
-                          <div className="mt-4 md:mt-0 flex items-center gap-3">
-                            {isOwner ? (
-                              <Button variant="outline" size="sm" onClick={() => handleOpenTeamManage(team)}>Manage Team</Button>
-                            ) : (
-                              <Button variant="destructive" size="sm" onClick={() => handleLeaveTeam(team._id)} disabled={teamActionLoading}>
-                                {teamActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                                Leave Team
-                              </Button>
-                            )}
-                          </div>
+                {/* Right - Contact Form */}
+                <Card className="shadow-lg">
+                  <CardHeader>
+                    <CardTitle>Get in Touch</CardTitle>
+                    <CardDescription>You can reach us anytime</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <form className="space-y-4" onSubmit={handleSupportSubmit}>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="First name"
+                            value={supportForm.firstName}
+                            onChange={(e) => setSupportForm({ ...supportForm, firstName: e.target.value })}
+                            required
+                          />
                         </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>You are not part of any team yet.</p>
-                    <p className="text-sm mt-1">Go to the "People" tab to create or join a team.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                        <div className="space-y-2">
+                          <Input
+                            placeholder="Last name"
+                            value={supportForm.lastName}
+                            onChange={(e) => setSupportForm({ ...supportForm, lastName: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
 
-            {/* Manage Team Dialog */}
-            <Dialog open={teamManageDialogOpen} onOpenChange={setTeamManageDialogOpen}>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Manage Team</DialogTitle>
-                  <DialogDescription>Update team details or remove members.</DialogDescription>
-                </DialogHeader>
+                      <div className="space-y-2">
+                        <div className="relative">
+                          <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Your email"
+                            className="pl-10"
+                            type="email"
+                            value={supportForm.email}
+                            onChange={(e) => setSupportForm({ ...supportForm, email: e.target.value })}
+                            required
+                          />
+                        </div>
+                      </div>
 
-                {selectedTeam && (
-                  <div className="space-y-6 py-4">
-                    {/* Rename Section */}
-                    <div className="space-y-2">
-                      <Label>Team Name</Label>
                       <div className="flex gap-2">
+                        <Select
+                          value={supportForm.countryIso}
+                          onValueChange={(val) => {
+                            const country = countries.find(c => c.code === val);
+                            if (country) {
+                              setSupportForm({ ...supportForm, countryIso: val, countryCode: country.dial_code });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-[90px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {countries.map((c) => (
+                              <SelectItem key={c.code} value={c.code}>
+                                {c.flag} {c.dial_code}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <Input
-                          value={renameValue}
-                          onChange={(e) => setRenameValue(e.target.value)}
+                          placeholder="Phone number"
+                          className="flex-1"
+                          type="tel"
+                          value={supportForm.phone}
+                          onChange={(e) => setSupportForm({ ...supportForm, phone: e.target.value })}
                         />
-                        <Button onClick={handleUpdateTeamName} disabled={teamActionLoading}>Save</Button>
                       </div>
-                    </div>
-
-                    <div className="bg-muted/50 p-4 rounded-lg space-y-2">
-                      <Label>Invite Code</Label>
-                      <div className="flex items-center justify-between bg-background border px-3 py-2 rounded">
-                        <code className="font-mono font-bold">{selectedTeam.inviteCode}</code>
-                        <Button size="sm" variant="ghost" className="h-6" onClick={() => {
-                          navigator.clipboard.writeText(selectedTeam.inviteCode);
-                          toast({ description: "Copied to clipboard" });
-                        }}>Copy</Button>
+                      <div className="space-y-2">
+                        <Textarea
+                          placeholder="How can we help?"
+                          className="min-h-[100px] resize-none"
+                          maxLength={120}
+                          value={supportForm.message}
+                          onChange={(e) => setSupportForm({ ...supportForm, message: e.target.value })}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground text-right">{supportForm.message.length}/120</p>
                       </div>
-                      <p className="text-xs text-muted-foreground">Share this code to invite others.</p>
-                    </div>
 
-                    {/* Danger Zone */}
-                    <div className="pt-4 border-t">
-                      <h4 className="text-sm font-semibold text-destructive mb-2">Danger Zone</h4>
-                      <Button
-                        variant="destructive"
-                        className="w-full"
-                        onClick={() => handleDeleteTeam(selectedTeam._id)}
-                        disabled={teamActionLoading}
-                      >
-                        {teamActionLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                        Delete Team Permanently
+                      <Button type="submit" className="w-full" disabled={supportLoading}>
+                        {supportLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                        Submit
                       </Button>
-                      <p className="text-xs text-muted-foreground mt-2 text-center">
-                        This will remove all team data and kick all members.
+
+                      <p className="text-xs text-center text-muted-foreground">
+                        By contacting us, you agree to our{" "}
+                        <a href="#" className="underline font-medium hover:text-primary">Terms of Service</a>{" "}
+                        and{" "}
+                        <a href="#" className="underline font-medium hover:text-primary">Privacy Policy</a>
+                      </p>
+                    </form>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Info Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <Card className="bg-muted/30">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Headphones className="w-5 h-5 text-primary" />
+                      </div>
+                      <h4 className="font-semibold">Customer Support</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Our support team is available around the clock to address any concerns or queries you may have.
                       </p>
                     </div>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-muted/30">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <MessageSquare className="w-5 h-5 text-primary" />
+                      </div>
+                      <h4 className="font-semibold">Feedback and Suggestions</h4>
+                      <p className="text-sm text-muted-foreground">
+                        We value your feedback and are continuously working to improve Zync. Your input is crucial in shaping our future.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-muted/30">
+                  <CardContent className="pt-6">
+                    <div className="flex flex-col gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Newspaper className="w-5 h-5 text-primary" />
+                      </div>
+                      <h4 className="font-semibold">Media Inquiries</h4>
+                      <p className="text-sm text-muted-foreground">
+                        For media-related questions or press inquiries, please contact us at media@zync.io.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* SECURITY TAB */}
