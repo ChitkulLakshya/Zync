@@ -68,6 +68,10 @@ const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
 
         if (bodyText) {
             // Multipart email with both plain text and HTML
+            const boundary = `boundary_${Date.now().toString(36)}`;
+            const textBase64 = Buffer.from(bodyText).toString('base64');
+            const htmlBase64 = Buffer.from(bodyHtml).toString('base64');
+
             messageParts = [
                 `To: ${to}`,
                 `Subject: ${utf8Subject}`,
@@ -76,27 +80,29 @@ const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
                 '',
                 `--${boundary}`,
                 'Content-Type: text/plain; charset=utf-8',
-                'Content-Transfer-Encoding: quoted-printable',
+                'Content-Transfer-Encoding: base64',
                 '',
-                bodyText,
+                textBase64,
                 '',
                 `--${boundary}`,
                 'Content-Type: text/html; charset=utf-8',
-                'Content-Transfer-Encoding: quoted-printable',
+                'Content-Transfer-Encoding: base64',
                 '',
-                bodyHtml,
+                htmlBase64,
                 '',
                 `--${boundary}--`
             ];
         } else {
-            // HTML only (legacy behavior)
+            // HTML only
+            const htmlBase64 = Buffer.from(bodyHtml).toString('base64');
             messageParts = [
                 `To: ${to}`,
                 'Content-Type: text/html; charset=utf-8',
                 'MIME-Version: 1.0',
+                'Content-Transfer-Encoding: base64',
                 `Subject: ${utf8Subject}`,
                 '',
-                bodyHtml
+                htmlBase64
             ];
         }
 

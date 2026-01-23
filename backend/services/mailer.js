@@ -4,7 +4,7 @@ const sendZyncEmail = async (to, subject, html, text) => {
     try {
         // Use the working implementation from googleMeet.js (which uses googleapis directly)
         // Note: googleMeet's version only takes (to, subject, htmlBody)
-        const result = await send_ZYNC_email(to, subject, html);
+        const result = await send_ZYNC_email(to, subject, html, text);
         return result;
     } catch (error) {
         if (error.code === 'EAUTH' || (error.response && error.response.status === 401)) {

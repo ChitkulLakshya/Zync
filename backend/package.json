@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "dev": "nodemon index.js",
+    "dev": "nodemon --exec tsx index.js",
     "build": "npx prisma generate",
     "create-meet": "node create_meet_space.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -15,8 +15,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@blocknote/core": "^0.45.0",
-    "@blocknote/react": "^0.45.0",
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "5.22.0",
     "axios": "^1.13.2",
