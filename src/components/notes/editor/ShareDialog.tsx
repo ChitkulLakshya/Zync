@@ -57,6 +57,21 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
         }
     };
 
+    const handleRemoveCollaborator = async (userId: string) => {
+        if (!currentPermissions) return;
+
+        const newPermissions = { ...currentPermissions };
+        delete newPermissions[userId]; // Remove user
+
+        try {
+            await updateNotePermissions(noteId, newPermissions);
+            toast.success("Collaborator removed");
+        } catch (e: any) {
+            console.error(e);
+            toast.error("Failed to remove collaborator");
+        }
+    };
+
     const copyLink = () => {
         navigator.clipboard.writeText(publicLink);
         toast.success("Link copied to clipboard");
@@ -100,22 +115,33 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
                         </div>
                     </div>
 
-                    {/* Existing Collaborators List could go here */}
+                    {/* Existing Collaborators List */}
                     {Object.keys(currentPermissions).length > 0 && (
                         <div className="space-y-2">
                             <Label>People with access</Label>
-                            <div className="text-sm text-muted-foreground">
+                            <div className="text-sm text-muted-foreground border rounded-md p-2">
                                 {/* Iterate and show avatars/names if available */}
                                 {Object.entries(currentPermissions).map(([uid, role]) => (
-                                    <div key={uid} className="flex justify-between items-center py-1">
-                                        <span>{uid.slice(0, 8)}...</span>
-                                        <span className="capitalize text-xs bg-secondary px-2 py-0.5 rounded">{role}</span>
+                                    <div key={uid} className="flex justify-between items-center py-2 border-b last:border-0">
+                                        <span className="font-mono text-xs">{uid.slice(0, 8)}...</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className="capitalize text-xs bg-secondary px-2 py-0.5 rounded">{role}</span>
+                                            {role !== 'owner' && (
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                                                    onClick={() => handleRemoveCollaborator(uid)}
+                                                >
+                                                    ×
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
                     )}
-
                 </div>
             </DialogContent>
         </Dialog>
