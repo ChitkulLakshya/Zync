@@ -13,12 +13,6 @@ export const useUserSync = () => {
                 const firstName = parts[0] || "";
                 const lastName = parts.slice(1).join(" ") || "";
 
-                // FORCE GOOGLE PHOTO SYNC
-                // If user has a Google provider linked, use THAT photoURL specifically
-                // This overrides any manual "firebase profile" photo that might have been set
-                const googleProvider = user.providerData.find(p => p.providerId === 'google.com');
-                const photoURL = googleProvider?.photoURL || user.photoURL;
-
                 try {
                     const controller = new AbortController();
                     // Auto-abort if component unmounts quickly is handled by cleanup
@@ -33,7 +27,7 @@ export const useUserSync = () => {
                             uid: user.uid,
                             email: user.email,
                             displayName: user.displayName,
-                            photoURL,
+                            photoURL: user.photoURL,
                             firstName,
                             lastName,
                         }),
