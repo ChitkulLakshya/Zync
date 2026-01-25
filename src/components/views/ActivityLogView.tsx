@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "lucide-react";
+import { Trash2, ChevronDown, ChevronUp } from "lucide-react";
 import { ActivityGraph } from "./ActivityGraph";
 import {
     BarChart,
@@ -125,6 +125,8 @@ const BadgeCard: React.FC<{ badge: Badge }> = ({ badge }) => {
 };
 
 const ActivityLogView: React.FC<ActivityLogViewProps> = ({ activityLogs, elapsedTime, handleClearLogs, handleDeleteLog, tasks, users, teamSessions, currentTeamId, ownedTeams, currentUserId }) => {
+    const [showAllLogs, setShowAllLogs] = useState(false);
+    
     // Calculate Streak and Total Time
     const sortedLogs = [...activityLogs].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
 
@@ -663,33 +665,57 @@ const ActivityLogView: React.FC<ActivityLogViewProps> = ({ activityLogs, elapsed
                         {activityLogs.length === 0 ? (
                             <div className="p-8 text-center text-muted-foreground">No activity logs found.</div>
                         ) : (
-                            activityLogs.map((log) => {
-                                const start = new Date(log.startTime);
-                                const end = new Date(log.endTime);
-                                const durationSeconds = log.duration || Math.round((end.getTime() - start.getTime()) / 1000);
-                                const hours = Math.floor(durationSeconds / 3600);
-                                const minutes = Math.floor((durationSeconds % 3600) / 60);
+                            <>
+                                {(showAllLogs ? activityLogs : activityLogs.slice(0, 4)).map((log) => {
+                                    const start = new Date(log.startTime);
+                                    const end = new Date(log.endTime);
+                                    const durationSeconds = log.duration || Math.round((end.getTime() - start.getTime()) / 1000);
+                                    const hours = Math.floor(durationSeconds / 3600);
+                                    const minutes = Math.floor((durationSeconds % 3600) / 60);
 
-                                const formattedDuration = hours > 0
-                                    ? `${hours} hr ${minutes} min`
-                                    : `${minutes} min`;
+                                    const formattedDuration = hours > 0
+                                        ? `${hours} hr ${minutes} min`
+                                        : `${minutes} min`;
 
-                                return (
-                                    <div key={log._id} className="grid grid-cols-5 p-4 border-b last:border-0 hover:bg-muted/20 items-center">
-                                        <div>{log.date}</div>
-                                        <div>{start.toLocaleTimeString()}</div>
-                                        <div>{end.toLocaleTimeString()}</div>
-                                        <div className="font-medium">
-                                            {formattedDuration}
+                                    return (
+                                        <div key={log._id} className="grid grid-cols-5 p-4 border-b last:border-0 hover:bg-muted/20 items-center">
+                                            <div>{log.date}</div>
+                                            <div>{start.toLocaleTimeString()}</div>
+                                            <div>{end.toLocaleTimeString()}</div>
+                                            <div className="font-medium">
+                                                {formattedDuration}
+                                            </div>
+                                            <div className="text-right">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteLog(log._id)}>
+                                                    <Trash2 className="h-4 w-4" />
+                                                </Button>
+                                            </div>
                                         </div>
-                                        <div className="text-right">
-                                            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteLog(log._id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
-                                        </div>
+                                    );
+                                })}
+                                {activityLogs.length > 4 && (
+                                    <div className="p-3 border-t bg-muted/30">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="w-full justify-center gap-2 text-muted-foreground hover:text-foreground"
+                                            onClick={() => setShowAllLogs(!showAllLogs)}
+                                        >
+                                            {showAllLogs ? (
+                                                <>
+                                                    <ChevronUp className="h-4 w-4" />
+                                                    Show Less
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <ChevronDown className="h-4 w-4" />
+                                                    Show {activityLogs.length - 4} More Sessions
+                                                </>
+                                            )}
+                                        </Button>
                                     </div>
-                                );
-                            })
+                                )}
+                            </>
                         )}
                     </div>
                 </CardContent>

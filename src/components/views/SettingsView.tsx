@@ -454,13 +454,12 @@ export default function SettingsView() {
   const [deleteCode, setDeleteCode] = useState("");
   const [deleteLoading, setDeleteLoading] = useState(false);
 
-<<<<<<< HEAD
   // --- Team Management Logic ---
   const [teamManageDialogOpen, setTeamManageDialogOpen] = useState(false);
   const [selectedTeam, setSelectedTeam] = useState<any>(null);
   const [teamActionLoading, setTeamActionLoading] = useState(false);
   const [renameValue, setRenameValue] = useState("");
-=======
+
   // --- Support Form Logic ---
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportForm, setSupportForm] = useState({
@@ -469,7 +468,6 @@ export default function SettingsView() {
     email: "",
     message: ""
   });
->>>>>>> a8afa7b (updated activitylog)
 
   const handleOpenTeamManage = (team: any) => {
     setSelectedTeam(team);
@@ -484,19 +482,7 @@ export default function SettingsView() {
       const token = await currentUser?.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/leave`, {
         method: 'POST',
-<<<<<<< HEAD
         headers: { Authorization: `Bearer ${token}` }
-=======
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          firstName: supportForm.firstName,
-          lastName: supportForm.lastName,
-          email: supportForm.email,
-          message: supportForm.message
-        })
->>>>>>> a8afa7b (updated activitylog)
       });
       if (res.ok) {
         toast({ title: "Left Team", description: "You have left the team." });
@@ -504,36 +490,8 @@ export default function SettingsView() {
       } else {
         throw new Error("Failed to leave team");
       }
-<<<<<<< HEAD
     } catch (e: any) {
       toast({ title: "Error", description: e.message, variant: "destructive" });
-=======
-
-      if (!res.ok) {
-        // Use the error message from backend if available, otherwise a generic one
-        let errorMessage = data?.message || res.statusText || "Failed to send message";
-
-        // Sanitize technical errors for the user
-        if (errorMessage.includes("Invalid login") || res.status === 500) {
-          console.error("Backend Error:", errorMessage);
-          errorMessage = "Our support system is temporarily unavailable. Please try again later or email us directly.";
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      toast({ title: "Message Sent", description: "We'll get back to you soon!" });
-      setSupportForm({
-        firstName: "",
-        lastName: "",
-        email: "",
-        message: ""
-      });
-
-    } catch (error: any) {
-      console.error("Support Form Error:", error);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
->>>>>>> a8afa7b (updated activitylog)
     } finally {
       setTeamActionLoading(false);
     }
@@ -935,7 +893,6 @@ export default function SettingsView() {
                   <DialogDescription>Update team details or remove members.</DialogDescription>
                 </DialogHeader>
 
-<<<<<<< HEAD
                 {selectedTeam && (
                   <div className="space-y-6 py-4">
                     {/* Rename Section */}
@@ -949,19 +906,6 @@ export default function SettingsView() {
                         <Button onClick={handleUpdateTeamName} disabled={teamActionLoading}>Save</Button>
                       </div>
                     </div>
-=======
-                      <div className="space-y-2">
-                        <Textarea
-                          placeholder="How can we help?"
-                          className="min-h-[100px] resize-none"
-                          maxLength={120}
-                          value={supportForm.message}
-                          onChange={(e) => setSupportForm({ ...supportForm, message: e.target.value })}
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground text-right">{supportForm.message.length}/120</p>
-                      </div>
->>>>>>> a8afa7b (updated activitylog)
 
                     <div className="bg-muted/50 p-4 rounded-lg space-y-2">
                       <Label>Invite Code</Label>
