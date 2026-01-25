@@ -2,8 +2,9 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { motion, AnimatePresence } from "framer-motion";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -25,34 +26,46 @@ const AppContent = () => {
   useActivityTracker(); // Apply activity tracking globally
   useChatNotifications(); // Apply chat notifications globally
   useUserSync(); // Sync user data (names) globally
+  const location = useLocation();
+
   return (
     <>
       <WakeUpService />
-      <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/dashboard/workspace" element={<Dashboard />} />
-        <Route path="/dashboard/projects" element={<Dashboard />} />
-        <Route path="/dashboard/calendar" element={<Dashboard />} />
-        <Route path="/dashboard/design" element={<Dashboard />} />
-        <Route path="/dashboard/tasks" element={<Dashboard />} />
-        <Route path="/dashboard/notes" element={<Dashboard />} />
-        <Route path="/dashboard/files" element={<Dashboard />} />
-        <Route path="/dashboard/activity" element={<Dashboard />} />
-        <Route path="/dashboard/people" element={<Dashboard />} />
-        <Route path="/dashboard/meet" element={<Dashboard />} />
-        <Route path="/dashboard/settings" element={<Dashboard />} />
-        <Route path="/dashboard/chat" element={<Dashboard />} />
-        <Route path="/dashboard/new-project" element={<Dashboard />} />
-        <Route path="/new-project" element={<NewProject />} />
-        <Route path="/projects/:id" element={<ProjectDetails />} />
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={location.pathname}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -10 }}
+          transition={{ duration: 0.2, ease: "easeOut" }}
+        >
+          <Routes location={location}>
+            <Route path="/" element={<Index />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<Signup />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/dashboard/workspace" element={<Dashboard />} />
+            <Route path="/dashboard/projects" element={<Dashboard />} />
+            <Route path="/dashboard/calendar" element={<Dashboard />} />
+            <Route path="/dashboard/design" element={<Dashboard />} />
+            <Route path="/dashboard/tasks" element={<Dashboard />} />
+            <Route path="/dashboard/notes" element={<Dashboard />} />
+            <Route path="/dashboard/files" element={<Dashboard />} />
+            <Route path="/dashboard/activity" element={<Dashboard />} />
+            <Route path="/dashboard/people" element={<Dashboard />} />
+            <Route path="/dashboard/meet" element={<Dashboard />} />
+            <Route path="/dashboard/settings" element={<Dashboard />} />
+            <Route path="/dashboard/chat" element={<Dashboard />} />
+            <Route path="/dashboard/new-project" element={<Dashboard />} />
+            <Route path="/new-project" element={<NewProject />} />
+            <Route path="/projects/:id" element={<ProjectDetails />} />
 
-        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </motion.div>
+      </AnimatePresence>
     </>
   );
 };
