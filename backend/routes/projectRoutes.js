@@ -1007,13 +1007,22 @@ router.get('/:projectId/collaborator-assignees', authMiddleware, async (req, res
       return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
     }
 
+    const requester = await User.findOne({ uid: requesterUid }).select('connections').lean();
+    const connectionsUids = requester?.connections || [];
+    const projectTeamUids = project.team || [];
     const teamUids = await getTeamUidsForUser(requesterUid);
-    const teamUsers = await User.find({ uid: { $in: teamUids } })
+
+    const allAssignableUids = [...new Set([
+      ...teamUids,
+      ...connectionsUids,
+      ...projectTeamUids
+    ])].filter(uid => uid !== requesterUid);
+
+    const assignableUsers = await User.find({ uid: { $in: allAssignableUids } })
       .select('uid displayName email photoURL githubIntegration.username')
       .lean();
 
-    const nonSelfTeamUsers = teamUsers.filter((u) => u.uid !== requesterUid);
-    const connectedTeamUsers = nonSelfTeamUsers.filter((u) => u?.githubIntegration?.username);
+    const connectedTeamUsers = assignableUsers.filter((u) => u?.githubIntegration?.username);
 
     const octokit = await buildInstallationOctokitFromOwner(requesterUid);
     const collaboratorsResponse = await octokit.request('GET /repos/{owner}/{repo}/collaborators', {
@@ -1037,7 +1046,7 @@ router.get('/:projectId/collaborator-assignees', authMiddleware, async (req, res
         githubUsername: u.githubIntegration.username,
       }));
 
-    const availableTeamMembers = nonSelfTeamUsers
+    const availableTeamMembers = assignableUsers
       .filter((u) => {
         const gh = String(u?.githubIntegration?.username || '').toLowerCase();
         return !gh || !collaboratorLogins.has(gh);
@@ -1101,9 +1110,19 @@ router.post('/:projectId/invite-collaborator', authMiddleware, async (req, res) 
       return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
     }
 
+    const requester = await User.findOne({ uid: requesterUid }).select('connections').lean();
+    const connectionsUids = requester?.connections || [];
+    const projectTeamUids = project.team || [];
     const teamUids = await getTeamUidsForUser(requesterUid);
-    if (!teamUids.includes(userId)) {
-      return res.status(400).json({ message: 'Selected user is not in your team' });
+
+    const allAssignableUids = [...new Set([
+      ...teamUids,
+      ...connectionsUids,
+      ...projectTeamUids
+    ])];
+
+    if (!allAssignableUids.includes(userId)) {
+      return res.status(400).json({ message: 'Selected user is not in your team, connections, or project team' });
     }
 
     const assignee = await User.findOne({ uid: userId }).select('uid displayName email photoURL githubIntegration.username').lean();

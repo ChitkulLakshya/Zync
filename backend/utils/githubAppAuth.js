@@ -4,7 +4,8 @@ const axios = require('axios');
 
 const getAppJwt = () => {
     const appId = process.env.GITHUB_APP_ID;
-    const privateKey = process.env.GITHUB_APP_PRIVATE_KEY.replace(/\\n/g, '\n');
+    const rawKey = process.env.GITHUB_PRIVATE_KEY || process.env.GITHUB_APP_PRIVATE_KEY || '';
+    const privateKey = rawKey.replace(/\\n/g, '\n');
 
     const now = Math.floor(Date.now() / 1000);
     const payload = {

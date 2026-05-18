@@ -218,9 +218,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
 
 
     useEffect(() => {
-        const storedWidth = localStorage.getItem('zync-people-sidebar-width');
+        const storedWidth = localStorage.getItem('ZYNC-people-sidebar-width');
         if (storedWidth) { setSidebarWidth(parseInt(storedWidth)); }
-        const storedCollapsed = localStorage.getItem('zync-people-sidebar-collapsed');
+        const storedCollapsed = localStorage.getItem('ZYNC-people-sidebar-collapsed');
         if (storedCollapsed) { setIsCollapsed(storedCollapsed === 'true'); }
     }, []);
 
@@ -288,7 +288,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                     <div
                         className={cn(
                             "h-full flex flex-col bg-transparent text-foreground overflow-hidden",
-                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-xl w-[width]px border-r bg-background" : "w-full"
+                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-xl border-r bg-background" : "w-full"
                         )}
                         style={{ width: isFloating ? sidebarWidth : '100%', transition: 'width 0.2s ease-out' }}
                         onMouseEnter={() => {
@@ -662,9 +662,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             ) : users.length === 0 ? (
                                 <div className="flex flex-col items-center justify-center p-12 border rounded-lg border-dashed bg-muted/10 text-center">
                                     <div className="bg-muted p-4 rounded-full mb-3">
-                                        <div className="bg-muted p-4 rounded-full mb-3">
-                                            <Plus className="h-6 w-6 text-muted-foreground" />
-                                        </div>
+                                        <Plus className="h-6 w-6 text-muted-foreground" />
                                     </div>
                                     <h3 className="text-lg font-semibold">No members yet</h3>
                                     <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">

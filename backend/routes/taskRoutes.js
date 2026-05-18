@@ -9,6 +9,8 @@ const ProjectTask = require('../models/ProjectTask');
 const Session = require('../models/Session');
 const { normalizeDocs } = require('../utils/normalize');
 const cache = require('../utils/cache');
+const { sendZyncEmail } = require('../services/mailer');
+const { getTaskAssignmentEmailHtml } = require('../utils/emailTemplates');
 
 const buildOctokitForInstallation = async (installationId) => {
   const appId = process.env.GITHUB_APP_ID;
@@ -171,6 +173,34 @@ router.post('/assign', verifyToken, async (req, res) => {
     }
 
     const createdTasks = await ProjectTask.insertMany(createdTasksPayload);
+
+    // Send assignment notification emails using centralized email templates.
+    await Promise.all(
+      normalizedAssigneeIds.map(async (uid) => {
+        const assignee = assigneeMap.get(uid);
+        if (!assignee?.email) {
+          return;
+        }
+
+        const subject = `New Task Assigned: ${taskName.trim()}`;
+        const text = `You have been assigned a new task in project "${project.name}".\n\nStep: ${step.title}\nTask: ${taskName.trim()}\nDescription: ${description?.trim() || 'No description'}\nAssigned By: ${requester?.displayName || requester?.email || requesterUid}`;
+        const html = getTaskAssignmentEmailHtml({
+          projectName: project.name || 'Project',
+          lines: [
+            { label: 'Step', value: step.title || 'Backlog' },
+            { label: 'Task', value: taskName.trim() },
+            { label: 'Description', value: description?.trim() || 'No description' },
+            { label: 'Assigned By', value: requester?.displayName || requester?.email || requesterUid },
+          ],
+        });
+
+        try {
+          await sendZyncEmail(assignee.email, subject, html, text);
+        } catch (emailError) {
+          console.error(`Failed to send task assignment email to ${assignee.email}:`, emailError);
+        }
+      })
+    );
 
     const now = new Date();
     const today = now.toISOString().split('T')[0];
