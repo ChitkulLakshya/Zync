@@ -1,0 +1,24 @@
+Act as a Senior React Architect. I am working on "ZYNC," a complex collaboration platform built with React 18, Vite, TypeScript, Tailwind CSS 4, and Shadcn/UI.
+
+I need to implement a "Mobile Install Wall." Specifically: If a user is on a desktop, they can access the web app normally. However, if a user is on a mobile device, they MUST install the app to their home screen (PWA standalone mode) before they are allowed to see the Login page. 
+
+Please implement this step-by-step. Do not write all the code at once; wait for my confirmation after each step.
+
+**STEP 1: Vite PWA Configuration**
+- Provide the exact instructions and code to set up `vite-plugin-pwa` in my `vite.config.ts`.
+- Generate a standard `manifest.json` configuration tailored for a project named "ZYNC" (short_name: "ZYNC", background_color: "#ffffff", theme_color: "#000000").
+- Give me the necessary meta tags to add to my `index.html`.
+
+**STEP 2: The Detection Hook (`useAppInstallStatus.ts`)**
+- Write a custom React hook that detects if the user is on a mobile device (via userAgent) AND if the app is running in browser mode vs. standalone mode.
+- Ensure it properly accounts for both Android (matchMedia `display-mode: standalone`) and iOS (`window.navigator.standalone`).
+
+**STEP 3: The Install Prompt UI (`InstallPromptView.tsx`)**
+- Build a beautiful, modern "Download App" page using Tailwind CSS 4 and Shadcn/UI.
+- It should explain that ZYNC requires installation for the best mobile experience.
+- CRITICAL: Apple does not support automated install prompts. Include conditional UI logic: If the user is on iOS, show them visual instructions to tap the "Share" icon and select "Add to Home Screen". If they are on Android, provide an "Install App" button that triggers the native `beforeinstallprompt` event.
+
+**STEP 4: Auth Routing Logic**
+- Show me how to wrap my existing `Login.tsx` route with the `useAppInstallStatus` hook so that mobile web users are forced to see `InstallPromptView.tsx` instead of the login form.
+
+Start with Step 1 and ask me if I am ready to proceed to Step 2.

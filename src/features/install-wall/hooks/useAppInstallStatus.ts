@@ -7,7 +7,7 @@ declare global {
 }
 
 const MOBILE_UA_REGEX =
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i;
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Windows Phone/i;
 
 export interface AppInstallStatus {
   isMobileDevice: boolean;
@@ -23,8 +23,9 @@ export const useAppInstallStatus = (): AppInstallStatus => {
   const [hasCheckedStatus, setHasCheckedStatus] = useState(false);
 
   const userAgent = navigator.userAgent || "";
-  const isMobileDevice = MOBILE_UA_REGEX.test(userAgent);
-  const isIOS = /iPad|iPhone|iPod/i.test(userAgent);
+  const isiPadOSDesktopUA = /Macintosh/i.test(userAgent) && (navigator.maxTouchPoints || 0) > 1;
+  const isMobileDevice = MOBILE_UA_REGEX.test(userAgent) || isiPadOSDesktopUA;
+  const isIOS = /iPad|iPhone|iPod/i.test(userAgent) || isiPadOSDesktopUA;
   const isAndroid = /Android/i.test(userAgent);
 
   useEffect(() => {
