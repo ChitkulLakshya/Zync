@@ -1,5 +1,6 @@
 # ZYNC — Real-Time Team Collaboration Platform
 
+
 <p align="center">
   <img src="public/zync-dark.webp" alt="ZYNC Logo" width="128" height="128" />
 </p>
