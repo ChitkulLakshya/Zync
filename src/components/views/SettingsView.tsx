@@ -10,8 +10,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUserSync } from "@/hooks/use-user-sync";
+import { useMe } from "@/hooks/useMe";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
+import { Skeleton } from "boneyard-js/react";
+import { DelayedLoaderGate } from "@/loading/DelayedLoaderGate";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Github, AlertTriangle, Check, ChevronsUpDown, Mail, Headphones, MessageSquare, Newspaper, UserMinus, Trash2, Copy, LogOut, Crown, Users } from "lucide-react";
 import { cn, API_BASE_URL, getFullUrl } from "@/lib/utils";
@@ -54,10 +57,14 @@ const countries = [
 ];
 
 export default function SettingsView() {
-  useUserSync();
-  const [userData, setUserData] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
+  const { data: userData, isLoading: isMeLoading } = useMe();
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
+  
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
+  const [isConnectingGithub, setIsConnectingGithub] = useState(false);
+  const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
+  
   const [teamsData, setTeamsData] = useState<any[]>([]);
   const [teamLoading, setTeamLoading] = useState(false);
 
@@ -80,14 +87,7 @@ export default function SettingsView() {
   const isCalendarSynced = userData?.integrations?.google?.connected;
 
 
-  useEffect(() => {
-    if (currentUser?.uid) {
-      fetch(`${API_BASE_URL}/api/users/${currentUser.uid}`)
-        .then(res => res.json())
-        .then(data => setUserData(data))
-        .catch(err => console.error("Failed to fetch user data", err));
-    }
-  }, [currentUser]);
+  const queryClient = useQueryClient();
 
 
   const [profileForm, setProfileForm] = useState({
@@ -120,7 +120,7 @@ export default function SettingsView() {
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
+    setIsSavingProfile(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, {
         method: "PUT",
@@ -137,13 +137,14 @@ export default function SettingsView() {
 
       if (res.ok) {
         toast({ title: "Success", description: "Profile updated successfully" });
+        queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
       } else {
         throw new Error("Failed to update");
       }
     } catch (error) {
       toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
     } finally {
-      setLoading(false);
+      setIsSavingProfile(false);
     }
   };
 
@@ -170,7 +171,7 @@ export default function SettingsView() {
     setCropperOpen(false);
     if (!currentUser?.uid) { return; }
 
-    setLoading(true);
+    setIsUploadingPhoto(true);
     try {
       const token = await currentUser.getIdToken();
       const formData = new FormData();
@@ -197,17 +198,18 @@ export default function SettingsView() {
       }
 
       toast({ title: "Success", description: "Profile photo updated" });
+      queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
       console.error("Upload error:", error);
       toast({ title: "Error", description: (error as Error).message || "Failed to upload photo", variant: "destructive" });
     } finally {
-      setLoading(false);
+      setIsUploadingPhoto(false);
     }
-  }, [currentUser]);
+  }, [currentUser, queryClient]);
 
 
   const handleGithubConnect = async () => {
-    setLoading(true);
+    setIsConnectingGithub(true);
     try {
       const provider = new GithubAuthProvider();
       provider.addScope('repo');
@@ -219,7 +221,6 @@ export default function SettingsView() {
       let githubUsername: string | undefined;
 
       try {
-
         const result = await linkWithPopup(auth.currentUser, provider);
         const credential = GithubAuthProvider.credentialFromResult(result);
         accessToken = credential?.accessToken;
@@ -229,8 +230,6 @@ export default function SettingsView() {
 
       } catch (linkError: any) {
         console.warn("Firebase Link Warning:", linkError.code);
-
-
         if (linkError.code === 'auth/credential-already-in-use') {
           const credential = GithubAuthProvider.credentialFromError(linkError);
           accessToken = credential?.accessToken;
@@ -240,7 +239,6 @@ export default function SettingsView() {
       }
 
       if (!accessToken) { throw new Error("No Access Token retrieved from GitHub."); }
-
 
       if (!githubUsername) {
         try {
@@ -255,7 +253,6 @@ export default function SettingsView() {
           console.warn("Could not fetch username fallback", e);
         }
       }
-
 
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/github/connect`, {
@@ -277,13 +274,7 @@ export default function SettingsView() {
 
       const data = await response.json();
       toast({ title: "Connected!", description: `Linked GitHub account: ${data.username}` });
-
-
-      setUserData((prev: any) => ({
-        ...prev,
-        githubIntegration: { ...prev?.githubIntegration, connected: true, username: data.username }
-      }));
-
+      queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
       console.error(error);
       toast({
@@ -292,13 +283,13 @@ export default function SettingsView() {
         description: error.message
       });
     } finally {
-      setLoading(false);
+      setIsConnectingGithub(false);
     }
   };
 
   const handleGithubDisconnect = async () => {
     if (!window.confirm("Are you sure you want to unlink your GitHub account?")) { return; }
-    setLoading(true);
+    setIsConnectingGithub(true);
     try {
       const idToken = await auth.currentUser?.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/github/disconnect`, {
@@ -312,20 +303,17 @@ export default function SettingsView() {
       if (!res.ok) { throw new Error("Failed to disconnect"); }
 
       toast({ title: "Disconnected", description: "GitHub account unlinked." });
-      setUserData((prev: any) => ({
-        ...prev,
-        githubIntegration: { ...prev?.githubIntegration, connected: false, username: null }
-      }));
+      queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } finally {
-      setLoading(false);
+      setIsConnectingGithub(false);
     }
   };
 
 
   const handleGoogleConnect = async () => {
-    setLoading(true);
+    setIsConnectingGoogle(true);
     try {
       const provider = new GoogleAuthProvider();
       provider.addScope('https://www.googleapis.com/auth/calendar');
@@ -337,7 +325,6 @@ export default function SettingsView() {
       let googleEmail: string | undefined;
 
       try {
-
         const result = await linkWithPopup(auth.currentUser, provider);
         const credential = GoogleAuthProvider.credentialFromResult(result);
         accessToken = credential?.accessToken;
@@ -347,11 +334,9 @@ export default function SettingsView() {
 
       } catch (linkError: any) {
         if (linkError.code === 'auth/credential-already-in-use') {
-
           const credential = GoogleAuthProvider.credentialFromError(linkError);
           accessToken = credential?.accessToken;
         } else if (linkError.code === 'auth/provider-already-linked') {
-
           const reauthResult = await reauthenticateWithPopup(auth.currentUser, provider);
           const credential = GoogleAuthProvider.credentialFromResult(reauthResult);
           accessToken = credential?.accessToken;
@@ -361,7 +346,6 @@ export default function SettingsView() {
       }
 
       if (!accessToken) { throw new Error("No Access Token retrieved."); }
-
 
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/google/connect`, {
@@ -380,27 +364,18 @@ export default function SettingsView() {
 
       const data = await response.json();
       toast({ title: "Connected!", description: `Linked Google Calendar: ${data.email}` });
-
-
-      setUserData((prev: any) => ({
-        ...prev,
-        integrations: {
-          ...prev?.integrations,
-          google: { ...prev?.integrations?.google, connected: true, email: data.email }
-        }
-      }));
-
+      queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
       console.error(error);
       toast({ variant: "destructive", title: "Connection Failed", description: error.message });
     } finally {
-      setLoading(false);
+      setIsConnectingGoogle(false);
     }
   };
 
   const handleGoogleDisconnect = async () => {
     if (!window.confirm("Disconnect Google Calendar?")) { return; }
-    setLoading(true);
+    setIsConnectingGoogle(true);
     try {
       const idToken = await auth.currentUser?.getIdToken();
       await fetch(`${API_BASE_URL}/api/google/disconnect`, {
@@ -408,21 +383,40 @@ export default function SettingsView() {
         headers: { 'Authorization': `Bearer ${idToken}` }
       });
 
-      setUserData((prev: any) => ({
-        ...prev,
-        integrations: {
-          ...prev?.integrations,
-          google: { ...prev?.integrations?.google, connected: false, email: null }
-        }
-      }));
       toast({ title: "Disconnected", description: "Google account unlinked." });
+      queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (err: any) {
       toast({ title: "Error", variant: "destructive", description: err.message });
     } finally {
-      setLoading(false);
+      setIsConnectingGoogle(false);
     }
   };
 
+
+  if (isMeLoading) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <DelayedLoaderGate active={true}>
+          <div className="max-w-4xl mx-auto space-y-6">
+            <div className="flex items-center gap-4 mb-8">
+              <Skeleton name="settings-header-title" className="h-10 w-48 rounded-md" />
+            </div>
+            <Skeleton name="settings-tabs" className="h-10 w-full rounded-md" />
+            <Card>
+              <CardHeader>
+                <Skeleton name="settings-card-header" className="h-8 w-32 rounded-md" />
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Skeleton name="settings-input-1" className="h-10 w-full rounded-md" />
+                <Skeleton name="settings-input-2" className="h-10 w-full rounded-md" />
+                <Skeleton name="settings-input-3" className="h-10 w-full rounded-md" />
+              </CardContent>
+            </Card>
+          </div>
+        </DelayedLoaderGate>
+      </div>
+    );
+  }
 
   const [deleteStep, setDeleteStep] = useState<'initial' | 'verifying'>('initial');
   const [deleteCode, setDeleteCode] = useState("");
@@ -675,7 +669,9 @@ export default function SettingsView() {
                   </div>
 
                   <div className="flex justify-end pt-4">
-                    <Button type="submit" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
+                    <Button type="submit" disabled={isSavingProfile}>
+                      {isSavingProfile ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
                 </form>
               </CardContent>
@@ -716,11 +712,18 @@ export default function SettingsView() {
                       </p>
                     </div>
                   </div>
-                  <Button
-                    variant={userData?.githubIntegration?.connected ? "destructive" : "secondary"}
-                    onClick={userData?.githubIntegration?.connected ? handleGithubDisconnect : handleGithubConnect}
+                  <Button 
+                    variant={isGitHubLinked ? "outline" : "default"}
+                    disabled={isConnectingGithub}
+                    onClick={isGitHubLinked ? handleGithubDisconnect : handleGithubConnect}
                   >
-                    {userData?.githubIntegration?.connected ? "Unlink" : "Connect"}
+                    {isConnectingGithub ? (
+                      "Connecting..."
+                    ) : isGitHubLinked ? (
+                      "Disconnect"
+                    ) : (
+                      "Connect GitHub"
+                    )}
                   </Button>
                 </div>
 
@@ -859,7 +862,7 @@ export default function SettingsView() {
                       </div>
                       <h4 className="font-semibold">Media Inquiries</h4>
                       <p className="text-sm text-muted-foreground">
-                        For media-related questions or press inquiries, please contact us at media@zync.io.
+                        For media-related questions or press inquiries, please contact us at consolemaster.app@gmail.com.
                       </p>
                     </div>
                   </CardContent>

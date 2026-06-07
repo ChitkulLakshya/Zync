@@ -90,6 +90,7 @@ import {
 } from "react-resizable-panels";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { useSectionTransitionLoader } from "@/loading/useSectionTransitionLoader";
 
 import { useMe } from "@/hooks/useMe";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
@@ -109,6 +110,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     if (isPreview) { return "My Workspace"; }
     return localStorage.getItem("ZYNC-active-section") || "Dashboard";
   });
+  const {
+    beginTransition,
+    showCompactSpinner,
+    showSectionSkeleton,
+  } = useSectionTransitionLoader("desktop");
 
   const sidebarRef = useRef<ImperativePanelHandle>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -164,8 +170,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   useEffect(() => {
     const handleOpenChat = (e: Event) => {
       const customEvent = e as CustomEvent;
+
+      if (activeSection !== "Chat") {
+        beginTransition(`${activeSection}->Chat`);
+      }
+
+      setIsLanding(false);
+      localStorage.setItem("ZYNC_HAS_SEEN_LANDING", "true");
       setActiveSection("Chat");
-      navigate('/dashboard/chat');
+
+      if (location.pathname !== "/dashboard/chat") {
+        navigate('/dashboard/chat');
+      }
+
       if (customEvent.detail) {
         setSelectedChatUser(customEvent.detail);
       }
@@ -173,7 +190,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
     window.addEventListener("ZYNC-open-chat", handleOpenChat);
     return () => window.removeEventListener("ZYNC-open-chat", handleOpenChat);
-  }, [navigate]);
+  }, [activeSection, beginTransition, location.pathname, navigate]);
 
 
   const pathToSection: Record<string, string> = {
@@ -227,6 +244,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
 
   const handleSectionChange = (section: string) => {
+    if (section !== activeSection) {
+      beginTransition(`${activeSection}->${section}`);
+    }
+
     setIsLanding(false);
     localStorage.setItem("ZYNC_HAS_SEEN_LANDING", "true");
     setActiveSection(section);
@@ -426,7 +447,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { 'Authorization': `Bearer ${token}` } })
         ]);
 
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
 
         if (sessionsRes.ok) {
           const logsData = await sessionsRes.json();
@@ -477,7 +500,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         }
 
       } catch (error) {
-        if (!cancelled) console.error("Initial analytics fetch failed:", error);
+        if (!cancelled) {
+          console.error("Initial analytics fetch failed:", error);
+        }
       }
     };
 
@@ -649,10 +674,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
 
   const mockUsers = [
-    { _id: 1, displayName: "Oliver Campbell", email: "oliver@zync.io", status: "online", avatar: "OC" },
-    { _id: 2, displayName: "Sarah Chen", email: "sarah@zync.io", status: "online", avatar: "SC" },
-    { _id: 3, displayName: "Mike Wilson", email: "mike@zync.io", status: "offline", avatar: "MW" },
-    { _id: 4, displayName: "Emily Davis", email: "emily@zync.io", status: "away", avatar: "ED" },
+    { _id: 1, displayName: "Oliver Campbell", email: "oliver@zync-meet.vercel.app", status: "online", avatar: "OC" },
+    { _id: 2, displayName: "Sarah Chen", email: "sarah@zync-meet.vercel.app", status: "online", avatar: "SC" },
+    { _id: 3, displayName: "Mike Wilson", email: "mike@zync-meet.vercel.app", status: "offline", avatar: "MW" },
+    { _id: 4, displayName: "Emily Davis", email: "emily@zync-meet.vercel.app", status: "away", avatar: "ED" },
   ];
 
   const displayUsers = isPreview
@@ -946,7 +971,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-xl font-bold text-white tracking-tight">{activeSection}</h2>
+                  <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                    <span>{activeSection}</span>
+                    {showCompactSpinner && (
+                      <RefreshCw className="w-4 h-4 animate-spin text-zinc-400" aria-label="Switching section" />
+                    )}
+                  </h2>
                 </div>
                 <div className="flex items-center gap-4">
                   {/* Header Actions */}
@@ -986,6 +1016,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 className="flex-1 overflow-y-auto relative z-10 w-full bg-transparent hover:overflow-y-overlay custom-scrollbar"
               >
                 {(isExiting || !isLanding) && renderActiveView()}
+                {showSectionSkeleton && (
+                  <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px] p-6 md:p-8 pointer-events-none">
+                    <div className="space-y-4 animate-pulse">
+                      <div className="h-8 w-64 rounded-md bg-zinc-800/90" />
+                      <div className="h-24 w-full rounded-xl bg-zinc-800/80" />
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div className="h-36 rounded-xl bg-zinc-800/80" />
+                        <div className="h-36 rounded-xl bg-zinc-800/80" />
+                        <div className="h-36 rounded-xl bg-zinc-800/80" />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

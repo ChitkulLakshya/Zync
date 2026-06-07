@@ -208,10 +208,10 @@ const Privacy = () => {
                 If you have questions about this Privacy Policy or our data
                 practices, please contact us at{" "}
                 <a
-                  href="mailto:lakshya@zync.io"
+                  href="mailto:consolemaster.app@gmail.com"
                   className="text-primary hover:underline"
                 >
-                  lakshya@zync.io
+                  consolemaster.app@gmail.com
                 </a>
                 .
               </p>

@@ -150,10 +150,10 @@ const Terms = () => {
               <p>
                 For questions about these Terms of Service, please contact us at{" "}
                 <a
-                  href="mailto:lakshya@zync.io"
+                  href="mailto:consolemaster.app@gmail.com"
                   className="text-primary hover:underline"
                 >
-                  lakshya@zync.io
+                  consolemaster.app@gmail.com
                 </a>
                 .
               </p>
