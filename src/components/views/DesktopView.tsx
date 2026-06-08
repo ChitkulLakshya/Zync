@@ -966,8 +966,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
         {/* Main Content Panel - The "Card" Look */}
         <Panel defaultSize={84} className="min-h-0 bg-transparent">
-          <div className="h-full w-full p-0 bg-transparent -ml-2">
-            <div className="h-full w-full bg-transparent rounded-[32px] overflow-hidden relative border-none shadow-none flex flex-col">
+          <div className="h-full w-full p-3 pl-1 bg-transparent">
+            <div className="h-full w-full bg-zinc-900/10 dark:bg-zinc-950/40 border border-black/10 dark:border-white/5 rounded-[24px] overflow-hidden relative shadow-2xl flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
