@@ -168,7 +168,7 @@ const CalendarView = () => {
 
 async function loadProjectEvents(): Promise<CalendarEvent[]> {
     const user = auth.currentUser;
-    if (!user) return [];
+    if (!user) {return [];}
 
     try {
         const projects = await fetchProjects();

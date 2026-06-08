@@ -81,6 +81,14 @@ export default function SettingsView() {
   const [cropperOpen, setCropperOpen] = useState(false);
   const [cropperImage, setCropperImage] = useState<string>("");
 
+  const [deleteStep, setDeleteStep] = useState<'initial' | 'verifying'>('initial');
+  const [deleteCode, setDeleteCode] = useState("");
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [supportLoading, setSupportLoading] = useState(false);
+  const [supportForm, setSupportForm] = useState({
+    message: ""
+  });
+
 
   const googleProvider = currentUser?.providerData?.find((p: any) => p.providerId === 'google.com');
   const isGoogleLinked = !!googleProvider;
@@ -417,16 +425,6 @@ export default function SettingsView() {
       </div>
     );
   }
-
-  const [deleteStep, setDeleteStep] = useState<'initial' | 'verifying'>('initial');
-  const [deleteCode, setDeleteCode] = useState("");
-  const [deleteLoading, setDeleteLoading] = useState(false);
-
-
-  const [supportLoading, setSupportLoading] = useState(false);
-  const [supportForm, setSupportForm] = useState({
-    message: ""
-  });
 
   const handleSupportSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1136,7 +1134,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
   };
 
   const handleTransferOwnership = async (teamId: string, newOwnerId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {return;}
     const team = teamsData.find((t: any) => t.id === teamId);
     const member = team?.memberDetails?.find((m: any) => m.uid === newOwnerId);
     
@@ -1182,7 +1180,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
   };
 
   const handleRenameTeam = async (teamId: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {return;}
     const currentName = selectedTeam?.name?.trim() || "";
     const typedName = teamNameDraft.trim();
     const nextName = typedName || currentName;

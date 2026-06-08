@@ -1,11 +1,11 @@
 import { useState, useCallback, useRef } from "react";
 
-export function useSectionTransitionLoader(scope: string = "default") {
+export function useSectionTransitionLoader(_scope: string = "default") {
   const [showCompactSpinner, setShowCompactSpinner] = useState(false);
   const [showSectionSkeleton, setShowSectionSkeleton] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const beginTransition = useCallback((transition: string) => {
+  const beginTransition = useCallback((_transition: string) => {
     // Clear any existing transition timeout
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);

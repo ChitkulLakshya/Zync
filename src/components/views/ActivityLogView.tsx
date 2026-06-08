@@ -96,8 +96,8 @@ function normStatus(s: unknown): string {
 }
 
 function normalizeUid(value: any): string {
-    if (!value) return '';
-    if (typeof value === 'string') return value;
+    if (!value) {return '';}
+    if (typeof value === 'string') {return value;}
     if (typeof value === 'object') {
         return String(value.uid || value.id || value._id || '');
     }
@@ -124,7 +124,7 @@ function isCompletedTask(t: any): boolean {
 }
 
 function isInProgressTask(t: any): boolean {
-    if (isCompletedTask(t)) return false;
+    if (isCompletedTask(t)) {return false;}
     const s = normStatus(t?.status);
     const hasCommitEvidence = Boolean(
         t?.commitUrl ||
@@ -134,7 +134,7 @@ function isInProgressTask(t: any): boolean {
     );
 
     // Only count tasks that have a real commit attached.
-    if (!hasCommitEvidence) return false;
+    if (!hasCommitEvidence) {return false;}
 
     return s.includes('progress') || s === 'active' || s === 'in review';
 }
@@ -231,7 +231,7 @@ export default function ActivityLogView({
     const normalizedCurrentUserId = useMemo(() => normalizeUid(currentUserId), [currentUserId]);
 
     useEffect(() => {
-        if (!normalizedCurrentUserId) return;
+        if (!normalizedCurrentUserId) {return;}
         // Keep Firestore teams aligned with backend source of truth to avoid owner/member mismatch.
         syncTeamsFromApi([...(Array.isArray(ownedTeams) ? ownedTeams : []), ...(Array.isArray(myTeamsFromApi) ? myTeamsFromApi : [])], normalizedCurrentUserId);
     }, [syncTeamsFromApi, normalizedCurrentUserId, ownedTeams, myTeamsFromApi]);
@@ -240,7 +240,7 @@ export default function ActivityLogView({
         const map = new Map<string, any>();
         (Array.isArray(ownedTeams) ? ownedTeams : []).forEach((t: any) => {
             const id = t?.id || t?._id || t?.teamId;
-            if (!id) return;
+            if (!id) {return;}
             const prev = map.get(id) || {};
             map.set(id, {
                 ...prev,
@@ -256,7 +256,7 @@ export default function ActivityLogView({
         const map = new Map<string, any>();
         [...(Array.isArray(myTeamsFromApi) ? myTeamsFromApi : []), ...(Array.isArray(myTeamsFromHook) ? myTeamsFromHook : [])].forEach((t: any) => {
             const id = t?.id || t?._id;
-            if (!id) return;
+            if (!id) {return;}
             const prev = map.get(id) || {};
             map.set(id, { ...prev, ...t, id });
         });
@@ -269,7 +269,7 @@ export default function ActivityLogView({
 
         mergedOwnedTeams.forEach((t: any) => {
             const id = t?.id || t?._id;
-            if (!id) return;
+            if (!id) {return;}
             const prev = map.get(id) || {};
             map.set(id, {
                 ...prev,
@@ -284,7 +284,7 @@ export default function ActivityLogView({
 
         mergedMyTeams.forEach((t: any) => {
             const id = t?.id || t?._id;
-            if (!id) return;
+            if (!id) {return;}
             const prev = map.get(id) || {};
             map.set(id, {
                 ...prev,
@@ -324,7 +324,7 @@ export default function ActivityLogView({
         () =>
             allTeams.filter((t: any) => {
                 const id = t?.id || t?._id;
-                if (id && ownedTeamIdSet.has(id)) return true;
+                if (id && ownedTeamIdSet.has(id)) {return true;}
                 const owner = extractOwnerUid(t);
                 return Boolean(normalizedCurrentUserId) && owner === normalizedCurrentUserId;
             }),
@@ -346,7 +346,7 @@ export default function ActivityLogView({
                     name: t?.name || 'My Team',
                 }))
                 .filter((t: any) => {
-                    if (!t.id || !normalizedCurrentUserId) return false;
+                    if (!t.id || !normalizedCurrentUserId) {return false;}
                     const owner = extractOwnerUid(t);
                     return Boolean(owner) && owner === normalizedCurrentUserId;
                 });
@@ -379,7 +379,7 @@ export default function ActivityLogView({
         const map = new Map<string, any>();
         teamFilterOptions.forEach((t: any) => {
             const id = String(t?.id || t?._id || t?.teamId || '');
-            if (!id) return;
+            if (!id) {return;}
             map.set(id, {
                 ...t,
                 id,
@@ -408,9 +408,9 @@ export default function ActivityLogView({
     }, [selectedTeamId, selectedUserId, currentUserId]);
 
     useEffect(() => {
-        if (selectedTeamId === 'all') return;
+        if (selectedTeamId === 'all') {return;}
         // Keep current selection during transient reload/rate-limit gaps.
-        if (normalizedTeamFilterOptions.length === 0) return;
+        if (normalizedTeamFilterOptions.length === 0) {return;}
         if (!normalizedTeamFilterOptions.some((t: any) => t.id === selectedTeamId)) {
             setSelectedTeamId('all');
             setSelectedUserId(currentUserId || 'all');
@@ -421,7 +421,7 @@ export default function ActivityLogView({
     const { stats: persistedStats, saveStats } = useTaskPersistence(selectedUserId === 'all' ? undefined : selectedUserId);
 
     const activeUser = useMemo(() => {
-        if (selectedUserId === 'all') return null;
+        if (selectedUserId === 'all') {return null;}
         const found = users.find(u => u.uid === selectedUserId);
         if (found) {
             if (selectedUserId === currentUserId) {
@@ -446,8 +446,8 @@ export default function ActivityLogView({
         // Secondary fallback: resolve from selected team's embedded member objects.
         const selectedTeam = allTeams.find((t: any) => t.id === selectedTeamId);
         const rawMember = (selectedTeam?.members || []).find((m: any) => {
-            if (!m) return false;
-            if (typeof m === 'string') return m === selectedUserId;
+            if (!m) {return false;}
+            if (typeof m === 'string') {return m === selectedUserId;}
             const candidateId = m.uid || m.userId || m.id || m._id;
             return candidateId === selectedUserId;
         });
@@ -463,17 +463,17 @@ export default function ActivityLogView({
     }, [selectedUserId, users, currentUserId, currentUserDisplayName, currentUserEmail, currentUserPhotoURL, allTeams, selectedTeamId]);
 
     const selectedTeamMemberOptions = useMemo(() => {
-        if (selectedTeamId === 'all') return [];
+        if (selectedTeamId === 'all') {return [];}
         const team = allTeams.find((t: any) => t.id === selectedTeamId);
-        if (!team) return [];
+        if (!team) {return [];}
 
         const teamUids = new Set<string>();
         (team.members || []).forEach((member: any) => {
             const uid = typeof member === 'string' ? member : member?.uid || member?.userId || member?.id || member?._id;
-            if (uid) teamUids.add(uid);
+            if (uid) {teamUids.add(uid);}
         });
         [team.ownerId, team.ownerUid, team.leaderId].forEach((uid: string) => {
-            if (uid) teamUids.add(uid);
+            if (uid) {teamUids.add(uid);}
         });
 
         // Prefer enriched user profiles when available.
@@ -493,9 +493,9 @@ export default function ActivityLogView({
 
         // Include embedded member objects (when API sends rich member entries on team payload).
         (team.members || []).forEach((member: any) => {
-            if (!member || typeof member === 'string') return;
+            if (!member || typeof member === 'string') {return;}
             const uid = member.uid || member.userId || member.id || member._id;
-            if (!uid || map.has(uid)) return;
+            if (!uid || map.has(uid)) {return;}
             map.set(uid, {
                 uid,
                 label: member.displayName || member.name || member.email?.split('@')[0] || uid,
@@ -541,7 +541,7 @@ export default function ActivityLogView({
     }, []);
 
     const taskList = useMemo(() => {
-        let baseTasks = tasks ?? [];
+        const baseTasks = tasks ?? [];
         
         return baseTasks.filter((task: any) => {
             const hasRepoLink = Boolean(
@@ -551,7 +551,7 @@ export default function ActivityLogView({
                 (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
             );
             const hasCommitCode = Boolean(task?.commitCode);
-            if (!hasRepoLink || !hasCommitCode) return false;
+            if (!hasRepoLink || !hasCommitCode) {return false;}
 
             // Always honor explicit user selection first (including default self view)
             if (selectedUserId !== 'all') {
@@ -740,7 +740,7 @@ export default function ActivityLogView({
         const out: FeedItem[] = [];
 
         activityLogs.forEach((log, logIndex) => {
-            if (selectedUserId !== 'all' && log.userId !== selectedUserId) return;
+            if (selectedUserId !== 'all' && log.userId !== selectedUserId) {return;}
             
             const start = new Date(log.startTime);
             const end = new Date(log.endTime);
@@ -800,10 +800,10 @@ export default function ActivityLogView({
         // If leader, add team sessions to the feed
         if (isLeader && Array.isArray(teamSessions)) {
             teamSessions.forEach((session, idx) => {
-                if (selectedUserId !== 'all' && session.userId !== selectedUserId) return;
+                if (selectedUserId !== 'all' && session.userId !== selectedUserId) {return;}
                 
                 // Skip if session is already in activityLogs (though unlikely to overlap perfectly)
-                if (activityLogs.some(al => al.startTime === session.startTime && al.userId === session.userId)) return;
+                if (activityLogs.some(al => al.startTime === session.startTime && al.userId === session.userId)) {return;}
                 
                 const start = new Date(session.startTime);
                 const end = new Date(session.endTime);
@@ -1361,7 +1361,7 @@ export default function ActivityLogView({
                                 >
                                     <c.icon className="h-5 w-5" style={{ color: T.blue }} />
                                 </div>
-                                {c.delta != null && (
+                                {c.delta !== null && c.delta !== undefined && (
                                     <span
                                         className="inline-flex items-center gap-0.5 rounded-full px-2 py-0.5 font-mono text-[11px] font-medium"
                                         style={{

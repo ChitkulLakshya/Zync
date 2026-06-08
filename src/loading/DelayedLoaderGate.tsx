@@ -26,8 +26,8 @@ export function DelayedLoaderGate({
     return () => clearTimeout(timer);
   }, [active, delay]);
 
-  if (!active) return null;
-  if (!shouldRender) return null;
+  if (!active) {return null;}
+  if (!shouldRender) {return null;}
 
   return <>{children}</>;
 }
