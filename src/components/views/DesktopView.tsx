@@ -837,7 +837,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
     <div className="h-screen w-full relative text-foreground overflow-hidden font-sans">
       {/* Full-viewport canvas — main column is transparent so this is visible (not body bg-black). */}
-      <div className="pointer-events-none fixed inset-0 z-0 dashboard-backdrop" aria-hidden />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-background" aria-hidden />
 
       {/* Full Screen Landing Page Overlay */}
       {isLanding && (
@@ -869,7 +869,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "relative bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-none after:content-[''] after:absolute after:top-0 after:-right-1 after:h-full after:w-2 after:bg-black after:pointer-events-none after:z-[90]",
+            "relative bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-none",
             isCollapsed && "min-w-[70px]",
             // Animation logic: Hidden during landing, slides in when landing finishes
             isLanding ? "opacity-0 invisible" : ""
@@ -949,7 +949,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     localStorage.removeItem("ZYNC-active-section");
                     localStorage.removeItem("ZYNC_HAS_SEEN_LANDING"); // Reset landing page state
                     await signOutAndClearState(auth);
-                    navigate("/login");
+                    navigate("/");
                   }} className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer py-2">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
@@ -958,16 +958,14 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </DropdownMenu>
             </div>
           </div>
-          {/* Hard mask to remove sidebar/content seam */}
-          <div className="absolute top-0 right-0 h-full w-[2px] bg-black pointer-events-none z-[80]" />
         </Panel>
 
       <PanelResizeHandle className="w-px bg-transparent opacity-0" />
 
         {/* Main Content Panel - The "Card" Look */}
         <Panel defaultSize={84} className="min-h-0 bg-transparent">
-          <div className="h-full w-full p-0 bg-transparent -ml-2">
-            <div className="h-full w-full bg-transparent rounded-r-[32px] rounded-l-none overflow-hidden relative border-none shadow-none flex flex-col">
+          <div className="h-full w-full p-0 bg-transparent">
+            <div className="h-full w-full dashboard-backdrop rounded-[32px] overflow-hidden relative border-none shadow-none flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">

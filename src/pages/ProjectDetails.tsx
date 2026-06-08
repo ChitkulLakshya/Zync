@@ -15,7 +15,7 @@ import { auth } from "@/lib/firebase";
 import { sendMessage as socketSendMessage } from "@/services/chatSocketService";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
 import KanbanBoard from "@/components/workspace/KanbanBoard";
-import { ActivityGraph } from "@/components/views/activity/ActivityGraph";
+import { ActivityGraph } from "@/components/views/ActivityGraph";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';

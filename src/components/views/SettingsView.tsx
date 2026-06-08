@@ -40,7 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTheme } from "next-themes";
-import { useQueryClient } from "@tanstack/react-query";
 
 
 const countries = [
@@ -96,6 +95,11 @@ export default function SettingsView() {
 
 
   const queryClient = useQueryClient();
+  const isGitHubLinked = !!userData?.githubIntegration?.connected;
+
+  const setUserData = useCallback((updater: any) => {
+    queryClient.setQueryData(['me', currentUser?.uid], updater);
+  }, [queryClient, currentUser?.uid]);
 
 
   const [profileForm, setProfileForm] = useState({
@@ -407,17 +411,29 @@ export default function SettingsView() {
         <DelayedLoaderGate active={true}>
           <div className="max-w-4xl mx-auto space-y-6">
             <div className="flex items-center gap-4 mb-8">
-              <Skeleton name="settings-header-title" className="h-10 w-48 rounded-md" />
+              <Skeleton name="settings-header-title" loading={true}>
+                <div className="h-10 w-48 rounded-md bg-zinc-800/80" />
+              </Skeleton>
             </div>
-            <Skeleton name="settings-tabs" className="h-10 w-full rounded-md" />
+            <Skeleton name="settings-tabs" loading={true}>
+              <div className="h-10 w-full rounded-md bg-zinc-800/80" />
+            </Skeleton>
             <Card>
               <CardHeader>
-                <Skeleton name="settings-card-header" className="h-8 w-32 rounded-md" />
+                <Skeleton name="settings-card-header" loading={true}>
+                  <div className="h-8 w-32 rounded-md bg-zinc-800/80" />
+                </Skeleton>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Skeleton name="settings-input-1" className="h-10 w-full rounded-md" />
-                <Skeleton name="settings-input-2" className="h-10 w-full rounded-md" />
-                <Skeleton name="settings-input-3" className="h-10 w-full rounded-md" />
+                <Skeleton name="settings-input-1" loading={true}>
+                  <div className="h-10 w-full rounded-md bg-zinc-800/80" />
+                </Skeleton>
+                <Skeleton name="settings-input-2" loading={true}>
+                  <div className="h-10 w-full rounded-md bg-zinc-800/80" />
+                </Skeleton>
+                <Skeleton name="settings-input-3" loading={true}>
+                  <div className="h-10 w-full rounded-md bg-zinc-800/80" />
+                </Skeleton>
               </CardContent>
             </Card>
           </div>
@@ -743,7 +759,7 @@ export default function SettingsView() {
                   <Button
                     variant={isCalendarSynced ? "destructive" : "secondary"}
                     onClick={isCalendarSynced ? handleGoogleDisconnect : handleGoogleConnect}
-                    disabled={loading}
+                    disabled={isConnectingGoogle}
                   >
                     {isCalendarSynced ? "Disconnect" : (isGoogleLinked ? "Enable Sync" : "Connect")}
                   </Button>
