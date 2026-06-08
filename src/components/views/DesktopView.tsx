@@ -869,7 +869,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "relative bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-none after:content-[''] after:absolute after:top-0 after:-right-1 after:h-full after:w-2 after:bg-black after:pointer-events-none after:z-[90]",
+            "relative bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-none",
             isCollapsed && "min-w-[70px]",
             // Animation logic: Hidden during landing, slides in when landing finishes
             isLanding ? "opacity-0 invisible" : ""
@@ -958,15 +958,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </DropdownMenu>
             </div>
           </div>
-          {/* Hard mask to remove sidebar/content seam */}
-          <div className="absolute top-0 right-0 h-full w-[2px] bg-black pointer-events-none z-[80]" />
         </Panel>
 
       <PanelResizeHandle className="w-px bg-transparent opacity-0" />
 
         {/* Main Content Panel - The "Card" Look */}
         <Panel defaultSize={84} className="min-h-0 bg-transparent">
-          <div className="h-full w-full p-0 bg-transparent -ml-2">
+          <div className="h-full w-full p-0 bg-transparent">
             <div className="h-full w-full dashboard-backdrop rounded-[32px] overflow-hidden relative border-none shadow-none flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
