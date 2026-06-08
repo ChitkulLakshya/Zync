@@ -40,7 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useTheme } from "next-themes";
-import { useQueryClient } from "@tanstack/react-query";
 
 
 const countries = [
