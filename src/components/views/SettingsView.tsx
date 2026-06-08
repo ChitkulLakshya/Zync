@@ -409,7 +409,7 @@ export default function SettingsView() {
     return (
       <div className="min-h-screen bg-background p-6">
         <DelayedLoaderGate active={true}>
-          <div className="max-w-4xl mx-auto space-y-6">
+          <div className="w-full space-y-6">
             <div className="flex items-center gap-4 mb-8">
               <Skeleton name="settings-header-title" loading={true}>
                 <div className="h-10 w-48 rounded-md bg-zinc-800/80" />
@@ -559,7 +559,7 @@ export default function SettingsView() {
 
   return (
     <div className="flex-1 h-full overflow-hidden bg-transparent">
-      <div className="max-w-4xl mx-auto h-full flex flex-col px-3 sm:px-6">
+      <div className="w-full h-full flex flex-col px-3 sm:px-6">
         <Tabs defaultValue="profile" className="flex flex-col h-full space-y-6">
           <div className="w-full overflow-x-auto pt-3 sm:pt-6 pb-1 scrollbar-thin shrink-0">
             <TabsList className="bg-black border border-white/10 inline-flex w-max min-w-full sm:min-w-0 whitespace-nowrap">
