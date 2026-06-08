@@ -837,7 +837,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
     <div className="h-screen w-full relative text-foreground overflow-hidden font-sans">
       {/* Full-viewport canvas — main column is transparent so this is visible (not body bg-black). */}
-      <div className="pointer-events-none fixed inset-0 z-0 dashboard-backdrop" aria-hidden />
+      <div className="pointer-events-none fixed inset-0 z-0 bg-background" aria-hidden />
 
       {/* Full Screen Landing Page Overlay */}
       {isLanding && (
@@ -966,8 +966,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
         {/* Main Content Panel - The "Card" Look */}
         <Panel defaultSize={84} className="min-h-0 bg-transparent">
-          <div className="h-full w-full p-3 pl-1 bg-transparent">
-            <div className="h-full w-full bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-900/80 rounded-[24px] overflow-hidden relative shadow-2xl flex flex-col">
+          <div className="h-full w-full p-0 bg-transparent -ml-2">
+            <div className="h-full w-full dashboard-backdrop rounded-[32px] overflow-hidden relative border-none shadow-none flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
