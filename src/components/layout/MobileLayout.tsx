@@ -1,9 +1,10 @@
 import React from 'react';
-import { Menu, Search, Plus, Home, Video, CheckSquare, Bell, Settings } from 'lucide-react';
+import { Menu, Search, Plus, Home, Users, Calendar, FileText, CheckSquare, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useNavigate } from 'react-router-dom';
 
 interface MobileLayoutProps {
     children: React.ReactNode;
@@ -31,17 +32,27 @@ export const MobileLayout = ({
     rightHeaderAction
 }: MobileLayoutProps) => {
     const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+    const navigate = useNavigate();
 
-    const navItems = [
+    const leftItems = [
         { id: 'Home', icon: Home, label: 'Home' },
-        { id: 'Meet', icon: Video, label: 'Meet' },
-        { id: 'Tasks', icon: CheckSquare, label: 'Tasks' },
-        { id: 'Activity', icon: Bell, label: 'Activity' },
-        { id: 'Settings', icon: Settings, label: 'Settings' },
+        { id: 'People', icon: Users, label: 'People' },
+        { id: 'Calendar', icon: Calendar, label: 'Cal' },
     ];
 
+    const rightItems = [
+        { id: 'Notes', icon: FileText, label: 'Notes' },
+        { id: 'Tasks', icon: CheckSquare, label: 'Tasks' },
+        { id: 'Meet', icon: Video, label: 'Meet' },
+    ];
 
-    const isMainTab = navItems.some(item => item.id === activeTab);
+    const handleFabClick = () => {
+        if (onFabClick) {
+            onFabClick();
+        } else {
+            navigate('/new-project');
+        }
+    };
 
     return (
         <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden">
@@ -111,22 +122,9 @@ export const MobileLayout = ({
 
             {}
             {}
-            {onFabClick && (
-                <div className="absolute bottom-20 right-4 z-50">
-                    <Button
-                        onClick={onFabClick}
-                        size="icon"
-                        className="h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-transform active:scale-95"
-                    >
-                        <Plus className="h-6 w-6" />
-                    </Button>
-                </div>
-            )}
-
-            {}
-            <nav className="h-16 border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-40 pb-safe">
-                <div className="grid grid-cols-5 h-full">
-                    {navItems.map((item) => {
+            <nav className="h-16 border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-40 pb-safe px-3">
+                <div className="flex items-center justify-between h-full max-w-lg mx-auto relative">
+                    {leftItems.map((item) => {
                         const isActive = activeTab === item.id;
                         const Icon = item.icon;
 
@@ -135,7 +133,7 @@ export const MobileLayout = ({
                                 key={item.id}
                                 onClick={() => onTabChange(item.id)}
                                 className={cn(
-                                    "flex flex-col items-center justify-center gap-1 transition-colors relative group",
+                                    "flex flex-col items-center justify-center flex-1 py-1 transition-colors relative group",
                                     isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
                                 )}
                             >
@@ -145,9 +143,43 @@ export const MobileLayout = ({
                                 )}>
                                     <Icon className={cn("h-5 w-5", isActive && "fill-current")} />
                                 </div>
-                                <span className="text-[10px] font-medium">{item.label}</span>
+                                <span className="text-[9px] font-medium mt-0.5">{item.label}</span>
                             </button>
-                        )
+                        );
+                    })}
+
+                    {/* Middle FAB */}
+                    <div className="relative -top-4 px-2 shrink-0 z-50">
+                        <button
+                            onClick={handleFabClick}
+                            className="w-12 h-12 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/20 flex items-center justify-center ring-4 ring-background hover:bg-primary/95 transition-transform active:scale-95"
+                        >
+                            <Plus className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    {rightItems.map((item) => {
+                        const isActive = activeTab === item.id;
+                        const Icon = item.icon;
+
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => onTabChange(item.id)}
+                                className={cn(
+                                    "flex flex-col items-center justify-center flex-1 py-1 transition-colors relative group",
+                                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                <div className={cn(
+                                    "p-1.5 rounded-xl transition-all duration-200",
+                                    isActive ? "bg-primary/10" : "group-hover:bg-muted"
+                                )}>
+                                    <Icon className={cn("h-5 w-5", isActive && "fill-current")} />
+                                </div>
+                                <span className="text-[9px] font-medium mt-0.5">{item.label}</span>
+                            </button>
+                        );
                     })}
                 </div>
             </nav>
