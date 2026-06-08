@@ -327,7 +327,7 @@ const Login = () => {
         </CardFooter>
       </Card>
 
-      <AlertDialog open={!!confirmState} onOpenChange={(open) => { if (!open) handleConfirm(false); }}>
+      <AlertDialog open={!!confirmState} onOpenChange={(open) => { if (!open) {handleConfirm(false);} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Link Account</AlertDialogTitle>

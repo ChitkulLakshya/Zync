@@ -29,15 +29,15 @@ export const useTeamPersistence = (userId: string | undefined) => {
     const [loading, setLoading] = useState(true);
 
     const normalizeUid = (value: any): string => {
-        if (!value) return "";
-        if (typeof value === "string") return value;
-        if (typeof value === "object") return String(value.uid || value.id || value._id || "");
+        if (!value) {return "";}
+        if (typeof value === "string") {return value;}
+        if (typeof value === "object") {return String(value.uid || value.id || value._id || "");}
         return String(value);
     };
 
     const normalizeTeamPayload = (team: any, fallbackUserId?: string): TeamMetadata | null => {
         const id = String(team?.id || team?._id || team?.teamId || "");
-        if (!id) return null;
+        if (!id) {return null;}
 
         const ownerId = normalizeUid(
             team?.ownerId ||
@@ -100,7 +100,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
 
     const upsertTeamSync = useCallback(async (teamPayload: any, fallbackUserId?: string) => {
         const team = normalizeTeamPayload(teamPayload, fallbackUserId);
-        if (!team) return;
+        if (!team) {return;}
 
         try {
             await setDoc(doc(db, "teams", team.id), {
@@ -167,7 +167,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
             }
 
             const inviteCode = String(teamOrInviteCode || "");
-            if (!inviteCode) return;
+            if (!inviteCode) {return;}
 
             // One-time read for invite code lookup.
             const q = query(collection(db, "teams"), where("inviteCode", "==", inviteCode));
@@ -190,7 +190,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
 
     const syncTeamsFromApi = useCallback(async (teams: any[], fallbackUserId?: string) => {
         try {
-            if (!Array.isArray(teams) || teams.length === 0) return;
+            if (!Array.isArray(teams) || teams.length === 0) {return;}
             for (const team of teams) {
                 await upsertTeamSync(team, fallbackUserId);
             }

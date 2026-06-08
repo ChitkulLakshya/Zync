@@ -433,7 +433,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     const fetchData = async () => {
       const now = Date.now();
       // Prevent burst re-fetches when dependent state updates rapidly.
-      if (now - activityFetchLastRunRef.current < 20_000) return;
+      if (now - activityFetchLastRunRef.current < 20_000) {return;}
       activityFetchLastRunRef.current = now;
 
       try {

@@ -29,7 +29,7 @@ function isFreshFirebaseAccount(user: User): boolean {
     const createdAt = user.metadata.creationTime ? new Date(user.metadata.creationTime).getTime() : NaN;
     const lastSignIn = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime).getTime() : NaN;
 
-    if (Number.isNaN(createdAt)) return false;
+    if (Number.isNaN(createdAt)) {return false;}
     if (Number.isNaN(lastSignIn)) {
         return Date.now() - createdAt < NEW_USER_WINDOW_MS;
     }

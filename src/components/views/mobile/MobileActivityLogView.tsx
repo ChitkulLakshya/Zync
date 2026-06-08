@@ -32,15 +32,15 @@ const isCompleted = (task: any) => {
 };
 
 const isInProgress = (task: any) => {
-  if (isCompleted(task)) return false;
+  if (isCompleted(task)) {return false;}
   const status = normalizeStatus(task?.status);
   return status.includes("progress") || status === "active" || status === "in review";
 };
 
 const isOverdue = (task: any) => {
-  if (isCompleted(task)) return false;
+  if (isCompleted(task)) {return false;}
   const due = task?.dueDate || task?.deadline;
-  if (!due) return false;
+  if (!due) {return false;}
   return new Date(due).getTime() < Date.now();
 };
 

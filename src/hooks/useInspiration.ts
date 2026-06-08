@@ -62,7 +62,7 @@ export const useInspiration = (): UseInspirationReturn => {
             );
             const cacheData = await cacheRes.json();
 
-            if (searchId !== currentSearchId.current) return;
+            if (searchId !== currentSearchId.current) {return;}
 
             if (cacheData.ok && Array.isArray(cacheData.items)) {
                 setAllItems(deduplicate(cacheData.items));
@@ -76,7 +76,7 @@ export const useInspiration = (): UseInspirationReturn => {
             );
             const scrapeData = await scrapeRes.json();
 
-            if (searchId !== currentSearchId.current) return;
+            if (searchId !== currentSearchId.current) {return;}
 
             if (scrapeData.ok && Array.isArray(scrapeData.items) && scrapeData.items.length > 0) {
                 setAllItems(prev => {
