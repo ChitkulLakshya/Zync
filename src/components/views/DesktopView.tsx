@@ -949,7 +949,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     localStorage.removeItem("ZYNC-active-section");
                     localStorage.removeItem("ZYNC_HAS_SEEN_LANDING"); // Reset landing page state
                     await signOutAndClearState(auth);
-                    navigate("/login");
+                    navigate("/");
                   }} className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer py-2">
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
