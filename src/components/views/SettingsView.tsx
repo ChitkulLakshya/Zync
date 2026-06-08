@@ -558,10 +558,10 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-transparent p-3 sm:p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <Tabs defaultValue="profile" className="space-y-6">
-          <div className="w-full overflow-x-auto pb-1 scrollbar-thin">
+    <div className="flex-1 h-full overflow-hidden bg-transparent">
+      <div className="max-w-4xl mx-auto h-full flex flex-col px-3 sm:px-6">
+        <Tabs defaultValue="profile" className="flex flex-col h-full space-y-6">
+          <div className="w-full overflow-x-auto pt-3 sm:pt-6 pb-1 scrollbar-thin shrink-0">
             <TabsList className="bg-black border border-white/10 inline-flex w-max min-w-full sm:min-w-0 whitespace-nowrap">
               <TabsTrigger value="profile" className="shrink-0">My Profile</TabsTrigger>
               <TabsTrigger value="team" className="shrink-0">Team</TabsTrigger>
@@ -571,6 +571,8 @@ export default function SettingsView() {
               <TabsTrigger value="security" className="shrink-0">Security</TabsTrigger>
             </TabsList>
           </div>
+
+          <div className="flex-1 overflow-y-auto pb-6 scrollbar-thin focus-visible:outline-none">
 
           {}
           <TabsContent value="profile">
@@ -927,6 +929,7 @@ export default function SettingsView() {
               </CardContent>
             </Card>
           </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>
