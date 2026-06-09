@@ -33,7 +33,7 @@ const FeaturesSection = () => {
       icon: Users,
       title: "Team Workspaces",
       description: "Invite your team, assign tasks, and track progress in real-time. Everyone stays in sync.",
-      color: "bg-primary/10 text-primary",
+      color: "bg-secondary/20 text-foreground",
     },
     {
       icon: Calendar,

@@ -195,7 +195,7 @@ const DesktopPreview = () => {
                                                     <Badge variant="secondary" className="text-[9px] px-1.5 py-0 h-4 font-normal">Owner</Badge>
                                                 )}
                                             </div>
-                                            <CardTitle className="text-xs font-semibold line-clamp-1 group-hover:text-primary transition-colors">
+                                            <CardTitle className="text-xs font-semibold line-clamp-1 group-hover:text-foreground transition-colors">
                                                 {project.name}
                                             </CardTitle>
                                             <CardDescription className="text-[10px] line-clamp-2 min-h-[30px]">
@@ -232,7 +232,7 @@ const DesktopPreview = () => {
                                         <CardFooter className="p-2 border-t bg-secondary/10 mt-auto">
                                             <Button
                                                 variant="ghost"
-                                                className="flex-1 justify-between hover:bg-transparent px-1 text-primary h-6 text-[9px] w-full"
+                                                className="flex-1 justify-between hover:bg-transparent px-1 text-foreground h-6 text-[9px] w-full"
                                             >
                                                 View Architecture
                                                 <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
@@ -256,7 +256,7 @@ const DesktopPreview = () => {
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-sm font-bold">Your GitHub</span>
-                                                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary">
+                                                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-secondary/20 text-foreground">
                                                     <Github className="h-3 w-3 mr-1" />
                                                     @username
                                                 </Badge>
@@ -333,7 +333,7 @@ const DesktopPreview = () => {
                                             <div
                                                 key={i}
                                                 className={`aspect-square flex flex-col items-center justify-center rounded text-[10px] cursor-pointer transition-colors ${day < 1 || day > 31 ? "text-muted-foreground/20" :
-                                                    isToday ? "bg-primary text-primary-foreground font-medium" :
+                                                    isToday ? "bg-primary text-foreground-foreground font-medium" :
                                                         "text-foreground hover:bg-secondary"
                                                     }`}
                                             >
@@ -365,7 +365,7 @@ const DesktopPreview = () => {
                                         <div className="flex items-center gap-3">
                                             <div className="relative">
                                                 <Avatar className="w-8 h-8">
-                                                    <AvatarFallback className="text-[10px] bg-primary/10 text-primary">{person.avatar}</AvatarFallback>
+                                                    <AvatarFallback className="text-[10px] bg-secondary/20 text-foreground">{person.avatar}</AvatarFallback>
                                                 </Avatar>
                                                 <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-card ${person.status === "online" ? "bg-task-green" : person.status === "away" ? "bg-task-yellow" : "bg-muted"
                                                     }`} />

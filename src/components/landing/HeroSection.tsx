@@ -64,7 +64,7 @@ const HeroSection = () => {
               Get Started
             </Button>
             <button 
-              className="group flex items-center text-base font-medium text-primary hover:text-primary/80 transition-colors"
+              className="group flex items-center text-base font-medium text-foreground hover:text-foreground/80 transition-colors"
               onClick={() => navigate('/features')}
             >
               Learn more

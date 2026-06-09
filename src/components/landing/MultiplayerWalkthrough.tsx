@@ -138,7 +138,7 @@ export const MultiplayerWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/50 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
+    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
       {/* Cursors */}
       <SimulatedCursor x={alexPos.x} y={alexPos.y} isClicking={alexClicking} name="Alex" color="hsl(var(--task-green))" />
       <SimulatedCursor x={sarahPos.x} y={sarahPos.y} isClicking={sarahClicking} name="Sarah" color="hsl(var(--task-purple))" />
@@ -146,7 +146,7 @@ export const MultiplayerWalkthrough = () => {
       
       {/* UI Replica */}
       <div className="flex items-center gap-2 h-8 px-3 border-b border-border/30 bg-secondary/20">
-        <FileText className="w-3.5 h-3.5 text-primary" />
+        <FileText className="w-3.5 h-3.5 text-foreground" />
         <span className="text-[10px] font-semibold text-foreground">Project Specs.md</span>
         <div className="ml-auto flex -space-x-1">
           <div className="w-4 h-4 rounded-full bg-task-green flex items-center justify-center border border-background shadow-sm z-30">
@@ -190,7 +190,7 @@ export const MultiplayerWalkthrough = () => {
           </div>
 
           {/* Comment Box */}
-          <div className="mt-4 border border-border/50 rounded-lg bg-card p-2 shadow-sm">
+          <div className="mt-4 border border-border/10 rounded-lg bg-card p-2 shadow-sm">
             <div className="flex items-center gap-1.5 mb-2">
               <MessageSquare className="w-3 h-3 text-task-green" />
               <span className="text-[8px] font-semibold">Discussion</span>
@@ -214,7 +214,7 @@ export const MultiplayerWalkthrough = () => {
             </AnimatePresence>
 
             <div className="flex gap-2">
-              <div className="flex-1 bg-background border border-border/50 rounded px-2 py-1 text-[8px] text-foreground relative h-6">
+              <div className="flex-1 bg-background border border-border/10 rounded px-2 py-1 text-[8px] text-foreground relative h-6">
                 {alexPhase === "typing" && (
                   <>
                     <span>{commentText}</span>
@@ -226,7 +226,7 @@ export const MultiplayerWalkthrough = () => {
                 )}
               </div>
               <motion.button 
-                className="bg-primary/10 text-primary px-2 rounded text-[8px] font-medium"
+                className="bg-secondary/20 text-foreground px-2 rounded text-[8px] font-medium"
                 animate={(alexClicking && alexPos.x === "42%") ? { scale: 0.9 } : { scale: 1 }}
               >
                 Post
@@ -239,7 +239,7 @@ export const MultiplayerWalkthrough = () => {
         <div className="flex-1 border-l border-border/30 pl-3 relative">
            <div className="text-[7px] uppercase font-bold text-muted-foreground mb-2">Linked Tasks</div>
            
-           <div className="bg-card border border-border/50 rounded p-1.5 shadow-sm mb-2 opacity-60">
+           <div className="bg-card border border-border/10 rounded p-1.5 shadow-sm mb-2 opacity-60">
              <div className="text-[7px] font-medium leading-tight">Design auth flow</div>
              <div className="flex items-center gap-1 mt-1">
                <CheckCircle2 className="w-2 h-2 text-task-green" />

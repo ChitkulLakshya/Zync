@@ -66,7 +66,7 @@ export const SmartCalendarWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/50 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
+    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       {/* Header */}
@@ -88,7 +88,7 @@ export const SmartCalendarWalkthrough = () => {
         {/* Days Header & Columns */}
         {["Mon", "Tue", "Wed", "Thu", "Fri"].map((day, index) => (
           <div key={day} className="flex-1 flex flex-col relative z-10">
-            <div className="text-[9px] font-medium text-muted-foreground text-center mb-2 pb-1 border-b border-border/50">
+            <div className="text-[9px] font-medium text-muted-foreground text-center mb-2 pb-1 border-b border-border/10">
               {day}
             </div>
             
@@ -110,7 +110,7 @@ export const SmartCalendarWalkthrough = () => {
               
               {/* Dummy task on Monday */}
               {index === 0 && (
-                <div className="bg-card border border-border/50 rounded p-1.5 shadow-elevation1 opacity-60">
+                <div className="bg-card border border-border/10 rounded p-1.5 shadow-elevation1 opacity-60">
                   <div className="text-[8px] font-medium text-foreground leading-tight line-clamp-2">Design review</div>
                   <div className="text-[6px] text-muted-foreground mt-1 flex items-center gap-0.5">
                     <Clock className="w-2 h-2" /> 10:00 AM

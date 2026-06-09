@@ -133,7 +133,7 @@ const MobilePreview = () => {
                                     <CardFooter className="p-2 pt-1.5 border-t border-border/10 bg-secondary/5">
                                         <Button
                                             variant="ghost"
-                                            className="flex-1 justify-between hover:bg-transparent px-0 text-primary h-4 text-[8px]"
+                                            className="flex-1 justify-between hover:bg-transparent px-0 text-foreground h-4 text-[8px]"
                                         >
                                             View Architecture
                                             <ArrowRight className="w-2.5 h-2.5" />
@@ -188,7 +188,7 @@ const MobilePreview = () => {
                                             <div
                                                 key={i}
                                                 className={`aspect-square flex flex-col items-center justify-center rounded text-[9px] ${day < 1 || day > 31 ? "text-muted-foreground/20" :
-                                                    isToday ? "bg-primary text-primary-foreground font-medium" :
+                                                    isToday ? "bg-primary text-foreground-foreground font-medium" :
                                                         "text-foreground"
                                                     }`}
                                             >
@@ -284,7 +284,7 @@ const MobilePreview = () => {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
+                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-foreground" : "text-muted-foreground"
                                     }`}
                             >
                                 <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />
@@ -306,7 +306,7 @@ const MobilePreview = () => {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
+                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-foreground" : "text-muted-foreground"
                                     }`}
                             >
                                 <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />

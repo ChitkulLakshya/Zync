@@ -32,7 +32,7 @@ export const BuiltinChatWalkthrough = () => {
       {/* Header */}
       <div className="flex items-center gap-2 p-3 border-b border-border/10 bg-secondary/20">
         <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-          <MessageSquare className="w-3 h-3 text-primary" />
+          <MessageSquare className="w-3 h-3 text-foreground" />
         </div>
         <span className="text-xs font-semibold text-foreground/80"># design-team</span>
       </div>

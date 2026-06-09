@@ -43,7 +43,7 @@ const TestimonialsSection = () => {
           {testimonials.map((testimonial, index) => (
             <div
               key={testimonial.name}
-              className="bg-card rounded-2xl border border-border/50 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+              className="bg-card rounded-2xl border border-border/10 p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
             >
               {}
               <div className="flex gap-1 mb-4">
@@ -59,7 +59,7 @@ const TestimonialsSection = () => {
 
               {}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-sm font-semibold text-primary">
+                <div className="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center text-sm font-semibold text-foreground">
                   {testimonial.avatar}
                 </div>
                 <div>

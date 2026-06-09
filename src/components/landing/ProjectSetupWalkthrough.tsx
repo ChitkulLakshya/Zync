@@ -76,7 +76,7 @@ export const ProjectSetupWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/50 rounded-xl overflow-hidden shadow-elevation3 mx-auto">
+    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-xl overflow-hidden shadow-elevation3 mx-auto">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       <AnimatePresence mode="wait">
@@ -99,7 +99,7 @@ export const ProjectSetupWalkthrough = () => {
                 <div className="text-[10px] font-medium leading-none text-foreground/80">
                   Project Name
                 </div>
-                <div className="h-7 w-full border border-border/50 rounded-md bg-background/50 px-3 flex items-center shadow-sm">
+                <div className="h-7 w-full border border-border/10 rounded-md bg-background/50 px-3 flex items-center shadow-sm">
                   <span className="text-[10px] text-foreground font-medium">Acme Store</span>
                 </div>
               </div>
@@ -108,7 +108,7 @@ export const ProjectSetupWalkthrough = () => {
                 <div className="text-[10px] font-medium leading-none text-foreground/80">
                   What are you building?
                 </div>
-                <div className="w-full h-16 border border-border/50 rounded-md bg-background/50 p-2 relative shadow-sm">
+                <div className="w-full h-16 border border-border/10 rounded-md bg-background/50 p-2 relative shadow-sm">
                   {phase === "idle" && !text && (
                     <span className="text-[10px] text-muted-foreground absolute pointer-events-none">Describe features...</span>
                   )}
@@ -144,8 +144,8 @@ export const ProjectSetupWalkthrough = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <div className="flex flex-col items-center gap-3 bg-card p-4 rounded-xl shadow-elevation4 border border-border/50">
-                  <Sparkles className="w-5 h-5 text-primary animate-pulse-glow" />
+                <div className="flex flex-col items-center gap-3 bg-card p-4 rounded-xl shadow-elevation4 border border-border/10">
+                  <Sparkles className="w-5 h-5 text-foreground animate-pulse-glow" />
                   <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
                     <motion.div 
                       className="h-full bg-primary"
@@ -168,7 +168,7 @@ export const ProjectSetupWalkthrough = () => {
           >
             <div className="flex items-center justify-between pb-2 border-b border-border/30">
               <h3 className="text-xs font-semibold flex items-center gap-1.5">
-                <List className="w-3.5 h-3.5 text-primary" />
+                <List className="w-3.5 h-3.5 text-foreground" />
                 Generated Plan
               </h3>
               <div className="text-[9px] bg-task-green/10 text-task-green px-2 py-0.5 rounded-full font-medium tracking-wide">

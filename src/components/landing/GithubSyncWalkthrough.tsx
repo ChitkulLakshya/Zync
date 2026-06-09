@@ -65,7 +65,7 @@ export const GithubSyncWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/50 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
+    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       {/* Toast Notification */}
@@ -103,7 +103,7 @@ export const GithubSyncWalkthrough = () => {
               <span className="text-task-green">~</span>
               {phase === "idle" ? (
                 <motion.span 
-                  className="bg-primary/20 text-primary px-1 rounded inline-block shadow-sm"
+                  className="bg-primary/20 text-foreground px-1 rounded inline-block shadow-sm"
                   animate={{ opacity: [1, 0.7, 1] }}
                   transition={{ repeat: Infinity, duration: 1.5 }}
                 >
@@ -146,7 +146,7 @@ export const GithubSyncWalkthrough = () => {
                 {phase !== "moving" && phase !== "done" && (
                   <motion.div
                     layoutId="github-sync-task-card"
-                    className="bg-card border border-border/50 rounded-md p-2 shadow-elevation1"
+                    className="bg-card border border-border/10 rounded-md p-2 shadow-elevation1"
                     animate={phase === "syncing" ? { 
                       boxShadow: "0 0 0 2px hsl(var(--task-green)/0.4)",
                       borderColor: "hsl(var(--task-green))",
@@ -157,7 +157,7 @@ export const GithubSyncWalkthrough = () => {
                     <div className="text-[9px] font-medium text-foreground leading-tight">Fix auth bug (#142)</div>
                     <div className="text-[7px] text-muted-foreground mt-1.5 flex justify-between items-center">
                       <span className="bg-secondary px-1 py-0.5 rounded">ENG-42</span>
-                      <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center text-[5px] text-primary font-bold">AJ</div>
+                      <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center text-[5px] text-foreground font-bold">AJ</div>
                     </div>
                   </motion.div>
                 )}
@@ -182,7 +182,7 @@ export const GithubSyncWalkthrough = () => {
                     </div>
                     <div className="text-[7px] text-muted-foreground mt-1.5 flex justify-between items-center pl-4">
                       <span className="bg-secondary px-1 py-0.5 rounded">ENG-42</span>
-                      <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center text-[5px] text-primary font-bold">AJ</div>
+                      <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center text-[5px] text-foreground font-bold">AJ</div>
                     </div>
                   </motion.div>
                 )}
