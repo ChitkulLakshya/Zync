@@ -78,7 +78,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
           </p>
         </div>
 
-        <Card className="border-border/50 shadow-lg">
+        <Card className="bg-secondary/5 border-border/10 shadow-2xl rounded-[2rem] overflow-hidden">
           <CardHeader>
             <CardTitle>Create New Project</CardTitle>
             <CardDescription>
@@ -94,6 +94,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
                 placeholder="e.g., E-commerce Platform"
                 value={projectName}
                 onChange={(e) => setProjectName(e.target.value)}
+                className="bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-border rounded-xl h-12 px-4"
               />
             </div>
 
@@ -103,7 +104,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
               </label>
               <Textarea
                 placeholder="Describe your project features, goals, and requirements..."
-                className="min-h-[150px] resize-none"
+                className="min-h-[150px] resize-none bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-border rounded-xl p-4"
                 value={projectDescription}
                 onChange={(e) => setProjectDescription(e.target.value)}
               />
@@ -114,7 +115,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
               size="lg"
               onClick={handleGenerate}
               disabled={!projectName || !projectDescription || isGenerating}
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto rounded-xl"
             >
               {isGenerating ? "Generating..." : (
                 <>
@@ -127,16 +128,16 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
           </CardFooter>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm text-muted-foreground">
-          <div className="p-4 rounded-lg bg-secondary/50">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm text-muted-foreground mt-8">
+          <div className="p-5 rounded-2xl bg-secondary/20 border border-border/10">
             <span className="block font-semibold text-foreground mb-1">Architecture</span>
             Auto-generated tech stack
           </div>
-          <div className="p-4 rounded-lg bg-secondary/50">
+          <div className="p-5 rounded-2xl bg-secondary/20 border border-border/10">
             <span className="block font-semibold text-foreground mb-1">Workflow</span>
             Step-by-step development plan
           </div>
-          <div className="p-4 rounded-lg bg-secondary/50">
+          <div className="p-5 rounded-2xl bg-secondary/20 border border-border/10">
             <span className="block font-semibold text-foreground mb-1">Tasks</span>
             Automated task breakdown
           </div>
