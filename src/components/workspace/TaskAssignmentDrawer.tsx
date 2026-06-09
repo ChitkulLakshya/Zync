@@ -147,7 +147,7 @@ const TaskAssignmentDrawer = ({
             </div>
           </div>
 
-          <div className="space-y-3 rounded-lg border border-border bg-secondary/20 p-4">
+          <div className="space-y-3 rounded-lg border border-border/10 bg-secondary/10 p-4">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Add Collaborator to Repo</p>
@@ -156,7 +156,7 @@ const TaskAssignmentDrawer = ({
               <UserPlus className="w-4 h-4 text-primary" />
             </div>
 
-            <div className="rounded-md border max-h-[180px] overflow-y-auto bg-background/70">
+            <div className="rounded-md border border-border/10 max-h-[180px] overflow-y-auto bg-background/50">
               {isLoadingUsers ? (
                 <div className="p-3 text-sm text-muted-foreground flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -187,7 +187,7 @@ const TaskAssignmentDrawer = ({
                       <Button
                         size="sm"
                         variant="outline"
-                        className="border-primary/30 hover:border-primary"
+                        className="border-border/10 hover:border-foreground"
                         disabled={isInvitingCollaborator || !member.canInvite}
                         onClick={() => onInviteCollaborator(member.uid)}
                         title={member.inviteDisabledReason || undefined}

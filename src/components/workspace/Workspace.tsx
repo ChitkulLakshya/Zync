@@ -539,10 +539,10 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         )}
 
         {projects.length === 0 ? (
-          <Card className="border-dashed border-2 bg-secondary/20">
+          <Card className="border-dashed border-2 border-border/20 bg-secondary/10">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="h-16 w-16 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                <FolderGit2 className="w-8 h-8 text-primary" />
+              <div className="h-16 w-16 bg-secondary rounded-full flex items-center justify-center mb-6">
+                <FolderGit2 className="w-8 h-8 text-foreground" />
               </div>
               <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
               <p className="text-muted-foreground max-w-sm mb-6">
@@ -556,7 +556,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         ) : (
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <Card key={getProjectId(project)} className="group hover:shadow-lg transition-all duration-200 border-l-4 border-l-primary">
+              <Card key={getProjectId(project)} className="group hover:shadow-lg transition-all duration-200 border border-border/10 shadow-sm hover:border-border/30">
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <Badge variant="outline" className="mb-2">Project</Badge>
@@ -564,7 +564,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                       <Badge variant="secondary" className="text-xs">Owner</Badge>
                     )}
                   </div>
-                  <CardTitle className="text-xl line-clamp-1 group-hover:text-primary transition-colors">
+                  <CardTitle className="text-xl line-clamp-1 group-hover:text-foreground transition-colors">
                     {project.name}
                   </CardTitle>
                   <CardDescription className="line-clamp-2 min-h-[40px]">
@@ -616,7 +616,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                 <CardFooter className="pt-3 border-t bg-secondary/10 flex gap-2">
                   <Button
                     variant="ghost"
-                    className="flex-1 justify-between hover:bg-transparent px-0 text-primary"
+                    className="flex-1 justify-between hover:bg-transparent px-0 text-foreground"
                     onClick={(e) => handleOpenArchitecture(e, project)}
                   >
                     View Architecture
@@ -626,7 +626,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="text-muted-foreground hover:text-primary hover:bg-primary/10"
+                      className="text-muted-foreground hover:text-foreground hover:bg-secondary"
                       onClick={(e) => handleOpenTaskDrawer(e, project)}
                       title="Assign Task"
                     >
@@ -722,8 +722,8 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
           <div className="flex flex-col md:flex-row gap-6 py-4 flex-1 min-h-[350px] overflow-hidden">
             {/* Left Pane - Repository Selection */}
-            <div className="flex-1 flex flex-col border rounded-md overflow-hidden bg-background shadow-sm">
-              <div className="p-3 border-b bg-muted/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+            <div className="flex-1 flex flex-col border border-border/10 rounded-xl overflow-hidden bg-background shadow-sm">
+              <div className="p-3 border-b border-border/10 bg-secondary/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Checkbox 
                     id="select-all" 
@@ -795,8 +795,8 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
             </div>
 
             {/* Right Pane - Selected Repos */}
-            <div className="flex-1 flex flex-col border rounded-md overflow-hidden bg-muted/10 shadow-sm relative">
-              <div className="p-3 border-b bg-muted/40">
+            <div className="flex-1 flex flex-col border border-border/10 rounded-xl overflow-hidden bg-secondary/5 shadow-sm relative">
+              <div className="p-3 border-b border-border/10 bg-secondary/10">
                 <span className="text-sm text-muted-foreground">{selectedRepos.length} checked</span>
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-2">
@@ -806,7 +806,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   </div>
                 ) : (
                   selectedRepos.map(repo => (
-                    <div key={`selected-${repo.id}`} className="flex items-center justify-between p-2 rounded-md bg-background border border-border shadow-sm">
+                    <div key={`selected-${repo.id}`} className="flex items-center justify-between p-2 rounded-md bg-background border border-border/10 shadow-sm">
                       <div className="flex items-center gap-2 overflow-hidden flex-1 pr-2">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${repo.private ? 'bg-orange-500' : 'bg-green-500'}`} />
                         <span className="font-medium text-sm truncate">{repo.name}</span>

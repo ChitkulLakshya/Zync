@@ -110,37 +110,19 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
   };
 
   const getThemeColor = (status: string) => {
-    switch (status) {
-      case 'Ready': return 'blue';
-      case 'Active': return 'green';
-      case 'In Progress': return 'orange';
-      case 'Done': return 'yellow';
-      default: return 'gray';
-    }
+    return 'neutral';
   };
 
   const getColumnColor = (column: string) => {
-    switch (column) {
-      case 'Ready': return 'text-blue-400 border-blue-500/20 shadow-blue-500/10';
-      case 'Active': return 'text-green-400 border-green-500/20 shadow-green-500/10';
-      case 'In Progress': return 'text-orange-400 border-orange-500/20 shadow-orange-500/10';
-      case 'Done': return 'text-yellow-400 border-yellow-500/20 shadow-yellow-500/10';
-      default: return 'text-muted-foreground border-white/10';
-    }
+    return 'text-foreground border-border/10 shadow-sm';
   };
 
   const getCardHoverBorder = (status: string) => {
-    switch (status) {
-      case 'Ready': return 'group-hover:border-blue-500/50';
-      case 'Active': return 'group-hover:border-green-500/50';
-      case 'In Progress': return 'group-hover:border-orange-500/50';
-      case 'Done': return 'group-hover:border-yellow-500/50';
-      default: return 'group-hover:border-white/30';
-    }
+    return 'group-hover:border-border/30';
   };
 
   return (
-    <div className="w-full h-full flex flex-col items-center bg-black/40 overflow-hidden">
+    <div className="w-full h-full flex flex-col items-center bg-background overflow-hidden">
       <div className="w-full max-w-7xl h-full px-6 py-4 grid grid-cols-4 gap-6">
         {COLUMNS.map(column => (
           <div
@@ -151,11 +133,11 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
           >
             {}
             <div className={`
-              sticky top-0 z-20 backdrop-blur-xl bg-black/20 p-4 rounded-xl border flex items-center justify-between
-              ${getColumnColor(column)} shadow-lg
+              sticky top-0 z-20 backdrop-blur-xl bg-secondary/10 p-4 rounded-xl border flex items-center justify-between
+              ${getColumnColor(column)}
             `}>
               <span className="font-bold tracking-wide">{column}</span>
-              <Badge variant="secondary" className="bg-white/10 text-white border-none">{columns[column].length}</Badge>
+              <Badge variant="secondary" className="bg-secondary text-foreground border-none">{columns[column].length}</Badge>
             </div>
 
             {}
@@ -178,9 +160,9 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
                       onClick={() => handleTaskOpen(task)}
                       className={`
                         relative w-full p-4 rounded-xl backdrop-blur-md transition-all duration-300
-                        bg-white/5 border border-white/10 shadow-sm
+                        bg-secondary/10 border border-border/10 shadow-sm
                         ${getCardHoverBorder(task.status)}
-                        hover:shadow-xl hover:bg-white/[0.07]
+                        hover:shadow-md hover:bg-secondary/20
                         cursor-grab active:cursor-grabbing
                       `}
                     >
@@ -192,27 +174,27 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
                         return (
                           <>
                       <div className="flex justify-between items-start gap-2 mb-3">
-                        <span className="text-sm font-medium leading-tight text-white/90 z-10 relative">
+                        <span className="text-sm font-medium leading-tight text-foreground z-10 relative">
                           {task.title}
                         </span>
-                        <GripVertical className="w-4 h-4 text-white/20 group-hover:text-white/50 transition-colors" />
+                        <GripVertical className="w-4 h-4 text-muted-foreground/50 group-hover:text-muted-foreground transition-colors" />
                       </div>
 
                       {task.assignedTo && (
                         <div className="flex items-center gap-2 mb-3">
-                          <Avatar className="w-5 h-5 ring-1 ring-white/20">
-                            <AvatarFallback className="text-[10px] bg-white/10 text-white/80">
+                          <Avatar className="w-5 h-5 ring-1 ring-border/20">
+                            <AvatarFallback className="text-[10px] bg-secondary text-foreground">
                               {assignedInitials || 'U'}
                             </AvatarFallback>
                           </Avatar>
-                          <span className="text-xs text-white/50 truncate max-w-[120px]">
+                          <span className="text-xs text-muted-foreground truncate max-w-[120px]">
                             {assignedLabel}
                           </span>
                         </div>
                       )}
 
                       {}
-                      <div className="flex items-center pt-3 border-t border-white/10 w-full">
+                      <div className="flex items-center pt-3 border-t border-border/10 w-full">
                         {['Ready', 'Active', 'In Progress', 'Done'].map((step, index) => {
                           const STATUS_ORDER = ['Ready', 'Active', 'In Progress', 'Done'];
                           const currentStatusIndex = STATUS_ORDER.indexOf(task.status === 'Completed' ? 'Done' : (task.status === 'Pending' || task.status === 'Backlog' ? 'Ready' : task.status === 'In Review' ? 'In Progress' : task.status));
@@ -220,29 +202,20 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
                           const isCurrent = index === currentStatusIndex;
 
 
-                          let activeColorClass = 'bg-white/40';
-                          if (task.status === 'Active') {activeColorClass = 'bg-green-500';}
-                          else if (task.status === 'In Progress') {activeColorClass = 'bg-orange-500';}
-                          else if (task.status === 'Done' || task.status === 'Completed') {activeColorClass = 'bg-yellow-500';}
-                          else if (task.status === 'Ready') {activeColorClass = 'bg-blue-500';}
-
-                          let ringColorClass = '';
-                          if (task.status === 'Active') {ringColorClass = 'ring-green-500';}
-                          else if (task.status === 'In Progress') {ringColorClass = 'ring-orange-500';}
-                          else if (task.status === 'Done') {ringColorClass = 'ring-yellow-500';}
-                          else {ringColorClass = 'ring-blue-500';}
+                          let activeColorClass = 'bg-foreground';
+                          let ringColorClass = 'ring-foreground';
 
                           return (
                             <div key={step} className="flex items-center flex-1 last:flex-none">
                               <div
                                 className={`w-1.5 h-1.5 rounded-full transition-all duration-300 z-10 shrink-0
-                                     ${isCompleted ? activeColorClass : 'bg-white/10'}
+                                     ${isCompleted ? activeColorClass : 'bg-border/50'}
                                      ${isCurrent ? `ring-2 ring-offset-1 ring-offset-transparent ${ringColorClass} scale-125` : ''}
                                    `}
                                 title={step}
                               />
                               {index < 3 && (
-                                <div className="h-[1px] w-full -mx-0.5 relative z-0 bg-white/5 overflow-hidden">
+                                <div className="h-[1px] w-full -mx-0.5 relative z-0 bg-border/20 overflow-hidden">
                                   {isCompleted && index < currentStatusIndex && (
                                     <motion.div
                                       initial={{ width: "0%" }}
@@ -263,7 +236,7 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="w-full h-7 text-xs border border-green-500/30 text-green-400 hover:bg-green-500/10 hover:text-green-300"
+                            className="w-full h-7 text-xs border border-border/20 text-foreground hover:bg-secondary/50 hover:text-foreground"
                             onClick={(e) => {
                               e.stopPropagation();
                               const resolvedTaskId = task._id || task.id;
