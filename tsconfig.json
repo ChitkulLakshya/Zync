@@ -13,16 +13,15 @@
     "skipLibCheck": true,
     "noEmit": true,
     "ignoreDeprecations": "5.0",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"],
-      "@electron/*": ["electron/*"],
-      "@config/*": ["config/*"],
-      "@assets/*": ["assets/*"],
-      "@utils/*": ["src/utils/*"],
-      "@components/*": ["src/components/*"],
-      "@hooks/*": ["src/hooks/*"],
-      "@store/*": ["src/store/*"]
+      "@/*": ["./src/*"],
+      "@electron/*": ["./electron/*"],
+      "@config/*": ["./config/*"],
+      "@assets/*": ["./assets/*"],
+      "@utils/*": ["./src/utils/*"],
+      "@components/*": ["./src/components/*"],
+      "@hooks/*": ["./src/hooks/*"],
+      "@store/*": ["./src/store/*"]
     },
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true
