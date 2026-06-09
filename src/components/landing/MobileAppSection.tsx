@@ -21,7 +21,7 @@ const MobileAppSection = () => {
               <span className="text-xs font-medium text-task-orange">Coming Soon</span>
             </div>
 
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 font-serif-elegant">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 ">
               Your workspace, in your pocket
             </h2>
 

@@ -37,7 +37,7 @@ const Footer = () => {
               <div className="h-7 w-7 bg-foreground rounded-lg flex items-center justify-center">
                 <span className="text-background font-bold text-sm">Z</span>
               </div>
-              <span className="text-lg font-bold font-serif-elegant text-foreground">Zync</span>
+              <span className="text-lg font-bold  text-foreground">Zync</span>
               <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded uppercase tracking-wider">Beta</span>
             </div>
             <p className="text-muted-foreground text-sm mb-5 max-w-xs leading-relaxed">

@@ -100,9 +100,12 @@ const DesktopPreview = () => {
     });
 
     return (
-        <div className="w-full aspect-[16/10] bg-background rounded-lg border border-border/50 overflow-hidden flex shadow-xl">
-            {}
-            <aside className="w-48 bg-muted/40 border-r border-border flex flex-col hidden md:flex shrink-0">
+        <div 
+            className="w-full aspect-[16/10] bg-background rounded-2xl border-0 overflow-hidden flex"
+            style={{ boxShadow: 'var(--shadow-xl), var(--glass-bevel)' }}
+        >
+            {/* Sidebar */}
+            <aside className="w-48 bg-secondary/20 backdrop-blur-md border-r border-border/10 flex flex-col hidden md:flex shrink-0">
                 {}
                 <div className="p-3 border-b border-border h-12 flex items-center">
                     <div className="flex items-center px-1">
@@ -132,10 +135,10 @@ const DesktopPreview = () => {
                 </nav>
 
                 {}
-                <div className="p-2 border-t border-border">
-                    <div className="flex items-center gap-2 p-1.5 rounded-md hover:bg-secondary/50 cursor-pointer">
-                        <Avatar className="w-6 h-6 border border-border">
-                            <AvatarFallback className="text-[9px] bg-primary text-primary-foreground">YU</AvatarFallback>
+                <div className="p-2 border-t border-border/10">
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary/40 cursor-pointer transition-colors">
+                        <Avatar className="w-6 h-6 border-0">
+                            <AvatarFallback className="text-[9px] bg-foreground text-background">YU</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
                             <div className="text-[10px] font-medium text-foreground truncate">Your Name</div>
@@ -148,11 +151,11 @@ const DesktopPreview = () => {
 
             {}
             <main className="flex-1 flex flex-col overflow-hidden bg-background">
-                {}
-                <header className="h-10 border-b border-border/50 flex items-center justify-between px-4 bg-background/80 backdrop-blur-sm">
+                {/* Header */}
+                <header className="h-10 border-b border-border/10 flex items-center justify-between px-4 bg-background/60 backdrop-blur-md">
                     <Input
                         placeholder="Search..."
-                        className="h-6 w-36 text-[10px] bg-secondary/50 border-none"
+                        className="h-6 w-36 text-[10px] bg-secondary/30 border-0 shadow-none focus-visible:ring-1 focus-visible:ring-border rounded-full"
                     />
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
@@ -179,11 +182,11 @@ const DesktopPreview = () => {
                             </div>
 
                             {}
-                            <div className="grid grid-cols-2 lg:grid-cols-2 gap-3">
+                            <div className="grid grid-cols-2 lg:grid-cols-2 gap-4">
                                 {mockProjects.map(project => (
                                     <Card
                                         key={project.id}
-                                        className="group hover:shadow-md transition-all duration-200 cursor-pointer border-l-4 border-l-primary flex flex-col"
+                                        className="group hover:shadow-md transition-all duration-300 cursor-pointer flex flex-col bg-secondary/5 border-border/10 rounded-2xl"
                                     >
                                         <CardHeader className="p-3 pb-2 space-y-2">
                                             <div className="flex justify-between items-start">
@@ -244,11 +247,11 @@ const DesktopPreview = () => {
                     {activeSection === "Dashboard" && (
                         <div className="space-y-4 max-w-4xl mx-auto">
                             {}
-                            <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20">
-                                <CardContent className="p-4">
+                            <Card className="bg-secondary/10 border-border/10 rounded-2xl shadow-sm">
+                                <CardContent className="p-5">
                                     <div className="flex items-center gap-4">
-                                        <Avatar className="h-14 w-14 border-2 border-background shadow-md">
-                                            <AvatarFallback className="text-sm bg-primary/20 text-primary font-bold">GH</AvatarFallback>
+                                        <Avatar className="h-14 w-14 border border-border/10 shadow-sm">
+                                            <AvatarFallback className="text-sm bg-foreground/5 text-foreground font-medium">GH</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">
                                             <div className="flex items-center gap-2">
@@ -275,7 +278,7 @@ const DesktopPreview = () => {
                             </Card>
 
                             {}
-                            <Card className="p-4 overflow-hidden">
+                            <Card className="p-5 overflow-hidden rounded-2xl border-border/10 shadow-sm bg-secondary/5">
                                 <ContributionGraph data={graphData} blockSize={9} blockMargin={2} blockRadius={1}>
                                     <div className="flex items-center justify-between mb-3">
                                         <ContributionGraphTotalCount className="text-xs font-semibold" />
