@@ -44,7 +44,7 @@ export const FolderItem: React.FC<FolderItemProps> = ({
         <div
             className={cn(
                 "mb-1 select-none rounded-md transition-colors",
-                isDragOverFolder && "bg-zinc-800/50 ring-2 ring-primary/20"
+                isDragOverFolder && "bg-secondary/20 ring-2 ring-border/10"
             )}
             onDragOver={(e) => {
                 onDragOver(e);
@@ -63,7 +63,7 @@ export const FolderItem: React.FC<FolderItemProps> = ({
         >
             <div
                 className={cn(
-                    "flex items-center rounded-md cursor-pointer group text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-muted-foreground dark:hover:bg-secondary/50 dark:hover:text-foreground transition-all",
+                    "flex items-center rounded-md cursor-pointer group text-muted-foreground hover:bg-secondary/20 hover:text-foreground transition-all",
                     isCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm"
                 )}
                 onClick={() => !isCollapsed && setIsOpen(!isOpen)}
@@ -74,7 +74,7 @@ export const FolderItem: React.FC<FolderItemProps> = ({
                         {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                     </span>
                 )}
-                <FolderIcon size={isCollapsed ? 18 : 14} className={cn("transition-colors", isCollapsed ? "" : "mr-2", folder.collaborators?.length ? "text-blue-500" : "text-gray-400 group-hover:text-indigo-600 dark:text-muted-foreground dark:group-hover:text-primary")} />
+                <FolderIcon size={isCollapsed ? 18 : 14} className={cn("transition-colors", isCollapsed ? "" : "mr-2", folder.collaborators?.length ? "text-foreground" : "text-muted-foreground group-hover:text-foreground")} />
 
                 {!isCollapsed && <span className="font-medium flex-1 truncate">{folder.name}</span>}
 
@@ -83,7 +83,7 @@ export const FolderItem: React.FC<FolderItemProps> = ({
                         {isOwner && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); onShare(); }}
-                                className="p-1 mr-1 hover:bg-background rounded text-muted-foreground hover:text-blue-500 shadow-sm"
+                                className="p-1 mr-1 hover:bg-background rounded text-muted-foreground hover:text-foreground shadow-sm"
                                 title="Share folder"
                             >
                                 <Share2 size={12} />
@@ -91,7 +91,7 @@ export const FolderItem: React.FC<FolderItemProps> = ({
                         )}
                         <button
                             onClick={(e) => { e.stopPropagation(); onCreateNote(); setIsOpen(true); }}
-                            className="p-1 hover:bg-background rounded text-muted-foreground hover:text-primary shadow-sm"
+                            className="p-1 hover:bg-background rounded text-muted-foreground hover:text-foreground shadow-sm"
                             title="New note"
                         >
                             <Plus size={12} />
@@ -101,7 +101,7 @@ export const FolderItem: React.FC<FolderItemProps> = ({
             </div>
 
             {isOpen && !isCollapsed && (
-                <div className="ml-4 pl-3 border-l border-border/40 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
+                <div className="ml-4 pl-3 border-l border-border/10 mt-1 space-y-0.5 animate-in slide-in-from-top-1 duration-200">
                     {notes.map((note) => (
                         <NoteItem
                             key={note.id}

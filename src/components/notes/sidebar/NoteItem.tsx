@@ -55,7 +55,7 @@ export const NoteItem: React.FC<NoteItemProps> = ({
             <div className="px-2 py-1">
                 <input
                     autoFocus
-                    className="w-full text-sm bg-background border border-primary px-1 py-0.5 rounded outline-none"
+                    className="w-full text-sm bg-background border border-border/10 px-1 py-0.5 rounded outline-none focus:ring-1 focus:ring-border/20"
                     value={renameValue}
                     onChange={(e) => setRenameValue(e.target.value)}
                     onBlur={handleRenameSubmit}
@@ -79,15 +79,15 @@ export const NoteItem: React.FC<NoteItemProps> = ({
                         isCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 border-l-2",
                         selectedNoteId === note.id
                             ? (isCollapsed
-                                ? "bg-gray-200 text-indigo-600 dark:bg-white/10 dark:text-primary rounded-md"
-                                : "bg-gray-200 text-gray-900 font-medium border-l-2 border-indigo-500/50 dark:bg-white/10 dark:border-indigo-400 dark:text-white")
+                                ? "bg-secondary/20 text-foreground rounded-md"
+                                : "bg-secondary/20 text-foreground font-medium border-l-2 border-foreground/20")
                             : (isCollapsed
-                                ? "text-gray-400 hover:text-gray-900 dark:text-slate-500 dark:hover:text-slate-200"
-                                : "border-transparent border-l-2 text-gray-600 hover:bg-gray-200/50 hover:text-gray-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-200")
+                                ? "text-muted-foreground hover:text-foreground"
+                                : "border-transparent border-l-2 text-muted-foreground hover:bg-secondary/10 hover:text-foreground")
                     )}
                     title={isCollapsed ? (note.title || "Untitled") : undefined}
                 >
-                    <FileText size={16} className={cn(selectedNoteId === note.id ? "text-indigo-600 dark:text-primary" : "opacity-70", isCollapsed ? "" : "mr-2")} />
+                    <FileText size={16} className={cn(selectedNoteId === note.id ? "text-foreground" : "opacity-70", isCollapsed ? "" : "mr-2")} />
                     {!isCollapsed && <span className="truncate">{note.title || "Untitled"}</span>}
                 </button>
             </ContextMenuTrigger>
