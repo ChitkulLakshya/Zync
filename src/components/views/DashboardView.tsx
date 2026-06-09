@@ -172,11 +172,9 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
     const currentYear = new Date().getFullYear();
     const startYear = stats?.created_at ? new Date(stats.created_at).getFullYear() : currentYear;
     const availableYears = Array.from({ length: currentYear - startYear + 1 }, (_, i) => currentYear - i);
-
     if (loading) {
-        return <div className="p-6 text-sm text-muted-foreground">Loading dashboard…</div>;
+        return <div className="p-6 text-sm text-muted-foreground flex items-center justify-center h-full">Loading...</div>;
     }
-
     if (error && !stats) {
         const totalTasks = projects.reduce((sum, p) => {
             const steps = p.steps || [];

@@ -11,7 +11,6 @@ import { GitCommandsDrawer } from "./GitCommandsDrawer";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
-import { Skeleton } from "boneyard-js/react";
 
 interface TasksViewProps {
     currentUser: any;
@@ -236,10 +235,11 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         };
     }, [groupedTasks]);
 
+    if (loading) {
+        return <div className="p-6 text-sm text-muted-foreground flex items-center justify-center h-full">Loading tasks...</div>;
+    }
     return (
-        <Skeleton name="task-list-item" loading={loading}>
         <div className="flex-1 p-6 md:p-8 h-full flex flex-col overflow-hidden bg-transparent">
-            {}
             <div className="mb-8 flex items-start justify-between shrink-0">
                 <div>
                     <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">My Tasks</h2>
@@ -264,7 +264,6 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                     <div className="space-y-10 pb-20 max-w-4xl">
                         {groupedTasks.map((group) => (
                             <section key={group.projectId}>
-                                {}
                                 <div className="flex items-center gap-3 mb-4">
                                     <h3 className="text-base font-medium text-foreground">{group.projectName}</h3>
                                     <span className="text-[11px] font-medium text-muted-foreground bg-white/[0.08] px-2 py-0.5 rounded-full tabular-nums border border-white/10">
@@ -273,14 +272,12 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                     <div className="flex-1 h-px bg-border/40" />
                                 </div>
 
-                                {}
                                 <div className="space-y-3">
                                     {group.tasks.map((task) => (
                                         <div
                                             key={task.id}
                                             className="bg-white/[0.04] border border-white/12 rounded-xl p-4 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.06] backdrop-blur-md"
                                         >
-                                            {}
                                             <div className="flex items-start gap-3 mb-4">
                                                 <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${getStatusColor(task.status)}`} />
                                                 <div className="flex-1 min-w-0">
@@ -312,9 +309,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                 </div>
                                             </div>
 
-                                            {}
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                {}
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
@@ -325,7 +320,6 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                     Git Commands
                                                 </Button>
 
-                                                {}
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
@@ -336,7 +330,6 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                     Architecture
                                                 </Button>
 
-                                                {}
                                                 {task.githubRepoName && task.githubRepoOwner && (
                                                     <Button
                                                         size="sm"
@@ -356,7 +349,6 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                             </section>
                         ))}
 
-                        {}
                         <div className="pt-8 border-t border-white/10">
                             <div className="flex items-center gap-6 text-xs text-muted-foreground">
                                 <span>{taskStats.total} total</span>
@@ -386,7 +378,6 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                 } : null}
             />
         </div>
-        </Skeleton>
     );
 };
 

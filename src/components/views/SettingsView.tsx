@@ -13,7 +13,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useMe } from "@/hooks/useMe";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/components/ui/use-toast";
-import { Skeleton } from "boneyard-js/react";
 import { DelayedLoaderGate } from "@/loading/DelayedLoaderGate";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, Github, AlertTriangle, Check, ChevronsUpDown, Mail, Headphones, MessageSquare, Newspaper, UserMinus, Trash2, Copy, LogOut, Crown, Users } from "lucide-react";
@@ -407,37 +406,8 @@ export default function SettingsView() {
 
   if (isMeLoading) {
     return (
-      <div className="min-h-screen bg-background p-6">
-        <DelayedLoaderGate active={true}>
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex items-center gap-4 mb-8">
-              <Skeleton name="settings-header-title" loading={true}>
-                <div className="h-10 w-48 rounded-md bg-zinc-800/80" />
-              </Skeleton>
-            </div>
-            <Skeleton name="settings-tabs" loading={true}>
-              <div className="h-10 w-full rounded-md bg-zinc-800/80" />
-            </Skeleton>
-            <Card>
-              <CardHeader>
-                <Skeleton name="settings-card-header" loading={true}>
-                  <div className="h-8 w-32 rounded-md bg-zinc-800/80" />
-                </Skeleton>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <Skeleton name="settings-input-1" loading={true}>
-                  <div className="h-10 w-full rounded-md bg-zinc-800/80" />
-                </Skeleton>
-                <Skeleton name="settings-input-2" loading={true}>
-                  <div className="h-10 w-full rounded-md bg-zinc-800/80" />
-                </Skeleton>
-                <Skeleton name="settings-input-3" loading={true}>
-                  <div className="h-10 w-full rounded-md bg-zinc-800/80" />
-                </Skeleton>
-              </CardContent>
-            </Card>
-          </div>
-        </DelayedLoaderGate>
+      <div className="min-h-screen bg-background p-6 flex justify-center items-center">
+        <p className="text-muted-foreground">Loading settings...</p>
       </div>
     );
   }

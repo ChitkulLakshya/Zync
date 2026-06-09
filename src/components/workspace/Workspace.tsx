@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FolderGit2, Plus, ArrowRight, Calendar, User, Trash2, Pin, FileText, Search, Github, CheckSquare, Loader2 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
@@ -22,7 +23,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useProjects, useProjectMutations } from "@/hooks/useProjects";
 import { usePinnedNotes } from "@/hooks/useNotes";
 import TaskAssignmentDrawer from "@/components/workspace/TaskAssignmentDrawer";
-import { Skeleton } from "boneyard-js/react";
 
 interface Project {
   _id?: string;
@@ -488,8 +488,10 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     };
   };
 
+  if (loading) {
+    return <div className="p-8 text-sm text-muted-foreground flex items-center justify-center h-full">Loading workspace...</div>;
+  }
   return (
-    <Skeleton name="workspace-project-card" loading={loading}>
     <div className="flex-1 p-8 h-full">
       <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
@@ -847,7 +849,6 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         isInvitingCollaborator={invitingCollaborator}
       />
     </div>
-    </Skeleton>
   );
 };
 

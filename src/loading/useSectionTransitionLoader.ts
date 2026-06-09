@@ -2,7 +2,6 @@ import { useState, useCallback, useRef } from "react";
 
 export function useSectionTransitionLoader(_scope: string = "default") {
   const [showCompactSpinner, setShowCompactSpinner] = useState(false);
-  const [showSectionSkeleton, setShowSectionSkeleton] = useState(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const beginTransition = useCallback((_transition: string) => {
@@ -13,18 +12,15 @@ export function useSectionTransitionLoader(_scope: string = "default") {
 
     // Set loading state
     setShowCompactSpinner(true);
-    setShowSectionSkeleton(true);
 
     // Mimic the loading duration (e.g. 500ms) then fade out/complete loading
     timeoutRef.current = setTimeout(() => {
       setShowCompactSpinner(false);
-      setShowSectionSkeleton(false);
     }, 500);
   }, []);
 
   return {
     beginTransition,
     showCompactSpinner,
-    showSectionSkeleton,
   };
 }

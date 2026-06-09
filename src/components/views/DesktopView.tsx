@@ -113,7 +113,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const {
     beginTransition,
     showCompactSpinner,
-    showSectionSkeleton,
   } = useSectionTransitionLoader("desktop");
 
   const sidebarRef = useRef<ImperativePanelHandle>(null);
@@ -1014,19 +1013,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 className="flex-1 overflow-y-auto relative z-10 w-full bg-transparent hover:overflow-y-overlay custom-scrollbar"
               >
                 {(isExiting || !isLanding) && renderActiveView()}
-                {showSectionSkeleton && (
-                  <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px] p-6 md:p-8 pointer-events-none">
-                    <div className="space-y-4 animate-pulse">
-                      <div className="h-8 w-64 rounded-md bg-zinc-800/90" />
-                      <div className="h-24 w-full rounded-xl bg-zinc-800/80" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="h-36 rounded-xl bg-zinc-800/80" />
-                        <div className="h-36 rounded-xl bg-zinc-800/80" />
-                        <div className="h-36 rounded-xl bg-zinc-800/80" />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

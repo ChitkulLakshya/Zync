@@ -77,12 +77,7 @@ const DesignCard = ({ item }: { item: any }) => {
   );
 };
 
-const SkeletonCard = () => (
-  <div className="break-inside-avoid mb-6">
-    <div className="w-full pb-[75%] bg-secondary/30 animate-pulse rounded-md" />
-    <div className="mt-3 h-4 w-2/3 bg-secondary/30 animate-pulse rounded" />
-  </div>
-);
+
 
 
 const DesignView = () => {
@@ -193,10 +188,9 @@ const DesignView = () => {
       <div className="px-6 md:px-10 pb-20 max-w-[1800px] mx-auto">
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
 
-          {/* Loading skeletons */}
-          {loading && items.length === 0 && Array.from({ length: 12 }).map((_, i) => (
-            <SkeletonCard key={`skel-${i}`} />
-          ))}
+          {loading && items.length === 0 && (
+            <div className="p-8 text-center text-muted-foreground w-full">Loading inspiration...</div>
+          )}
 
           {/* Actual Items */}
           {items
