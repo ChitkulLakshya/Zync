@@ -710,7 +710,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
         {selectedNote && user ? (
           <>
             {/* Slim Sticky Top Bar */}
-            <div className="h-12 shrink-0 sticky top-0 z-10 flex items-center justify-between px-4 border-b border-white/10 backdrop-blur-md bg-white/[0.04]">
+            <div className="h-12 shrink-0 sticky top-0 z-10 flex items-center justify-between px-4 border-b border-border/10 backdrop-blur-md bg-secondary/10">
               {/* Breadcrumbs */}
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
                 {breadcrumb.map((part, i) => (
@@ -743,7 +743,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                         <div
                           key={activeUser.id}
                           className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white border-2 border-black",
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-foreground border-2 border-background",
                             index > 0 && "-ml-2"
                           )}
                           style={{ backgroundColor: activeUser.color, zIndex: 5 - index }}
@@ -763,7 +763,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     })}
                     {activeUsers.length > 5 && (
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-muted text-muted-foreground border-2 border-black -ml-2"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-secondary/50 text-foreground border-2 border-background -ml-2"
                         style={{ zIndex: 0 }}
                       >
                         +{activeUsers.length - 5}

@@ -60,9 +60,9 @@ const ToolbarButton: React.FC<{
           disabled={disabled}
           className={cn(
             "p-2 rounded-md transition-all duration-150",
-            "hover:bg-zinc-700/50 active:scale-95",
+            "hover:bg-secondary/50 active:scale-95",
             "disabled:opacity-40 disabled:cursor-not-allowed",
-            isActive && "bg-zinc-700 text-white"
+            isActive && "bg-secondary text-foreground"
           )}
         >
           {icon}
@@ -77,7 +77,7 @@ const ToolbarButton: React.FC<{
 
 
 const ToolbarDivider = () => (
-  <div className="w-px h-6 bg-zinc-700 mx-1" />
+  <div className="w-px h-6 bg-border/10 mx-1" />
 );
 
 const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTask, onAddTask }) => {
@@ -169,19 +169,19 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTa
       className={cn(
         "sticky top-0 z-50",
         "flex items-center gap-0.5 px-4 py-2",
-        "backdrop-blur-md bg-zinc-950/80",
-        "border-b border-zinc-800",
+        "backdrop-blur-md bg-background/80",
+        "border-b border-border/10",
         className
       )}
     >
       {}
       <ToolbarButton
-        icon={<Undo2 size={16} className="text-zinc-400" />}
+        icon={<Undo2 size={16} className="text-muted-foreground" />}
         tooltip="Undo (Ctrl+Z)"
         onClick={() => editor.undo()}
       />
       <ToolbarButton
-        icon={<Redo2 size={16} className="text-zinc-400" />}
+        icon={<Redo2 size={16} className="text-muted-foreground" />}
         tooltip="Redo (Ctrl+Y)"
         onClick={() => editor.redo()}
       />
@@ -190,31 +190,31 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTa
 
       {}
       <ToolbarButton
-        icon={<Bold size={16} className={cn(activeStyles.bold ? "text-white" : "text-zinc-400")} />}
+        icon={<Bold size={16} className={cn(activeStyles.bold ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Bold (Ctrl+B)"
         onClick={toggleBold}
         isActive={!!activeStyles.bold}
       />
       <ToolbarButton
-        icon={<Italic size={16} className={cn(activeStyles.italic ? "text-white" : "text-zinc-400")} />}
+        icon={<Italic size={16} className={cn(activeStyles.italic ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Italic (Ctrl+I)"
         onClick={toggleItalic}
         isActive={!!activeStyles.italic}
       />
       <ToolbarButton
-        icon={<Underline size={16} className={cn(activeStyles.underline ? "text-white" : "text-zinc-400")} />}
+        icon={<Underline size={16} className={cn(activeStyles.underline ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Underline (Ctrl+U)"
         onClick={toggleUnderline}
         isActive={!!activeStyles.underline}
       />
       <ToolbarButton
-        icon={<Strikethrough size={16} className={cn(activeStyles.strike ? "text-white" : "text-zinc-400")} />}
+        icon={<Strikethrough size={16} className={cn(activeStyles.strike ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Strikethrough"
         onClick={toggleStrike}
         isActive={!!activeStyles.strike}
       />
       <ToolbarButton
-        icon={<Code size={16} className={cn(activeStyles.code ? "text-white" : "text-zinc-400")} />}
+        icon={<Code size={16} className={cn(activeStyles.code ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Inline Code"
         onClick={toggleCode}
         isActive={!!activeStyles.code}
@@ -224,17 +224,17 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTa
 
       {}
       <ToolbarButton
-        icon={<Heading1 size={16} className={cn(currentBlockType === "heading" ? "text-white" : "text-zinc-400")} />}
+        icon={<Heading1 size={16} className={cn(currentBlockType === "heading" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Heading 1"
         onClick={setHeading1}
       />
       <ToolbarButton
-        icon={<Heading2 size={16} className="text-zinc-400" />}
+        icon={<Heading2 size={16} className="text-muted-foreground" />}
         tooltip="Heading 2"
         onClick={setHeading2}
       />
       <ToolbarButton
-        icon={<Heading3 size={16} className="text-zinc-400" />}
+        icon={<Heading3 size={16} className="text-muted-foreground" />}
         tooltip="Heading 3"
         onClick={setHeading3}
       />
@@ -243,19 +243,19 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTa
 
       {}
       <ToolbarButton
-        icon={<List size={16} className={cn(currentBlockType === "bulletListItem" ? "text-white" : "text-zinc-400")} />}
+        icon={<List size={16} className={cn(currentBlockType === "bulletListItem" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Bullet List"
         onClick={setBulletList}
         isActive={currentBlockType === "bulletListItem"}
       />
       <ToolbarButton
-        icon={<ListOrdered size={16} className={cn(currentBlockType === "numberedListItem" ? "text-white" : "text-zinc-400")} />}
+        icon={<ListOrdered size={16} className={cn(currentBlockType === "numberedListItem" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Numbered List"
         onClick={setNumberedList}
         isActive={currentBlockType === "numberedListItem"}
       />
       <ToolbarButton
-        icon={<CheckSquare size={16} className={cn(currentBlockType === "checkListItem" ? "text-white" : "text-zinc-400")} />}
+        icon={<CheckSquare size={16} className={cn(currentBlockType === "checkListItem" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Checklist"
         onClick={setCheckList}
         isActive={currentBlockType === "checkListItem"}
@@ -267,14 +267,14 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTa
           <ToolbarDivider />
           {onLinkTask && (
             <ToolbarButton
-              icon={<Link size={16} className="text-zinc-400" />}
+              icon={<Link size={16} className="text-muted-foreground" />}
               tooltip="Search and Link Existing Task"
               onClick={onLinkTask}
             />
           )}
           {onAddTask && (
             <ToolbarButton
-              icon={<Plus size={16} className="text-zinc-400" />}
+              icon={<Plus size={16} className="text-muted-foreground" />}
               tooltip="Create Task from Selection"
               onClick={onAddTask}
             />

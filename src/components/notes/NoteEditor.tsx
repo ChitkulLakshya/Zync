@@ -261,7 +261,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
       )}
 
       <div className="flex-1 overflow-y-auto bg-transparent scrollbar-thin">
-        <div className="max-w-4xl mx-auto min-h-screen bg-white/[0.04] border-x border-white/12 backdrop-blur-md shadow-none">
+        <div className="max-w-4xl mx-auto min-h-screen bg-secondary/5 border-x border-border/10 backdrop-blur-md shadow-none">
           <div className="px-16 py-12">
             <EditorHeader
               note={note}
@@ -274,7 +274,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
             />
 
             <div
-              className="prose prose-invert prose-zinc max-w-none prose-headings:text-zinc-100 prose-p:text-zinc-300 prose-a:text-indigo-400 prose-lg"
+              className="prose dark:prose-invert prose-neutral max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-lg"
               onClick={handleBlockFocus}
               onKeyUp={handleBlockFocus}
             >
