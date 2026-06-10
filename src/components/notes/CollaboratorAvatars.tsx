@@ -93,10 +93,10 @@ export const CollaboratorAvatars: React.FC<CollaboratorAvatarsProps> = ({
             <Tooltip>
               <TooltipTrigger asChild>
                 <div
-                  className={`${styles.avatar} rounded-full border-2 border-background bg-muted flex items-center justify-center cursor-default`}
+                  className={`${styles.avatar} rounded-full border-2 border-background bg-secondary/50 flex items-center justify-center cursor-default`}
                   style={{ zIndex: 0 }}
                 >
-                  <span className={`${styles.text} font-semibold text-muted-foreground`}>
+                  <span className={`${styles.text} font-semibold text-foreground`}>
                     +{remainingCount}
                   </span>
                 </div>

@@ -48,11 +48,11 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
   };
 
   return (
-    <div className="min-h-[100dvh] w-full bg-gradient-to-b from-background via-background to-muted/40 px-4 py-6">
+    <div className="min-h-[100dvh] w-full bg-background px-4 py-6">
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-md items-center justify-center">
-        <Card className="w-full border-border/60 bg-card/90 shadow-xl backdrop-blur">
+        <Card className="w-full border-border/10 bg-card/50 shadow-none backdrop-blur-xl">
           <CardHeader className="space-y-3 text-center">
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground/10 text-foreground">
               <Smartphone className="h-6 w-6" />
             </div>
             <div className="space-y-2">
@@ -68,23 +68,23 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
 
           <CardContent className="space-y-4">
             {isIOS && (
-              <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <div className="rounded-xl border border-border/10 bg-card/50 p-4">
                 <p className="mb-3 text-sm font-medium">On iPhone/iPad:</p>
                 <ol className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
-                    <span className="mt-0.5 text-primary">
+                    <span className="mt-0.5 text-foreground">
                       <Share2 className="h-4 w-4" />
                     </span>
                     <span>Tap the Share button in Safari.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="mt-0.5 text-primary">
+                    <span className="mt-0.5 text-foreground">
                       <Download className="h-4 w-4" />
                     </span>
                     <span>Select <strong>Add to Home Screen</strong>.</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="mt-0.5 text-primary">
+                    <span className="mt-0.5 text-foreground">
                       <CheckCircle2 className="h-4 w-4" />
                     </span>
                     <span>Open {appName} from your home screen.</span>
@@ -94,7 +94,7 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
             )}
 
             {!isIOS && (
-              <div className="rounded-xl border border-border/60 bg-muted/40 p-4">
+              <div className="rounded-xl border border-border/10 bg-card/50 p-4">
                 <p className="mb-2 text-sm font-medium">Android install</p>
                 <p className="text-sm text-muted-foreground">
                   Tap install to add {appName} to your home screen and launch it in app mode.

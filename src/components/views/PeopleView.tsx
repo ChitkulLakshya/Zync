@@ -282,7 +282,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                 {}
                 <div
                     ref={sidebarRef}
-                    className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/50 supports-[backdrop-filter]:bg-background/60 z-[60]")}
+                    className={cn("relative h-full shrink-0 group/sidebar bg-background/50 backdrop-blur-xl border-r border-border/10 z-[60]")}
                     style={{ width: isCollapsed ? 64 : sidebarWidth }}
                 >
                     <div
@@ -308,11 +308,11 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             }
                         }}
                     >
-                        <div className={cn("p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-secondary/30 border-border/50", effectiveCollapsed ? "justify-center" : "justify-between")}>
+                        <div className={cn("p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-card/50 border-border/10", effectiveCollapsed ? "justify-center" : "justify-between")}>
                             {!effectiveCollapsed && <span className="font-semibold text-sm tracking-wide font-serif-elegant text-foreground truncate">Manage Teams</span>}
 
                             <div className="flex items-center gap-1">
-                                <button onClick={toggleCollapse} className="p-1 rounded hover:bg-black/5 text-gray-500 hover:text-black dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white" title={isCollapsed ? "Expand" : "Collapse"}>
+                                <button onClick={toggleCollapse} className="p-1 rounded hover:bg-foreground/5 text-muted-foreground hover:text-foreground" title={isCollapsed ? "Expand" : "Collapse"}>
                                     {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
                                 </button>
                             </div>
@@ -321,10 +321,10 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                         <div className="flex-1 flex flex-col min-h-0">
                             {}
                             <div className="flex-1 overflow-y-auto p-2 scrollbar-hide space-y-1">
-                                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70 mt-4">
+                                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground mt-4">
                                     {!effectiveCollapsed && "My Team"}
                                 </div>
-                                {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
+                                {effectiveCollapsed && <div className="h-px bg-border/10 w-8 mx-auto my-2" />}
 
                                 <div className="space-y-1">
                                     {myTeams.map((team) => (
@@ -342,8 +342,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                         "flex items-center rounded-md transition-all cursor-pointer select-none border border-transparent",
                                                         effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
                                                         teamInfo?.id === team.id
-                                                            ? "bg-secondary/80 text-foreground border-border/50 shadow-sm"
-                                                            : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+                                                            ? "bg-card/50 backdrop-blur-sm text-foreground border-border/10 shadow-sm"
+                                                            : "text-muted-foreground hover:bg-card/50 hover:text-foreground"
                                                     )}
                                                 >
                                                     <span
@@ -363,7 +363,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                     {effectiveCollapsed && <span className="text-xs font-bold">{team.name.substring(0, 2).toUpperCase()}</span>}
 
                                                     {!effectiveCollapsed && teamInfo?.id === team.id && (
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-primary ml-2" />
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-foreground ml-2" />
                                                     )}
                                                 </div>
                                             );
@@ -379,13 +379,13 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             </div>
 
                             {}
-                            <div className="flex-1 overflow-y-auto p-2 scrollbar-hide border-t border-border/20">
-                                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70 flex justify-between items-center group/section mt-2">
+                            <div className="flex-1 overflow-y-auto p-2 scrollbar-hide border-t border-border/10">
+                                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground flex justify-between items-center group/section mt-2">
                                     {!effectiveCollapsed && <span>Close Friends</span>}
                                     {!effectiveCollapsed && (
                                         <Dialog>
                                             <DialogTrigger asChild>
-                                                <button className="text-primary hover:text-primary/80 opacity-0 group-hover/section:opacity-100 transition-opacity p-0.5 rounded hover:bg-secondary">
+                                                <button className="text-foreground hover:text-foreground/80 opacity-0 group-hover/section:opacity-100 transition-opacity p-0.5 rounded hover:bg-foreground/5">
                                                     <Plus className="w-3.5 h-3.5" />
                                                 </button>
                                             </DialogTrigger>
@@ -398,7 +398,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                     {allKnownUsers.filter(u => u.uid !== currentUser?.uid).map(user => {
                                                         const isSelected = localCloseFriendsIds.includes(user.uid);
                                                         return (
-                                                            <div key={user.uid} className="flex items-center justify-between p-2 rounded-lg hover:bg-secondary/20 border border-transparent hover:border-border/30 transition-colors">
+                                                            <div key={user.uid} className="flex items-center justify-between p-2 rounded-lg hover:bg-card/50 border border-transparent hover:border-border/10 transition-colors">
                                                                 <div className="flex items-center gap-3 overflow-hidden">
                                                                     <Avatar className="w-8 h-8 shrink-0">
                                                                         <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer" />
@@ -412,8 +412,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                                 <button
                                                                     onClick={() => toggleCloseFriend(user.uid)}
                                                                     className={cn("p-1.5 rounded-full transition-all shrink-0 ml-2", isSelected
-                                                                        ? 'bg-primary text-primary-foreground hover:opacity-90'
-                                                                        : 'bg-secondary hover:bg-secondary/80 text-muted-foreground')}
+                                                                        ? 'bg-foreground text-background hover:opacity-90'
+                                                                        : 'bg-card/50 border border-border/10 hover:bg-card/80 text-foreground')}
                                                                 >
                                                                     {isSelected ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
                                                                 </button>
@@ -428,7 +428,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                         </Dialog>
                                     )}
                                 </div>
-                                {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
+                                {effectiveCollapsed && <div className="h-px bg-border/10 w-8 mx-auto my-2" />}
 
                                 <div className="space-y-1">
                                     {closeFriendUsers.map((friend) => (
@@ -439,7 +439,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                 effectiveCollapsed ? "justify-center px-0 py-2" : "px-2 py-1.5 text-sm",
 
 
-                                                "text-white hover:bg-secondary/50"
+                                                "text-foreground hover:bg-card/50 border-border/10"
                                             )}
                                         >
                                             <div className="relative shrink-0">
@@ -473,7 +473,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                     {}
                     {!isCollapsed && (
                         <div
-                            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-indigo-500/50 hover:w-1.5 transition-all z-20"
+                            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-foreground/10 hover:w-1.5 transition-all z-20"
                             onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
                         />
                     )}
@@ -483,15 +483,15 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                 <div className="flex-1 relative flex flex-col overflow-hidden">
                     {}
                     <div className="flex justify-end p-6 md:pl-8 pb-0 shrink-0 z-10">
-                        <Button className="gap-2 text-white" style={{ backgroundColor: "#0275F6" }} onClick={() => setShowMessages(true)}>
+                        <Button className="gap-2 bg-foreground text-background hover:bg-foreground/90 border border-border/10" onClick={() => setShowMessages(true)}>
                             <MessageSquare className="w-4 h-4" />
                             All Messages
                         </Button>
                     </div>
 
-                    <div className="flex-1 w-full overflow-y-auto p-6 md:pl-8 pt-4 space-y-8">
-
-                        <div className="space-y-4">
+                    <div className="flex-1 w-full overflow-y-auto">
+                        <div className="max-w-7xl mx-auto w-full p-6 md:pl-8 pt-4 space-y-8">
+                            <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-sm text-muted-foreground mb-1">Team Owner</h3>
@@ -526,7 +526,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                         {}
                                         <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
                                             <DialogTrigger asChild>
-                                                <Button size="icon" className="rounded-full h-8 w-8 text-white shadow-md" style={{ backgroundColor: "#0275F6" }}>
+                                                <Button size="icon" className="rounded-full h-8 w-8 bg-foreground text-background hover:bg-foreground/90 shadow-none">
                                                     <Plus className="h-4 w-4" />
                                                 </Button>
                                             </DialogTrigger>
@@ -593,8 +593,8 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                 </div>
                             </div>
 
-                            <div className="border rounded-xl bg-white/5 backdrop-blur-md p-6 shadow-sm border-white/10 relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-primary/10 transition-colors duration-500" />
+                            <div className="border border-border/10 rounded-2xl bg-card/50 backdrop-blur-md p-6 shadow-sm relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-foreground/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-foreground/10 transition-colors duration-500" />
 
                                 <div className="relative z-10">
                                     {teamInfo && (() => {
@@ -623,15 +623,15 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                             <div className="flex flex-col sm:flex-row sm:items-center gap-2">
                                                 <span>Invite Code:</span>
                                                 <div
-                                                    className="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-md border border-white/10 cursor-pointer hover:border-primary/50 transition-colors group/code"
+                                                    className="flex items-center gap-2 bg-card/50 px-3 py-1.5 rounded-md border border-border/10 cursor-pointer hover:border-border/30 backdrop-blur-sm transition-colors group/code"
                                                     onClick={() => {
                                                         navigator.clipboard.writeText(teamInfo.inviteCode);
                                                         toast({ description: "Invite code copied to clipboard" });
                                                     }}
                                                 >
-                                                    <code className="font-mono font-bold tracking-wider text-primary">{teamInfo.inviteCode}</code>
-                                                    <div className="bg-primary/10 p-1 rounded-md ml-1 group-hover/code:bg-primary/20 transition-colors">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
+                                                    <code className="font-mono font-bold tracking-wider text-foreground">{teamInfo.inviteCode}</code>
+                                                    <div className="bg-foreground/10 p-1 rounded-md ml-1 group-hover/code:bg-foreground/20 transition-colors">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-foreground"><rect width="14" height="14" x="8" y="8" rx="2" ry="2" /><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" /></svg>
                                                     </div>
                                                 </div>
                                             </div>
@@ -650,17 +650,17 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             {loading ? (
                                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                                        <div key={i} className="flex flex-row items-center p-4 gap-4 h-24 border rounded-xl bg-secondary/20 animate-pulse">
-                                            <div className="h-14 w-14 rounded-full bg-secondary/50" />
+                                        <div key={i} className="flex flex-row items-center p-4 gap-4 h-24 border border-border/10 rounded-2xl bg-card/50 backdrop-blur-sm animate-pulse">
+                                            <div className="h-14 w-14 rounded-full bg-card/80" />
                                             <div className="space-y-2 flex-1">
-                                                <div className="h-4 w-1/3 bg-secondary/50 rounded" />
-                                                <div className="h-3 w-1/2 bg-secondary/30 rounded" />
+                                                <div className="h-4 w-1/3 bg-card/80 rounded" />
+                                                <div className="h-3 w-1/2 bg-card rounded" />
                                             </div>
                                         </div>
                                     ))}
                                 </div>
                             ) : users.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center p-12 border rounded-lg border-dashed bg-muted/10 text-center">
+                                <div className="flex flex-col items-center justify-center p-12 border border-border/10 rounded-2xl border-dashed bg-card/50 backdrop-blur-md text-center">
                                     <div className="bg-muted p-4 rounded-full mb-3">
                                         <Plus className="h-6 w-6 text-muted-foreground" />
                                     </div>
@@ -707,28 +707,28 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                         return (
                                             <Card
                                                 key={user.uid || user.id}
-                                                className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border-white/10 bg-white/5 backdrop-blur-md overflow-hidden relative animate-fade-in-up opacity-0"
+                                                className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl overflow-hidden relative animate-fade-in-up opacity-0"
                                                 style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'forwards' }}
                                             >
                                                 {}
-                                                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/5 to-primary/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                                                <div className="absolute inset-0 bg-gradient-to-r from-foreground/0 via-foreground/5 to-foreground/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
 
                                                 <div className="relative shrink-0">
-                                                    <Avatar className="h-14 w-14 border-2 border-background ring-2 ring-border/20 group-hover:ring-primary/20 transition-all">
+                                                    <Avatar className="h-14 w-14 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
                                                         <AvatarImage src={getFullUrl(user.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
-                                                        <AvatarFallback className="bg-primary/5 text-primary font-bold">{getUserInitials(user)}</AvatarFallback>
+                                                        <AvatarFallback className="bg-muted text-foreground font-bold">{getUserInitials(user)}</AvatarFallback>
                                                     </Avatar>
-                                                    <span className={cn("absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background shadow-sm",
-                                                        status === "online" ? "bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.4)]" :
+                                                    <span className={cn("absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background shadow-none",
+                                                        status === "online" ? "bg-green-500" :
                                                             status === "away" ? "bg-amber-500" : "bg-slate-300 dark:bg-slate-600"
                                                     )} />
                                                 </div>
 
                                                 <div className="flex-1 min-w-0 text-left z-10">
                                                     <div className="flex items-center justify-between">
-                                                        <h4 className="font-bold truncate text-base group-hover:text-primary transition-colors">{displayName}</h4>
+                                                        <h4 className="font-bold truncate text-base group-hover:text-foreground transition-colors">{displayName}</h4>
                                                         <Button size="icon" variant="ghost" className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity -mr-2" onClick={() => onChat(user)}>
-                                                            <MessageSquare className="w-4 h-4 text-primary" />
+                                                            <MessageSquare className="w-4 h-4 text-foreground" />
                                                         </Button>
                                                     </div>
                                                     <p className="text-xs text-muted-foreground truncate font-medium opacity-80">{user.email}</p>
@@ -736,7 +736,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                     <div className="flex items-center gap-2 mt-3">
                                                         <Badge variant="secondary" className={cn("text-[10px] px-2 h-5 font-medium capitalize border-0",
                                                             status === 'online' ? "bg-green-500/10 text-green-600 dark:text-green-400" :
-                                                                "bg-secondary text-muted-foreground"
+                                                                "bg-card/50 border border-border/10 text-muted-foreground"
                                                         )}>
                                                             {statusText}
                                                         </Badge>
@@ -744,7 +744,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                                                             const localTime = formatLocalTime(user.timezone);
                                                             if (!localTime) { return null; }
                                                             return (
-                                                                <Badge variant="outline" className="text-[10px] px-2 h-5 font-medium border-border/50 text-muted-foreground gap-1">
+                                                                <Badge variant="outline" className="text-[10px] px-2 h-5 font-medium border-border/10 bg-transparent text-muted-foreground gap-1">
                                                                     <Clock className="w-2.5 h-2.5" />
                                                                     {localTime}
                                                                 </Badge>
@@ -759,10 +759,11 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             )}
                         </div>
                     </div>
+                </div>
 
                     {}
                     <div className={cn(
-                        "absolute inset-0 bg-background z-50 transition-transform duration-300 ease-in-out will-change-transform shadow-2xl",
+                        "absolute inset-0 bg-background/50 backdrop-blur-xl z-50 transition-transform duration-300 ease-in-out will-change-transform shadow-2xl",
                         showMessages ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
                     )}>
                         <MessagesPage
@@ -781,10 +782,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                     <DropdownMenuTrigger asChild>
                         <Button
                             size="icon"
-                            className="h-14 w-14 rounded-full shadow-xl transition-transform hover:scale-105 text-white"
-                            style={{ backgroundColor: "#0275F6" }}
+                            className="h-14 w-14 rounded-full shadow-none transition-transform hover:scale-105 bg-foreground text-background"
                         >
-                            <Plus className="h-6 w-6 text-white" />
+                            <Plus className="h-6 w-6 text-background" />
                         </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="mb-2 w-48">

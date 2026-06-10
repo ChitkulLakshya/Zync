@@ -148,7 +148,7 @@ const NoteListItem: React.FC<{
       >
         <FileText size={14} className={cn(
           "mt-0.5 shrink-0 transition-colors duration-200",
-          isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          isSelected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
         )} />
         <div className="min-w-0 flex-1">
           <p className={cn(
@@ -598,7 +598,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
+              className="flex-1 h-8 text-xs bg-foreground hover:bg-foreground/90 text-background transition-colors duration-200"
               onClick={() => handleCreateNote()}
             >
               <Plus size={14} className="mr-1.5" /> Note
@@ -617,7 +617,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             {/* Shared With Me */}
             {sharedFolders.length > 0 && (
               <div>
-                <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
                   <Users size={10} /> Shared with me
                 </div>
                 {sharedFolders.map(folder => (
@@ -710,7 +710,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
         {selectedNote && user ? (
           <>
             {/* Slim Sticky Top Bar */}
-            <div className="h-12 shrink-0 sticky top-0 z-10 flex items-center justify-between px-4 border-b border-white/10 backdrop-blur-md bg-white/[0.04]">
+            <div className="h-12 shrink-0 sticky top-0 z-10 flex items-center justify-between px-4 border-b border-border/10 backdrop-blur-md bg-secondary/10">
               {/* Breadcrumbs */}
               <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
                 {breadcrumb.map((part, i) => (
@@ -743,7 +743,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                         <div
                           key={activeUser.id}
                           className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-white border-2 border-black",
+                            "w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold text-foreground border-2 border-background",
                             index > 0 && "-ml-2"
                           )}
                           style={{ backgroundColor: activeUser.color, zIndex: 5 - index }}
@@ -763,7 +763,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     })}
                     {activeUsers.length > 5 && (
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-muted text-muted-foreground border-2 border-black -ml-2"
+                        className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold bg-secondary/50 text-foreground border-2 border-background -ml-2"
                         style={{ zIndex: 0 }}
                       >
                         +{activeUsers.length - 5}
@@ -816,7 +816,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             </p>
             <Button
               onClick={() => handleCreateNote()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
+              className="bg-foreground hover:bg-foreground/90 text-background transition-colors duration-200"
             >
               <Plus size={16} className="mr-2" /> Create Note
             </Button>

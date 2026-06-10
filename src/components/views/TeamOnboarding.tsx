@@ -128,7 +128,7 @@ const TeamOnboarding = ({ onSuccess }: TeamOnboardingProps) => {
     };
 
     return (
-        <div className="flex-1 w-full h-full flex flex-col items-center justify-center p-6 bg-background/50 backdrop-blur-sm">
+        <div className="flex-1 w-full h-full flex flex-col items-center justify-center p-6 bg-background/50 backdrop-blur-xl">
             <div className="w-full max-w-2xl space-y-8">
                 <Tabs defaultValue="create" className="w-full">
                     <TabsList className="grid w-full grid-cols-2 mb-8">
@@ -137,7 +137,7 @@ const TeamOnboarding = ({ onSuccess }: TeamOnboardingProps) => {
                     </TabsList>
 
                     <TabsContent value="create">
-                        <Card className="border-none shadow-xl">
+                        <Card className="border-border/10 bg-card/50 backdrop-blur-md shadow-none">
                             <CardHeader>
                                 <CardTitle className="text-2xl">Create a Team</CardTitle>
                                 <CardDescription>
@@ -201,7 +201,7 @@ const TeamOnboarding = ({ onSuccess }: TeamOnboardingProps) => {
                                             <p className="text-sm text-muted-foreground">Only people in this list can access</p>
                                             <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                                                 {}
-                                                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                                                <div className="flex items-center justify-between p-2 rounded-lg hover:bg-foreground/5 text-foreground transition-colors">
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-8 w-8">
                                                             <AvatarImage src={getFullUrl(currentUser?.photoURL)} />
@@ -213,7 +213,7 @@ const TeamOnboarding = ({ onSuccess }: TeamOnboardingProps) => {
 
                                                 {}
                                                 {invites.map((invite, idx) => (
-                                                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg hover:bg-muted/50 transition-colors group">
+                                                    <div key={idx} className="flex items-center justify-between p-2 rounded-lg hover:bg-foreground/5 text-foreground transition-colors group">
                                                         <div className="flex items-center gap-3">
                                                             <Avatar className="h-8 w-8">
                                                                 <AvatarFallback>{invite.email.charAt(0).toUpperCase()}</AvatarFallback>
@@ -240,7 +240,7 @@ const TeamOnboarding = ({ onSuccess }: TeamOnboardingProps) => {
                                 </CardContent>
                                 <CardFooter className="flex justify-end gap-3 pt-6">
                                     <Button type="button" variant="outline" onClick={() => window.location.reload()}>Cancel</Button>
-                                    <Button type="submit" disabled={loading || !teamName} className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px]">
+                                    <Button type="submit" disabled={loading || !teamName} className="bg-foreground text-background hover:bg-foreground/90 min-w-[100px]">
                                         {loading ? "Creating..." : "Add List"}
                                     </Button>
                                 </CardFooter>
@@ -249,7 +249,7 @@ const TeamOnboarding = ({ onSuccess }: TeamOnboardingProps) => {
                     </TabsContent>
 
                     <TabsContent value="join">
-                        <Card className="border-none shadow-xl">
+                        <Card className="border-border/10 bg-card/50 backdrop-blur-md shadow-none">
                             <CardHeader>
                                 <CardTitle>Join an Existing Team</CardTitle>
                                 <CardDescription>

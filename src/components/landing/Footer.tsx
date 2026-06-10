@@ -28,7 +28,7 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-background border-t border-border/50">
+    <footer className="bg-background border-t border-border/10">
       <div className="container mx-auto px-4 py-12 lg:py-16">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
           {}
@@ -37,7 +37,7 @@ const Footer = () => {
               <div className="h-7 w-7 bg-foreground rounded-lg flex items-center justify-center">
                 <span className="text-background font-bold text-sm">Z</span>
               </div>
-              <span className="text-lg font-bold font-serif-elegant text-foreground">Zync</span>
+              <span className="text-lg font-bold  text-foreground">Zync</span>
               <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded uppercase tracking-wider">Beta</span>
             </div>
             <p className="text-muted-foreground text-sm mb-5 max-w-xs leading-relaxed">
@@ -95,7 +95,7 @@ const Footer = () => {
         </div>
 
         {}
-        <div className="pt-8 border-t border-border/50 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-8 border-t border-border/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-muted-foreground">
             © 2026 Zync · Public Beta 1.0
           </p>

@@ -26,7 +26,7 @@ const UserListItem = ({ user, selectedUser, userStatuses, onSelectUser, isPrevie
         <div
             key={user._id || user.id}
             className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${isSelected
-                ? 'bg-primary/5 dark:bg-primary/10'
+                ? 'bg-foreground/5 dark:bg-foreground/10'
                 : 'hover:bg-secondary/40'
                 }`}
             onClick={() => onSelectUser(user)}
@@ -34,7 +34,7 @@ const UserListItem = ({ user, selectedUser, userStatuses, onSelectUser, isPrevie
             <div className="relative shrink-0">
                 <Avatar className="w-12 h-12 ring-2 ring-transparent group-hover:ring-border transition-all">
                     <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer" />
-                    <AvatarFallback className="bg-gradient-to-br from-primary/10 to-primary/5 text-primary">
+                    <AvatarFallback className="bg-gradient-to-br from-foreground/10 to-foreground/5 text-foreground">
                         {user.avatar || getUserInitials(user)}
                     </AvatarFallback>
                 </Avatar>
@@ -52,7 +52,7 @@ const UserListItem = ({ user, selectedUser, userStatuses, onSelectUser, isPrevie
                     </span>
                 </div>
             </div>
-            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-primary shrink-0 mr-1" />}
+            {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-foreground shrink-0 mr-1" />}
         </div>
     );
 };
@@ -119,8 +119,8 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
     return (
         <div className="flex h-full w-full">
             {}
-            <div className="w-80 shrink-0 border-r border-border/40 flex flex-col bg-background">
-                <div className="p-5 flex flex-col gap-4 border-b border-border/40">
+            <div className="w-80 shrink-0 border-r border-border/10 flex flex-col bg-background/50 backdrop-blur-xl">
+                <div className="p-5 flex flex-col gap-4 border-b border-border/10">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold tracking-tight">Messages</h2>
                         <MessageSquare className="w-5 h-5 opacity-70" />
@@ -128,8 +128,8 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
                         <Input
+                            className="pl-9 bg-card/50 backdrop-blur-md border border-border/10 focus-visible:ring-1 focus-visible:ring-foreground/20 rounded-xl h-10"
                             placeholder="Search..."
-                            className="pl-9 bg-secondary/30 border-none focus-visible:ring-1 focus-visible:ring-primary/20 rounded-xl h-10"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -207,7 +207,7 @@ const ChatLayout = ({ users, selectedUser, userStatuses, onSelectUser, isPreview
                                                             <button
                                                                 onClick={() => toggleCloseFriend(user.uid)}
                                                                 className={`p-1.5 rounded-full transition-colors ${isSelected
-                                                                    ? 'bg-primary text-primary-foreground hover:opacity-90'
+                                                                    ? 'bg-foreground text-background hover:opacity-90'
                                                                     : 'bg-secondary hover:bg-secondary/80 text-muted-foreground'}`}
                                                             >
                                                                 {isSelected ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}

@@ -13,7 +13,7 @@
 
 .rbc-toolbar button {
     color: hsl(var(--foreground));
-    border: 1px solid hsl(var(--border));
+    border: 1px solid hsl(var(--border) / 0.1);
     background-color: transparent;
     padding: 0.5rem 1rem;
     border-radius: var(--radius);
@@ -75,25 +75,25 @@
     padding: 10px 0;
     font-weight: 600;
     color: hsl(var(--muted-foreground));
-    border-bottom: 1px solid hsl(var(--border)) !important;
+    border-bottom: 1px solid hsl(var(--border) / 0.1) !important;
 }
 
 .rbc-header+.rbc-header {
-    border-left: 1px solid hsl(var(--border)) !important;
+    border-left: 1px solid hsl(var(--border) / 0.1) !important;
 }
 
 .rbc-month-view {
-    border: 1px solid hsl(var(--border));
+    border: 1px solid hsl(var(--border) / 0.1);
     border-radius: var(--radius);
-    background-color: hsl(var(--card));
+    background-color: transparent;
 }
 
 .rbc-month-row+.rbc-month-row {
-    border-top: 1px solid hsl(var(--border));
+    border-top: 1px solid hsl(var(--border) / 0.1);
 }
 
 .rbc-day-bg+.rbc-day-bg {
-    border-left: 1px solid hsl(var(--border));
+    border-left: 1px solid hsl(var(--border) / 0.1);
 }
 
 
@@ -139,12 +139,12 @@
 
 
 .rbc-agenda-view table.rbc-agenda-table {
-    border: 1px solid hsl(var(--border));
-    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border) / 0.1);
+    background-color: transparent;
 }
 
 .rbc-agenda-view table.rbc-agenda-table tbody>tr>td {
-    border-top: 1px solid hsl(var(--border));
+    border-top: 1px solid hsl(var(--border) / 0.1);
     padding: 10px;
 }
 
@@ -163,17 +163,17 @@
 
 
 .rbc-time-view {
-    border: 1px solid hsl(var(--border));
+    border: 1px solid hsl(var(--border) / 0.1);
     border-radius: var(--radius);
-    background-color: hsl(var(--card));
+    background-color: transparent;
 }
 
 .rbc-timeslot-group {
-    border-bottom: 1px solid hsl(var(--border));
+    border-bottom: 1px solid hsl(var(--border) / 0.1);
 }
 
 .rbc-time-content {
-    border-top: 1px solid hsl(var(--border));
+    border-top: 1px solid hsl(var(--border) / 0.1);
 }
 
 .rbc-day-slot .rbc-time-slot {

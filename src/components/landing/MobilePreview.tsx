@@ -68,8 +68,8 @@ const MobilePreview = () => {
             <div className="h-[64px] w-[3px] bg-gray-800 absolute -right-[17px] top-[142px] rounded-r-lg"></div>
             <div className="rounded-[2rem] overflow-hidden w-full h-full bg-background flex flex-col relative">
 
-                {}
-                <header className="flex items-center justify-between px-4 py-2 border-b border-border/40 bg-background">
+                {/* Header */}
+                <header className="flex items-center justify-between px-4 py-2 border-b border-border/10 bg-background/60 backdrop-blur-md">
                     <div className="flex items-center">
                         <img
                             src="/zync-dark.webp"
@@ -77,8 +77,8 @@ const MobilePreview = () => {
                             className="h-8 w-auto rounded-lg"
                         />
                     </div>
-                    <Avatar className="w-6 h-6">
-                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">YU</AvatarFallback>
+                    <Avatar className="w-6 h-6 border-0">
+                        <AvatarFallback className="text-[10px] bg-foreground text-background">YU</AvatarFallback>
                     </Avatar>
                 </header>
 
@@ -97,11 +97,10 @@ const MobilePreview = () => {
                                 </Button>
                             </div>
 
-                            {}
                             {mockProjects.map(project => (
                                 <Card
                                     key={project.id}
-                                    className="border-l-4 border-l-primary"
+                                    className="bg-secondary/5 border-border/10 rounded-2xl overflow-hidden"
                                 >
                                     <CardHeader className="p-3 pb-2">
                                         <div className="flex justify-between items-start">
@@ -131,10 +130,10 @@ const MobilePreview = () => {
                                             </div>
                                         )}
                                     </CardContent>
-                                    <CardFooter className="p-2 pt-1.5 border-t bg-secondary/10">
+                                    <CardFooter className="p-2 pt-1.5 border-t border-border/10 bg-secondary/5">
                                         <Button
                                             variant="ghost"
-                                            className="flex-1 justify-between hover:bg-transparent px-0 text-primary h-4 text-[8px]"
+                                            className="flex-1 justify-between hover:bg-transparent px-0 text-foreground h-4 text-[8px]"
                                         >
                                             View Architecture
                                             <ArrowRight className="w-2.5 h-2.5" />
@@ -149,13 +148,13 @@ const MobilePreview = () => {
                         <div className="p-3 space-y-3">
                             <h2 className="text-sm font-bold text-foreground">People</h2>
                             {mockPeople.map(person => (
-                                <Card key={person.id} className="p-2.5">
+                                <Card key={person.id} className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl">
                                     <div className="flex items-center gap-2.5">
                                         <div className="relative">
                                             <Avatar className="w-8 h-8">
-                                                <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{person.avatar}</AvatarFallback>
+                                                <AvatarFallback className="text-[9px] bg-foreground/5 text-foreground">{person.avatar}</AvatarFallback>
                                             </Avatar>
-                                            <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-card ${person.status === "online" ? "bg-task-green" : "bg-task-yellow"
+                                            <div className={`absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-background ${person.status === "online" ? "bg-task-green" : "bg-task-yellow"
                                                 }`} />
                                         </div>
                                         <div className="flex-1">
@@ -174,7 +173,7 @@ const MobilePreview = () => {
                     {activeTab === "calendar" && (
                         <div className="p-3 space-y-3">
                             <h2 className="text-sm font-bold text-foreground">January 2026</h2>
-                            <Card className="p-2.5">
+                            <Card className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl">
                                 <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
                                     {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                                         <div key={i} className="text-[8px] text-muted-foreground font-medium py-0.5">{d}</div>
@@ -189,7 +188,7 @@ const MobilePreview = () => {
                                             <div
                                                 key={i}
                                                 className={`aspect-square flex flex-col items-center justify-center rounded text-[9px] ${day < 1 || day > 31 ? "text-muted-foreground/20" :
-                                                    isToday ? "bg-primary text-primary-foreground font-medium" :
+                                                    isToday ? "bg-primary text-foreground-foreground font-medium" :
                                                         "text-foreground"
                                                     }`}
                                             >
@@ -204,9 +203,12 @@ const MobilePreview = () => {
                                     })}
                                 </div>
                             </Card>
-                            <Card className="p-2.5 border-l-2 border-l-task-orange">
-                                <div className="text-[10px] font-medium text-foreground">Sprint Planning</div>
-                                <div className="text-[8px] text-muted-foreground">Jan 22 · 10:00 AM</div>
+                            <Card className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl flex items-center gap-3">
+                                <div className="w-1 h-8 bg-task-orange rounded-full" />
+                                <div>
+                                    <div className="text-[10px] font-medium text-foreground">Sprint Planning</div>
+                                    <div className="text-[8px] text-muted-foreground">Jan 22 · 10:00 AM</div>
+                                </div>
                             </Card>
                         </div>
                     )}
@@ -220,9 +222,9 @@ const MobilePreview = () => {
                                 </Button>
                             </div>
                             {mockNotes.map(note => (
-                                <Card key={note.id} className="p-2.5">
+                                <Card key={note.id} className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl">
                                     <div className="flex items-center gap-2">
-                                        <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center text-primary">
+                                        <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center text-foreground border border-border/10">
                                             <FileText className="w-4 h-4" />
                                         </div>
                                         <div className="flex-1">
@@ -239,9 +241,9 @@ const MobilePreview = () => {
                         <div className="p-3 space-y-3">
                             <h2 className="text-sm font-bold text-foreground">My Tasks</h2>
                             {mockTasks.map(task => (
-                                <Card key={task.id} className={`p-2.5 ${task.done ? "opacity-60" : ""}`}>
+                                <Card key={task.id} className={`p-2.5 bg-secondary/5 border-border/10 rounded-2xl ${task.done ? "opacity-60" : ""}`}>
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${task.done ? "bg-task-green border-task-green" : "border-muted-foreground/30"
+                                        <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${task.done ? "bg-foreground border-foreground" : "border-muted-foreground/30"
                                             }`}>
                                             {task.done && <CheckSquare className="w-2 h-2 text-white" />}
                                         </div>
@@ -259,8 +261,8 @@ const MobilePreview = () => {
 
                     {activeTab === "meet" && (
                         <div className="flex flex-col items-center justify-center h-full p-4 text-center">
-                            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-3">
-                                <Video className="w-6 h-6 text-primary" />
+                            <div className="w-12 h-12 bg-secondary/20 border border-border/10 rounded-full flex items-center justify-center mb-3">
+                                <Video className="w-6 h-6 text-foreground" />
                             </div>
                             <h3 className="text-sm font-semibold text-foreground mb-1">Video Meetings</h3>
                             <p className="text-[9px] text-muted-foreground mb-3">Connect with your team</p>
@@ -271,8 +273,8 @@ const MobilePreview = () => {
                     )}
                 </main>
 
-                {}
-                <nav className="absolute bottom-0 left-0 right-0 bg-background/95 backdrop-blur-sm border-t border-border/40 px-2 py-1.5">
+                {/* Bottom Navigation */}
+                <nav className="absolute bottom-0 left-0 right-0 bg-background/80 backdrop-blur-md border-t border-border/10 px-2 py-1.5">
                     <div className="flex items-center justify-between">
                         {[
                             { id: "home", icon: Home, label: "Home" },
@@ -282,7 +284,7 @@ const MobilePreview = () => {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
+                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-foreground" : "text-muted-foreground"
                                     }`}
                             >
                                 <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />
@@ -290,9 +292,8 @@ const MobilePreview = () => {
                             </button>
                         ))}
 
-                        {}
                         <div className="relative -top-3">
-                            <button className="w-9 h-9 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center ring-2 ring-background">
+                            <button className="w-9 h-9 rounded-full bg-foreground text-background shadow-lg flex items-center justify-center ring-2 ring-background">
                                 <Plus className="w-4 h-4" />
                             </button>
                         </div>
@@ -305,7 +306,7 @@ const MobilePreview = () => {
                             <button
                                 key={item.id}
                                 onClick={() => setActiveTab(item.id)}
-                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-primary" : "text-muted-foreground"
+                                className={`flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors ${activeTab === item.id ? "text-foreground" : "text-muted-foreground"
                                     }`}
                             >
                                 <item.icon className="w-4 h-4" strokeWidth={activeTab === item.id ? 2.5 : 2} />

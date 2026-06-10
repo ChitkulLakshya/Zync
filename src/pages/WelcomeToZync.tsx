@@ -79,7 +79,7 @@ const WelcomeToZync = () => {
     return (
         <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6">
             <div className="max-w-xl w-full text-center space-y-8 animate-fade-in">
-                <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary mx-auto">
+                <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-foreground/10 text-foreground mx-auto">
                     <Sparkles className="h-8 w-8" />
                 </div>
                 <div className="space-y-2">
@@ -93,10 +93,10 @@ const WelcomeToZync = () => {
                     {features.map(({ icon: Icon, title, description }) => (
                         <div
                             key={title}
-                            className="flex gap-3 p-3 rounded-lg border border-border/50 bg-card"
+                            className="flex gap-3 p-3 rounded-lg border border-border/10 bg-card/50 backdrop-blur-xl"
                         >
-                            <div className="mt-0.5 shrink-0 w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center">
-                                <Icon className="w-4 h-4 text-primary" />
+                            <div className="mt-0.5 shrink-0 w-8 h-8 rounded-md bg-foreground/10 flex items-center justify-center">
+                                <Icon className="w-4 h-4 text-foreground" />
                             </div>
                             <div>
                                 <p className="text-sm font-medium text-foreground">{title}</p>

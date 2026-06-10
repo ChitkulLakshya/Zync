@@ -352,7 +352,7 @@ const MobileView = () => {
           <Button
             key={item.id}
             variant="ghost"
-            className={`w-full justify-start gap-3 h-11 font-medium ${activeTab === item.id ? "bg-secondary/50 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`w-full justify-start gap-3 h-11 font-medium ${activeTab === item.id ? "bg-card/50 backdrop-blur-sm border border-border/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
             onClick={() => setActiveTab(item.id)}
           >
             <item.icon className="h-5 w-5" />
@@ -376,8 +376,8 @@ const MobileView = () => {
       headerTitle={activeTab === 'Home' ? 'Dashboard' : activeTab}
     >
       {userMeError && currentUser && (
-        <div className="p-3 border-b border-destructive/30 bg-destructive/10 shrink-0">
-          <Alert className="border-destructive/40 bg-background/80 text-foreground">
+        <div className="p-3 border-b border-border/10 bg-transparent shrink-0">
+          <Alert className="border border-destructive/20 bg-card/50 backdrop-blur-md text-foreground rounded-xl">
             <WifiOff className="h-4 w-4 text-destructive" />
             <AlertTitle className="text-destructive text-sm">Can&apos;t reach the server</AlertTitle>
             <AlertDescription className="flex flex-col gap-2 text-xs text-muted-foreground">

@@ -12,7 +12,7 @@ const Privacy = () => {
           <div className="space-y-2">
             <Link
               to="/"
-              className="text-sm text-primary hover:text-primary/90 transition-colors"
+              className="text-sm text-foreground hover:text-foreground/90 transition-colors"
             >
               ← Back to Home
             </Link>
@@ -122,7 +122,7 @@ const Privacy = () => {
                   href="https://developers.google.com/terms/api-services-user-data-policy"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-foreground hover:underline"
                 >
                   Google API Services User Data Policy
                 </a>
@@ -157,7 +157,7 @@ const Privacy = () => {
                   href="https://myaccount.google.com/permissions"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary hover:underline"
+                  className="text-foreground hover:underline"
                 >
                   Google Security Settings
                 </a>
@@ -209,7 +209,7 @@ const Privacy = () => {
                 practices, please contact us at{" "}
                 <a
                   href="mailto:consolemaster.app@gmail.com"
-                  className="text-primary hover:underline"
+                  className="text-foreground hover:underline"
                 >
                   consolemaster.app@gmail.com
                 </a>

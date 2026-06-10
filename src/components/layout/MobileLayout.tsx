@@ -46,7 +46,7 @@ export const MobileLayout = ({
     return (
         <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden">
             {}
-            <header className="h-14 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-40">
+            <header className="h-14 border-b border-border/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-40">
                 <div className="flex items-center gap-3">
                     <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                         <SheetTrigger asChild>
@@ -65,7 +65,7 @@ export const MobileLayout = ({
                             <div className="flex flex-col h-full bg-background">
                                 {user && (
                                     <div className="p-6 border-b flex items-center gap-4 bg-muted/20">
-                                        <Avatar className="h-12 w-12 border-2 border-primary/20">
+                                        <Avatar className="h-12 w-12 border-2 border-border/10 bg-secondary/10">
                                             <AvatarImage src={user.photoURL} />
                                             <AvatarFallback>{user.displayName?.substring(0, 1) || 'U'}</AvatarFallback>
                                         </Avatar>
@@ -116,7 +116,7 @@ export const MobileLayout = ({
                     <Button
                         onClick={onFabClick}
                         size="icon"
-                        className="h-14 w-14 rounded-full shadow-xl bg-primary text-primary-foreground hover:bg-primary/90 transition-transform active:scale-95"
+                        className="h-14 w-14 rounded-full shadow-xl bg-foreground text-background hover:bg-foreground/90 transition-transform active:scale-95"
                     >
                         <Plus className="h-6 w-6" />
                     </Button>
@@ -124,7 +124,7 @@ export const MobileLayout = ({
             )}
 
             {}
-            <nav className="h-16 border-t border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-40 pb-safe">
+            <nav className="h-16 border-t border-border/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-40 pb-safe">
                 <div className="grid grid-cols-5 h-full">
                     {navItems.map((item) => {
                         const isActive = activeTab === item.id;
@@ -136,12 +136,12 @@ export const MobileLayout = ({
                                 onClick={() => onTabChange(item.id)}
                                 className={cn(
                                     "flex flex-col items-center justify-center gap-1 transition-colors relative group",
-                                    isActive ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                                 )}
                             >
                                 <div className={cn(
                                     "p-1.5 rounded-xl transition-all duration-200",
-                                    isActive ? "bg-primary/10" : "group-hover:bg-muted"
+                                    isActive ? "bg-foreground/5" : "group-hover:bg-muted"
                                 )}>
                                     <Icon className={cn("h-5 w-5", isActive && "fill-current")} />
                                 </div>

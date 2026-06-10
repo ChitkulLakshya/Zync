@@ -30,7 +30,7 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border/50">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-md border-b border-border/10">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16 lg:h-20">
           {}
@@ -42,14 +42,14 @@ const Navbar = () => {
                 className="h-8 w-auto object-contain"
               />
             ) : (
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <span className="text-primary-foreground font-bold text-lg">Z</span>
+              <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">
+                <span className="text-background font-bold text-lg">Z</span>
               </div>
             )}
             <span className="font-serif-elegant font-bold text-xl tracking-tight text-foreground">
               Zync
             </span>
-            <span className="text-[10px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
+            <span className="text-[10px] font-medium text-foreground bg-secondary/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
               Beta
             </span>
           </Link>
@@ -96,7 +96,7 @@ const Navbar = () => {
 
         {}
         {isOpen && (
-          <div className="lg:hidden py-4 border-t border-border/50 animate-fade-in">
+          <div className="lg:hidden py-4 border-t border-border/10 animate-fade-in">
             <div className="flex flex-col gap-4">
               {navItems.map((item) => (
                 <button
@@ -107,7 +107,7 @@ const Navbar = () => {
                   {item.name}
                 </button>
               ))}
-              <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
+              <div className="flex flex-col gap-2 pt-4 border-t border-border/10">
                 <Link to="/login" onClick={() => setIsOpen(false)}>
                   <Button variant="ghost" className="w-full justify-center">
                     Log In

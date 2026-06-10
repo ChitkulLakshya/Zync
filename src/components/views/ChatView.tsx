@@ -227,9 +227,9 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
 
   return (
-    <div className="flex flex-col h-full bg-background relative">
+    <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl relative">
       {}
-      <div className="flex items-center gap-3 p-4 border-b border-border/50 bg-background z-10">
+      <div className="flex items-center gap-3 p-4 border-b border-border/10 bg-transparent z-10">
         {onBack && (
           <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
             ← Back
@@ -303,11 +303,11 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
             return (
               <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? "bg-foreground text-background" : "bg-secondary text-secondary-foreground"
                   }`}>
 
                   {isProjectInvite && (
-                    <div className={`mb-2 p-3 rounded-lg border flex flex-col gap-2 ${isMe ? "bg-primary-foreground/10 border-primary-foreground/20" : "bg-background/50 border-border"}`}>
+                    <div className={`mb-2 p-3 rounded-2xl border flex flex-col gap-2 ${isMe ? "bg-background/10 border-background/20 backdrop-blur-md" : "bg-card/50 backdrop-blur-md border-border/10"}`}>
                       <div className="flex items-center gap-2">
                         <FolderKanban className="w-5 h-5 opacity-70" />
                         <div>
@@ -363,7 +363,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
                         href={getFullUrl(msg.fileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-2 p-2 rounded-md ${isMe ? "bg-primary-foreground/10 hover:bg-primary-foreground/20" : "bg-background/50 hover:bg-background/80"
+                        className={`flex items-center gap-2 p-2 rounded-md ${isMe ? "bg-background/10 hover:bg-background/20" : "bg-background/50 hover:bg-background/80"
                           } transition-colors`}
                       >
                         <FileIcon className="w-4 h-4" />
@@ -374,7 +374,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
                   {msg.text && <p className="text-sm break-words whitespace-pre-wrap">{msg.text}</p>}
 
-                  <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMe ? "text-primary-foreground/70" : "text-muted-foreground"
+                  <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMe ? "text-background/70" : "text-muted-foreground"
                     }`}>
                     {msg.createdAt ? format(new Date(msg.createdAt), "hh:mm a") : "Sending..."}
                     {isMe && (
@@ -403,7 +403,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
       </div>
 
       {}
-      < div className="p-4 border-t border-border/50 bg-background" >
+      <div className="p-4 border-t border-border/10 bg-transparent">
 
         {}
         {

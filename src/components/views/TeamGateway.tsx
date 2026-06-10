@@ -12,8 +12,8 @@ const TeamGateway = ({ title, description }: TeamGatewayProps) => {
 
     return (
         <div className="flex-1 flex flex-col items-center justify-center p-6 text-center h-full">
-            <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
-                <Users className="w-10 h-10 text-primary" />
+            <div className="w-20 h-20 bg-foreground/10 rounded-full flex items-center justify-center mb-6">
+                <Users className="w-10 h-10 text-foreground" />
             </div>
             <h2 className="text-2xl font-bold mb-2">{title}</h2>
             <p className="text-muted-foreground max-w-sm mb-8">{description}</p>

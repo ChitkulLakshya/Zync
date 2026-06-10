@@ -11,7 +11,6 @@ import { GitCommandsDrawer } from "./GitCommandsDrawer";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
-import { Skeleton } from "boneyard-js/react";
 
 interface TasksViewProps {
     currentUser: any;
@@ -198,7 +197,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         if (['Completed', 'Done'].includes(status)) {return 'bg-emerald-500';}
         if (['In Progress'].includes(status)) {return 'bg-amber-500';}
         if (['Active'].includes(status)) {return 'bg-sky-500';}
-        return 'bg-zinc-500';
+        return 'bg-muted-foreground';
     };
 
     const getStatusLabel = (status: string) => {
@@ -236,13 +235,14 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         };
     }, [groupedTasks]);
 
+    if (loading) {
+        return <div className="p-6 text-sm text-muted-foreground flex items-center justify-center h-full">Loading tasks...</div>;
+    }
     return (
-        <Skeleton name="task-list-item" loading={loading}>
-        <div className="flex-1 p-6 md:p-8 h-full flex flex-col overflow-hidden bg-transparent">
-            {}
+        <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8 h-full flex flex-col overflow-hidden bg-transparent">
             <div className="mb-8 flex items-start justify-between shrink-0">
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">My Tasks</h2>
+
                     <p className="text-sm text-muted-foreground mt-1">
                         Your assigned work across all projects
                     </p>
@@ -251,8 +251,8 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
 
             {groupedTasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 text-center px-4">
-                    <div className="w-20 h-20 rounded-2xl bg-white/[0.05] border border-white/15 flex items-center justify-center mb-6 backdrop-blur-md">
-                        <Inbox className="w-9 h-9 text-white/60" strokeWidth={1.5} />
+                    <div className="w-20 h-20 rounded-2xl bg-card/50 border border-border/10 backdrop-blur-xl flex items-center justify-center mb-6 backdrop-blur-md">
+                        <Inbox className="w-9 h-9 text-muted-foreground/60" strokeWidth={1.5} />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground">All caught up!</h3>
                     <p className="text-sm text-muted-foreground mt-2 max-w-sm leading-relaxed">
@@ -264,23 +264,20 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                     <div className="space-y-10 pb-20 max-w-4xl">
                         {groupedTasks.map((group) => (
                             <section key={group.projectId}>
-                                {}
                                 <div className="flex items-center gap-3 mb-4">
                                     <h3 className="text-base font-medium text-foreground">{group.projectName}</h3>
-                                    <span className="text-[11px] font-medium text-muted-foreground bg-white/[0.08] px-2 py-0.5 rounded-full tabular-nums border border-white/10">
+                                    <span className="text-[11px] font-medium text-muted-foreground bg-card/50 px-2 py-0.5 rounded-full tabular-nums border border-border/10 backdrop-blur-md">
                                         {group.tasks.length}
                                     </span>
                                     <div className="flex-1 h-px bg-border/40" />
                                 </div>
 
-                                {}
                                 <div className="space-y-3">
                                     {group.tasks.map((task) => (
                                         <div
                                             key={task.id}
-                                            className="bg-white/[0.04] border border-white/12 rounded-xl p-4 transition-all duration-200 hover:border-white/20 hover:bg-white/[0.06] backdrop-blur-md"
+                                            className="bg-card/50 border border-border/10 rounded-2xl p-4 transition-all duration-200 hover:border-border/30 hover:bg-card/80 backdrop-blur-xl"
                                         >
-                                            {}
                                             <div className="flex items-start gap-3 mb-4">
                                                 <div className={`w-2.5 h-2.5 rounded-full mt-1.5 shrink-0 ${getStatusColor(task.status)}`} />
                                                 <div className="flex-1 min-w-0">
@@ -293,18 +290,18 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
-                                                        <span className="px-1.5 py-0.5 rounded bg-white/[0.08] border border-white/10 text-white/70">{task.stepName}</span>
-                                                        <span className="text-white/30">·</span>
+                                                        <span className="px-1.5 py-0.5 rounded bg-card/50 border border-border/10 text-muted-foreground backdrop-blur-sm">{task.stepName}</span>
+                                                        <span className="text-muted-foreground/30">·</span>
                                                         <span className={`px-1.5 py-0.5 rounded text-xs ${['Completed', 'Done'].includes(task.status) ? 'bg-emerald-500/20 text-emerald-400' :
                                                                 ['In Progress'].includes(task.status) ? 'bg-amber-500/20 text-amber-400' :
                                                                     ['Active'].includes(task.status) ? 'bg-sky-500/20 text-sky-400' :
-                                                                        'bg-white/10 text-white/65'
+                                                                        'bg-accent text-accent-foreground'
                                                             }`}>
                                                             {getStatusLabel(task.status)}
                                                         </span>
                                                         {task.createdAt && (
                                                             <>
-                                                                <span className="text-white/30">·</span>
+                                                                <span className="text-muted-foreground/30">·</span>
                                                                 <span className="tabular-nums">{format(new Date(task.createdAt), 'MMM d')}</span>
                                                             </>
                                                         )}
@@ -312,36 +309,32 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                 </div>
                                             </div>
 
-                                            {}
                                             <div className="flex items-center gap-2 flex-wrap">
-                                                {}
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="h-8 gap-2 text-xs border-white/20 bg-white/[0.03] hover:bg-white/[0.10]"
+                                                    className="h-8 gap-2 text-xs border-border/10 bg-card/50 hover:bg-card/80 backdrop-blur-md"
                                                     onClick={() => handleOpenGitHelper(task)}
                                                 >
                                                     <Terminal className="w-3.5 h-3.5" />
                                                     Git Commands
                                                 </Button>
 
-                                                {}
                                                 <Button
                                                     size="sm"
                                                     variant="outline"
-                                                    className="h-8 gap-2 text-xs border-white/20 bg-white/[0.03] hover:bg-white/[0.10]"
+                                                    className="h-8 gap-2 text-xs border-border/10 bg-card/50 hover:bg-card/80 backdrop-blur-md"
                                                     onClick={() => handleOpenArchitecture(task)}
                                                 >
                                                     <Layout className="w-3.5 h-3.5" />
                                                     Architecture
                                                 </Button>
 
-                                                {}
                                                 {task.githubRepoName && task.githubRepoOwner && (
                                                     <Button
                                                         size="sm"
                                                         variant="outline"
-                                                        className="h-8 gap-2 text-xs border-white/20 bg-white/[0.03] hover:bg-white/[0.10]"
+                                                        className="h-8 gap-2 text-xs border-border/10 bg-card/50 hover:bg-card/80 backdrop-blur-md"
                                                         onClick={() => handleOpenRepository(task)}
                                                     >
                                                         <Github className="w-3.5 h-3.5" />
@@ -356,16 +349,15 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                             </section>
                         ))}
 
-                        {}
-                        <div className="pt-8 border-t border-white/10">
+                        <div className="pt-8 border-t border-border/10">
                             <div className="flex items-center gap-6 text-xs text-muted-foreground">
                                 <span>{taskStats.total} total</span>
-                                <span className="text-white/30">·</span>
+                                <span className="text-muted-foreground/30">·</span>
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                                     {taskStats.inProgress} in progress
                                 </span>
-                                <span className="text-white/30">·</span>
+                                <span className="text-muted-foreground/30">·</span>
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                     {taskStats.done} done
@@ -386,7 +378,6 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                 } : null}
             />
         </div>
-        </Skeleton>
     );
 };
 

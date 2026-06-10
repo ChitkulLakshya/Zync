@@ -113,7 +113,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const {
     beginTransition,
     showCompactSpinner,
-    showSectionSkeleton,
   } = useSectionTransitionLoader("desktop");
 
   const sidebarRef = useRef<ImperativePanelHandle>(null);
@@ -824,7 +823,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   if (userLoading && !isPreview) {
     return (
-      <div className="h-screen w-full bg-black text-zinc-300 flex items-center justify-center">
+      <div className="h-screen w-full bg-background text-foreground flex items-center justify-center">
         <div className="flex items-center gap-2 text-sm">
           <RefreshCw className="w-4 h-4 animate-spin" />
           Loading workspace…
@@ -846,9 +845,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           isExiting ? "opacity-0 -translate-y-full blur-3xl scale-110" : "opacity-100 translate-y-0"
         )}>
           {/* Background Gradients for Landing Page */}
-          <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-rose-600/30 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-          <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/30 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+          <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+          <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
 
           <DashboardHome onNavigate={(section) => {
             setIsExiting(true);
@@ -884,15 +883,15 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <div className={cn("p-4 flex items-center gap-2", isCollapsed ? "justify-center p-2 mb-4" : "mb-2")}>
               {mounted ? (
                 <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg" />
-              ) : <div className="w-8 h-8 bg-primary rounded-lg" />}
-              {!isCollapsed && <span className="font-bold text-lg text-white tracking-wide">Zync</span>}
+              ) : <div className="w-8 h-8 bg-foreground rounded-xl" />}
+              {!isCollapsed && <span className="font-bold text-lg text-sidebar-foreground tracking-wide">Zync</span>}
             </div>
 
             <div className="flex-1 overflow-y-auto px-2 space-y-1">
               {/* Create New Project Button */}
               <div className="mb-6 px-1">
                 <Button
-                  className={cn("w-full bg-white text-black hover:bg-gray-200 transition-colors font-medium rounded-xl", isCollapsed ? "px-0 justify-center" : "justify-start gap-2")}
+                  className={cn("w-full bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium rounded-xl", isCollapsed ? "px-0 justify-center" : "justify-start gap-2")}
                   onClick={() => handleSectionChange("New Project")}
                 >
                   <Plus className="w-5 h-5" />
@@ -906,12 +905,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     variant="ghost"
                     className={cn(
                       "w-full rounded-lg transition-all duration-200",
-                      item.active ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5",
+                      item.active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
                       isCollapsed ? "justify-center px-0 py-3" : "justify-start gap-3 py-2 px-3"
                     )}
                     onClick={() => handleSectionChange(item.label)}
                   >
-                    <item.icon className={cn("w-5 h-5", item.active ? "text-white" : "text-zinc-400")} />
+                    <item.icon className={cn("w-5 h-5", item.active ? "text-foreground" : "text-muted-foreground")} />
                     {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
                   </Button>
                 </div>
@@ -922,28 +921,28 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <div className="p-4 mt-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-white/5 cursor-pointer transition-colors", isCollapsed ? "justify-center" : "")}>
+                  <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-foreground/10 cursor-pointer transition-colors", isCollapsed ? "justify-center" : "")}>
                     <Avatar className="w-9 h-9 border border-white/10">
                       <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
-                      <AvatarFallback className="bg-zinc-800 text-zinc-400">{isPreview ? "JD" : getUserInitials(pickUserForDisplay(userData, currentUser))}</AvatarFallback>
+                      <AvatarFallback className="bg-muted text-muted-foreground">{isPreview ? "JD" : getUserInitials(pickUserForDisplay(userData, currentUser))}</AvatarFallback>
                     </Avatar>
                     {!isCollapsed && (
                       <div className="flex-1 overflow-hidden">
-                        <p className="text-sm font-medium text-white truncate">{isPreview ? "John Doe" : getUserName(pickUserForDisplay(userData, currentUser))}</p>
+                        <p className="text-sm font-medium text-sidebar-foreground truncate">{isPreview ? "John Doe" : getUserName(pickUserForDisplay(userData, currentUser))}</p>
 
                       </div>
                     )}
                     {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-zinc-500 ml-auto" />}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-[#0F0F10] border border-white/10 text-white shadow-xl rounded-xl">
-                  <DropdownMenuLabel className="text-zinc-400 font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/10" />
-                  <DropdownMenuItem onClick={() => handleSectionChange("Settings")} className="focus:bg-white/10 focus:text-white cursor-pointer py-2">
+                <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-xl rounded-2xl">
+                  <DropdownMenuLabel className="text-muted-foreground font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-border/50" />
+                  <DropdownMenuItem onClick={() => handleSectionChange("Settings")} className="focus:bg-foreground/10 focus:text-foreground cursor-pointer py-2">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-border/50" />
                   <DropdownMenuItem onClick={async () => {
                     if (isPreview) { return; }
                     localStorage.removeItem("ZYNC-active-section");
@@ -965,11 +964,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         {/* Main Content Panel - The "Card" Look */}
         <Panel defaultSize={84} className="min-h-0 bg-transparent">
           <div className="h-full w-full p-0 bg-transparent">
-            <div className="h-full w-full dashboard-backdrop rounded-[32px] overflow-hidden relative border-none shadow-none flex flex-col">
+            <div className="h-full w-full bg-background/50 backdrop-blur-xl border border-border/10 rounded-[32px] overflow-hidden relative shadow-none flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
                     <span>{activeSection}</span>
                     {showCompactSpinner && (
                       <RefreshCw className="w-4 h-4 animate-spin text-zinc-400" aria-label="Switching section" />
@@ -978,7 +977,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 </div>
                 <div className="flex items-center gap-4">
                   {/* Header Actions */}
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 rounded-full border border-white/5">
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-card/50 rounded-full border border-border/10">
                     <Clock className="w-4 h-4 text-zinc-400" />
                     <span className="text-xs font-medium text-zinc-300 tracking-wide">{elapsedTime}</span>
                   </div>
@@ -1014,19 +1013,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 className="flex-1 overflow-y-auto relative z-10 w-full bg-transparent hover:overflow-y-overlay custom-scrollbar"
               >
                 {(isExiting || !isLanding) && renderActiveView()}
-                {showSectionSkeleton && (
-                  <div className="absolute inset-0 bg-black/70 backdrop-blur-[1px] p-6 md:p-8 pointer-events-none">
-                    <div className="space-y-4 animate-pulse">
-                      <div className="h-8 w-64 rounded-md bg-zinc-800/90" />
-                      <div className="h-24 w-full rounded-xl bg-zinc-800/80" />
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <div className="h-36 rounded-xl bg-zinc-800/80" />
-                        <div className="h-36 rounded-xl bg-zinc-800/80" />
-                        <div className="h-36 rounded-xl bg-zinc-800/80" />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
           </div>

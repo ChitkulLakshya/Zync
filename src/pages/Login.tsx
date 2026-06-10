@@ -219,7 +219,7 @@ const Login = () => {
   if (currentUser) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
               <Avatar className="w-20 h-20">
@@ -259,7 +259,7 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md">
+      <Card className="w-full max-w-md bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Login to Zync</CardTitle>
           <CardDescription>
@@ -320,7 +320,7 @@ const Login = () => {
         <CardFooter className="flex justify-center">
           <p className="text-sm text-muted-foreground">
             Don't have an account?{" "}
-            <Link to="/signup" className="text-primary hover:underline">
+            <Link to="/signup" className="text-foreground hover:underline">
               Sign up
             </Link>
           </p>

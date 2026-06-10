@@ -16,7 +16,17 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["DM Sans", "system-ui", "sans-serif"],
+        sans: [
+          "-apple-system",
+          "BlinkMacSystemFont",
+          '"SF Pro Display"',
+          '"SF Pro Text"',
+          '"Segoe UI"',
+          "Roboto",
+          '"Helvetica Neue"',
+          "Arial",
+          "sans-serif"
+        ],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -70,18 +80,45 @@ export default {
           purple: "hsl(var(--task-purple))",
           yellow: "hsl(var(--task-yellow))",
         },
+        surface: {
+          base: "hsl(var(--background))",
+          glass: {
+            thin: "var(--glass-thin)",
+            regular: "var(--glass-regular)",
+            thick: "var(--glass-thick)",
+            ultra: "var(--glass-ultra)",
+          },
+        },
+      },
+      blur: {
+        thin: "8px",
+        regular: "16px",
+        thick: "28px",
+        ultra: "44px",
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xs: "6px",
+        sm: "10px",
+        md: "14px",
+        lg: "20px",
+        xl: "28px",
+        pill: "9999px",
       },
       boxShadow: {
+        elevation0: "none",
+        elevation1: "0 1px 3px rgba(0,0,0,0.05)",
+        elevation2: "0 4px 12px rgba(0,0,0,0.08)",
+        elevation3: "0 12px 32px rgba(0,0,0,0.12)",
+        elevation4: "0 24px 64px rgba(0,0,0,0.16)",
+        elevation5: "0 32px 80px rgba(0,0,0,0.2)",
         sm: "var(--shadow-sm)",
         md: "var(--shadow-md)",
         lg: "var(--shadow-lg)",
         xl: "var(--shadow-xl)",
         glow: "var(--shadow-glow)",
+      },
+      transitionTimingFunction: {
+        standard: "cubic-bezier(0.2, 0.0, 0.0, 1.0)",
       },
       keyframes: {
         "accordion-down": {

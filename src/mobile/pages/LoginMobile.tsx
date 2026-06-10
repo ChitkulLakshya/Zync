@@ -159,7 +159,7 @@ const LoginMobile = () => {
     return (
       <div className="min-h-screen bg-transparent px-4 flex items-center justify-center">
         <div className="w-full max-w-sm">
-          <Card className="bg-card/80">
+          <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
             <CardHeader className="text-center">
               <div className="flex justify-center">
                 <Avatar className="h-16 w-16">
@@ -193,10 +193,10 @@ const LoginMobile = () => {
             <img src="/zync-dark.webp" alt="Zync" className="h-8 w-8 rounded-md object-contain" />
             <span className="text-base font-semibold">Zync</span>
           </div>
-          <Link to="/" className="text-xs text-primary">Back</Link>
+          <Link to="/" className="text-xs text-foreground">Back</Link>
         </div>
 
-        <Card className="bg-card/80">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
           <CardHeader className="space-y-1">
             <CardTitle className="text-xl">Login</CardTitle>
             <CardDescription>Access your account on mobile.</CardDescription>
@@ -242,7 +242,7 @@ const LoginMobile = () => {
 
             <p className="text-center text-xs text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link to="/signup" className="text-primary hover:underline">
+              <Link to="/signup" className="text-foreground hover:underline">
                 Sign up
               </Link>
             </p>

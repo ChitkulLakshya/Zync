@@ -53,9 +53,9 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-xl w-full flex flex-col gap-0 p-0 bg-background/95 backdrop-blur-sm">
+            <SheetContent className="sm:max-w-xl w-full flex flex-col gap-0 p-0 bg-background/50 backdrop-blur-2xl">
                 {}
-                <SheetHeader className="flex flex-col p-6 border-b border-border/50 space-y-4">
+                <SheetHeader className="flex flex-col p-6 border-b border-border/10 space-y-4">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-2">
                             <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="capitalize px-3 py-1">
@@ -89,7 +89,7 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
                                 </span>
                                 <div className="flex items-center gap-2">
                                     <Avatar className="h-6 w-6">
-                                        <AvatarFallback className="text-[10px] bg-primary/10 text-primary">
+                                        <AvatarFallback className="text-[10px] bg-foreground/10 text-foreground">
                                             {task.assignedToName?.substring(0, 2).toUpperCase() || "??"}
                                         </AvatarFallback>
                                     </Avatar>
@@ -124,7 +124,7 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
                             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <CheckSquare className="w-4 h-4" /> Description
                             </h3>
-                            <div className="bg-secondary/20 rounded-lg p-2">
+                            <div className="bg-card/50 backdrop-blur-md rounded-lg p-2">
                                 <Textarea
                                     disabled
                                     className="min-h-[150px] resize-none border-none bg-transparent focus-visible:ring-0 text-sm leading-relaxed"
@@ -148,7 +148,7 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
                             <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <Flag className="w-4 h-4" /> Activity
                             </h3>
-                            <div className="bg-muted/30 rounded-lg p-4 space-y-4">
+                            <div className="bg-card/50 backdrop-blur-md border border-border/10 rounded-lg p-4 space-y-4">
                                 <div className="flex gap-3 text-sm text-muted-foreground">
                                     <div className="w-2 h-2 mt-1.5 rounded-full bg-blue-500 shrink-0" />
                                     <div>
@@ -164,7 +164,7 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
                 </ScrollArea>
 
                 {}
-                <div className="p-6 border-t border-border/50 bg-secondary/10 flex justify-end gap-3">
+                <div className="p-6 border-t border-border/10 bg-secondary/10 flex justify-end gap-3">
                     <SheetClose asChild>
                         <Button variant="outline">Close</Button>
                     </SheetClose>

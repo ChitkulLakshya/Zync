@@ -178,7 +178,7 @@ export const ActivityGraph = ({ tasks = [], users, teamSessions = [], currentTea
     }, [tasks, users, teamSessions, timeRange, mode, showTeamOnly, currentTeamId, ownedTeams, selectedTeamId]);
 
     return (
-        <Card className="w-full">
+        <Card className="w-full bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-[2rem]">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <div className="flex flex-col gap-1">
                     <CardTitle className="text-xl font-bold">

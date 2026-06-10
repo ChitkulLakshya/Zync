@@ -157,7 +157,7 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
 
                     <div className="space-y-2">
                         <Label>Team Logo</Label>
-                        <ScrollArea className="h-[200px] w-full rounded-md border border-white/10 p-4 bg-white/5">
+                        <ScrollArea className="h-[200px] w-full rounded-2xl border border-border/10 p-4 bg-card/50 backdrop-blur-md">
                             <div className="grid grid-cols-6 gap-3">
                                 {TEAM_LOGOS.map((logo) => {
                                     const Icon = logo.icon;
@@ -205,7 +205,7 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
 
                         <div className="flex flex-wrap gap-2 mt-2">
                             {invites.map((invite) => (
-                                <div key={invite.email} className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm flex items-center gap-1">
+                                <div key={invite.email} className="bg-card/50 border border-border/10 backdrop-blur-md text-foreground px-2 py-1 rounded-lg text-sm flex items-center gap-1">
                                     {invite.email}
                                     <button onClick={() => removeInvite(invite.email)} className="hover:text-destructive">
                                         <X size={14} />

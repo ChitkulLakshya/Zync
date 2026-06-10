@@ -35,7 +35,7 @@ const IndexMobile = () => {
             <img src="/zync-dark.webp" alt="Zync" className="h-9 w-9 rounded-lg object-contain" />
             <span className="text-lg font-semibold text-foreground">Zync</span>
           </div>
-          <Link to="/login" className="text-sm text-primary">
+          <Link to="/login" className="text-sm text-foreground">
             Login
           </Link>
         </div>
@@ -64,10 +64,10 @@ const IndexMobile = () => {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <Card key={feature.title} className="bg-card/70">
+              <Card key={feature.title} className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <Icon className="h-4 w-4 text-primary" />
+                    <Icon className="h-4 w-4 text-foreground" />
                     {feature.title}
                   </CardTitle>
                 </CardHeader>

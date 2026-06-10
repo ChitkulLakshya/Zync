@@ -53,10 +53,10 @@ const MobileDashboardView = ({ currentUser }: { currentUser: any }) => {
 
   return (
     <div className="p-4 space-y-4 overflow-x-hidden">
-      <Card className="bg-card/70">
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
         <CardContent className="pt-4">
           <div className="flex items-center gap-3">
-            <Avatar className="h-14 w-14 border border-primary/30">
+            <Avatar className="h-14 w-14 border border-border/20 shadow-sm">
               <AvatarImage src={stats?.avatar_url || currentUser?.photoURL || undefined} />
               <AvatarFallback>
                 {(stats?.login || currentUser?.displayName || "U").slice(0, 2).toUpperCase()}
@@ -86,10 +86,10 @@ const MobileDashboardView = ({ currentUser }: { currentUser: any }) => {
         </CardContent>
       </Card>
 
-      <Card className="bg-card/70 overflow-hidden">
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm overflow-hidden">
         <CardHeader className="pb-2">
           <CardTitle className="text-sm flex items-center gap-2">
-            <Github className="h-4 w-4 text-primary" />
+            <Github className="h-4 w-4 text-foreground" />
             Contributions
           </CardTitle>
         </CardHeader>
@@ -109,19 +109,19 @@ const MobileDashboardView = ({ currentUser }: { currentUser: any }) => {
       </Card>
 
       <div className="grid grid-cols-3 gap-2">
-        <Card className="bg-card/70">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
           <CardContent className="pt-3 pb-3 text-center">
             <p className="text-base font-semibold">{projects.length}</p>
             <p className="text-[11px] text-muted-foreground">Projects</p>
           </CardContent>
         </Card>
-        <Card className="bg-card/70">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
           <CardContent className="pt-3 pb-3 text-center">
             <p className="text-base font-semibold">{totalTasks}</p>
             <p className="text-[11px] text-muted-foreground">Tasks</p>
           </CardContent>
         </Card>
-        <Card className="bg-card/70">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
           <CardContent className="pt-3 pb-3 text-center">
             <p className="text-base font-semibold">{completedTasks}</p>
             <p className="text-[11px] text-muted-foreground">Done</p>

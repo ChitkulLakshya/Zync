@@ -260,7 +260,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   return (
     <div
       ref={sidebarRef}
-      className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/50 supports-[backdrop-filter]:bg-background/60 z-50", className)}
+      className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/10 supports-[backdrop-filter]:bg-background/60 z-50", className)}
       style={{ width: isCollapsed ? 64 : width }}
     >
       <div
@@ -286,7 +286,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           }
         }}
       >
-        <div className={cn("p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-secondary/30 border-border/50", effectiveCollapsed ? "justify-center" : "justify-between")}>
+        <div className={cn("p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-secondary/30 border-border/10", effectiveCollapsed ? "justify-center" : "justify-between")}>
           {!effectiveCollapsed && <span className="font-semibold text-sm tracking-wide font-serif-elegant text-foreground truncate">Zync Notes</span>}
 
           <div className="flex items-center gap-1">
@@ -304,12 +304,12 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
         <div className="flex-1 overflow-y-auto p-2 scrollbar-hide space-y-1">
           {}
           {newFolderMode && !effectiveCollapsed && (
-            <div className="flex items-center px-2 py-1 mb-2 rounded-sm shadow-sm border bg-white border-gray-200 dark:bg-slate-800 dark:border-slate-600">
+            <div className="flex items-center px-2 py-1 mb-2 rounded-sm shadow-sm border border-border/10 bg-secondary/5">
               <input
                 id="new-folder-name"
                 name="folderName"
                 autoFocus
-                className="w-full text-sm outline-none bg-transparent px-1 py-0.5 text-gray-900 placeholder:text-gray-400 dark:text-slate-200 dark:placeholder:text-slate-500"
+                className="w-full text-sm outline-none bg-transparent px-1 py-0.5 text-foreground placeholder:text-muted-foreground"
                 value={newFolderName}
                 placeholder="Folder Name..."
                 onChange={e => setNewFolderName(e.target.value)}
@@ -323,7 +323,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           {sharedFolders.length > 0 && (
             <div className="mb-4">
               {!effectiveCollapsed && (
-                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-indigo-500/80 dark:text-indigo-400/80 flex items-center gap-2">
+                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground flex items-center gap-2">
                   <Users size={12} /> Shared with Me
                 </div>
               )}
@@ -349,7 +349,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                   onRenameNote={handleRenameNote}
                 />
               ))}
-              <div className="h-px bg-border/40 my-2 mx-2" />
+              <div className="h-px bg-border/10 my-2 mx-2" />
             </div>
           )}
 
@@ -388,7 +388,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
             onDrop={(e) => handleDrop(e, null)} // Drop to root
           >
             {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70">My Notes</div>}
-            {effectiveCollapsed && <div className="h-px bg-border/50 w-8 mx-auto my-2" />}
+            {effectiveCollapsed && <div className="h-px bg-border/10 w-8 mx-auto my-2" />}
 
             {myUnorganizedNotes.map(note => (
               <NoteItem
@@ -408,7 +408,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
             <button
               onClick={() => handleCreateNote()}
               className={cn(
-                "w-full flex items-center rounded-md text-xs mt-1 group text-gray-500 hover:text-gray-900 dark:text-muted-foreground/60 dark:hover:text-foreground transition-all",
+                "w-full flex items-center rounded-md text-xs mt-1 group text-muted-foreground hover:text-foreground transition-all",
                 effectiveCollapsed ? "justify-center py-2 hover:bg-black/5 dark:hover:bg-white/5" : "text-left px-2 py-1.5"
               )}
               title="New Note"
@@ -422,7 +422,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
         {/* Search/Resize Handle */}
         {!isCollapsed && (
           <div
-            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-indigo-500/50 hover:w-1.5 transition-all z-20"
+            className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-foreground/20 hover:w-1.5 transition-all z-20"
             onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
           />
         )}

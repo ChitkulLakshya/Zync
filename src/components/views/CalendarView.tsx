@@ -5,7 +5,6 @@ import { enUS } from 'date-fns/locale';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './CalendarView.css';
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "boneyard-js/react";
 import {
     Select,
     SelectContent,
@@ -124,9 +123,9 @@ const CalendarView = () => {
     };
 
     return (
-        <div className="h-full w-full p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold tracking-tight">Calendar</h2>
+        <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8 h-full flex flex-col">
+            <div className="flex items-center justify-end mb-6">
+
                 {countries.length > 0 && (
                     <div className="flex items-center gap-2">
                         <span className="text-sm text-muted-foreground">Holidays:</span>
@@ -145,22 +144,20 @@ const CalendarView = () => {
                     </div>
                 )}
             </div>
-            <Card className="flex-1 p-4 shadow-sm border-none bg-background/50 backdrop-blur-sm">
-                <Skeleton name="calendar-events-grid" loading={loading}>
-                    <Calendar
-                        localizer={localizer}
-                        events={events}
-                        startAccessor="start"
-                        endAccessor="end"
-                        style={{ height: '100%', minHeight: '500px' }}
-                        views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
-                        defaultView={Views.MONTH}
-                        selectable
-                        popup
-                        eventPropGetter={eventStyleGetter}
-                        className="rounded-md border bg-card text-card-foreground shadow-sm"
-                    />
-                </Skeleton>
+            <Card className="flex-1 p-4 shadow-sm border border-border/10 bg-card/50 backdrop-blur-xl rounded-[2rem] overflow-hidden">
+                <Calendar
+                    localizer={localizer}
+                    events={events}
+                    startAccessor="start"
+                    endAccessor="end"
+                    style={{ height: '100%', minHeight: '500px' }}
+                    views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
+                    defaultView={Views.MONTH}
+                    selectable
+                    popup
+                    eventPropGetter={eventStyleGetter}
+                    className="rounded-2xl border-none bg-transparent text-card-foreground"
+                />
             </Card>
         </div>
     );

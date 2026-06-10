@@ -86,6 +86,7 @@ export default defineConfig(({ mode }) => ({
       },
       devOptions: {
         enabled: true,
+        suppressWarnings: true,
       },
     }),
   ],

@@ -32,7 +32,7 @@ const TaskSearch = ({ user, onSelect }: { user: any, onSelect: (task: TaskSearch
     }, [query, user.uid]);
 
     return (
-        <Command className="border rounded-md">
+        <Command className="border border-border/10 rounded-xl bg-secondary/5">
             <CommandInput placeholder="Search tasks by title..." onValueChange={setQuery} />
             <CommandList>
                 <CommandEmpty>No tasks found.</CommandEmpty>
@@ -80,11 +80,11 @@ export const TaskDialogs: React.FC<TaskDialogsProps> = ({
                         </DialogDescription>
                     </DialogHeader>
                     <div className="py-4">
-                        <div className="p-3 bg-muted/30 rounded-md text-sm italic mb-4 border border-border/50">
+                        <div className="p-3 bg-secondary/20 rounded-xl text-sm italic mb-4 border border-border/10">
                             "{selectedTaskText}"
                         </div>
                         <label className="text-sm font-medium mb-2 block">Select Project</label>
-                        <Command className="border rounded-md">
+                        <Command className="border border-border/10 rounded-xl bg-secondary/5">
                             <CommandInput placeholder="Search projects..." />
                             <CommandList>
                                 <CommandEmpty>No projects found.</CommandEmpty>

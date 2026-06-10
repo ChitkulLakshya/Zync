@@ -40,7 +40,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
                         </>
                     )}
                     {!isEditable && (
-                        <span className="ml-2 px-2 py-0.5 bg-yellow-500/10 text-yellow-500 rounded text-[10px] uppercase font-bold tracking-wider border border-yellow-500/20">
+                        <span className="ml-2 px-2 py-0.5 bg-secondary/20 text-foreground rounded text-[10px] uppercase font-bold tracking-wider border border-border/10">
                             Read Only
                         </span>
                     )}
@@ -62,7 +62,7 @@ export const EditorHeader: React.FC<EditorHeaderProps> = ({
             />
 
             {/* Metadata Row */}
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-8 pb-6 border-b border-zinc-800">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground mb-8 pb-6 border-b border-border/10">
                 <div className="flex items-center gap-1.5">
                     <UserIcon size={11} />
                     <span>{user.displayName || "You"}</span>
