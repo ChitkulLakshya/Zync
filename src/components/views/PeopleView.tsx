@@ -759,6 +759,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                             )}
                         </div>
                     </div>
+                </div>
 
                     {}
                     <div className={cn(
