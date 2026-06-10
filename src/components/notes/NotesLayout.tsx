@@ -148,7 +148,7 @@ const NoteListItem: React.FC<{
       >
         <FileText size={14} className={cn(
           "mt-0.5 shrink-0 transition-colors duration-200",
-          isSelected ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+          isSelected ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"
         )} />
         <div className="min-w-0 flex-1">
           <p className={cn(
@@ -598,7 +598,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             </Button>
             <Button
               size="sm"
-              className="flex-1 h-8 text-xs bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
+              className="flex-1 h-8 text-xs bg-foreground hover:bg-foreground/90 text-background transition-colors duration-200"
               onClick={() => handleCreateNote()}
             >
               <Plus size={14} className="mr-1.5" /> Note
@@ -617,7 +617,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             {/* Shared With Me */}
             {sharedFolders.length > 0 && (
               <div>
-                <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-primary flex items-center gap-1.5">
+                <div className="px-2 py-1.5 text-[10px] font-semibold uppercase tracking-widest text-foreground flex items-center gap-1.5">
                   <Users size={10} /> Shared with me
                 </div>
                 {sharedFolders.map(folder => (
@@ -816,7 +816,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             </p>
             <Button
               onClick={() => handleCreateNote()}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground transition-colors duration-200"
+              className="bg-foreground hover:bg-foreground/90 text-background transition-colors duration-200"
             >
               <Plus size={16} className="mr-2" /> Create Note
             </Button>

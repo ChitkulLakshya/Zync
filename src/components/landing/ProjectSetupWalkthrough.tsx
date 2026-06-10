@@ -114,7 +114,7 @@ export const ProjectSetupWalkthrough = () => {
                   )}
                   <span className="text-[10px] text-foreground leading-relaxed">{text}</span>
                   {phase === "typing" && (
-                    <span className="inline-block w-1 h-3 bg-primary ml-0.5 animate-pulse translate-y-0.5" />
+                    <span className="inline-block w-1 h-3 bg-foreground ml-0.5 animate-pulse translate-y-0.5" />
                   )}
                 </div>
               </div>
@@ -123,7 +123,7 @@ export const ProjectSetupWalkthrough = () => {
             {/* Button */}
             <div className="mt-4 flex justify-end">
               <motion.button 
-                className="bg-primary text-primary-foreground text-[10px] px-3 py-1.5 rounded-md font-medium flex items-center gap-1.5 shadow-elevation1"
+                className="bg-foreground text-background text-[10px] px-3 py-1.5 rounded-md font-medium flex items-center gap-1.5 shadow-elevation1"
                 animate={isClicking && phase === "clicking" ? { scale: 0.95 } : { scale: 1 }}
                 transition={{ type: "spring", stiffness: 420, damping: 32 }} // snappy spring
               >
@@ -148,7 +148,7 @@ export const ProjectSetupWalkthrough = () => {
                   <Sparkles className="w-5 h-5 text-foreground animate-pulse-glow" />
                   <div className="w-24 h-1 bg-muted rounded-full overflow-hidden">
                     <motion.div 
-                      className="h-full bg-primary"
+                      className="h-full bg-foreground"
                       initial={{ width: "0%" }}
                       animate={{ width: "100%" }}
                       transition={{ duration: 1.5, ease: "easeInOut" }}

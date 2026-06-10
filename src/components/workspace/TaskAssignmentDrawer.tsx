@@ -64,7 +64,7 @@ const TaskAssignmentDrawer = ({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="w-full sm:max-w-[520px] p-0 flex flex-col">
         <SheetHeader className="p-6 border-b">
-          <div className="flex items-center gap-2 text-primary mb-1">
+          <div className="flex items-center gap-2 text-foreground mb-1">
             <CheckSquare className="w-5 h-5" />
             <SheetTitle>Assign Task</SheetTitle>
           </div>
@@ -153,7 +153,7 @@ const TaskAssignmentDrawer = ({
                 <p className="text-sm font-medium">Add Collaborator to Repo</p>
                 <p className="text-xs text-muted-foreground">Invite team members who are connected to GitHub but not collaborators yet.</p>
               </div>
-              <UserPlus className="w-4 h-4 text-primary" />
+              <UserPlus className="w-4 h-4 text-foreground" />
             </div>
 
             <div className="rounded-md border border-border/10 max-h-[180px] overflow-y-auto bg-background/50">

@@ -522,7 +522,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                 >
                   <CardHeader className="p-4 pb-2">
                     <div className="flex justify-between items-start">
-                      <FileText className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <FileText className="w-5 h-5 text-muted-foreground group-hover:text-foreground transition-colors" />
                       <Pin className="w-4 h-4 text-orange-500 fill-orange-500" />
                     </div>
                   </CardHeader>
@@ -686,7 +686,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
               ) : repos.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
                   <p>No repositories found.</p>
-                  <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-primary hover:underline mt-2 block">
+                  <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
                     Install Zync App on GitHub
                   </a>
                 </div>
@@ -754,7 +754,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   ) : repos.length === 0 ? (
                       <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
                         <p>No repositories found.</p>
-                        <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-primary hover:underline mt-2 block">
+                        <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
                           Install Zync App on GitHub
                         </a>
                       </div>

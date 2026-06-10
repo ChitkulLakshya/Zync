@@ -150,7 +150,7 @@ const ProfilePhotoCropper: React.FC<ProfilePhotoCropperProps> = ({
                 </DialogHeader>
 
                 {}
-                <div className="relative w-full h-[350px] bg-black/90">
+                <div className="relative w-full h-[350px] bg-background/90">
                     <Cropper
                         image={imageSrc}
                         crop={crop}
