@@ -492,8 +492,8 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     return <div className="p-8 text-sm text-muted-foreground flex items-center justify-center h-full">Loading workspace...</div>;
   }
   return (
-    <div className="flex-1 p-8 h-full">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="flex-1 p-6 md:p-8 h-full bg-transparent overflow-y-auto">
+      <div className="max-w-7xl mx-auto w-full space-y-8">
         <div className="flex items-center justify-between">
           <div>
 

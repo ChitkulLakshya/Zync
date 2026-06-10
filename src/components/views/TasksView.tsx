@@ -239,7 +239,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         return <div className="p-6 text-sm text-muted-foreground flex items-center justify-center h-full">Loading tasks...</div>;
     }
     return (
-        <div className="flex-1 p-6 md:p-8 h-full flex flex-col overflow-hidden bg-transparent">
+        <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8 h-full flex flex-col overflow-hidden bg-transparent">
             <div className="mb-8 flex items-start justify-between shrink-0">
                 <div>
 

@@ -528,8 +528,8 @@ export default function SettingsView() {
   };
 
   return (
-    <div className="flex-1 h-full overflow-y-auto bg-transparent p-3 sm:p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
+    <div className="flex-1 h-full overflow-y-auto bg-transparent p-6 md:p-8">
+      <div className="max-w-7xl mx-auto w-full space-y-8">
         <Tabs defaultValue="profile" className="space-y-6">
           <div className="w-full overflow-x-auto pb-1 scrollbar-thin">
             <TabsList className="bg-card/50 backdrop-blur-xl border border-border/10 inline-flex w-max min-w-full sm:min-w-0 whitespace-nowrap">

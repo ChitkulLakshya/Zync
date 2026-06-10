@@ -313,7 +313,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
     };
 
     return (
-        <div className="max-w-7xl mx-auto p-8 space-y-12 h-full flex flex-col">
+        <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8 h-full flex flex-col">
 
             {}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">

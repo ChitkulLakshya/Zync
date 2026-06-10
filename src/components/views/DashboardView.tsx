@@ -186,7 +186,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
         }, 0);
 
         return (
-            <div className="p-6 max-w-7xl mx-auto space-y-6">
+            <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
                 <Card className="border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-6">
@@ -305,7 +305,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
 
 
     return (
-        <div className="p-6 space-y-6 max-w-7xl mx-auto">
+        <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
             {}
             {stats && (
                 <Card className="border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm">

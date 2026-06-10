@@ -123,8 +123,8 @@ const CalendarView = () => {
     };
 
     return (
-        <div className="h-full w-full p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-6">
+        <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8 h-full flex flex-col">
+            <div className="flex items-center justify-end mb-6">
 
                 {countries.length > 0 && (
                     <div className="flex items-center gap-2">

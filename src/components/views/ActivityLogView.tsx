@@ -1060,7 +1060,7 @@ export default function ActivityLogView({
         .al-fade-up { animation: al-fade-up 0.5s ease forwards; opacity: 0; }
       `}</style>
 
-            <div className="mx-auto max-w-[1400px] px-5 py-6 space-y-6">
+            <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
                 {/* Activity Summary Premium Card */}
                 <div 
                     className="al-fade-up rounded-[2rem] border border-border/10 p-8 space-y-8 shadow-sm relative overflow-hidden bg-card/50 backdrop-blur-xl"

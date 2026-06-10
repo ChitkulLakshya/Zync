@@ -160,7 +160,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   }
 
   return (
-    <div className="p-6 flex flex-col space-y-6 bg-transparent">
+    <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8 h-full flex flex-col relative z-10 bg-transparent">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="space-y-1">
 

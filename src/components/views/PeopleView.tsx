@@ -489,9 +489,9 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
                         </Button>
                     </div>
 
-                    <div className="flex-1 w-full overflow-y-auto p-6 md:pl-8 pt-4 space-y-8">
-
-                        <div className="space-y-4">
+                    <div className="flex-1 w-full overflow-y-auto">
+                        <div className="max-w-7xl mx-auto w-full p-6 md:pl-8 pt-4 space-y-8">
+                            <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-sm text-muted-foreground mb-1">Team Owner</h3>

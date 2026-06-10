@@ -124,7 +124,7 @@ const DesignView = () => {
   return (
     <div ref={scrollRef} className="h-full bg-transparent overflow-y-auto w-full">
       {}
-      <div className="w-full max-w-[1800px] mx-auto pt-16 pb-12 px-6 md:px-10 flex flex-col items-start gap-8">
+      <div className="w-full max-w-7xl mx-auto p-6 md:p-8 flex flex-col items-start gap-8">
         <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/10 pb-6">
           <div className="space-y-1">
 
@@ -168,7 +168,7 @@ const DesignView = () => {
 
       {/* Scraping banner */}
       {scraping && !loading && (
-        <div className="px-6 md:px-10 max-w-[1800px] mx-auto">
+        <div className="px-6 md:px-8 max-w-7xl mx-auto">
           <div className="flex items-center gap-2 text-muted-foreground bg-card/50 backdrop-blur-md border border-border/10 rounded-xl px-4 py-2.5">
             <div className="flex gap-1">
               <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce [animation-delay:-0.3s]" />
@@ -183,7 +183,7 @@ const DesignView = () => {
       )}
 
       {}
-      <div className="px-6 md:px-10 pb-20 max-w-[1800px] mx-auto">
+      <div className="px-6 md:px-8 pb-20 max-w-7xl mx-auto">
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
 
           {loading && items.length === 0 && (
