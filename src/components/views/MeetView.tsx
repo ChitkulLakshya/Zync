@@ -287,8 +287,8 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                 );
             case "ended":
                 return (
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-zinc-800 rounded-full border border-zinc-700">
-                        <span className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">Ended</span>
+                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-card rounded-full border border-border/20">
+                        <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider">Ended</span>
                     </div>
                 );
             default:
@@ -606,7 +606,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                         <Button
                                             size="sm"
                                             variant="ghost"
-                                            className="h-8 text-xs text-zinc-400 hover:text-white"
+                                            className="h-8 text-xs text-muted-foreground hover:text-foreground"
                                             onClick={() => {
                                                 navigator.clipboard.writeText(meeting.meetLink);
                                                 toast({ title: "Link Copied", description: "Meeting link copied to clipboard." });
@@ -616,7 +616,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                         </Button>
                                         <Button
                                             size="sm"
-                                            className="h-8 px-4 bg-white/10 hover:bg-white/20 text-white border border-white/5"
+                                            className="h-8 px-4 bg-primary hover:bg-primary/90 text-primary-foreground border border-border/10"
                                             onClick={() => {
                                                 if (meeting.meetLink) {
                                                     const newWindow = window.open(meeting.meetLink, '_blank');
@@ -651,11 +651,11 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
             {/* Quick Invite Section */}
             <section className="space-y-4 mt-auto">
                 <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-white">Quick Invite</h2>
+                    <h2 className="text-lg font-semibold text-foreground">Quick Invite</h2>
                     {invitedUserIds.length > 0 && (
                         <Button
                             size="sm"
-                            className="bg-blue-600 text-white hover:bg-blue-700 animate-in fade-in zoom-in duration-200"
+                            className="bg-primary text-primary-foreground hover:bg-primary/90 animate-in fade-in zoom-in duration-200"
                             onClick={() => handleStartInstantMeeting(null, invitedUserIds)}
                             disabled={isGenerating}
                         >
@@ -668,20 +668,20 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                 <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden p-1">
                     {/* Search Bar */}
                     <div className="relative px-3 py-2 border-b border-white/5">
-                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
+                        <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                             type="text"
                             placeholder="Search people to invite..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full bg-transparent border-none focus:ring-0 pl-10 pr-4 text-sm text-white placeholder:text-zinc-600 h-10 outline-none"
+                            className="w-full bg-transparent border-none focus:ring-0 pl-10 pr-4 text-sm text-foreground placeholder:text-muted-foreground h-10 outline-none"
                         />
                     </div>
 
                     {/* Users List */}
                     <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
                         {filteredUsers.length === 0 ? (
-                            <div className="p-8 text-center text-zinc-500 text-sm">No users found.</div>
+                            <div className="p-8 text-center text-muted-foreground text-sm">No users found.</div>
                         ) : (
                             <table className="w-full text-left text-sm">
                                 <tbody>
@@ -711,13 +711,13 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-9 w-9 border border-white/10">
                                                             <AvatarImage src={getFullUrl(user.photoURL)} />
-                                                            <AvatarFallback className="bg-zinc-800 text-zinc-400">{getUserInitials(user)}</AvatarFallback>
+                                                            <AvatarFallback className="bg-muted text-muted-foreground">{getUserInitials(user)}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
-                                                            <div className={cn("font-medium", isSelected ? "text-blue-200" : "text-zinc-200")}>
+                                                            <div className={cn("font-medium", isSelected ? "text-primary" : "text-foreground")}>
                                                                 {getUserName(user)}
                                                             </div>
-                                                            <div className="text-xs text-zinc-500">{user.email}</div>
+                                                            <div className="text-xs text-muted-foreground">{user.email}</div>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -726,9 +726,9 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                                         <div className={cn(
                                                             "w-2 h-2 rounded-full",
                                                             status === 'online' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" :
-                                                                status === 'away' ? "bg-yellow-500" : "bg-zinc-700"
+                                                                status === 'away' ? "bg-amber-500" : "bg-muted-foreground"
                                                         )} />
-                                                        <span className="text-xs text-zinc-500 capitalize">{status}</span>
+                                                        <span className="text-xs text-muted-foreground capitalize">{status}</span>
                                                     </div>
                                                 </td>
                                             </tr>

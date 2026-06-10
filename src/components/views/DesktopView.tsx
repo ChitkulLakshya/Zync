@@ -884,7 +884,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               {mounted ? (
                 <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg" />
               ) : <div className="w-8 h-8 bg-foreground rounded-xl" />}
-              {!isCollapsed && <span className="font-bold text-lg text-white tracking-wide">Zync</span>}
+              {!isCollapsed && <span className="font-bold text-lg text-sidebar-foreground tracking-wide">Zync</span>}
             </div>
 
             <div className="flex-1 overflow-y-auto px-2 space-y-1">
@@ -905,7 +905,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     variant="ghost"
                     className={cn(
                       "w-full rounded-lg transition-all duration-200",
-                      item.active ? "bg-white/10 text-white" : "text-zinc-400 hover:text-white hover:bg-white/5",
+                      item.active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
                       isCollapsed ? "justify-center px-0 py-3" : "justify-start gap-3 py-2 px-3"
                     )}
                     onClick={() => handleSectionChange(item.label)}
@@ -928,7 +928,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     </Avatar>
                     {!isCollapsed && (
                       <div className="flex-1 overflow-hidden">
-                        <p className="text-sm font-medium text-white truncate">{isPreview ? "John Doe" : getUserName(pickUserForDisplay(userData, currentUser))}</p>
+                        <p className="text-sm font-medium text-sidebar-foreground truncate">{isPreview ? "John Doe" : getUserName(pickUserForDisplay(userData, currentUser))}</p>
 
                       </div>
                     )}
@@ -936,13 +936,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-xl rounded-2xl">
-                  <DropdownMenuLabel className="text-zinc-400 font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuLabel className="text-muted-foreground font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-border/50" />
                   <DropdownMenuItem onClick={() => handleSectionChange("Settings")} className="focus:bg-foreground/10 focus:text-foreground cursor-pointer py-2">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-border/50" />
                   <DropdownMenuItem onClick={async () => {
                     if (isPreview) { return; }
                     localStorage.removeItem("ZYNC-active-section");
@@ -968,7 +968,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
                     <span>{activeSection}</span>
                     {showCompactSpinner && (
                       <RefreshCw className="w-4 h-4 animate-spin text-zinc-400" aria-label="Switching section" />

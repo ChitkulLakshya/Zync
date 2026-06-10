@@ -197,7 +197,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         if (['Completed', 'Done'].includes(status)) {return 'bg-emerald-500';}
         if (['In Progress'].includes(status)) {return 'bg-amber-500';}
         if (['Active'].includes(status)) {return 'bg-sky-500';}
-        return 'bg-zinc-500';
+        return 'bg-muted-foreground';
     };
 
     const getStatusLabel = (status: string) => {
@@ -252,7 +252,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
             {groupedTasks.length === 0 ? (
                 <div className="flex flex-col items-center justify-center flex-1 text-center px-4">
                     <div className="w-20 h-20 rounded-2xl bg-card/50 border border-border/10 backdrop-blur-xl flex items-center justify-center mb-6 backdrop-blur-md">
-                        <Inbox className="w-9 h-9 text-white/60" strokeWidth={1.5} />
+                        <Inbox className="w-9 h-9 text-muted-foreground/60" strokeWidth={1.5} />
                     </div>
                     <h3 className="text-xl font-semibold text-foreground">All caught up!</h3>
                     <p className="text-sm text-muted-foreground mt-2 max-w-sm leading-relaxed">
@@ -291,17 +291,17 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1.5 text-xs text-muted-foreground flex-wrap">
                                                         <span className="px-1.5 py-0.5 rounded bg-card/50 border border-border/10 text-muted-foreground backdrop-blur-sm">{task.stepName}</span>
-                                                        <span className="text-white/30">·</span>
+                                                        <span className="text-muted-foreground/30">·</span>
                                                         <span className={`px-1.5 py-0.5 rounded text-xs ${['Completed', 'Done'].includes(task.status) ? 'bg-emerald-500/20 text-emerald-400' :
                                                                 ['In Progress'].includes(task.status) ? 'bg-amber-500/20 text-amber-400' :
                                                                     ['Active'].includes(task.status) ? 'bg-sky-500/20 text-sky-400' :
-                                                                        'bg-white/10 text-white/65'
+                                                                        'bg-accent text-accent-foreground'
                                                             }`}>
                                                             {getStatusLabel(task.status)}
                                                         </span>
                                                         {task.createdAt && (
                                                             <>
-                                                                <span className="text-white/30">·</span>
+                                                                <span className="text-muted-foreground/30">·</span>
                                                                 <span className="tabular-nums">{format(new Date(task.createdAt), 'MMM d')}</span>
                                                             </>
                                                         )}
@@ -349,15 +349,15 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                             </section>
                         ))}
 
-                        <div className="pt-8 border-t border-white/10">
+                        <div className="pt-8 border-t border-border/10">
                             <div className="flex items-center gap-6 text-xs text-muted-foreground">
                                 <span>{taskStats.total} total</span>
-                                <span className="text-white/30">·</span>
+                                <span className="text-muted-foreground/30">·</span>
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                                     {taskStats.inProgress} in progress
                                 </span>
-                                <span className="text-white/30">·</span>
+                                <span className="text-muted-foreground/30">·</span>
                                 <span className="flex items-center gap-1.5">
                                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                                     {taskStats.done} done

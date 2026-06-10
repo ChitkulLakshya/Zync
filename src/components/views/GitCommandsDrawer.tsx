@@ -73,7 +73,7 @@ const CommandBlock = ({ label, command, stepNumber }: { label: string, command: 
                 <Button
                     size="icon"
                     variant="ghost"
-                    className="absolute right-2 top-2 h-6 w-6 text-muted-foreground hover:text-white hover:bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute right-2 top-2 h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-accent opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={handleCopy}
                 >
                     {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}

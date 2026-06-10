@@ -1117,7 +1117,7 @@ export default function ActivityLogView({
                                                 const logoId = t.logoId || getDeterministicLogoId(t.id);
                                                 const { icon: LogoIcon, fgColor, bgColor, borderColor } = getLogoById(logoId);
                                                 return (
-                                                    <SelectItem key={t.id} value={t.id} className="cursor-pointer focus:bg-white/10 focus:text-white">
+                                                    <SelectItem key={t.id} value={t.id} className="cursor-pointer focus:bg-accent focus:text-accent-foreground">
                                                         <div className="flex items-center gap-2">
                                                             <span
                                                                 className="inline-flex h-5 w-5 items-center justify-center rounded-full border"
@@ -1146,7 +1146,7 @@ export default function ActivityLogView({
                                                             className="h-5 w-5 rounded-full object-cover border border-white/20 shrink-0"
                                                         />
                                                     ) : (
-                                                        <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[10px] font-semibold text-white">
+                                                        <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
                                                             {(selectedMemberOption.label || 'M').charAt(0).toUpperCase()}
                                                         </span>
                                                     )}
@@ -1163,7 +1163,7 @@ export default function ActivityLogView({
                                                 </SelectItem>
                                             ) : (
                                                 selectedTeamMemberOptions.map((u) => (
-                                                    <SelectItem key={u.uid} value={u.uid} className="cursor-pointer focus:bg-white/10 focus:text-white">
+                                                    <SelectItem key={u.uid} value={u.uid} className="cursor-pointer focus:bg-accent focus:text-accent-foreground">
                                                         <div className="flex items-center gap-2">
                                                             {u.photoURL ? (
                                                                 <img
@@ -1172,7 +1172,7 @@ export default function ActivityLogView({
                                                                     className="h-5 w-5 rounded-full object-cover border border-white/20"
                                                                 />
                                                             ) : (
-                                                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-white/20 bg-white/10 text-[10px] font-semibold text-white">
+                                                                <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
                                                                     {(u.label || 'M').charAt(0).toUpperCase()}
                                                                 </span>
                                                             )}
