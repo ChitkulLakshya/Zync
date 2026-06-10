@@ -83,10 +83,10 @@ export default {
         surface: {
           base: "hsl(var(--background))",
           glass: {
-            thin: "rgba(var(--glass-color), 0.05)",
-            regular: "rgba(var(--glass-color), 0.15)",
-            thick: "rgba(var(--glass-color), 0.25)",
-            ultra: "rgba(var(--glass-color), 0.4)",
+            thin: "var(--glass-thin)",
+            regular: "var(--glass-regular)",
+            thick: "var(--glass-thick)",
+            ultra: "var(--glass-ultra)",
           },
         },
       },

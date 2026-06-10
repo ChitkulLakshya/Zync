@@ -58,14 +58,14 @@
     --shadow-glow: 0 0 40px hsl(199 89% 48% / 0.15);
 
 
-    --sidebar-background: 220 20% 14%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 199 89% 48%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 215 20% 10%;
+    --sidebar-primary: 212 99% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 20%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 220 15% 22%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent-foreground: 215 20% 10%;
+    --sidebar-border: 0 0% 89%;
+    --sidebar-ring: 212 99% 48%;
 
 
     --level-0: #ebedf0;
@@ -74,7 +74,10 @@
     --level-3: #30a14e;
     --level-4: #216e39;
 
-    --glass-color: 255, 255, 255;
+    --glass-thin: rgba(255, 255, 255, 0.4);
+    --glass-regular: rgba(255, 255, 255, 0.7);
+    --glass-thick: rgba(255, 255, 255, 0.85);
+    --glass-ultra: rgba(255, 255, 255, 0.95);
   }
 
   .dark {
@@ -127,7 +130,10 @@
     --level-3: #26a641;
     --level-4: #39d353;
 
-    --glass-color: 20, 20, 20;
+    --glass-thin: rgba(255, 255, 255, 0.03);
+    --glass-regular: rgba(255, 255, 255, 0.08);
+    --glass-thick: rgba(255, 255, 255, 0.15);
+    --glass-ultra: rgba(255, 255, 255, 0.25);
   }
 }
 
@@ -181,12 +187,16 @@
    */
   .dashboard-backdrop {
     background:
+      radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 40%),
+      radial-gradient(circle at 85% 30%, rgba(147, 51, 234, 0.06), transparent 40%),
       radial-gradient(ellipse 110% 75% at 50% -18%, rgba(255, 255, 255, 0.05), transparent 58%),
       linear-gradient(165deg, hsl(0 0% 8%) 0%, hsl(0 0% 4%) 100%);
   }
 
   .light .dashboard-backdrop {
     background:
+      radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.06), transparent 40%),
+      radial-gradient(circle at 85% 30%, rgba(147, 51, 234, 0.04), transparent 40%),
       radial-gradient(ellipse 110% 75% at 50% -18%, rgba(0, 0, 0, 0.03), transparent 58%),
       linear-gradient(165deg, hsl(0 0% 98%) 0%, hsl(0 0% 96%) 100%);
   }
