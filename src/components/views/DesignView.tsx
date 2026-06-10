@@ -127,9 +127,7 @@ const DesignView = () => {
       <div className="w-full max-w-[1800px] mx-auto pt-16 pb-12 px-6 md:px-10 flex flex-col items-start gap-8">
         <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/10 pb-6">
           <div className="space-y-1">
-            <h1 className="text-4xl md:text-5xl font-medium tracking-tighter text-foreground">
-              Inspiration
-            </h1>
+
             <p className="text-muted-foreground text-sm tracking-wide uppercase font-medium">
               Curated Web Design
             </p>

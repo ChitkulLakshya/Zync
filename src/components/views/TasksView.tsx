@@ -242,7 +242,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
         <div className="flex-1 p-6 md:p-8 h-full flex flex-col overflow-hidden bg-transparent">
             <div className="mb-8 flex items-start justify-between shrink-0">
                 <div>
-                    <h2 className="text-2xl md:text-3xl font-semibold tracking-tight">My Tasks</h2>
+
                     <p className="text-sm text-muted-foreground mt-1">
                         Your assigned work across all projects
                     </p>

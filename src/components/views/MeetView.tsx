@@ -318,7 +318,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
             {}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-foreground tracking-tight mb-2">Meet</h1>
+
                     <p className="text-muted-foreground max-w-lg">
                         Start or schedule high-quality video meetings with your team.
                         Secure, encrypted, and integrated with your workflow.

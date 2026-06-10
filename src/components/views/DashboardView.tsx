@@ -194,7 +194,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                                 <Github className="h-10 w-10 text-foreground" />
                             </div>
                             <div className="flex-1">
-                                <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
+
                                 <p className="text-muted-foreground mt-1">Connect GitHub to unlock contribution graphs, commit tracking, and repo analytics.</p>
                             </div>
                             <Button size="lg" onClick={() => window.location.href = "/login"}>
