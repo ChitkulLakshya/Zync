@@ -41,10 +41,10 @@ const CommandBlock = ({ label, command, stepNumber }: { label: string, command: 
     return (
         <div className="group relative pl-6 pb-8 last:pb-0">
             {}
-            <div className="absolute left-[11px] top-7 bottom-0 w-px bg-border/20 group-last:hidden" />
+            <div className="absolute left-[11px] top-7 bottom-0 w-px bg-border/10 group-last:hidden" />
 
             {}
-            <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-background border border-border/50 flex items-center justify-center text-[10px] font-mono text-muted-foreground z-10 shadow-sm">
+            <div className="absolute left-0 top-0 w-6 h-6 rounded-full bg-card/50 backdrop-blur-md border border-border/10 flex items-center justify-center text-[10px] font-mono text-muted-foreground z-10 shadow-sm">
                 {stepNumber}
             </div>
 
@@ -60,9 +60,9 @@ const CommandBlock = ({ label, command, stepNumber }: { label: string, command: 
             >
                 {}
                 <div className="absolute top-3 left-3 flex gap-1.5 opacity-50">
-                    <div className="w-2 h-2 rounded-full bg-red-500/20" />
-                    <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
-                    <div className="w-2 h-2 rounded-full bg-green-500/20" />
+                    <div className="w-2 h-2 rounded-full bg-foreground/20" />
+                    <div className="w-2 h-2 rounded-full bg-foreground/20" />
+                    <div className="w-2 h-2 rounded-full bg-foreground/20" />
                 </div>
 
                 <div className="p-4 pt-8 overflow-x-auto">
@@ -104,10 +104,10 @@ export const GitCommandsDrawer = ({ open, onOpenChange, task, project }: GitComm
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
-            <SheetContent className="sm:max-w-[480px] w-full p-0 flex flex-col bg-zinc-950/95 border-l border-white/5 backdrop-blur-xl">
-                <SheetHeader className="p-6 pb-2 border-b border-white/5">
+            <SheetContent className="sm:max-w-[480px] w-full p-0 flex flex-col bg-background/50 border-l border-border/10 backdrop-blur-2xl">
+                <SheetHeader className="p-6 pb-2 border-b border-border/10">
                     <div className="flex items-center gap-2 mb-1">
-                        <div className="p-2 rounded-md bg-blue-500/10 text-blue-400">
+                        <div className="p-2 rounded-md bg-foreground/5 text-foreground">
                             <Terminal className="w-4 h-4" />
                         </div>
                         <SheetTitle className="text-lg font-medium tracking-tight">Git Command Assistant</SheetTitle>
@@ -150,9 +150,9 @@ export const GitCommandsDrawer = ({ open, onOpenChange, task, project }: GitComm
                     </div>
                 </ScrollArea>
 
-                <div className="p-6 border-t border-white/5 bg-white/[0.02]">
+                <div className="p-6 border-t border-border/10 bg-transparent">
                     <SheetClose asChild>
-                        <Button variant="outline" className="w-full border-zinc-800 bg-zinc-900/50 hover:bg-zinc-800 hover:text-white text-zinc-400 transition-colors">
+                        <Button variant="outline" className="w-full border-border/10 bg-card/50 backdrop-blur-md hover:bg-card/80 hover:text-foreground text-muted-foreground transition-colors">
                             Done
                         </Button>
                     </SheetClose>

@@ -27,7 +27,7 @@ const DesignCard = ({ item }: { item: any }) => {
       rel="noopener noreferrer"
       className="group relative block break-inside-avoid mb-6"
     >
-      <div className="relative overflow-hidden bg-secondary/20 rounded-md">
+      <div className="relative overflow-hidden bg-card/50 backdrop-blur-md border border-border/10 rounded-2xl">
         {}
         <div
           className={cn(
@@ -60,8 +60,8 @@ const DesignCard = ({ item }: { item: any }) => {
         />
 
         {}
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
-          <div className="bg-white/90 text-black px-4 py-2 rounded-full flex items-center gap-2 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
+        <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center backdrop-blur-[2px] z-20">
+          <div className="bg-card/50 backdrop-blur-md border border-border/10 text-foreground px-4 py-2 rounded-full flex items-center gap-2 transform translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 delay-75">
             <span className="text-xs font-bold uppercase tracking-wider">{item.source}</span>
             <ArrowUpRight className="w-3 h-3" />
           </div>
@@ -125,7 +125,7 @@ const DesignView = () => {
     <div ref={scrollRef} className="h-full bg-transparent overflow-y-auto w-full">
       {}
       <div className="w-full max-w-[1800px] mx-auto pt-16 pb-12 px-6 md:px-10 flex flex-col items-start gap-8">
-        <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/40 pb-6">
+        <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/10 pb-6">
           <div className="space-y-1">
             <h1 className="text-4xl md:text-5xl font-medium tracking-tighter text-foreground">
               Inspiration
@@ -171,7 +171,7 @@ const DesignView = () => {
       {/* Scraping banner */}
       {scraping && !loading && (
         <div className="px-6 md:px-10 max-w-[1800px] mx-auto">
-          <div className="flex items-center gap-2 text-muted-foreground bg-secondary/20 rounded-lg px-4 py-2.5">
+          <div className="flex items-center gap-2 text-muted-foreground bg-card/50 backdrop-blur-md border border-border/10 rounded-xl px-4 py-2.5">
             <div className="flex gap-1">
               <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce [animation-delay:-0.3s]" />
               <span className="w-1.5 h-1.5 bg-foreground/30 rounded-full animate-bounce [animation-delay:-0.15s]" />

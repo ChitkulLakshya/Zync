@@ -21,7 +21,7 @@ export const TaskGitSync: React.FC<TaskGitSyncProps> = ({ taskId, className }) =
     };
 
     return (
-        <div className={cn("p-4 rounded-lg border border-border bg-card shadow-sm", className)}>
+        <div className={cn("p-4 rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl shadow-sm", className)}>
             <div className="flex items-center gap-2 mb-2">
                 <Github className="w-4 h-4 text-foreground" />
                 <h4 className="font-medium text-sm text-foreground">Sync with GitHub</h4>
@@ -31,7 +31,7 @@ export const TaskGitSync: React.FC<TaskGitSyncProps> = ({ taskId, className }) =
             </p>
 
             <div className="flex items-center gap-2">
-                <code className="flex-1 bg-muted px-3 py-2 rounded text-xs font-mono text-foreground truncate border border-border/50 select-all">
+                <code className="flex-1 bg-card/50 backdrop-blur-md px-3 py-2 rounded-xl text-xs font-mono text-foreground truncate border border-border/10 select-all">
                     {commitTag}
                 </code>
                 <Button

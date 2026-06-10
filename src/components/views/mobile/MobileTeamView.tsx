@@ -85,9 +85,9 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
   if (!myTeams.length) {
     return (
       <div className="p-4">
-        <Card className="bg-card/70">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
           <CardContent className="py-8 text-center space-y-2">
-            <Users className="h-8 w-8 mx-auto text-primary" />
+            <Users className="h-8 w-8 mx-auto text-foreground" />
             <p className="font-medium">No teams yet</p>
             <p className="text-sm text-muted-foreground">Join or create a team from Settings.</p>
           </CardContent>
@@ -98,7 +98,7 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
 
   return (
     <div className="p-4 space-y-4">
-      <Card className="bg-card/70">
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center justify-between gap-2">
             <span>My Teams</span>
@@ -131,16 +131,16 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
       </Card>
 
       {activeTeam && (
-        <Card className="bg-card/70">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">{activeTeam.name}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Crown className="h-4 w-4 text-primary" />
+              <Crown className="h-4 w-4 text-foreground" />
               Team Owner
             </div>
-            <div className="rounded-lg border border-border/60 p-2.5 flex items-center gap-2.5">
+            <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 shadow-sm">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={getFullUrl(ownerUser?.photoURL)} />
                 <AvatarFallback>{(ownerUser?.displayName || "U").charAt(0).toUpperCase()}</AvatarFallback>
@@ -152,7 +152,7 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
             </div>
 
             {activeTeam?.inviteCode && (
-              <div className="rounded-lg border border-border/60 p-2.5 flex items-center gap-2">
+              <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2 shadow-sm">
                 <div className="min-w-0 flex-1">
                   <p className="text-[11px] text-muted-foreground">Invite Code</p>
                   <p className="text-sm font-semibold tracking-wider">{activeTeam.inviteCode}</p>
@@ -166,7 +166,7 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
         </Card>
       )}
 
-      <Card className="bg-card/70">
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base">Members</CardTitle>
         </CardHeader>
@@ -177,7 +177,7 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
             <p className="text-sm text-muted-foreground">No members found.</p>
           ) : (
             teamUsers.map((member: any) => (
-              <div key={member.uid} className="rounded-lg border border-border/60 p-2.5 flex items-center gap-2.5">
+              <div key={member.uid} className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 shadow-sm">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={getFullUrl(member.photoURL)} />
                   <AvatarFallback>{(member.displayName || "U").charAt(0).toUpperCase()}</AvatarFallback>
@@ -193,10 +193,10 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
                     onClick={() => onChat && onChat(member)}
                     title="Chat"
                   >
-                    <MessageSquare className="h-4 w-4 text-primary" />
+                    <MessageSquare className="h-4 w-4 text-foreground" />
                   </Button>
                 )}
-                {member.uid === currentUser?.uid && <CheckCircle2 className="h-4 w-4 text-primary" />}
+                {member.uid === currentUser?.uid && <CheckCircle2 className="h-4 w-4 text-foreground" />}
               </div>
             ))
           )}

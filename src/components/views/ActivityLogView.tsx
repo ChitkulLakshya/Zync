@@ -1063,13 +1063,9 @@ export default function ActivityLogView({
             <div className="mx-auto max-w-[1400px] px-5 py-6 space-y-6">
                 {/* Activity Summary Premium Card */}
                 <div 
-                    className="al-fade-up rounded-[24px] border p-8 space-y-8 shadow-2xl relative overflow-hidden"
+                    className="al-fade-up rounded-[2rem] border border-border/10 p-8 space-y-8 shadow-sm relative overflow-hidden bg-card/50 backdrop-blur-xl"
                     style={{ 
                         animationDelay: '0.1s', 
-                        background: 'rgba(255, 255, 255, 0.04)',
-                        borderColor: 'rgba(255,255,255,0.12)',
-                        backdropFilter: 'blur(12px)',
-                        boxShadow: 'none'
                     }}
                 >
                     <div className="flex items-center justify-between">
@@ -1341,11 +1337,9 @@ export default function ActivityLogView({
                     {statCards.map((c, i) => (
                         <div
                             key={c.key}
-                            className="al-fade-up rounded-[12px] border p-5 transition-colors"
+                            className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 transition-colors shadow-sm"
                             style={{
                                 animationDelay: `${0.05 + i * 0.05}s`,
-                                background: T.bgCard,
-                                borderColor: T.border,
                             }}
                             onMouseEnter={(e) => {
                                 e.currentTarget.style.borderColor = 'rgba(26,143,209,0.35)';
@@ -1403,8 +1397,8 @@ export default function ActivityLogView({
                     style={{ alignItems: 'stretch' }}
                 >
                     <div
-                        className="al-fade-up rounded-[12px] border p-5"
-                        style={{ animationDelay: '0.4s', background: T.bgCard, borderColor: T.border }}
+                        className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 shadow-sm"
+                        style={{ animationDelay: '0.4s' }}
                     >
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                             <h2 className="text-sm font-semibold" style={{ color: T.text1 }}>
@@ -1446,8 +1440,8 @@ export default function ActivityLogView({
                     </div>
 
                     <div
-                        className="al-fade-up rounded-[12px] border p-5"
-                        style={{ animationDelay: '0.45s', background: T.bgCard, borderColor: T.border }}
+                        className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 shadow-sm"
+                        style={{ animationDelay: '0.45s' }}
                     >
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
                             <h2 className="text-sm font-semibold" style={{ color: T.text1 }}>
@@ -1489,8 +1483,8 @@ export default function ActivityLogView({
 
                 {/* Recent activity */}
                 <section
-                    className="al-fade-up rounded-[12px] border"
-                    style={{ animationDelay: '0.5s', background: T.bgCard, borderColor: T.border }}
+                    className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl shadow-sm"
+                    style={{ animationDelay: '0.5s' }}
                 >
                     <div
                         className="flex flex-col gap-3 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between"

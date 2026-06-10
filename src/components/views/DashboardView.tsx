@@ -187,11 +187,11 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
 
         return (
             <div className="p-6 max-w-7xl mx-auto space-y-6">
-                <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 bg-card/40 backdrop-blur-sm">
+                <Card className="border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-6">
-                            <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center">
-                                <Github className="h-10 w-10 text-primary" />
+                            <div className="h-20 w-20 rounded-full bg-foreground/10 flex items-center justify-center">
+                                <Github className="h-10 w-10 text-foreground" />
                             </div>
                             <div className="flex-1">
                                 <h1 className="text-2xl font-bold">Welcome to your Dashboard</h1>
@@ -206,23 +206,23 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                 </Card>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card>
+                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
                         <CardContent className="pt-6 text-center">
-                            <Kanban className="h-8 w-8 text-primary mx-auto mb-2" />
+                            <Kanban className="h-8 w-8 text-foreground mx-auto mb-2" />
                             <p className="text-2xl font-bold">{projects.length}</p>
                             <p className="text-sm text-muted-foreground">Projects</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
                         <CardContent className="pt-6 text-center">
-                            <GitCommit className="h-8 w-8 text-primary mx-auto mb-2" />
+                            <GitCommit className="h-8 w-8 text-foreground mx-auto mb-2" />
                             <p className="text-2xl font-bold">{totalTasks}</p>
                             <p className="text-sm text-muted-foreground">Total Tasks</p>
                         </CardContent>
                     </Card>
-                    <Card>
+                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
                         <CardContent className="pt-6 text-center">
-                            <Star className="h-8 w-8 text-primary mx-auto mb-2" />
+                            <Star className="h-8 w-8 text-foreground mx-auto mb-2" />
                             <p className="text-2xl font-bold">{completedTasks}</p>
                             <p className="text-sm text-muted-foreground">Completed</p>
                         </CardContent>
@@ -230,7 +230,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                 </div>
 
                 {projects.length > 0 ? (
-                    <Card>
+                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <BookMarked className="h-5 w-5" />
@@ -254,7 +254,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                                             </div>
                                             <div className="w-24">
                                                 <div className="h-2 bg-muted rounded-full overflow-hidden">
-                                                    <div className="h-full bg-primary rounded-full transition-all" style={{ width: `${pct}%` }} />
+                                                    <div className="h-full bg-foreground rounded-full transition-all" style={{ width: `${pct}%` }} />
                                                 </div>
                                                 <p className="text-xs text-muted-foreground text-right mt-1">{pct}%</p>
                                             </div>
@@ -265,7 +265,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                         </CardContent>
                     </Card>
                 ) : (
-                    <Card>
+                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
                         <CardContent className="pt-6 text-center space-y-4">
                             <Kanban className="h-12 w-12 text-muted-foreground mx-auto" />
                             <div>
@@ -286,10 +286,10 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                         { icon: CalendarDays, title: "Calendar", desc: "Schedule meetings and track holidays", href: "/dashboard" },
                         { icon: StickyNote, title: "Notes", desc: "Share project documentation", href: "/dashboard" },
                     ].map((item) => (
-                        <Card key={item.title} className="hover:border-primary/30 transition-colors cursor-pointer">
+                        <Card key={item.title} className="hover:border-border/30 border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm transition-colors cursor-pointer">
                             <CardContent className="pt-6 flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                                    <item.icon className="w-5 h-5 text-primary" />
+                                <div className="w-10 h-10 rounded-lg bg-foreground/10 flex items-center justify-center shrink-0">
+                                    <item.icon className="w-5 h-5 text-foreground" />
                                 </div>
                                 <div>
                                     <p className="font-medium">{item.title}</p>
@@ -308,7 +308,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
         <div className="p-6 space-y-6 max-w-7xl mx-auto">
             {}
             {stats && (
-                <Card className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border-primary/20 bg-card/40 backdrop-blur-sm">
+                <Card className="border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-6">
                             <Avatar className="h-20 w-20 border-4 border-primary/20">
@@ -318,7 +318,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                             <div className="flex-1">
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-2xl font-bold">{stats.name || stats.login}</h1>
-                                    <Badge variant="secondary" className="bg-primary/10 text-primary">
+                                    <Badge variant="secondary" className="bg-foreground/10 text-foreground">
                                         <Github className="h-3 w-3 mr-1" />
                                         @{stats.login}
                                     </Badge>
@@ -391,7 +391,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
 
                         {}
                         <div className="flex items-center justify-between mt-2 pt-2 text-xs text-muted-foreground">
-                            <a href="#" className="hover:text-primary hover:underline">Learn how we count contributions</a>
+                            <a href="#" className="hover:text-foreground hover:underline">Learn how we count contributions</a>
                             <ContributionGraphLegend />
                         </div>
                     </ContributionGraph>
@@ -433,7 +433,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                                         href={`https://github.com/${repo}`}
                                         target="_blank"
                                         rel="noreferrer"
-                                        className="block text-primary hover:underline text-sm font-medium pl-6"
+                                        className="block text-foreground hover:underline text-sm font-medium pl-6"
                                     >
                                         {repo}
                                     </a>
@@ -465,7 +465,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
             </div>
 
             {}
-            <Card>
+            <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                         <Clock className="h-5 w-5" />
@@ -500,7 +500,7 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
                                                             href={`https://github.com/${event.repo}`}
                                                             target="_blank"
                                                             rel="noopener noreferrer"
-                                                            className="text-primary hover:underline truncate"
+                                                            className="text-foreground hover:underline truncate"
                                                         >
                                                             {event.repo}
                                                         </a>

@@ -261,13 +261,13 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
     };
 
     return (
-        <div className="flex h-full w-full bg-background overflow-hidden relative">
+        <div className="flex h-full w-full bg-background/50 backdrop-blur-xl overflow-hidden relative">
             {}
-            <div className="w-80 shrink-0 border-r border-border flex flex-col bg-background">
+            <div className="w-80 shrink-0 border-r border-border/10 flex flex-col bg-transparent">
                 {}
-                <div className="p-4 border-b border-border/40 space-y-4 flex-none">
+                <div className="p-4 border-b border-border/10 space-y-4 flex-none">
                     <div className="flex items-center">
-                        <Button variant="ghost" onClick={onNavigateBack} className="gap-2 pl-0 hover:bg-transparent hover:text-primary -ml-2" title="Back to Team">
+                        <Button variant="ghost" onClick={onNavigateBack} className="gap-2 pl-0 hover:bg-transparent hover:text-foreground -ml-2" title="Back to Team">
                             <ChevronLeft className="w-5 h-5" />
                             <span className="font-semibold text-lg">Back</span>
                         </Button>
@@ -276,7 +276,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground opacity-50" />
                         <Input
                             placeholder="Search people..."
-                            className="pl-9 pr-10 bg-secondary/50 border-none focus-visible:ring-1 focus-visible:ring-primary/20 rounded-xl h-10 transition-all"
+                            className="pl-9 pr-10 bg-card/50 backdrop-blur-md border border-border/10 focus-visible:ring-1 focus-visible:ring-primary/20 rounded-xl h-10 transition-all"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -292,7 +292,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                     {pendingRequests.length > 0 && !searchTerm && (
                         <div>
                             <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 mb-2 flex items-center justify-between">
-                                Requests <span className="text-[10px] bg-red-500 text-white px-1.5 rounded-full">{pendingRequests.length}</span>
+                                Requests <span className="text-[10px] bg-foreground text-background px-1.5 rounded-full">{pendingRequests.length}</span>
                             </h3>
                             {pendingRequests.map(req => (
                                 <div
@@ -305,9 +305,9 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                         isRequest: true, // Marker
                                         requestMessage: req.message
                                     })}
-                                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${selectedUser?.uid === req.senderId ? 'bg-primary/10' : 'hover:bg-secondary/40'}`}
+                                    className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${selectedUser?.uid === req.senderId ? 'bg-foreground/10' : 'hover:bg-foreground/5'}`}
                                 >
-                                    <Avatar className="w-10 h-10 border border-border/50">
+                                    <Avatar className="w-10 h-10 border border-border/10">
                                         <AvatarImage src={getFullUrl(req.senderPhoto)} referrerPolicy="no-referrer" />
                                         <AvatarFallback className="text-xs">{req.senderName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                                     </Avatar>
@@ -335,9 +335,9 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                     <div
                                         key={user.uid}
                                         onClick={() => setSelectedUser(user)}
-                                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${selectedUser?.uid === user.uid ? 'bg-primary/10' : 'hover:bg-secondary/40'}`}
+                                        className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${selectedUser?.uid === user.uid ? 'bg-foreground/10' : 'hover:bg-foreground/5'}`}
                                     >
-                                        <Avatar className="w-10 h-10 border border-border/50">
+                                        <Avatar className="w-10 h-10 border border-border/10">
                                             <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer" />
                                             <AvatarFallback className="text-xs">{getUserInitials(user)}</AvatarFallback>
                                         </Avatar>
@@ -346,7 +346,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                                 <span className="text-sm font-semibold truncate text-foreground">{getUserName(user)}</span>
                                                 {/* Badge for Non-Team */}
                                                 {!teamUsers.find(u => u.uid === user.uid) && (
-                                                    <span className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground">External</span>
+                                                    <span className="text-[10px] bg-card/50 backdrop-blur-md border border-border/10 px-1.5 py-0.5 rounded text-muted-foreground">External</span>
                                                 )}
                                             </div>
                                             <p className="text-xs text-muted-foreground truncate opacity-80">{user.email}</p>
@@ -372,14 +372,14 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                         key={user.uid}
                                         onClick={() => setSelectedUser(user)}
                                         className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all duration-200 group ${isSelected
-                                            ? 'bg-primary/10'
-                                            : 'hover:bg-secondary/40'
+                                            ? 'bg-foreground/10'
+                                            : 'hover:bg-foreground/5'
                                             }`}
                                     >
                                         <div className="relative shrink-0">
-                                            <Avatar className="w-10 h-10 border border-border/50">
+                                            <Avatar className="w-10 h-10 border border-border/10">
                                                 <AvatarImage src={getFullUrl(user.photoURL)} referrerPolicy="no-referrer" />
-                                                <AvatarFallback className="text-xs bg-secondary">{getUserInitials(user)}</AvatarFallback>
+                                                <AvatarFallback className="text-xs bg-muted">{getUserInitials(user)}</AvatarFallback>
                                             </Avatar>
                                             {status === 'online' && (
                                                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 border-2 border-background rounded-full" />
@@ -387,7 +387,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-baseline">
-                                                <span className={`text-sm font-semibold truncate ${isSelected ? 'text-primary' : 'text-foreground'}`}>
+                                                <span className={`text-sm font-semibold truncate ${isSelected ? 'text-foreground' : 'text-foreground'}`}>
                                                     {getUserName(user)}
                                                 </span>
                                                 <span className="text-[10px] text-muted-foreground opacity-70">
@@ -399,7 +399,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                                     {status}
                                                 </p>
                                                 {!isSameTeam(user) && (
-                                                    <span className="text-[9px] bg-secondary/80 px-1 py-0.5 rounded text-muted-foreground">Ext</span>
+                                                    <span className="text-[9px] bg-card/50 backdrop-blur-sm border border-border/10 px-1 py-0.5 rounded text-muted-foreground">Ext</span>
                                                 )}
                                             </div>
                                         </div>
@@ -414,7 +414,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
             </div>
 
             {/* MIDDLE - Chat Area or Request UI */}
-            <div className="flex-1 flex flex-col min-w-0 bg-background relative z-0">
+            <div className="flex-1 flex flex-col min-w-0 bg-transparent relative z-0">
                 {selectedUser ? (
                     (isSameTeam(selectedUser) || isKnownContact(selectedUser)) ? (
                         <div className="flex-1 flex flex-col h-full">
@@ -428,25 +428,25 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                     ) : selectedUser.isRequest ? (
                         // REQUEST ACCEPTANCE UI
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
-                            <Avatar className="w-24 h-24 mb-4 ring-4 ring-secondary/30">
+                            <Avatar className="w-24 h-24 mb-4 ring-4 ring-border/10">
                                 <AvatarImage src={getFullUrl(selectedUser.photoURL)} referrerPolicy="no-referrer" className="object-cover" />
-                                <AvatarFallback className="text-2xl bg-secondary">{getUserInitials(selectedUser)}</AvatarFallback>
+                                <AvatarFallback className="text-2xl bg-muted">{getUserInitials(selectedUser)}</AvatarFallback>
                             </Avatar>
                             <div>
                                 <h2 className="text-2xl font-bold tracking-tight">{selectedUser.displayName}</h2>
                                 <p className="text-muted-foreground">{selectedUser.email}</p>
                             </div>
 
-                            <div className="bg-secondary/20 p-4 rounded-xl max-w-md w-full border border-border/50 relative">
-                                <span className="absolute -top-2.5 left-4 bg-background px-2 text-xs text-muted-foreground font-medium">Message</span>
+                            <div className="bg-card/50 backdrop-blur-md p-4 rounded-2xl max-w-md w-full border border-border/10 relative">
+                                <span className="absolute -top-2.5 left-4 bg-card border border-border/10 rounded-md px-2 text-xs text-muted-foreground font-medium">Message</span>
                                 <p className="text-sm italic text-foreground/80">"{selectedUser.requestMessage}"</p>
                             </div>
 
                             <div className="flex gap-4 w-full max-w-xs">
-                                <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleRespond(selectedUser.uid, 'accepted')}>
+                                <Button className="flex-1 bg-foreground hover:bg-foreground/90 text-background rounded-xl" onClick={() => handleRespond(selectedUser.uid, 'accepted')}>
                                     Accept
                                 </Button>
-                                <Button variant="outline" className="flex-1 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/10 border-red-200 dark:border-red-900/30" onClick={() => handleRespond(selectedUser.uid, 'rejected')}>
+                                <Button variant="outline" className="flex-1 text-foreground hover:bg-foreground/5 border-border/10 rounded-xl" onClick={() => handleRespond(selectedUser.uid, 'rejected')}>
                                     Decline
                                 </Button>
                             </div>
@@ -454,7 +454,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                     ) : (
                         // SEND Request UI (existing)
                         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
-                            <div className="w-24 h-24 rounded-full bg-secondary/50 flex items-center justify-center mb-2 ring-1 ring-border">
+                            <div className="w-24 h-24 rounded-full bg-card/50 flex items-center justify-center mb-2 ring-1 ring-border/10">
                                 <UserPlus className="w-10 h-10 text-muted-foreground" />
                             </div>
                             <div>
@@ -464,7 +464,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                                 </p>
                             </div>
 
-                            <div className="w-full max-w-md space-y-4 bg-card p-6 rounded-xl border border-border/50 shadow-sm">
+                            <div className="w-full max-w-md space-y-4 bg-card/50 backdrop-blur-xl p-6 rounded-2xl border border-border/10 shadow-sm">
                                 <Input
                                     placeholder="Hi! I'd like to discuss..."
                                     value={requestMessage}
@@ -491,11 +491,11 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
 
             {/* RIGHT SIDEBAR - User Details */}
             {selectedUser && (
-                <div className="w-72 shrink-0 border-l border-border/40 bg-background hidden xl:flex flex-col">
-                    <div className="p-6 flex flex-col items-center border-b border-border/40">
-                        <Avatar className="w-24 h-24 mb-4 ring-4 ring-secondary/30">
+                <div className="w-72 shrink-0 border-l border-border/10 bg-transparent hidden xl:flex flex-col">
+                    <div className="p-6 flex flex-col items-center border-b border-border/10">
+                        <Avatar className="w-24 h-24 mb-4 ring-4 ring-border/10">
                             <AvatarImage src={getFullUrl(selectedUser.photoURL)} className="object-cover" referrerPolicy="no-referrer" />
-                            <AvatarFallback className="text-2xl bg-secondary">{getUserInitials(selectedUser)}</AvatarFallback>
+                            <AvatarFallback className="text-2xl bg-muted">{getUserInitials(selectedUser)}</AvatarFallback>
                         </Avatar>
                         <h3 className="text-lg font-bold">{getUserName(selectedUser)}</h3>
                         <span className="text-sm text-muted-foreground capitalize mb-1">
@@ -519,7 +519,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
                             <Button
                                 variant={isCloseFriend(selectedUser.uid) ? "default" : "outline"}
                                 size="icon"
-                                className={`rounded-full w-10 h-10 transition-colors ${isCloseFriend(selectedUser.uid) ? "bg-yellow-500 hover:bg-yellow-600 text-white border-yellow-500" : ""}`}
+                                className={`rounded-full w-10 h-10 transition-colors ${isCloseFriend(selectedUser.uid) ? "bg-foreground hover:bg-foreground/90 text-background border-border/10" : ""}`}
                                 onClick={toggleCloseFriend}
                                 title={isCloseFriend(selectedUser.uid) ? "Remove from Close Friends" : "Add to Close Friends"}
                             >
@@ -530,7 +530,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-6">
                         {(!isSameTeam(selectedUser) && !isKnownContact(selectedUser)) && (
-                            <div className="p-3 rounded-lg bg-orange-500/10 text-orange-600 dark:text-orange-400 text-sm border border-orange-500/20">
+                            <div className="p-3 rounded-lg bg-card/50 backdrop-blur-md text-muted-foreground text-sm border border-border/10">
                                 <p className="font-semibold mb-1">External User</p>
                                 <p className="text-xs opacity-90">This user is outside your team. Be careful with what you share.</p>
                             </div>
@@ -538,7 +538,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
 
                         <div>
                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Shared Photos</h4>
-                            <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/20 rounded-lg border border-border/30 border-dashed">
+                            <div className="flex flex-col items-center justify-center py-6 text-center bg-card/50 backdrop-blur-md rounded-xl border border-border/10 border-dashed">
                                 <ImageIcon className="w-8 h-8 opacity-20 mb-2" />
                                 <span className="text-xs text-muted-foreground/50 font-medium">Empty</span>
                             </div>
@@ -546,7 +546,7 @@ const MessagesPage = ({ users: teamUsers, currentUser, currentUserData: propUser
 
                         <div>
                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">Shared Files</h4>
-                            <div className="flex flex-col items-center justify-center py-6 text-center bg-secondary/20 rounded-lg border border-border/30 border-dashed">
+                            <div className="flex flex-col items-center justify-center py-6 text-center bg-card/50 backdrop-blur-md rounded-xl border border-border/10 border-dashed">
                                 <FileText className="w-8 h-8 opacity-20 mb-2" />
                                 <span className="text-xs text-muted-foreground/50 font-medium">Empty</span>
                             </div>

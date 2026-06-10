@@ -190,15 +190,15 @@ const MobileActivityLogView = ({
 
   return (
     <div className="p-4 space-y-4">
-      <Card className="bg-card/70">
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Activity className="h-4 w-4 text-primary" />
+            <Activity className="h-4 w-4 text-foreground" />
             Activity Summary
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="rounded-lg border border-border/60 p-2.5 flex items-center gap-2.5">
+          <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 shadow-sm">
             <Avatar className="h-9 w-9">
               <AvatarImage src={currentUserProfile?.photoURL} />
               <AvatarFallback>
@@ -216,19 +216,19 @@ const MobileActivityLogView = ({
           </div>
           <p className="text-xs text-muted-foreground">Current session: {elapsedTime}</p>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-lg border border-border/60 p-2">
+            <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2 shadow-sm">
               <p className="text-[11px] text-muted-foreground">Total Tasks</p>
               <p className="text-lg font-semibold">{totalTasks}</p>
             </div>
-            <div className="rounded-lg border border-border/60 p-2">
+            <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2 shadow-sm">
               <p className="text-[11px] text-muted-foreground">Completed</p>
               <p className="text-lg font-semibold">{completed}</p>
             </div>
-            <div className="rounded-lg border border-border/60 p-2">
+            <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2 shadow-sm">
               <p className="text-[11px] text-muted-foreground">In Progress</p>
               <p className="text-lg font-semibold">{inProgress}</p>
             </div>
-            <div className="rounded-lg border border-border/60 p-2">
+            <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2 shadow-sm">
               <p className="text-[11px] text-muted-foreground">Overdue</p>
               <p className="text-lg font-semibold">{overdue}</p>
             </div>
@@ -237,7 +237,7 @@ const MobileActivityLogView = ({
       </Card>
 
       {isLeader && (
-        <Card className="bg-card/70">
+        <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
           <CardHeader className="pb-2">
             <CardTitle className="text-base">Team Member Activity</CardTitle>
           </CardHeader>
@@ -261,7 +261,7 @@ const MobileActivityLogView = ({
                   <div key={`member-${member.uid}`} className="space-y-1.5">
                     <button
                       type="button"
-                      className="w-full rounded-lg border border-border/60 p-2.5 flex items-center gap-2.5 text-left"
+                      className="w-full rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 text-left shadow-sm active:scale-[0.98] transition-transform"
                       onClick={() => setExpandedMemberId((prev) => (prev === member.uid ? null : member.uid))}
                     >
                       <Avatar className="h-8 w-8">
@@ -278,20 +278,20 @@ const MobileActivityLogView = ({
                     </button>
 
                     {isExpanded && (
-                      <div className="rounded-lg border border-border/60 p-2.5 grid grid-cols-2 gap-2 animate-in slide-in-from-top-1 duration-200">
-                        <div className="rounded-md border border-border/50 px-2 py-1.5">
+                      <div className="rounded-xl border border-border/10 bg-background/30 backdrop-blur-sm p-2.5 grid grid-cols-2 gap-2 animate-in slide-in-from-top-1 duration-200">
+                        <div className="rounded-lg border border-border/10 bg-background/50 backdrop-blur-sm px-2 py-1.5 shadow-sm">
                           <p className="text-[10px] text-muted-foreground">Total Tasks</p>
                           <p className="text-sm font-semibold">{stats.total}</p>
                         </div>
-                        <div className="rounded-md border border-border/50 px-2 py-1.5">
+                        <div className="rounded-lg border border-border/10 bg-background/50 backdrop-blur-sm px-2 py-1.5 shadow-sm">
                           <p className="text-[10px] text-muted-foreground">Completed</p>
                           <p className="text-sm font-semibold">{stats.completed}</p>
                         </div>
-                        <div className="rounded-md border border-border/50 px-2 py-1.5">
+                        <div className="rounded-lg border border-border/10 bg-background/50 backdrop-blur-sm px-2 py-1.5 shadow-sm">
                           <p className="text-[10px] text-muted-foreground">In Progress</p>
                           <p className="text-sm font-semibold">{stats.inProgress}</p>
                         </div>
-                        <div className="rounded-md border border-border/50 px-2 py-1.5">
+                        <div className="rounded-lg border border-border/10 bg-background/50 backdrop-blur-sm px-2 py-1.5 shadow-sm">
                           <p className="text-[10px] text-muted-foreground">Overdue</p>
                           <p className="text-sm font-semibold">{stats.overdue}</p>
                         </div>
@@ -305,7 +305,7 @@ const MobileActivityLogView = ({
         </Card>
       )}
 
-      <Card className="bg-card/70">
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
         <CardHeader className="pb-2 flex flex-row items-center justify-between">
           <CardTitle className="text-base">Recent Activity</CardTitle>
           {activityLogs.length > 0 && (
@@ -325,8 +325,8 @@ const MobileActivityLogView = ({
                 log._id ||
                 `${log.startTime || "no-start"}-${log.eventType || title}-${log.userId || "no-user"}-${index}`;
               return (
-                <div key={logKey} className="rounded-lg border border-border/60 p-3 flex items-start gap-2">
-                  <Clock3 className="h-4 w-4 text-primary mt-0.5" />
+                <div key={logKey} className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-3 flex items-start gap-2 shadow-sm">
+                  <Clock3 className="h-4 w-4 text-foreground mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{title}</p>
                     <p className="text-[11px] text-muted-foreground">

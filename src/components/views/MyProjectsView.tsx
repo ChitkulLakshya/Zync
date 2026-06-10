@@ -142,7 +142,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   if (!isConnected) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8 text-center space-y-6">
-        <div className="rounded-full bg-secondary/30 p-8">
+        <div className="rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-8">
           <Github className="h-16 w-16" />
         </div>
         <div className="max-w-md space-y-2">
@@ -169,7 +169,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1 bg-white/[0.05] text-emerald-400 border-emerald-500/30 backdrop-blur-md">
+          <Badge variant="outline" className="gap-1 bg-card/50 text-foreground border-border/10 backdrop-blur-md">
             <Github className="h-3 w-3" />
             Connected as {userData.githubIntegration?.username || "GitHub User"}
           </Badge>
@@ -181,16 +181,16 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search repositories..."
-            className="pl-9 bg-white/[0.04] border-white/15 backdrop-blur-md"
+            className="pl-9 bg-card/50 border-border/10 backdrop-blur-md"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-[180px] bg-white/[0.04] border-white/15 backdrop-blur-md">
+          <SelectTrigger className="w-[180px] bg-card/50 border-border/10 backdrop-blur-md">
             <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent className="bg-white/[0.06] border-white/20 backdrop-blur-xl">
+          <SelectContent className="bg-card/50 border-border/10 backdrop-blur-xl">
             <SelectItem value="updated">Last Updated</SelectItem>
             <SelectItem value="stars">Most Stars</SelectItem>
             <SelectItem value="forks">Most Forks</SelectItem>
@@ -204,18 +204,18 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
       ) : (
         <Tabs defaultValue="all" className="w-full space-y-6">
           <div className="flex items-center justify-between gap-3">
-            <TabsList className="bg-white/[0.04] border border-white/10 backdrop-blur-md">
+            <TabsList className="bg-card/50 border border-border/10 backdrop-blur-md rounded-xl">
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="public">Public</TabsTrigger>
               <TabsTrigger value="private">Private</TabsTrigger>
               <TabsTrigger value="collaborator">Collaborators</TabsTrigger>
             </TabsList>
 
-            <div className="hidden md:flex items-center rounded-full border border-white/15 bg-white/[0.04] px-2 py-1 backdrop-blur-md">
+            <div className="hidden md:flex items-center rounded-full border border-border/10 bg-card/50 px-2 py-1 backdrop-blur-md">
               <div className="relative w-[60px] h-5">
-                <div className="absolute left-[10px] right-[10px] top-1/2 h-px -translate-y-1/2 bg-white/20" />
+                <div className="absolute left-[10px] right-[10px] top-1/2 h-px -translate-y-1/2 bg-foreground/20" />
                 <div
-                  className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-white/40 bg-white/90 shadow-[0_0_8px_rgba(255,255,255,0.35)] transition-all duration-200"
+                  className="absolute top-1/2 h-3 w-3 -translate-y-1/2 rounded-full border border-border/10 bg-foreground shadow-none transition-all duration-200"
                   style={{ left: `${4 + (cardsPerRowIndex * 20)}px` }}
                 />
                 {[0, 1, 2].map((index) => (
@@ -224,7 +224,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                     type="button"
                     aria-label={`Set ${cardsPerRowFromIndex(index)} columns`}
                     onClick={() => handleCardsPerRowChange(cardsPerRowFromIndex(index))}
-                    className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/55 hover:bg-white/80 transition-colors"
+                    className="absolute top-1/2 h-2 w-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground/50 hover:bg-foreground transition-colors"
                     style={{ left: `${10 + (index * 20)}px` }}
                   />
                 ))}
@@ -248,7 +248,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
               <TabsContent key={filterType} value={filterType} className="mt-0">
                 <div className={`grid grid-cols-1 md:grid-cols-2 ${gridColsClass} gap-8 pb-8`}>
                   {displayRepos.map((repo) => (
-                    <Card key={repo.id} className="flex flex-col h-full min-h-[280px] bg-white/[0.05] border-white/12 backdrop-blur-md hover:border-white/25 transition-all hover:bg-white/[0.07]">
+                    <Card key={repo.id} className="flex flex-col h-full min-h-[280px] bg-card/50 border-border/10 backdrop-blur-md hover:border-border/20 transition-all hover:bg-card/80 rounded-2xl">
                       <CardHeader className="pb-4">
                         <div className="flex items-start justify-between gap-4">
                           <CardTitle className="text-xl md:text-2xl font-semibold truncate pr-2">
@@ -256,7 +256,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                               {repo.name}
                             </a>
                           </CardTitle>
-                          <Badge variant="secondary" className="capitalize text-sm font-normal px-3 py-1 bg-white/[0.10] border border-white/10 text-white/90">
+                          <Badge variant="secondary" className="capitalize text-sm font-normal px-3 py-1 bg-card/50 border border-border/10 text-foreground">
                             {repo.visibility}
                           </Badge>
                         </div>
@@ -291,7 +291,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                           </span>
                         </div>
                       </CardContent>
-                      <CardFooter className="pt-4 border-t border-white/10 bg-white/[0.02]">
+                      <CardFooter className="pt-4 border-t border-border/10 bg-transparent">
                         <div className="text-sm text-muted-foreground w-full flex justify-between items-center">
                           <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
                           <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
@@ -329,7 +329,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
         <div className="flex justify-center items-center gap-4 py-8">
           <Button 
             variant="outline" 
-            className="bg-white/[0.04] border-white/20 backdrop-blur-md hover:bg-white/[0.10]"
+            className="bg-card/50 border-border/10 backdrop-blur-md hover:bg-card/80 rounded-xl"
             disabled={page === 1} 
             onClick={() => setPage(p => p - 1)}
           >
@@ -338,7 +338,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           <span className="text-sm font-medium">Page {page}</span>
           <Button 
             variant="outline" 
-            className="bg-white/[0.04] border-white/20 backdrop-blur-md hover:bg-white/[0.10]"
+            className="bg-card/50 border-border/10 backdrop-blur-md hover:bg-card/80 rounded-xl"
             disabled={!hasNextPage} 
             onClick={() => setPage(p => p + 1)}
           >

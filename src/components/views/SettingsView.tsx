@@ -532,7 +532,7 @@ export default function SettingsView() {
       <div className="max-w-4xl mx-auto space-y-8">
         <Tabs defaultValue="profile" className="space-y-6">
           <div className="w-full overflow-x-auto pb-1 scrollbar-thin">
-            <TabsList className="bg-black border border-white/10 inline-flex w-max min-w-full sm:min-w-0 whitespace-nowrap">
+            <TabsList className="bg-card/50 backdrop-blur-xl border border-border/10 inline-flex w-max min-w-full sm:min-w-0 whitespace-nowrap">
               <TabsTrigger value="profile" className="shrink-0">My Profile</TabsTrigger>
               <TabsTrigger value="team" className="shrink-0">Team</TabsTrigger>
               <TabsTrigger value="preferences" className="shrink-0">Preferences</TabsTrigger>
@@ -544,7 +544,7 @@ export default function SettingsView() {
 
           {}
           <TabsContent value="profile">
-            <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+            <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Personal Information</CardTitle>
                 <CardDescription>Update your personal details here.</CardDescription>
@@ -677,7 +677,7 @@ export default function SettingsView() {
 
           {}
           <TabsContent value="integrations">
-            <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+            <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Connected Accounts</CardTitle>
                 <CardDescription>Manage your external connections to sync projects.</CardDescription>
@@ -740,7 +740,7 @@ export default function SettingsView() {
 
           {}
           <TabsContent value="preferences">
-            <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+            <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
               <CardHeader><CardTitle>App Preferences</CardTitle></CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
@@ -774,7 +774,7 @@ export default function SettingsView() {
                 </div>
 
                 {}
-                <Card className="shadow-lg bg-white/5 border-white/10 backdrop-blur-md">
+                <Card className="shadow-lg bg-card/50 border-border/10 backdrop-blur-xl">
                   <CardHeader>
                     <CardTitle>Get in Touch</CardTitle>
                     <CardDescription>You can reach us anytime</CardDescription>
@@ -810,7 +810,7 @@ export default function SettingsView() {
 
               {}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+                <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
                   <CardContent className="pt-6">
                     <div className="flex flex-col gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -824,7 +824,7 @@ export default function SettingsView() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+                <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
                   <CardContent className="pt-6">
                     <div className="flex flex-col gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -838,7 +838,7 @@ export default function SettingsView() {
                   </CardContent>
                 </Card>
 
-                <Card className="bg-white/5 border-white/10 backdrop-blur-md">
+                <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
                   <CardContent className="pt-6">
                     <div className="flex flex-col gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
@@ -1270,8 +1270,8 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
             <Card 
               key={tid}
               className={cn(
-                "cursor-pointer transition-all hover:bg-muted/50 border-white/5",
-                isSelected ? "ring-2 ring-primary bg-muted/40" : "bg-card/40"
+                "cursor-pointer transition-all hover:bg-card/50 border-border/10",
+                isSelected ? "ring-2 ring-foreground/20 bg-card/80" : "bg-card/50 backdrop-blur-xl"
               )}
               onClick={() => setSelectedTeamId(tid)}
             >
@@ -1339,8 +1339,8 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                 <div className="space-y-1.5 flex-1">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Invite Code</Label>
                   <div className="flex items-center gap-2">
-                    <code className="px-4 py-2 rounded-lg bg-black/40 text-sm font-mono tracking-widest text-blue-400 border border-white/5">{selectedTeam.inviteCode}</code>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-white/10" onClick={() => copyInviteCode(selectedTeam.inviteCode)}>
+                    <code className="px-4 py-2 rounded-lg bg-foreground/10 text-sm font-mono tracking-widest text-foreground border border-border/10">{selectedTeam.inviteCode}</code>
+                    <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-foreground/10" onClick={() => copyInviteCode(selectedTeam.inviteCode)}>
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -1400,11 +1400,11 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                 const amITheOwner = selectedTeam.ownerId === currentUser?.uid;
 
                 return (
-                  <div key={member.uid} className="flex items-center justify-between p-4 rounded-xl border border-white/5 bg-white/5 hover:bg-white/10 transition-all">
+                  <div key={member.uid} className="flex items-center justify-between p-4 rounded-xl border border-border/10 bg-card/50 hover:bg-card/80 transition-all">
                     <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border border-white/10 ring-2 ring-transparent group-hover:ring-primary/20 transition-all">
+                      <Avatar className="h-10 w-10 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
                         <AvatarImage src={member.photoURL ? getFullUrl(member.photoURL) : undefined} />
-                        <AvatarFallback className="text-xs bg-slate-800 text-white font-bold">
+                        <AvatarFallback className="text-xs bg-muted text-foreground font-bold">
                           {member.displayName?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'}
                         </AvatarFallback>
                       </Avatar>
@@ -1475,7 +1475,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                   </Button>
                 </div>
               ) : (
-                <Button variant="outline" onClick={() => handleLeaveTeam(selectedTeam.id)} disabled={actionLoading} className="border-white/10 hover:bg-destructive/10 hover:text-destructive font-bold transition-all">
+                <Button variant="outline" onClick={() => handleLeaveTeam(selectedTeam.id)} disabled={actionLoading} className="border-border/10 bg-transparent hover:bg-destructive/10 hover:text-destructive font-bold transition-all">
                   <LogOut className="mr-2 h-4 w-4" />
                   {actionLoading ? "Leaving..." : "Leave Workspace"}
                 </Button>

@@ -144,7 +144,7 @@ const CalendarView = () => {
                     </div>
                 )}
             </div>
-            <Card className="flex-1 p-4 shadow-sm border-none bg-background/50 backdrop-blur-sm">
+            <Card className="flex-1 p-4 shadow-sm border border-border/10 bg-card/50 backdrop-blur-xl rounded-[2rem] overflow-hidden">
                 <Calendar
                     localizer={localizer}
                     events={events}
@@ -156,7 +156,7 @@ const CalendarView = () => {
                     selectable
                     popup
                     eventPropGetter={eventStyleGetter}
-                    className="rounded-md border bg-card text-card-foreground shadow-sm"
+                    className="rounded-2xl border-none bg-transparent text-card-foreground"
                 />
             </Card>
         </div>
