@@ -521,7 +521,7 @@ const ProjectDetails = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {}
-      <header className="border-b bg-card px-6 py-4">
+      <header className="border-b border-border/10 bg-card/50 backdrop-blur-xl px-6 py-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(backPath)}>
             <ArrowLeft className="h-5 w-5" />
@@ -543,15 +543,15 @@ const ProjectDetails = () => {
       <main className="flex-1 p-6">
         <Tabs defaultValue="architecture" className="flex flex-col">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 mb-6">
-            <TabsTrigger value="architecture" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
+            <TabsTrigger value="architecture" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
               Architecture
             </TabsTrigger>
             {!isGitHubProject && (
-              <TabsTrigger value="steps" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
+              <TabsTrigger value="steps" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
                 Development Steps
               </TabsTrigger>
             )}
-            <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:bg-transparent px-6 pb-2">
+            <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
               Task Board
             </TabsTrigger>
           </TabsList>
@@ -735,7 +735,7 @@ const ProjectDetails = () => {
                 <CardContent>
                   <div className="space-y-6">
                     {project.steps.map((step, index) => (
-                      <div key={step.id || index} className="border rounded-lg p-4 bg-card/50">
+                      <div key={step.id || index} className="border border-border/10 rounded-lg p-4 bg-card/50 backdrop-blur-xl">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
                             <Badge variant="outline" className="bg-background">{index + 1}</Badge>
@@ -767,11 +767,11 @@ const ProjectDetails = () => {
 
                                 {task.commitInfo && (
                                   <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
-                                    <GitCommit className="w-3 h-3 text-primary" />
-                                    <span className="font-mono text-primary truncate max-w-[200px]">{task.commitInfo.message}</span>
+                                    <GitCommit className="w-3 h-3 text-foreground" />
+                                    <span className="font-mono text-foreground truncate max-w-[200px]">{task.commitInfo.message}</span>
                                     <span className="text-muted-foreground">- {task.commitInfo.author}</span>
                                     {task.commitInfo.url && (
-                                      <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-primary">
+                                      <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-foreground">
                                         <ExternalLink className="w-3 h-3" />
                                       </a>
                                     )}
@@ -795,7 +795,7 @@ const ProjectDetails = () => {
                                               return assignedUser ? (
                                                 <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
                                               ) : (
-                                                <div className="w-full h-full bg-primary/20" />
+                                                <div className="w-full h-full bg-foreground/20" />
                                               )
                                             })()}
                                           </div>
@@ -815,7 +815,7 @@ const ProjectDetails = () => {
                                               return assignedUser ? (
                                                 <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
                                               ) : (
-                                                <div className="w-full h-full bg-primary/20" />
+                                                <div className="w-full h-full bg-foreground/20" />
                                               )
                                             })()}
                                           </div>

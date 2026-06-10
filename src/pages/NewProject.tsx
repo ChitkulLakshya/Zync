@@ -8,7 +8,7 @@ const NewProject = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="border-b p-4 flex items-center gap-4">
+      <div className="border-b border-border/10 bg-background/50 backdrop-blur-xl p-4 flex items-center gap-4">
         <Button variant="ghost" onClick={() => navigate(-1)}>
           <ArrowLeft className="mr-2 h-4 w-4" /> Back
         </Button>

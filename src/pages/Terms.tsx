@@ -12,7 +12,7 @@ const Terms = () => {
           <div className="space-y-2">
             <Link
               to="/"
-              className="text-sm text-primary hover:text-primary/90 transition-colors"
+              className="text-sm text-foreground hover:text-foreground/90 transition-colors"
             >
               ← Back to Home
             </Link>
@@ -151,7 +151,7 @@ const Terms = () => {
                 For questions about these Terms of Service, please contact us at{" "}
                 <a
                   href="mailto:consolemaster.app@gmail.com"
-                  className="text-primary hover:underline"
+                  className="text-foreground hover:underline"
                 >
                   consolemaster.app@gmail.com
                 </a>
