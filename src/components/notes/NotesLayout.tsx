@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Note, Folder, createFolder, createNote, shareFolder, subscribeToFolders, subscribeToNotes, deleteNote, updateNote } from '../../services/notesService';
+import { Note, Folder, createFolder, createNote, shareFolder, subscribeToFolders, subscribeToNotes, deleteNote, updateNote, deleteFolder } from '../../services/notesService';
 import {
   DndContext,
   closestCenter,
@@ -206,6 +206,7 @@ const FolderListItem: React.FC<{
   onSelectNote: (note: Note) => void;
   onCreateNote: () => void;
   onShare: () => void;
+  onDeleteFolder: (id: string) => void;
   onDeleteNote: (id: string) => void;
   onRenameNote: (note: Note) => void;
   onShareNote: (note: Note) => void;
@@ -217,6 +218,7 @@ const FolderListItem: React.FC<{
   onSelectNote,
   onCreateNote,
   onShare,
+  onDeleteFolder,
   onDeleteNote,
   onRenameNote,
   onShareNote
@@ -259,6 +261,10 @@ const FolderListItem: React.FC<{
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={onShare}>
                     <Share2 size={14} className="mr-2" /> Share
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => onDeleteFolder(folder.id)}>
+                    <Trash size={14} className="mr-2" /> Delete Folder
                   </DropdownMenuItem>
                 </>
               )}
@@ -532,6 +538,20 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
     }
   };
 
+  const handleDeleteFolder = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this folder and all its contents?")) return;
+    try {
+      await deleteFolder(id);
+      toast.success("Folder deleted");
+      if (selectedNote?.folderId === id) {
+        setSelectedNote(null);
+      }
+    } catch (error) {
+      console.error("Delete folder error:", error);
+      toast.error("Failed to delete folder");
+    }
+  };
+
   const handleDeleteNote = async (id: string) => {
     // Confirm dialog is a bit aggressive, maybe just do it? Or use a custom dialog.
     // Standard confirm is fine for now/MVP.
@@ -657,6 +677,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     onSelectNote={setSelectedNote}
                     onCreateNote={() => handleCreateNote(folder.id)}
                     onShare={() => { }}
+                    onDeleteFolder={handleDeleteFolder}
                     onDeleteNote={handleDeleteNote}
                     onRenameNote={handleRenameStart}
                     onShareNote={handleShareNote}
@@ -681,6 +702,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     onSelectNote={setSelectedNote}
                     onCreateNote={() => handleCreateNote(folder.id)}
                     onShare={() => { setFolderToShare(folder); setShareDialogOpen(true); }}
+                    onDeleteFolder={handleDeleteFolder}
                     onDeleteNote={handleDeleteNote}
                     onRenameNote={handleRenameStart}
                     onShareNote={handleShareNote}
@@ -820,7 +842,9 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     <DropdownMenuItem>Duplicate</DropdownMenuItem>
                     <DropdownMenuItem>Move to folder</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-400">Delete</DropdownMenuItem>
+                    <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => { if (selectedNote) handleDeleteNote(selectedNote.id) }}>
+                      <Trash size={14} className="mr-2" /> Delete
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
