@@ -391,6 +391,33 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
   const [noteToRename, setNoteToRename] = useState<Note | null>(null);
   const [newNoteTitle, setNewNoteTitle] = useState('');
 
+  // Top Bar Inline Editing
+  const [editingTitle, setEditingTitle] = useState('');
+  const titleDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (selectedNote) {
+      setEditingTitle(selectedNote.title || '');
+    }
+  }, [selectedNote?.id, selectedNote?.title]);
+
+  const handleTitleChangeTopBar = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newTitle = e.target.value;
+    setEditingTitle(newTitle);
+    
+    if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
+    
+    titleDebounceRef.current = setTimeout(async () => {
+      if (!selectedNote) return;
+      try {
+        await updateNote(selectedNote.id, { title: newTitle });
+        setSelectedNote(prev => prev ? { ...prev, title: newTitle } : null);
+      } catch (error) {
+        console.error("Failed to save title", error);
+      }
+    }, 1000);
+  };
+
   // Collaborative Presence - track users viewing the selected note
   const { activeUsers, isConnected } = useNotePresence(
     selectedNote?.id,
@@ -712,16 +739,22 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
             {/* Slim Sticky Top Bar */}
             <div className="h-12 shrink-0 sticky top-0 z-10 flex items-center justify-between px-4 border-b border-border/10 backdrop-blur-md bg-secondary/10">
               {/* Breadcrumbs */}
-              <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0">
+              <div className="flex items-center gap-1.5 text-sm text-muted-foreground min-w-0 flex-1">
                 {breadcrumb.map((part, i) => (
                   <React.Fragment key={i}>
-                    {i > 0 && <ChevronRight size={12} className="text-border" />}
-                    <span className={cn(
-                      "truncate",
-                      i === breadcrumb.length - 1 ? "text-foreground font-medium" : "text-muted-foreground"
-                    )}>
-                      {part}
-                    </span>
+                    {i > 0 && <ChevronRight size={12} className="text-border shrink-0" />}
+                    {i === breadcrumb.length - 1 ? (
+                      <input
+                        value={editingTitle}
+                        onChange={handleTitleChangeTopBar}
+                        className="bg-transparent border-none outline-none text-foreground font-medium truncate min-w-[50px] w-full focus:ring-0"
+                        placeholder="Untitled"
+                      />
+                    ) : (
+                      <span className="truncate shrink-0">
+                        {part}
+                      </span>
+                    )}
                   </React.Fragment>
                 ))}
               </div>
