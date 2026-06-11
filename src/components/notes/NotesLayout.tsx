@@ -418,6 +418,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
       try {
         await updateNote(selectedNote.id, { title: newTitle });
         setSelectedNote(prev => prev ? { ...prev, title: newTitle } : null);
+        setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, title: newTitle } : n));
       } catch (error) {
         console.error("Failed to save title", error);
       }
@@ -502,8 +503,8 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
         folderId: folderId || null
       });
       const newNote: Note = {
-        id: noteRef.id,
-        _id: noteRef.id,
+        id: noteRef.id || noteRef._id,
+        _id: noteRef.id || noteRef._id,
         title: 'Untitled',
         content: [],
         ownerId: user.uid,
@@ -512,6 +513,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
         updatedAt: new Date(),
       };
       setSelectedNote(newNote);
+      setNotes(prev => [newNote, ...prev]);
     } catch (error) {
       toast.error("Failed to create note");
     }
@@ -520,7 +522,17 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
   const handleCreateFolder = async () => {
     if (!user?.uid) {return;}
     try {
-      await createFolder({ name: 'New Folder', ownerId: user.uid, type: 'personal' });
+      const folderRef = await createFolder({ name: 'New Folder', ownerId: user.uid, type: 'personal' });
+      const newFolder: Folder = {
+        id: folderRef.id || folderRef._id,
+        _id: folderRef.id || folderRef._id,
+        name: 'New Folder',
+        ownerId: user.uid,
+        parentId: null,
+        type: 'personal',
+        color: '#3b82f6'
+      };
+      setFolders(prev => [...prev, newFolder]);
       toast.success("Folder created");
     } catch (error) {
       toast.error("Failed to create folder");
@@ -546,6 +558,8 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
       if (selectedNote?.folderId === id) {
         setSelectedNote(null);
       }
+      setFolders(prev => prev.filter(f => f.id !== id));
+      setNotes(prev => prev.filter(n => n.folderId !== id));
     } catch (error) {
       console.error("Delete folder error:", error);
       toast.error("Failed to delete folder");
@@ -563,6 +577,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
       if (selectedNote?.id === id) {
         setSelectedNote(null);
       }
+      setNotes(prev => prev.filter(n => n.id !== id));
     } catch (error) {
       console.error("Delete error:", error);
       toast.error("Failed to delete note");
@@ -580,6 +595,10 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
     try {
       await updateNote(noteToRename.id, { title: newNoteTitle });
       toast.success("Note renamed");
+      setNotes(prev => prev.map(n => n.id === noteToRename.id ? { ...n, title: newNoteTitle } : n));
+      if (selectedNote?.id === noteToRename.id) {
+        setSelectedNote(prev => prev ? { ...prev, title: newNoteTitle } : null);
+      }
       setRenameDialogOpen(false);
       setNoteToRename(null);
     } catch (error) {
@@ -857,7 +876,10 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                 note={selectedNote}
                 user={{ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL }}
                 isShared={true}
-                onUpdate={(updated) => setSelectedNote(updated)}
+                onUpdate={(updated) => {
+                  setSelectedNote(updated);
+                  setNotes(prev => prev.map(n => n.id === updated.id ? updated : n));
+                }}
                 className="h-full"
               />
             </div>
