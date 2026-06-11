@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
 import { useCreateBlockNote } from "@blocknote/react";
 import { BlockNoteView } from "@blocknote/mantine";
@@ -14,53 +14,46 @@ import { EditorHeader } from './editor/EditorHeader';
 import { TaskDialogs } from './editor/TaskDialogs';
 import { ShareDialog } from './editor/ShareDialog';
 
+import * as Y from "yjs";
+import { IndexeddbPersistence } from "y-indexeddb";
+import { SocketIOProvider } from '../../lib/SocketIOProvider';
+
 interface NoteEditorProps {
   note: Note;
   user: { uid: string; displayName?: string; email?: string; photoURL?: string };
+  isShared?: boolean;
   onUpdate: (note: Note) => void;
   className?: string;
 }
 
-const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className }) => {
+const COLLABORATOR_COLORS = [
+  '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#a855f7'
+];
+
+export const getColorForUser = (userId: string): string => {
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return COLLABORATOR_COLORS[Math.abs(hash) % COLLABORATOR_COLORS.length];
+};
+
+// ---------------------------------------------------------------------------
+// INNER EDITOR COMPONENT (Only renders when Y.Doc is fully ready)
+// ---------------------------------------------------------------------------
+const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, isEditable: boolean }> = ({ 
+  note, user, onUpdate, className, doc, provider, isEditable 
+}) => {
   const [title, setTitle] = useState(note.title || '');
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
-  const [isEditable, setIsEditable] = useState(true);
-
-  useEffect(() => {
-    if (user.uid === note.ownerId) {
-      setIsEditable(true);
-      return;
-    }
-
-    const noteAny = note as any;
-    const userRole = noteAny.permissions?.[user.uid] || noteAny.role;
-
-    if (userRole === 'viewer') {
-      setIsEditable(false);
-    } else {
-      setIsEditable(true);
-    }
-  }, [note, user.uid]);
-
-  const {
-    activeUsers,
-    remoteCursors,
-    updateCursorPosition,
-  } = useNotePresence(note.id, user);
-
+  
   const [projects, setProjects] = useState<Project[]>([]);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [taskLinkDialogOpen, setTaskLinkDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedTaskText, setSelectedTaskText] = useState("");
 
-  const editorOptions = useMemo(() => ({
-    initialContent: note.content && Array.isArray(note.content) && note.content.length > 0
-      ? note.content
-      : undefined,
-  }), [note.id]); // Re-init on note change
-
-  const editor = useCreateBlockNote(editorOptions);
+  const { activeUsers } = useNotePresence(note.id, user);
 
   useEffect(() => {
     setTitle(note.title || '');
@@ -86,25 +79,39 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
     }
   };
 
-  const saveTimeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+  const editorOptions = useMemo(() => ({
+    collaboration: {
+      provider,
+      fragment: doc.getXmlFragment("document"),
+      user: {
+        name: user.displayName || 'Anonymous',
+        color: getColorForUser(user.uid)
+      }
+    }
+  }), [provider, doc, user]);
+
+  const editor = useCreateBlockNote(editorOptions);
+
+  // 1-TIME HYDRATION: If Y.Doc is completely empty (new local instance) but we have server content
+  const [hasHydrated, setHasHydrated] = useState(false);
+  useEffect(() => {
+    if (editor && note.content && !hasHydrated) {
+      if (editor.document.length === 1 && !editor.document[0].content) {
+        if (Array.isArray(note.content) && note.content.length > 0) {
+          editor.replaceBlocks(editor.document, note.content);
+        }
+      }
+      setHasHydrated(true);
+    }
+  }, [editor, note.content, hasHydrated]);
+
+  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleContentChange = useCallback(() => {
-    if (!isEditable) {return;}
-
+    if (!isEditable) return;
     setStatus('Saving...');
 
-    try {
-      const cursorPos = editor.getTextCursorPosition();
-      if (cursorPos?.block?.id) {
-        updateCursorPosition(cursorPos.block.id);
-      }
-    } catch (e) {
-      // Ignore errors when failing to get cursor position
-    }
-
-    if (saveTimeoutRef.current) {
-      clearTimeout(saveTimeoutRef.current);
-    }
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
@@ -112,73 +119,19 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
         await updateNote(note.id, { content: blocks });
         setStatus('Saved');
       } catch (error) {
-        console.error("Failed to save content", error);
         toast.error("Failed to save changes");
       }
     }, 2000);
-  }, [editor, note.id, updateCursorPosition, isEditable]);
-
-  const handleBlockFocus = useCallback(() => {
-    try {
-      const cursorPos = editor?.getTextCursorPosition();
-      if (cursorPos?.block?.id) {
-        updateCursorPosition(cursorPos.block.id);
-      }
-    } catch (e) {
-      // Ignore errors when failing to get cursor position on focus
-    }
-  }, [editor, updateCursorPosition]);
+  }, [editor, note.id, isEditable]);
 
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) {
-        clearTimeout(saveTimeoutRef.current);
-      }
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, []);
 
-  useEffect(() => {
-    if (!editor) {return;}
-
-    // Clear previous highlights
-    const previousHighlights = document.querySelectorAll('[data-collab-user]');
-    previousHighlights.forEach(el => {
-      el.removeAttribute('data-collab-user');
-      el.removeAttribute('data-collab-color');
-      el.removeAttribute('data-collab-name');
-      (el as HTMLElement).style.removeProperty('--collab-color');
-      (el as HTMLElement).style.removeProperty('border-left');
-    });
-
-    if (activeUsers.length === 0) {
-      return;
-    }
-
-    const blocks = editor.document;
-    blocks.forEach(block => {
-      const activeCollaborator = remoteCursors[block.id] || null;
-
-      if (activeCollaborator) {
-        let blockEl = document.querySelector(`.bn-block-outer[data-id="${block.id}"]`);
-        if (!blockEl) { blockEl = document.querySelector(`[data-id="${block.id}"]`); }
-        if (!blockEl) { blockEl = document.querySelector(`[data-node-id="${block.id}"]`); }
-        if (!blockEl) { blockEl = document.querySelector(`[data-block-id="${block.id}"]`); }
-
-        if (blockEl) {
-          blockEl.setAttribute('data-collab-user', activeCollaborator.id);
-          blockEl.setAttribute('data-collab-color', activeCollaborator.color);
-          blockEl.setAttribute('data-collab-name', activeCollaborator.name || 'Someone');
-          (blockEl as HTMLElement).style.setProperty('--collab-color', activeCollaborator.color);
-          (blockEl as HTMLElement).style.borderLeft = `3px solid ${activeCollaborator.color}`;
-          (blockEl as HTMLElement).style.position = 'relative';
-        }
-      }
-    });
-  }, [editor, activeUsers, remoteCursors]);
-
   const openTaskCreation = () => {
-    if (!editor) {return;}
-
+    if (!editor) return;
     const selection = editor.getTextCursorPosition();
     const block = selection.block;
     let text = "";
@@ -207,48 +160,19 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   };
 
   const handleInsertTaskLink = async (task: TaskSearchResult) => {
-    if (!editor) {return;}
-
+    if (!editor) return;
     editor.insertBlocks([
       {
         content: [
-          {
-            type: "text",
-            text: task.title + " ",
-            styles: { bold: true }
-          },
-          {
-            type: "link",
-            href: `/projects/${task.projectId}?task=${task.id}`,
-            content: [{ type: "text", text: "🔗", styles: {} }]
-          }
+          { type: "text", text: task.title + " ", styles: { bold: true } },
+          { type: "link", href: `/projects/${task.projectId}?task=${task.id}`, content: [{ type: "text", text: "🔗", styles: {} }] }
         ]
       }
     ], editor.getTextCursorPosition().block, "after");
-
     setTaskLinkDialogOpen(false);
   };
 
-  useEffect(() => {
-    if (!editor || !note.content) {return;}
-
-    try {
-      const currentContent = JSON.stringify(editor.document);
-      const newContent = JSON.stringify(note.content);
-
-      if (currentContent !== newContent) {
-        if (Array.isArray(note.content)) {
-          editor.replaceBlocks(editor.document, note.content);
-        }
-      }
-    } catch (e) {
-      console.error("Failed to sync content", e);
-    }
-  }, [note.content, editor]);
-
-  if (!editor) {
-    return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading editor…</div>;
-  }
+  if (!editor) return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading editor…</div>;
 
   return (
     <div className={cn("flex flex-col h-full", className)}>
@@ -273,11 +197,7 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
               onTitleChange={handleTitleChange}
             />
 
-            <div
-              className="prose dark:prose-invert prose-neutral max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-lg"
-              onClick={handleBlockFocus}
-              onKeyUp={handleBlockFocus}
-            >
+            <div className="prose dark:prose-invert prose-neutral max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-lg">
               <BlockNoteView
                 editor={editor}
                 editable={isEditable}
@@ -313,11 +233,72 @@ const NoteEditor: React.FC<NoteEditorProps> = ({ note, user, onUpdate, className
   );
 };
 
+// ---------------------------------------------------------------------------
+// OUTER WRAPPER (Manages Yjs + IndexedDB Setup + WebSocket)
+// ---------------------------------------------------------------------------
+const NoteEditor: React.FC<NoteEditorProps> = (props) => {
+  const { note, user, isShared } = props;
+  const [doc, setDoc] = useState<Y.Doc>();
+  const [provider, setProvider] = useState<any>();
+  const [isEditable, setIsEditable] = useState(true);
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (user.uid === note.ownerId) {
+      setIsEditable(true);
+    } else {
+      const noteAny = note as any;
+      const userRole = noteAny.permissions?.[user.uid] || noteAny.role;
+      setIsEditable(userRole !== 'viewer');
+    }
+  }, [note, user.uid]);
+
+  useEffect(() => {
+    const ydoc = new Y.Doc();
+    const idbProvider = new IndexeddbPersistence(`zync-note-${note.id}`, ydoc);
+    let wsProvider: SocketIOProvider | null = null;
+
+    idbProvider.on('synced', () => {
+      if (isShared) {
+        wsProvider = new SocketIOProvider(note.id, ydoc, {
+          name: user.displayName || 'Anonymous',
+          color: getColorForUser(user.uid)
+        });
+        setProvider(wsProvider);
+      } else {
+        setProvider(idbProvider);
+      }
+      setDoc(ydoc);
+      setIsReady(true);
+    });
+
+    return () => {
+      idbProvider.destroy();
+      if (wsProvider) {
+        wsProvider.destroy();
+      }
+      ydoc.destroy();
+      setIsReady(false);
+    };
+  }, [note.id, isShared, user]);
+
+  if (!isReady || !doc || !provider) {
+    return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Initializing offline storage…</div>;
+  }
+
+  return (
+    <NoteEditorInner 
+      {...props} 
+      doc={doc} 
+      provider={provider} 
+      isEditable={isEditable} 
+    />
+  );
+};
+
 export default React.memo(NoteEditor, (prev, next) => {
   const isSameNote = prev.note.id === next.note.id;
-  const isSameTitle = prev.note.title === next.note.title;
   const isSameUser = prev.user.uid === next.user.uid;
-  const isSameContent = prev.note.content === next.note.content;
-
-  return isSameNote && isSameTitle && isSameUser && isSameContent;
+  const isSameShared = prev.isShared === next.isShared;
+  return isSameNote && isSameUser && isSameShared;
 });
