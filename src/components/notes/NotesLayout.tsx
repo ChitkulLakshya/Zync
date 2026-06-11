@@ -804,10 +804,10 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     )}
                   </div>
                 )}
-                <Button variant="ghost" size="sm" className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
+                <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('open-link-task-dialog'))} className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
                   <LinkIcon size={14} className="mr-1.5" /> Link Task
                 </Button>
-                <Button variant="ghost" size="sm" className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
+                <Button variant="ghost" size="sm" onClick={() => window.dispatchEvent(new CustomEvent('open-share-note-dialog'))} className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors duration-200">
                   <Share2 size={14} className="mr-1.5" /> Share
                 </Button>
                 <DropdownMenu>

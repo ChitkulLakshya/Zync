@@ -57,6 +57,19 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   const { activeUsers, updateCursorPosition, remoteCursors } = useNotePresence(note.id, user);
 
   useEffect(() => {
+    const handleOpenLinkTask = () => setTaskLinkDialogOpen(true);
+    const handleOpenShare = () => setShareDialogOpen(true);
+    
+    window.addEventListener('open-link-task-dialog', handleOpenLinkTask);
+    window.addEventListener('open-share-note-dialog', handleOpenShare);
+    
+    return () => {
+      window.removeEventListener('open-link-task-dialog', handleOpenLinkTask);
+      window.removeEventListener('open-share-note-dialog', handleOpenShare);
+    };
+  }, []);
+
+  useEffect(() => {
     setTitle(note.title || '');
   }, [note.title]);
 
