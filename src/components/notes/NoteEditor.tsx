@@ -92,18 +92,34 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
 
   const editor = useCreateBlockNote(editorOptions);
 
+  // Helper to strip IDs from blocks so BlockNote generates new unique ones
+  // This prevents ProseMirror crashes if two clients hydrate the same JSON concurrently
+  const stripBlockIds = (blocks: any[]): any[] => {
+    if (!Array.isArray(blocks)) return blocks;
+    return blocks.map(b => {
+      const { id, ...rest } = b;
+      if (rest.children) {
+        rest.children = stripBlockIds(rest.children);
+      }
+      return rest;
+    });
+  };
+
   // 1-TIME HYDRATION: If Y.Doc is completely empty (new local instance) but we have server content
   const [hasHydrated, setHasHydrated] = useState(false);
   useEffect(() => {
     if (editor && note.content && !hasHydrated) {
       if (editor.document.length === 1 && !editor.document[0].content) {
         if (Array.isArray(note.content) && note.content.length > 0) {
-          editor.replaceBlocks(editor.document, note.content);
+          // If we are not the owner, we might be hydrating concurrently with the owner.
+          // Stripping IDs ensures we don't cause a RangeError collision in y-prosemirror.
+          const safeContent = user.uid === note.ownerId ? note.content : stripBlockIds(note.content);
+          editor.replaceBlocks(editor.document, safeContent);
         }
       }
       setHasHydrated(true);
     }
-  }, [editor, note.content, hasHydrated]);
+  }, [editor, note.content, hasHydrated, note.ownerId, user.uid]);
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
