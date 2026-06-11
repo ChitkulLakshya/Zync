@@ -45,6 +45,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   note, user, onUpdate, className, doc, provider, isEditable 
 }) => {
   const [title, setTitle] = useState(note.title || '');
+  const titleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
   
   const [projects, setProjects] = useState<Project[]>([]);
@@ -65,18 +66,24 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
     }
   }, [user.uid]);
 
-  const handleTitleChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!isEditable) {return;}
     const newTitle = e.target.value;
     setTitle(newTitle);
     setStatus('Saving...');
-    try {
-      await updateNote(note.id, { title: newTitle });
-      setStatus('Saved');
-      onUpdate({ ...note, title: newTitle });
-    } catch (error) {
-      console.error("Failed to save title", error);
-    }
+    
+    if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
+    
+    titleTimerRef.current = setTimeout(async () => {
+      try {
+        await updateNote(note.id, { title: newTitle });
+        setStatus('Saved');
+        onUpdate({ ...note, title: newTitle });
+      } catch (error) {
+        console.error("Failed to save title", error);
+        setStatus('Saved'); // Reset to saved even on error so it doesn't spin forever
+      }
+    }, 1000);
   };
 
   const editorOptions = useMemo(() => ({
@@ -88,7 +95,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
         color: getColorForUser(user.uid)
       }
     }
-  }), [provider, doc, user]);
+  }), [provider, doc, user.uid, user.displayName]);
 
   const editor = useCreateBlockNote(editorOptions);
 
@@ -388,7 +395,8 @@ const NoteEditor: React.FC<NoteEditorProps> = (props) => {
 
 export default React.memo(NoteEditor, (prev, next) => {
   const isSameNote = prev.note.id === next.note.id;
+  const isSameTitle = prev.note.title === next.note.title;
   const isSameUser = prev.user.uid === next.user.uid;
   const isSameShared = prev.isShared === next.isShared;
-  return isSameNote && isSameUser && isSameShared;
+  return isSameNote && isSameTitle && isSameUser && isSameShared;
 });
