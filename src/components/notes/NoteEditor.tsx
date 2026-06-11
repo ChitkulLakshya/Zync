@@ -53,7 +53,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [selectedTaskText, setSelectedTaskText] = useState("");
 
-  const { activeUsers } = useNotePresence(note.id, user);
+  const { activeUsers, updateCursorPosition, remoteCursors } = useNotePresence(note.id, user);
 
   useEffect(() => {
     setTitle(note.title || '');
@@ -111,6 +111,17 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
     if (!isEditable) return;
     setStatus('Saving...');
 
+    try {
+      if (editor) {
+        const cursorPos = editor.getTextCursorPosition();
+        if (cursorPos?.block?.id) {
+          updateCursorPosition(cursorPos.block.id);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not get cursor position:", e);
+    }
+
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
     saveTimeoutRef.current = setTimeout(async () => {
@@ -129,6 +140,63 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     };
   }, []);
+
+  const handleBlockFocus = useCallback(() => {
+    try {
+      if (editor) {
+        const cursorPos = editor.getTextCursorPosition();
+        if (cursorPos?.block?.id) {
+          updateCursorPosition(cursorPos.block.id);
+        }
+      }
+    } catch (e) {
+      // Ignore errors when failing to get cursor position on focus
+    }
+  }, [editor, updateCursorPosition]);
+
+  useEffect(() => {
+    if (!editor) {return;}
+
+    // Clear previous highlights
+    const previousHighlights = document.querySelectorAll('[data-collab-user]');
+    previousHighlights.forEach(el => {
+      el.removeAttribute('data-collab-user');
+      el.removeAttribute('data-collab-color');
+      el.removeAttribute('data-collab-name');
+      (el as HTMLElement).style.removeProperty('--collab-color');
+      (el as HTMLElement).style.removeProperty('border-left');
+    });
+
+    if (activeUsers.length === 0) {
+      return;
+    }
+
+    // Iterate over elements that represent outer blocks
+    let blockEls = document.querySelectorAll('.bn-block-outer[data-id]');
+    if (blockEls.length === 0) {
+      // Fallback if the BlockNote version doesn't use bn-block-outer
+      blockEls = document.querySelectorAll('[data-id]');
+    }
+
+    // Keep track of processed IDs to avoid nested highlighting
+    const processedIds = new Set<string>();
+
+    blockEls.forEach(blockEl => {
+      const blockId = blockEl.getAttribute('data-id');
+      if (!blockId || processedIds.has(blockId)) return;
+      
+      const activeCollaborator = remoteCursors[blockId];
+      if (activeCollaborator) {
+        processedIds.add(blockId);
+        blockEl.setAttribute('data-collab-user', activeCollaborator.id);
+        blockEl.setAttribute('data-collab-color', activeCollaborator.color);
+        blockEl.setAttribute('data-collab-name', activeCollaborator.name || 'Someone');
+        (blockEl as HTMLElement).style.setProperty('--collab-color', activeCollaborator.color);
+        (blockEl as HTMLElement).style.borderLeft = `3px solid ${activeCollaborator.color}`;
+        (blockEl as HTMLElement).style.position = 'relative';
+      }
+    });
+  }, [editor, activeUsers, remoteCursors]);
 
   const openTaskCreation = () => {
     if (!editor) return;
@@ -197,7 +265,11 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
               onTitleChange={handleTitleChange}
             />
 
-            <div className="prose dark:prose-invert prose-neutral max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-lg">
+            <div 
+              className="prose dark:prose-invert prose-neutral max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-lg ZYNC-editor-overrides"
+              onClick={handleBlockFocus}
+              onKeyUp={handleBlockFocus}
+            >
               <BlockNoteView
                 editor={editor}
                 editable={isEditable}
@@ -262,7 +334,8 @@ const NoteEditor: React.FC<NoteEditorProps> = (props) => {
       if (isShared) {
         wsProvider = new SocketIOProvider(note.id, ydoc, {
           name: user.displayName || 'Anonymous',
-          color: getColorForUser(user.uid)
+          color: getColorForUser(user.uid),
+          uid: user.uid
         });
         setProvider(wsProvider);
       } else {
