@@ -61,6 +61,7 @@ module.exports = (io) => {
     socket.on('join-note', (noteId) => {
       socket.join(noteId);
       socket.noteId = noteId;
+      socket.to(noteId).emit('user-joined-yjs');
     });
 
     socket.on('presence-join', ({ noteId, odId, displayName, photoURL, color }) => {

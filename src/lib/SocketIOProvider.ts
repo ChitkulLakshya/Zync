@@ -58,6 +58,16 @@ export class SocketIOProvider extends Observable<string> {
       this.emit('status', [{ status: 'disconnected' }]);
     });
 
+    this.socket.on('user-joined-yjs', () => {
+      // Someone joined! Send them our current state.
+      try {
+        const stateUpdate = Y.encodeStateAsUpdate(this.doc);
+        this.socket.emit('note-update', { noteId, update: Array.from(stateUpdate) });
+      } catch (e) {
+        console.error('[YJS Socket] Failed to send state to new user', e);
+      }
+    });
+
     this.socket.on('note-update', (update: any) => {
       try {
         let uint8;
