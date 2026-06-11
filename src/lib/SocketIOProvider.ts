@@ -40,14 +40,14 @@ export class SocketIOProvider extends Observable<string> {
       setTimeout(() => {
         try {
           const stateUpdate = Y.encodeStateAsUpdate(this.doc);
-          this.socket.emit('note-update', { noteId, update: stateUpdate });
+          this.socket.emit('note-update', { noteId, update: Array.from(stateUpdate) });
         } catch (e) {
           console.error('[YJS Socket] Failed to send initial state', e);
         }
         
         if (this.awareness.clientID) {
           const awarenessUpdate = encodeAwarenessUpdate(this.awareness, [this.awareness.clientID]);
-          this.socket.emit('awareness-update', { noteId, update: awarenessUpdate });
+          this.socket.emit('awareness-update', { noteId, update: Array.from(awarenessUpdate) });
         }
       }, 500);
     });
@@ -64,10 +64,12 @@ export class SocketIOProvider extends Observable<string> {
         if (update instanceof ArrayBuffer) {
           uint8 = new Uint8Array(update);
         } else if (update && update.buffer instanceof ArrayBuffer) {
-          // It might already be a TypedArray or Buffer
           uint8 = new Uint8Array(update.buffer, update.byteOffset, update.byteLength);
+        } else if (Array.isArray(update)) {
+          uint8 = new Uint8Array(update);
+        } else if (typeof update === 'object' && update !== null) {
+          uint8 = new Uint8Array(Object.values(update));
         } else {
-          // Fallback if it's somehow an array or base64
           uint8 = new Uint8Array(update);
         }
         
@@ -79,7 +81,7 @@ export class SocketIOProvider extends Observable<string> {
 
     this.doc.on('update', (update: Uint8Array, origin: any) => {
       if (origin !== this && this.connected) {
-        this.socket.emit('note-update', { noteId, update });
+        this.socket.emit('note-update', { noteId, update: Array.from(update) });
       }
     });
 
@@ -90,6 +92,10 @@ export class SocketIOProvider extends Observable<string> {
           uint8 = new Uint8Array(update);
         } else if (update && update.buffer instanceof ArrayBuffer) {
           uint8 = new Uint8Array(update.buffer, update.byteOffset, update.byteLength);
+        } else if (Array.isArray(update)) {
+          uint8 = new Uint8Array(update);
+        } else if (typeof update === 'object' && update !== null) {
+          uint8 = new Uint8Array(Object.values(update));
         } else {
           uint8 = new Uint8Array(update);
         }
@@ -103,7 +109,7 @@ export class SocketIOProvider extends Observable<string> {
       if (origin !== this && this.connected) {
         const changedClients = added.concat(updated).concat(removed);
         const update = encodeAwarenessUpdate(this.awareness, changedClients);
-        this.socket.emit('awareness-update', { noteId, update });
+        this.socket.emit('awareness-update', { noteId, update: Array.from(update) });
       }
     });
   }
