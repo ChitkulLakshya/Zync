@@ -24,42 +24,83 @@ export class SocketIOProvider extends Observable<string> {
 
     this.socket = io(`${socketUrl}/notes`, {
       transports: ['websocket', 'polling'],
+      query: { userId: user.uid || 'anonymous' },
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
     });
 
     this.socket.on('connect', () => {
+      console.log('[YJS Socket] Connected to room:', noteId);
       this.connected = true;
       this.emit('status', [{ status: 'connected' }]);
       this.socket.emit('join-note', noteId);
+      
+      // Send our initial state so others receive our document
+      setTimeout(() => {
+        try {
+          const stateUpdate = Y.encodeStateAsUpdate(this.doc);
+          this.socket.emit('note-update', { noteId, update: stateUpdate });
+        } catch (e) {
+          console.error('[YJS Socket] Failed to send initial state', e);
+        }
+        
+        if (this.awareness.clientID) {
+          const awarenessUpdate = encodeAwarenessUpdate(this.awareness, [this.awareness.clientID]);
+          this.socket.emit('awareness-update', { noteId, update: awarenessUpdate });
+        }
+      }, 500);
     });
 
     this.socket.on('disconnect', () => {
+      console.log('[YJS Socket] Disconnected');
       this.connected = false;
       this.emit('status', [{ status: 'disconnected' }]);
     });
 
-
     this.socket.on('note-update', (update: any) => {
-      const uint8 = new Uint8Array(update);
-      Y.applyUpdate(this.doc, uint8, this);
+      try {
+        let uint8;
+        if (update instanceof ArrayBuffer) {
+          uint8 = new Uint8Array(update);
+        } else if (update && update.buffer instanceof ArrayBuffer) {
+          // It might already be a TypedArray or Buffer
+          uint8 = new Uint8Array(update.buffer, update.byteOffset, update.byteLength);
+        } else {
+          // Fallback if it's somehow an array or base64
+          uint8 = new Uint8Array(update);
+        }
+        
+        Y.applyUpdate(this.doc, uint8, this);
+      } catch (e) {
+        console.error('[YJS Socket] Failed to apply update', e, update);
+      }
     });
 
     this.doc.on('update', (update: Uint8Array, origin: any) => {
-      if (origin !== this) {
+      if (origin !== this && this.connected) {
         this.socket.emit('note-update', { noteId, update });
       }
     });
 
-
     this.socket.on('awareness-update', (update: any) => {
-      const uint8 = new Uint8Array(update);
-      applyAwarenessUpdate(this.awareness, uint8, this);
+      try {
+        let uint8;
+        if (update instanceof ArrayBuffer) {
+          uint8 = new Uint8Array(update);
+        } else if (update && update.buffer instanceof ArrayBuffer) {
+          uint8 = new Uint8Array(update.buffer, update.byteOffset, update.byteLength);
+        } else {
+          uint8 = new Uint8Array(update);
+        }
+        applyAwarenessUpdate(this.awareness, uint8, this);
+      } catch (e) {
+        console.error('[YJS Socket] Failed to apply awareness', e, update);
+      }
     });
 
     this.awareness.on('update', ({ added, updated, removed }: any, origin: any) => {
-      if (origin !== this) {
+      if (origin !== this && this.connected) {
         const changedClients = added.concat(updated).concat(removed);
         const update = encodeAwarenessUpdate(this.awareness, changedClients);
         this.socket.emit('awareness-update', { noteId, update });
