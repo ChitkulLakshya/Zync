@@ -265,14 +265,29 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
 
   const handleInsertTaskLink = async (task: TaskSearchResult) => {
     if (!editor) return;
-    editor.insertBlocks([
-      {
-        content: [
-          { type: "text", text: task.title + " ", styles: { bold: true } },
-          { type: "link", href: `/projects/${task.projectId}?task=${task.id}`, content: [{ type: "text", text: "🔗", styles: {} }] }
-        ]
-      }
-    ], editor.getTextCursorPosition().block, "after");
+    
+    let targetBlock;
+    try {
+      const pos = editor.getTextCursorPosition();
+      targetBlock = pos ? pos.block : undefined;
+    } catch (e) {
+      // Ignore if editor doesn't have focus
+    }
+
+    const blockToInsert = {
+      type: "paragraph" as const,
+      content: [
+        { type: "text" as const, text: task.title + " ", styles: { bold: true } },
+        { type: "link" as const, href: `/projects/${task.projectId}?task=${task.id}`, content: [{ type: "text" as const, text: "🔗", styles: {} }] }
+      ]
+    };
+
+    if (targetBlock) {
+      editor.insertBlocks([blockToInsert], targetBlock, "after");
+    } else {
+      // Append at the end if no focus
+      editor.insertBlocks([blockToInsert], editor.document[editor.document.length - 1], "after");
+    }
     setTaskLinkDialogOpen(false);
   };
 
