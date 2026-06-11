@@ -799,7 +799,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                 key={selectedNote.id}
                 note={selectedNote}
                 user={{ uid: user.uid, displayName: user.displayName, email: user.email, photoURL: user.photoURL }}
-                isShared={selectedNote?.ownerId !== user?.uid || sharedFolders.some(f => f.id === selectedNote?.folderId)}
+                isShared={true}
                 onUpdate={(updated) => setSelectedNote(updated)}
                 className="h-full"
               />

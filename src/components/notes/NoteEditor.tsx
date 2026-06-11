@@ -275,6 +275,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
                 editable={isEditable}
                 slashMenu={isEditable}
                 onChange={handleContentChange}
+                onSelectionChange={handleBlockFocus}
                 theme="dark"
                 className="ZYNC-editor-overrides"
               />
