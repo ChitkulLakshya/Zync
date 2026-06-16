@@ -19,7 +19,7 @@ const HeroSection = () => {
   const scale = useTransform(scrollYProgress, [0, 0.7], [0.85, 1]);
   const rotateX = useTransform(scrollYProgress, [0, 0.7], [25, 0]);
   const translateY = useTransform(scrollYProgress, [0, 0.7], ["66vh", "0vh"]);
-  const opacity = useTransform(scrollYProgress, [0, 0.2, 0.7], [0.7, 1, 1]);
+  const pointerEvents = useTransform(scrollYProgress, (value) => value >= 0.7 ? "auto" : "none");
 
   const handleGetStarted = () => {
     navigate("/signup", { state: { email } });
@@ -181,15 +181,16 @@ const HeroSection = () => {
               </div>
 
               {/* Inner Screen Viewport */}
-              <div 
+              <motion.div 
                 className="relative rounded-[1.5rem] bg-background border border-zinc-800 w-full flex-1 min-h-0 overflow-hidden"
                 style={{ 
                   boxShadow: 'var(--shadow-sm), inset 0 1px 2px rgba(0,0,0,0.2)',
-                  clipPath: 'inset(0 round 1.5rem)'
+                  clipPath: 'inset(0 round 1.5rem)',
+                  pointerEvents
                 }}
               >
                 <DesktopPreview />
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         </div>
