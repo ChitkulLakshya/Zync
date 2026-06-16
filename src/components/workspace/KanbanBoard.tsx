@@ -202,8 +202,8 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
                           const isCurrent = index === currentStatusIndex;
 
 
-                          let activeColorClass = 'bg-foreground';
-                          let ringColorClass = 'ring-foreground';
+                          const activeColorClass = 'bg-foreground';
+                          const ringColorClass = 'ring-foreground';
 
                           return (
                             <div key={step} className="flex items-center flex-1 last:flex-none">

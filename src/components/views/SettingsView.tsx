@@ -75,7 +75,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
 
 
   useEffect(() => {
-    if (isPreview) return;
+    if (isPreview) {return;}
     return onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
     });

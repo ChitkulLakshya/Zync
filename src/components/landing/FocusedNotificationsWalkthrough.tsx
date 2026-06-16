@@ -9,22 +9,22 @@ export const FocusedNotificationsWalkthrough = () => {
   useEffect(() => {
     let active = true;
     const sequence = async () => {
-      if (!active) return;
+      if (!active) {return;}
       setStep(0);
       await new Promise(r => setTimeout(r, 1000));
-      if (!active) return;
+      if (!active) {return;}
       setStep(1); // Cursor moves to bell
       await new Promise(r => setTimeout(r, 800));
-      if (!active) return;
+      if (!active) {return;}
       setStep(2); // Clicks bell
       await new Promise(r => setTimeout(r, 1500));
-      if (!active) return;
+      if (!active) {return;}
       setStep(3); // Moves to notification
       await new Promise(r => setTimeout(r, 800));
-      if (!active) return;
+      if (!active) {return;}
       setStep(4); // Clicks notification
       await new Promise(r => setTimeout(r, 3000));
-      if (!active) return;
+      if (!active) {return;}
       sequence(); // Loop
     };
     sequence();

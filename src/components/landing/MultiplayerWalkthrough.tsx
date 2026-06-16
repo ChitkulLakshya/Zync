@@ -33,25 +33,25 @@ export const MultiplayerWalkthrough = () => {
         setCommentText("");
         await new Promise(r => setTimeout(r, 1500));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setAlexPos({ x: "15%", y: "75%" }); // Move to comment box
         await new Promise(r => setTimeout(r, 800));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setAlexClicking(true);
         await new Promise(r => setTimeout(r, 200));
         setAlexClicking(false);
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setAlexPhase("typing");
         const fullText = "Looks good to me! 👍";
         for (let i = 0; i <= fullText.length; i++) {
-          if (!isActive) break;
+          if (!isActive) {break;}
           setCommentText(fullText.slice(0, i));
           await new Promise(r => setTimeout(r, 50 + Math.random() * 40));
         }
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         await new Promise(r => setTimeout(r, 800));
         setAlexPos({ x: "42%", y: "75%" }); // Click post
         await new Promise(r => setTimeout(r, 400));
@@ -74,21 +74,21 @@ export const MultiplayerWalkthrough = () => {
         setTaskPos({ x: 0, y: 0 });
         await new Promise(r => setTimeout(r, 500));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setSarahPos({ x: "75%", y: "30%" }); // Move to task
         await new Promise(r => setTimeout(r, 1000));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setSarahClicking(true);
         setSarahPhase("grabbing");
         await new Promise(r => setTimeout(r, 300));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setSarahPos({ x: "75%", y: "60%" }); // Drag down
         setSarahPhase("dragging");
         await new Promise(r => setTimeout(r, 800));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setSarahClicking(false);
         setSarahPhase("dropped");
         await new Promise(r => setTimeout(r, 500));
@@ -106,20 +106,20 @@ export const MultiplayerWalkthrough = () => {
         setIsHighlighted(false);
         await new Promise(r => setTimeout(r, 2500));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setMikePos({ x: "10%", y: "30%" }); // Move to text start
         await new Promise(r => setTimeout(r, 800));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setMikeClicking(true);
         await new Promise(r => setTimeout(r, 200));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setMikePos({ x: "60%", y: "30%" }); // Drag across text
         setIsHighlighted(true); // Assuming highlight follows cursor roughly, we'll just trigger CSS animation
         await new Promise(r => setTimeout(r, 800));
 
-        if (!isActive) break;
+        if (!isActive) {break;}
         setMikeClicking(false);
         await new Promise(r => setTimeout(r, 1000));
 

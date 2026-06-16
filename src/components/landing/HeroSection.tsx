@@ -18,7 +18,7 @@ const HeroSection = () => {
 
   const scale = useTransform(scrollYProgress, [0, 0.7], [0.85, 1]);
   const rotateX = useTransform(scrollYProgress, [0, 0.7], [25, 0]);
-  const translateY = useTransform(scrollYProgress, [0, 0.7], ["60vh", "0vh"]);
+  const translateY = useTransform(scrollYProgress, [0, 0.7], ["66vh", "0vh"]);
   const opacity = useTransform(scrollYProgress, [0, 0.2, 0.7], [0.7, 1, 1]);
 
   const handleGetStarted = () => {
@@ -39,14 +39,14 @@ const HeroSection = () => {
       />
 
       {/* The Sticky Stage */}
-      <div className="sticky top-0 h-screen overflow-hidden flex flex-col pt-28 lg:pt-36">
+      <div className="sticky top-0 h-screen overflow-hidden flex flex-col pt-20 lg:pt-24">
         
         {/* Hero Content */}
          <motion.div 
            className="container mx-auto px-4 relative z-10 flex-shrink-0"
            style={{
              opacity: useTransform(scrollYProgress, [0, 0.6], [1, 0]),
-             y: useTransform(scrollYProgress, [0, 0.6], [0, -50]),
+             y: useTransform(scrollYProgress, [0, 0.6], [0, -100]),
            }}
         >
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
@@ -163,18 +163,28 @@ const HeroSection = () => {
               }} 
             />
 
-            {/* Massive GlassCard Wrapping the Preview */}
+            {/* Premium Studio Display Mockup Frame */}
             <div 
-              className="relative rounded-[2.5rem] bg-surface-glass-regular backdrop-blur-thick border-0 p-2 sm:p-4 flex flex-col h-[calc(100vh-6rem)] lg:h-[calc(100vh-7rem)]"
+              className="relative rounded-[2.5rem] bg-zinc-950 border border-zinc-200 dark:border-zinc-800/50 p-3 sm:p-4 flex flex-col h-[calc(100vh-6rem)] lg:h-[calc(100vh-7rem)] shadow-2xl transition-all duration-300"
               style={{ 
-                boxShadow: 'var(--shadow-elevation4), var(--glass-bevel)',
-                clipPath: 'inset(0 round 2.5rem)'
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
               }}
             >
+              {/* Webcam Lens & Green Active LED */}
+              <div className="absolute top-1.5 sm:top-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-30 pointer-events-none">
+                {/* Camera Lens */}
+                <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-zinc-900 border border-zinc-800/50 flex items-center justify-center">
+                  <div className="w-0.5 h-0.5 rounded-full bg-blue-900/80" />
+                </div>
+                {/* Green LED indicator */}
+                <div className="w-1 h-1 rounded-full bg-emerald-500/90 shadow-[0_0_4px_#10b981]" />
+              </div>
+
+              {/* Inner Screen Viewport */}
               <div 
-                className="relative rounded-[1.5rem] bg-background border-0 w-full flex-1 min-h-0 overflow-hidden"
+                className="relative rounded-[1.5rem] bg-background border border-zinc-800 w-full flex-1 min-h-0 overflow-hidden"
                 style={{ 
-                  boxShadow: 'var(--shadow-sm), var(--glass-bevel)',
+                  boxShadow: 'var(--shadow-sm), inset 0 1px 2px rgba(0,0,0,0.2)',
                   clipPath: 'inset(0 round 1.5rem)'
                 }}
               >

@@ -15,7 +15,7 @@ export const SmartCalendarWalkthrough = () => {
     let isActive = true;
 
     const runSequence = async () => {
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("idle");
       setCursorPos({ x: "85%", y: "85%" });
       setTaskPos({ x: 0, y: 0 });
@@ -24,19 +24,19 @@ export const SmartCalendarWalkthrough = () => {
       await new Promise(r => setTimeout(r, 1000));
       
       // Move to task (on Wednesday, col 3)
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("moving");
       setCursorPos({ x: "50%", y: "55%" });
       await new Promise(r => setTimeout(r, 600));
       
       // Grab task
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("grabbing");
       setIsClicking(true);
       await new Promise(r => setTimeout(r, 300));
       
       // Drag task to Friday (col 5)
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("dragging");
       // We animate both the cursor and the task's x offset
       setCursorPos({ x: "82%", y: "55%" });
@@ -44,18 +44,18 @@ export const SmartCalendarWalkthrough = () => {
       await new Promise(r => setTimeout(r, 600));
       
       // Drop
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("dropping");
       setIsClicking(false);
       await new Promise(r => setTimeout(r, 200));
       
       // Done - cursor leaves
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("done");
       setCursorPos({ x: "120%", y: "120%" });
       await new Promise(r => setTimeout(r, 3000));
       
-      if (isActive) runSequence();
+      if (isActive) {runSequence();}
     };
     
     runSequence();

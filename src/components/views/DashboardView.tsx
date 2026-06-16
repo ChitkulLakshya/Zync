@@ -171,14 +171,14 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
 
 
     const activityStats = [
-        { subject: 'Commits', A: events.filter(e => e.type === 'PushEvent').length, fullMark: 100 },
-        { subject: 'Pull Requests', A: events.filter(e => e.type === 'PullRequestEvent').length, fullMark: 100 },
-        { subject: 'Code Review', A: events.filter(e => e.type === 'PullRequestReviewEvent').length, fullMark: 100 },
-        { subject: 'Issues', A: events.filter(e => e.type === 'IssuesEvent').length, fullMark: 100 },
+        { subject: 'Commits', A: events.filter((e: any) => e.type === 'PushEvent').length, fullMark: 100 },
+        { subject: 'Pull Requests', A: events.filter((e: any) => e.type === 'PullRequestEvent').length, fullMark: 100 },
+        { subject: 'Code Review', A: events.filter((e: any) => e.type === 'PullRequestReviewEvent').length, fullMark: 100 },
+        { subject: 'Issues', A: events.filter((e: any) => e.type === 'IssuesEvent').length, fullMark: 100 },
     ];
 
 
-    const repositories = Array.from(new Set(events.map(e => e.repo))).slice(0, 5);
+    const repositories = Array.from(new Set(events.map((e: any) => e.repo))).slice(0, 5) as string[];
 
 
     const currentYear = new Date().getFullYear();
@@ -188,13 +188,13 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
         return <div className="p-6 text-sm text-muted-foreground flex items-center justify-center h-full">Loading...</div>;
     }
     if (error && !stats) {
-        const totalTasks = projects.reduce((sum, p) => {
+        const totalTasks = projects.reduce((sum: number, p: any) => {
             const steps = p.steps || [];
-            return sum + steps.reduce((s, step) => s + (step.tasks?.length || 0), 0);
+            return sum + steps.reduce((s: number, step: any) => s + (step.tasks?.length || 0), 0);
         }, 0);
-        const completedTasks = projects.reduce((sum, p) => {
+        const completedTasks = projects.reduce((sum: number, p: any) => {
             const steps = p.steps || [];
-            return sum + steps.reduce((s, step) => s + (step.tasks?.filter((t: any) => t.status === 'Completed' || t.status === 'Done').length || 0), 0);
+            return sum + steps.reduce((s: number, step: any) => s + (step.tasks?.filter((t: any) => t.status === 'Completed' || t.status === 'Done').length || 0), 0);
         }, 0);
 
         return (
@@ -490,7 +490,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                         {events.length === 0 ? (
                             <p className="text-muted-foreground text-center py-8">No recent activity</p>
                         ) : (
-                            events.slice(0, 10).map(event => {
+                            events.slice(0, 10).map((event: any) => {
                                 const { label, icon } = formatEventType(event.type);
                                 const actor = getEventActor(event);
                                 const commitMessage = event.payload.commits?.[0]?.message || null;
@@ -538,7 +538,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                                             )}
                                             {event.payload.commits && event.payload.commits.length > 1 && (
                                                 <div className="mt-2 space-y-1">
-                                                    {event.payload.commits.slice(1).map((commit, idx) => (
+                                                    {event.payload.commits.slice(1).map((commit: any, idx: number) => (
                                                         <div key={idx} className="text-sm text-muted-foreground flex items-center gap-2">
                                                             <code className="text-xs bg-muted px-1 py-0.5 rounded">{commit.sha}</code>
                                                             <span className="truncate">{commit.message}</span>

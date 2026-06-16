@@ -414,10 +414,10 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
     const newTitle = e.target.value;
     setEditingTitle(newTitle);
     
-    if (titleDebounceRef.current) clearTimeout(titleDebounceRef.current);
+    if (titleDebounceRef.current) {clearTimeout(titleDebounceRef.current);}
     
     titleDebounceRef.current = setTimeout(async () => {
-      if (!selectedNote) return;
+      if (!selectedNote) {return;}
       try {
         await updateNote(selectedNote.id, { title: newTitle });
         setSelectedNote(prev => prev ? { ...prev, title: newTitle } : null);
@@ -563,7 +563,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
   };
 
   const handleDeleteFolder = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this folder and all its contents?")) return;
+    if (!window.confirm("Are you sure you want to delete this folder and all its contents?")) {return;}
     try {
       await deleteFolder(id);
       toast.success("Folder deleted");
@@ -873,7 +873,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
                     <DropdownMenuItem>Duplicate</DropdownMenuItem>
                     <DropdownMenuItem>Move to folder</DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => { if (selectedNote) handleDeleteNote(selectedNote.id) }}>
+                    <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => { if (selectedNote) {handleDeleteNote(selectedNote.id)} }}>
                       <Trash size={14} className="mr-2" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>

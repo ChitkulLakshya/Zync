@@ -1,6 +1,7 @@
 import { Smartphone, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
 import MobilePreview from "@/components/landing/MobilePreview";
 
 const MobileAppSection = () => {
@@ -39,13 +40,41 @@ const MobileAppSection = () => {
           </div>
 
           {}
-          <div className="relative flex justify-center">
-            {}
+          <div className="relative flex justify-center [perspective:1500px]">
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-task-teal/5 rounded-full blur-3xl" />
 
-            <div className="relative">
+            <motion.div 
+              className="relative"
+              initial={{ 
+                x: 180, 
+                rotateX: 75, 
+                rotateY: 0, 
+                rotateZ: -35,
+                scale: 0.85, 
+                opacity: 0 
+              }}
+              whileInView={{ 
+                x: 0, 
+                rotateX: 0, 
+                rotateY: 0, 
+                rotateZ: 0,
+                scale: 1, 
+                opacity: 1 
+              }}
+              viewport={{ once: false, amount: 0.2 }}
+              transition={{ 
+                type: "spring", 
+                stiffness: 45, 
+                damping: 15,
+                mass: 1.2
+              }}
+              style={{ 
+                transformOrigin: "bottom center",
+                transformStyle: "preserve-3d"
+              }}
+            >
               <MobilePreview />
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>
