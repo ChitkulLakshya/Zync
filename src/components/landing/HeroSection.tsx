@@ -165,7 +165,7 @@ const HeroSection = () => {
 
             {/* Premium Studio Display Mockup Frame */}
             <div 
-              className="relative rounded-[2.5rem] bg-zinc-950 border border-zinc-200 dark:border-zinc-800/50 p-3 sm:p-4 flex flex-col h-[calc(100vh-6rem)] lg:h-[calc(100vh-7rem)] shadow-2xl transition-all duration-300"
+              className="relative rounded-[2.5rem] bg-zinc-950 border border-zinc-200 dark:border-zinc-800/50 p-3 sm:p-4 flex flex-col aspect-[16/10] w-full max-w-5xl mx-auto shadow-2xl transition-all duration-300"
               style={{ 
                 boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
               }}
