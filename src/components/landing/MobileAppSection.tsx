@@ -40,33 +40,39 @@ const MobileAppSection = () => {
           </div>
 
           {}
-          <div className="relative flex justify-center [perspective:1500px]">
+          <motion.div 
+            className="relative flex justify-center [perspective:1500px]"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-task-teal/5 rounded-full blur-3xl" />
 
             <motion.div 
               className="relative"
-              initial={{ 
-                x: "100vw", 
-                rotateX: 75, 
-                rotateY: 0, 
-                rotateZ: -35,
-                scale: 0.85, 
-                opacity: 0 
-              }}
-              whileInView={{ 
-                x: 0, 
-                rotateX: 0, 
-                rotateY: 0, 
-                rotateZ: 0,
-                scale: 1, 
-                opacity: 1 
-              }}
-              viewport={{ once: false, amount: 0.2 }}
-              transition={{ 
-                type: "spring", 
-                stiffness: 45, 
-                damping: 15,
-                mass: 1.2
+              variants={{
+                hidden: { 
+                  x: 450, 
+                  rotateX: 75, 
+                  rotateY: 0, 
+                  rotateZ: -35,
+                  scale: 0.85, 
+                  opacity: 0 
+                },
+                visible: { 
+                  x: 0, 
+                  rotateX: 0, 
+                  rotateY: 0, 
+                  rotateZ: 0,
+                  scale: 1, 
+                  opacity: 1,
+                  transition: { 
+                    type: "spring", 
+                    stiffness: 45, 
+                    damping: 15,
+                    mass: 1.2
+                  }
+                }
               }}
               style={{ 
                 transformOrigin: "bottom center",
@@ -75,7 +81,7 @@ const MobileAppSection = () => {
             >
               <MobilePreview />
             </motion.div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
