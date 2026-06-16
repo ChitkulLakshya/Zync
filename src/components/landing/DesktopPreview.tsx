@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+
 import {
     ContributionGraph, ContributionGraphBlock, ContributionGraphCalendar, ContributionGraphFooter, ContributionGraphLegend, ContributionGraphTotalCount,
 } from "@/components/kibo-ui/contribution-graph";
@@ -489,8 +489,7 @@ const DesktopPreview = () => {
                 </div>
             </aside>
             <main className="flex-1 min-h-0 flex flex-col overflow-hidden bg-background">
-                <header className="h-10 border-b border-border/10 flex items-center justify-between px-4 bg-background/60 backdrop-blur-md">
-                    <Input placeholder="Search..." className="h-6 w-36 text-[10px] bg-secondary/30 border-0 shadow-none focus-visible:ring-1 focus-visible:ring-border rounded-full" />
+                <header className="h-10 border-b border-border/10 flex items-center justify-end px-4 bg-background/60 backdrop-blur-md">
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground"><Bell className="w-3.5 h-3.5" /></Button>
                     </div>
