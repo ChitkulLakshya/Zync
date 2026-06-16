@@ -84,6 +84,7 @@ const taskRoutes = require('./routes/taskRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const internalMetricsRoutes = require('./routes/internalMetrics');
+const collaboratorRoutes = require('./routes/collaboratorRoutes');
 
 
 
@@ -161,6 +162,7 @@ app.use('/api/teams', require('./routes/teamRoutes'));
 app.use('/api/google', require('./routes/googleRoutes'));
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/support', supportRoutes);
+app.use('/api/collaborator', collaboratorRoutes);
 app.use('/api/cache/sample', require('./routes/redisCacheSampleRoutes'));
 app.use('/internal', internalMetricsRoutes);
 

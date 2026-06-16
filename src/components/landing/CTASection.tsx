@@ -1,17 +1,6 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ArrowRight } from "lucide-react";
+import BetaOnboarding from "@/components/landing/BetaOnboarding";
 
 const CTASection = () => {
-  const [email, setEmail] = useState("");
-  const navigate = useNavigate();
-
-  const handleGetStarted = () => {
-    navigate("/signup", { state: { email } });
-  };
-
   return (
     <section id="cta" className="py-20 lg:py-28 bg-sidebar relative overflow-hidden scroll-mt-20">
       {}
@@ -22,31 +11,17 @@ const CTASection = () => {
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4  text-sidebar-foreground">
-            Be an early builder
+          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-sidebar-foreground">
+            Be an early <span className="font-serif italic text-primary">builder</span>
           </h2>
           <p className="text-lg text-sidebar-foreground/70 mb-10 leading-relaxed">
-            Zync is in active development. Join the beta to help shape how teams
-            build software—and get free access while we grow.
+            We are looking for <span className="font-serif italic text-primary">passionate developers</span>, <span className="font-serif italic text-primary">designers</span>, and <span className="font-serif italic text-primary">open-source enthusiasts</span> who want to help shape the future of collaboration. Connect your GitHub, start contributing, and raise pull requests for better changes.
           </p>
 
-          {}
-          <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-4">
-            <Input
-              type="email"
-              placeholder="you@company.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="h-12 px-5 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/40"
-            />
-            <Button variant="hero" size="lg" className="whitespace-nowrap" onClick={handleGetStarted}>
-              Get Started
-              <ArrowRight className="w-4 h-4 ml-1.5" />
-            </Button>
-          </div>
+          <BetaOnboarding />
 
-          <p className="text-sm text-sidebar-foreground/50">
-            Free during beta · We'll never spam you
+          <p className="text-sm text-sidebar-foreground/50 mt-6">
+            Open Source · Build together · Shape the future
           </p>
         </div>
       </div>
