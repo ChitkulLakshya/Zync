@@ -11,8 +11,17 @@ const Navbar = () => {
   const [mounted, setMounted] = useState(false);
   const navigate = useNavigate();
 
+  const [isScrolled, setIsScrolled] = useState(false);
+
   useEffect(() => {
     setMounted(true);
+    
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 80);
+    };
+    
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const scrollToSection = (sectionId: string) => {
@@ -29,11 +38,24 @@ const Navbar = () => {
     { name: "Contact", action: () => scrollToSection('cta') },
   ];
 
+  const isPill = isScrolled && !isOpen;
+
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-background/60 backdrop-blur-md border-b border-border/10">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16 lg:h-20">
-          {}
+    <nav 
+      className={`fixed left-1/2 -translate-x-1/2 z-50 box-border transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] border ${
+        isPill 
+          ? "top-6 w-[90%] max-w-[896px] rounded-full bg-surface-glass-regular backdrop-blur-thick border-white/10"
+          : "top-0 w-[100%] max-w-[3000px] rounded-none bg-background/70 backdrop-blur-md border-transparent border-b-white/5"
+      }`}
+      style={{
+        boxShadow: isPill ? '0 16px 40px -8px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)' : 'none'
+      }}
+    >
+      <div className={`mx-auto w-full transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+        isPill ? "max-w-4xl px-6 lg:px-8" : "max-w-7xl px-4 lg:px-8"
+      }`}>
+        <div className="flex items-center justify-between h-16 lg:h-20 w-full">
+          {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             {mounted ? (
               <img

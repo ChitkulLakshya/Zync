@@ -55,7 +55,7 @@ export const FocusedNotificationsWalkthrough = () => {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -5, transition: { duration: 0.15 } }}
             className="absolute top-14 right-4 w-64 bg-background/90 backdrop-blur-thick rounded-xl border-0 p-2 z-20"
-            style={{ boxShadow: 'var(--shadow-elevation3), var(--glass-bevel)', transformOrigin: 'top right' }}
+            style={{ boxShadow: 'var(--glass-bevel)', transformOrigin: 'top right' }}
           >
             <div className="px-2 py-1.5 mb-1 border-b border-border/10">
               <span className="text-xs font-semibold text-foreground/80">Notifications</span>
