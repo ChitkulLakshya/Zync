@@ -85,7 +85,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
     setTitle(newTitle);
     setStatus('Saving...');
     
-    if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
+    if (titleTimerRef.current) {clearTimeout(titleTimerRef.current);}
     
     titleTimerRef.current = setTimeout(async () => {
       try {
@@ -115,7 +115,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   // Helper to strip IDs from blocks so BlockNote generates new unique ones
   // This prevents ProseMirror crashes if two clients hydrate the same JSON concurrently
   const stripBlockIds = (blocks: any[]): any[] => {
-    if (!Array.isArray(blocks)) return blocks;
+    if (!Array.isArray(blocks)) {return blocks;}
     return blocks.map(b => {
       const { id, ...rest } = b;
       if (rest.children) {
@@ -144,7 +144,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleContentChange = useCallback(() => {
-    if (!isEditable) return;
+    if (!isEditable) {return;}
     setStatus('Saving...');
 
     try {
@@ -158,7 +158,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
       console.warn("Could not get cursor position:", e);
     }
 
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    if (saveTimeoutRef.current) {clearTimeout(saveTimeoutRef.current);}
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
@@ -173,7 +173,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
 
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      if (saveTimeoutRef.current) {clearTimeout(saveTimeoutRef.current);}
     };
   }, []);
 
@@ -219,7 +219,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
 
     blockEls.forEach(blockEl => {
       const blockId = blockEl.getAttribute('data-id');
-      if (!blockId || processedIds.has(blockId)) return;
+      if (!blockId || processedIds.has(blockId)) {return;}
       
       const activeCollaborator = remoteCursors[blockId];
       if (activeCollaborator) {
@@ -235,7 +235,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   }, [editor, activeUsers, remoteCursors]);
 
   const openTaskCreation = () => {
-    if (!editor) return;
+    if (!editor) {return;}
     const selection = editor.getTextCursorPosition();
     const block = selection.block;
     let text = "";
@@ -264,7 +264,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   };
 
   const handleInsertTaskLink = async (task: TaskSearchResult) => {
-    if (!editor) return;
+    if (!editor) {return;}
     
     let targetBlock;
     try {
@@ -291,7 +291,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
     setTaskLinkDialogOpen(false);
   };
 
-  if (!editor) return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading editor…</div>;
+  if (!editor) {return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading editor…</div>;}
 
   return (
     <div className={cn("flex flex-col h-full", className)}>

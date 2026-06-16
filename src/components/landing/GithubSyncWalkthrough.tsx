@@ -14,7 +14,7 @@ export const GithubSyncWalkthrough = () => {
     let isActive = true;
 
     const runSequence = async () => {
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("idle");
       setCursorPos({ x: "90%", y: "90%" });
       setIsClicking(false);
@@ -22,39 +22,39 @@ export const GithubSyncWalkthrough = () => {
       await new Promise(r => setTimeout(r, 1000));
       
       // Move to terminal
-      if (!isActive) return;
+      if (!isActive) {return;}
       setCursorPos({ x: "15%", y: "55%" });
       await new Promise(r => setTimeout(r, 600));
       
       // Click "push"
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("clicking");
       setIsClicking(true);
       await new Promise(r => setTimeout(r, 200));
       setIsClicking(false);
       
       // Pushing
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("pushing");
       setCursorPos({ x: "120%", y: "120%" }); // cursor leaves
       await new Promise(r => setTimeout(r, 800));
       
       // Syncing (Toast shows up)
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("syncing");
       await new Promise(r => setTimeout(r, 1200));
       
       // Moving task
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("moving");
       await new Promise(r => setTimeout(r, 800));
       
       // Done
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("done");
       await new Promise(r => setTimeout(r, 3000));
       
-      if (isActive) runSequence();
+      if (isActive) {runSequence();}
     };
     
     runSequence();

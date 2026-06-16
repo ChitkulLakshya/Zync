@@ -17,7 +17,7 @@ export const ProjectSetupWalkthrough = () => {
 
     const runSequence = async () => {
       // 1. Initial State
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("idle");
       setText("");
       setCursorPos({ x: "85%", y: "85%" });
@@ -26,7 +26,7 @@ export const ProjectSetupWalkthrough = () => {
       await new Promise(r => setTimeout(r, 1200));
       
       // 2. Move to text area
-      if (!isActive) return;
+      if (!isActive) {return;}
       setCursorPos({ x: "30%", y: "45%" });
       await new Promise(r => setTimeout(r, 600));
       setIsClicking(true);
@@ -34,10 +34,10 @@ export const ProjectSetupWalkthrough = () => {
       setIsClicking(false);
       
       // 3. Type
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("typing");
       for (let i = 0; i <= fullText.length; i++) {
-        if (!isActive) break;
+        if (!isActive) {break;}
         setText(fullText.slice(0, i));
         await new Promise(r => setTimeout(r, 40 + Math.random() * 40));
       }
@@ -45,7 +45,7 @@ export const ProjectSetupWalkthrough = () => {
       await new Promise(r => setTimeout(r, 500));
       
       // 4. Move to Generate button
-      if (!isActive) return;
+      if (!isActive) {return;}
       setCursorPos({ x: "75%", y: "78%" });
       setPhase("clicking");
       await new Promise(r => setTimeout(r, 600));
@@ -54,18 +54,18 @@ export const ProjectSetupWalkthrough = () => {
       setIsClicking(false);
       
       // 5. Generating state
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("generating");
       setCursorPos({ x: "120%", y: "120%" }); // Move out of view
       await new Promise(r => setTimeout(r, 1800));
       
       // 6. Result morph
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("result");
       await new Promise(r => setTimeout(r, 4000));
       
       // Loop
-      if (isActive) runSequence();
+      if (isActive) {runSequence();}
     };
     
     runSequence();
