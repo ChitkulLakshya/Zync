@@ -12,7 +12,7 @@ const MobileAppSection = () => {
   };
 
   return (
-    <section id="mobile" className="pt-28 pb-20 lg:pt-36 lg:pb-28 bg-secondary/20 overflow-hidden scroll-mt-20">
+    <section id="mobile" className="pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden scroll-mt-20">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {}
