@@ -46,7 +46,7 @@ const MobileAppSection = () => {
             <motion.div 
               className="relative"
               initial={{ 
-                x: 180, 
+                x: "100vw", 
                 rotateX: 75, 
                 rotateY: 0, 
                 rotateZ: -35,
