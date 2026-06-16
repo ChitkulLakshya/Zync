@@ -101,7 +101,7 @@ const DesktopPreview = () => {
 
     return (
         <div 
-            className="w-full aspect-[16/10] bg-background rounded-2xl border-0 overflow-hidden flex"
+            className="w-full h-full bg-background rounded-2xl border-0 overflow-hidden flex"
             style={{ boxShadow: 'var(--shadow-xl), var(--glass-bevel)' }}
         >
             {/* Sidebar */}
