@@ -99,7 +99,7 @@ const BetaOnboarding = () => {
         animate={{ opacity: 1, scale: 1 }}
         className="w-full max-w-md mx-auto bg-surface-glass-regular backdrop-blur-md border border-white/10 dark:border-white/5 rounded-2xl p-8 text-center shadow-xl"
       >
-        <div className="w-16 h-16 bg-emerald-500/20 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="w-16 h-16 bg-task-green/20 text-task-green rounded-full flex items-center justify-center mx-auto mb-4">
           <CheckCircle2 className="w-8 h-8" />
         </div>
         <h3 className="text-2xl font-bold text-foreground mb-2">You're on the list!</h3>

@@ -26,7 +26,7 @@ const HeroSection = () => {
   };
 
   return (
-    <section ref={containerRef} className="relative h-[250vh] hero-gradient">
+    <section ref={containerRef} className="relative h-[250vh]">
       {/* Background Gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/[0.03] pointer-events-none" />
       {/* Structural Dot Matrix Background */}
@@ -57,8 +57,8 @@ const HeroSection = () => {
             >
               {/* Pulsing Dot */}
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-task-green opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-task-green"></span>
               </span>
               <span className="text-xs font-medium tracking-wide text-foreground/80">
                 Public Beta 1.0
@@ -74,7 +74,7 @@ const HeroSection = () => {
                 animate={{ y: [0, -12, 0], x: [0, 6, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }}
               >
-                <SimulatedCursor x={0} y={0} name="Live Collaboration" color="#10b981" />
+                <SimulatedCursor x={0} y={0} name="Live Collaboration" color="#34d399" />
               </motion.div>
 
               {/* Feature 2 - Red */}
@@ -84,7 +84,7 @@ const HeroSection = () => {
                 animate={{ y: [0, 18, 0], x: [0, -12, 0] }}
                 transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 1 }}
               >
-                <SimulatedCursor x={0} y={0} name="AI Planning" color="#ef4444" />
+                <SimulatedCursor x={0} y={0} name="AI Planning" color="#f87171" />
               </motion.div>
 
               {/* Feature 3 - Violet */}
@@ -94,7 +94,7 @@ const HeroSection = () => {
                 animate={{ y: [0, -8, 0], x: [0, 15, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 0.5 }}
               >
-                <SimulatedCursor x={0} y={0} name="GitHub Sync" color="#8b5cf6" />
+                <SimulatedCursor x={0} y={0} name="GitHub Sync" color="#a78bfa" />
               </motion.div>
 
               {/* Feature 4 - Blue */}
@@ -104,7 +104,7 @@ const HeroSection = () => {
                 animate={{ y: [0, 14, 0], x: [0, -8, 0] }}
                 transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 2 }}
               >
-                <SimulatedCursor x={0} y={0} name="Team Chat" color="#3b82f6" />
+                <SimulatedCursor x={0} y={0} name="Team Chat" color="#60a5fa" />
               </motion.div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">
