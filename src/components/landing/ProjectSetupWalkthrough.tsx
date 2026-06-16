@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SimulatedCursor } from "./SimulatedCursor";
 import { Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
 
 type WalkthroughState = "idle" | "typing" | "clicking" | "generating" | "success";
 
@@ -9,7 +13,7 @@ export const ProjectSetupWalkthrough = () => {
   const [phase, setPhase] = useState<WalkthroughState>("idle");
   const [text, setText] = useState("");
   const fullText = "A real-time dashboard for remote teams with live chat and task tracking.";
-  const [cursorPos, setCursorPos] = useState({ x: "85%", y: "85%" });
+  const [cursorPos, setCursorPos] = useState({ x: "60%", y: "95%" });
   const [isClicking, setIsClicking] = useState(false);
 
   useEffect(() => {
@@ -20,15 +24,15 @@ export const ProjectSetupWalkthrough = () => {
       if (!isActive) {return;}
       setPhase("idle");
       setText("");
-      setCursorPos({ x: "60%", y: "95%" }); // Start slightly lower middle
+      setCursorPos({ x: "40%", y: "37%" });
       setIsClicking(false);
       
       await new Promise(r => setTimeout(r, 800));
       
       // 2. Move to text area
       if (!isActive) {return;}
-      setCursorPos({ x: "30%", y: "63%" }); // Mathematically centered on the textarea
-      await new Promise(r => setTimeout(r, 800)); // Human movement delay
+      setCursorPos({ x: "30%", y: "58%" });
+      await new Promise(r => setTimeout(r, 800));
       setIsClicking(true);
       await new Promise(r => setTimeout(r, 150));
       setIsClicking(false);
@@ -39,18 +43,17 @@ export const ProjectSetupWalkthrough = () => {
       for (let i = 0; i <= fullText.length; i++) {
         if (!isActive) {break;}
         setText(fullText.slice(0, i));
-        // Add some random variation simulating human typing speed
         const typingDelay = 20 + Math.random() * 40 + (fullText[i] === " " ? 40 : 0);
         await new Promise(r => setTimeout(r, typingDelay));
       }
       
-      await new Promise(r => setTimeout(r, 600)); // Pause after typing
+      await new Promise(r => setTimeout(r, 600));
       
       // 4. Move to Generate button
       if (!isActive) {return;}
-      setCursorPos({ x: "72%", y: "89%" }); // Mathematically centered on the button
+      setCursorPos({ x: "77%", y: "89%" });
       setPhase("clicking");
-      await new Promise(r => setTimeout(r, 700)); // Human movement delay
+      await new Promise(r => setTimeout(r, 700));
       setIsClicking(true);
       await new Promise(r => setTimeout(r, 150));
       setIsClicking(false);
@@ -58,7 +61,7 @@ export const ProjectSetupWalkthrough = () => {
       // 5. Generating state
       if (!isActive) {return;}
       setPhase("generating");
-      setCursorPos({ x: "85%", y: "110%" }); // Move out of view naturally
+      setCursorPos({ x: "85%", y: "110%" });
       await new Promise(r => setTimeout(r, 2000));
       
       // 6. Success state
@@ -66,7 +69,6 @@ export const ProjectSetupWalkthrough = () => {
       setPhase("success");
       await new Promise(r => setTimeout(r, 3500));
       
-      // Loop
       if (isActive) {runSequence();}
     };
     
@@ -78,75 +80,79 @@ export const ProjectSetupWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-2xl rounded-[2rem] overflow-hidden mx-auto font-sans">
+    <div className="relative w-full max-w-[420px] mx-auto font-sans">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
-      <div className="p-6">
-        {/* Card Header */}
-        <div className="space-y-1.5 mb-6">
-          <h3 className="text-xl font-bold tracking-tight text-foreground">Create New Project</h3>
-          <p className="text-sm text-muted-foreground">
+      {/* Exact replica using real components */}
+      <Card className="bg-secondary/5 border-border/10 shadow-2xl rounded-[2rem] overflow-hidden pointer-events-none">
+        <CardHeader>
+          <CardTitle>Create New Project</CardTitle>
+          <CardDescription>
             Describe your project, and our AI will generate the architecture and tasks for you.
-          </p>
-        </div>
-
-        {/* Card Content */}
-        <div className="space-y-5">
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none text-foreground/80">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Project Name
             </label>
-            <div className="bg-secondary/30 border-0 rounded-xl h-11 px-4 flex items-center shadow-sm">
-              <span className="text-sm text-foreground">RemoteSync App</span>
-            </div>
+            <Input
+              placeholder="e.g., E-commerce Platform"
+              value="RemoteSync App"
+              readOnly
+              className="bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-border rounded-xl h-12 px-4"
+            />
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium leading-none text-foreground/80">
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               What are you building?
             </label>
-            <div className="min-h-[100px] bg-secondary/30 border-0 rounded-xl p-4 shadow-sm relative">
-              {phase === "idle" && !text && (
-                <span className="text-sm text-muted-foreground absolute pointer-events-none">
-                  Describe your project features, goals, and requirements...
-                </span>
-              )}
-              <span className="text-sm text-foreground leading-relaxed">{text}</span>
+            <div className="relative">
+              <Textarea
+                placeholder="Describe your project features, goals, and requirements..."
+                className="min-h-[150px] resize-none bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-border rounded-xl p-4 relative z-10 bg-transparent"
+                value={text}
+                readOnly
+              />
+              {/* Fake typing caret */}
               {phase === "typing" && (
-                <span className="inline-block w-1 h-4 bg-foreground ml-0.5 animate-pulse translate-y-0.5" />
+                <div className="absolute top-4 left-4 z-20 pointer-events-none w-full h-full">
+                  <span className="invisible whitespace-pre-wrap font-sans text-sm">{text}</span>
+                  <span className="inline-block w-1 h-4 bg-foreground animate-pulse translate-y-0.5" />
+                </div>
               )}
             </div>
           </div>
-        </div>
-
-        {/* Card Footer */}
-        <div className="mt-6 flex justify-end">
-          <motion.button 
-            className="w-full sm:w-auto h-11 px-6 bg-foreground text-background rounded-xl font-medium flex items-center justify-center gap-2 shadow-sm transition-colors"
-            animate={isClicking && phase === "clicking" ? { scale: 0.95 } : { scale: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            style={{ opacity: phase === "success" ? 0.8 : 1 }}
-          >
-            {phase === "generating" ? (
-              <span className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 animate-pulse" />
-                Generating...
-              </span>
-            ) : phase === "success" ? (
-              <span className="flex items-center gap-2 text-task-green">
-                <CheckCircle2 className="w-4 h-4" />
-                Project Generated
-              </span>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                Generate Project Plan
-                <ArrowRight className="w-4 h-4 ml-1" />
-              </>
-            )}
-          </motion.button>
-        </div>
-      </div>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <motion.div animate={isClicking && phase === "clicking" ? { scale: 0.95 } : { scale: 1 }}>
+            <Button
+              size="lg"
+              className="w-full sm:w-auto rounded-xl"
+              disabled={phase === "generating"}
+            >
+              {phase === "generating" ? (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
+                  Generating...
+                </>
+              ) : phase === "success" ? (
+                <span className="flex items-center text-task-green gap-2">
+                  <CheckCircle2 className="h-4 w-4" />
+                  Project Generated
+                </span>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Generate Project Plan
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </motion.div>
+        </CardFooter>
+      </Card>
 
       {/* Success Toast Overlay */}
       <AnimatePresence>

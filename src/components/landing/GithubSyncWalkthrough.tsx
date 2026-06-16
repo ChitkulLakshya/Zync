@@ -2,12 +2,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SimulatedCursor } from "./SimulatedCursor";
 import { Copy, Check, Github, CheckCircle2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type WalkthroughState = "idle" | "copying" | "terminal" | "typing" | "pushing" | "success";
 
 export const GithubSyncWalkthrough = () => {
   const [phase, setPhase] = useState<WalkthroughState>("idle");
-  const [cursorPos, setCursorPos] = useState({ x: "85%", y: "85%" });
+  const [cursorPos, setCursorPos] = useState({ x: "50%", y: "90%" });
   const [isClicking, setIsClicking] = useState(false);
   const [termText, setTermText] = useState("");
 
@@ -20,16 +21,15 @@ export const GithubSyncWalkthrough = () => {
       if (!isActive) {return;}
       setPhase("idle");
       setTermText("");
-      setCursorPos({ x: "50%", y: "90%" }); // Start at bottom middle
+      setCursorPos({ x: "50%", y: "90%" });
       setIsClicking(false);
       
       await new Promise(r => setTimeout(r, 1000));
       
       // Move to Copy Button
       if (!isActive) {return;}
-      // The container is flexible, but centered. Copy button is on the far right middle of the sync card.
-      setCursorPos({ x: "85%", y: "56%" });
-      await new Promise(r => setTimeout(r, 800)); // Natural hover time
+      setCursorPos({ x: "85%", y: "61%" });
+      await new Promise(r => setTimeout(r, 800));
       
       // Click Copy
       if (!isActive) {return;}
@@ -48,7 +48,7 @@ export const GithubSyncWalkthrough = () => {
       // Show Terminal
       if (!isActive) {return;}
       setPhase("terminal");
-      setCursorPos({ x: "95%", y: "110%" }); // Move completely out smoothly
+      setCursorPos({ x: "95%", y: "110%" });
       await new Promise(r => setTimeout(r, 600));
       
       // Type in terminal
@@ -86,31 +86,33 @@ export const GithubSyncWalkthrough = () => {
     <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-2xl rounded-[2rem] p-6 mx-auto flex flex-col justify-center min-h-[320px] font-sans overflow-hidden">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
-      {/* Authentic TaskGitSync Component */}
-      <div className="p-5 rounded-2xl border border-border/10 bg-card/80 backdrop-blur-xl shadow-sm">
-        <div className="flex items-center gap-2 mb-2.5">
+      {/* Exact replica of TaskGitSync Component */}
+      <div className="p-4 rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl shadow-sm pointer-events-none">
+        <div className="flex items-center gap-2 mb-2">
           <Github className="w-4 h-4 text-foreground" />
           <h4 className="font-medium text-sm text-foreground">Sync with GitHub</h4>
         </div>
-        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        <p className="text-xs text-muted-foreground mb-3">
           Include this tag in your commit message to automatically complete this task.
         </p>
 
         <div className="flex items-center gap-2">
-          <code className="flex-1 bg-secondary/40 px-3 py-2.5 rounded-xl text-xs font-mono text-foreground truncate border border-border/5">
+          <code className="flex-1 bg-card/50 backdrop-blur-md px-3 py-2 rounded-xl text-xs font-mono text-foreground truncate border border-border/10">
             [ZYNC-COMPLETE #142]
           </code>
-          <motion.button
-            className="shrink-0 h-10 w-10 border border-border/10 rounded-xl flex items-center justify-center bg-background shadow-sm"
-            animate={isClicking && phase === "idle" ? { scale: 0.9 } : { scale: 1 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-          >
-            {phase !== "idle" ? (
-              <Check className="w-4 h-4 text-task-green" />
-            ) : (
-              <Copy className="w-4 h-4 text-muted-foreground" />
-            )}
-          </motion.button>
+          <motion.div animate={isClicking && phase === "idle" ? { scale: 0.9 } : { scale: 1 }}>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0 h-9 w-9"
+            >
+              {phase !== "idle" ? (
+                <Check className="w-4 h-4 text-green-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+            </Button>
+          </motion.div>
         </div>
       </div>
 
