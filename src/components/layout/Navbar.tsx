@@ -61,7 +61,7 @@ const Navbar = () => {
               <img
                 src="/zync-dark.webp"
                 alt="Zync Logo"
-                className="h-8 w-auto object-contain"
+                className="h-8 w-auto object-contain rounded-lg"
               />
             ) : (
               <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">

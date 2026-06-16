@@ -22,7 +22,7 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { icon: Github, href: "https://github.com/ChitkulLakshya/Zync", label: "GitHub" },
+    { icon: Github, href: "https://github.com/zync-meet/Zync", label: "GitHub" },
     { icon: Twitter, href: "https://twitter.com", label: "Twitter" },
     { icon: Linkedin, href: "https://linkedin.com", label: "LinkedIn" },
   ];
@@ -33,13 +33,15 @@ const Footer = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mb-12">
           {}
           <div className="col-span-2 md:col-span-1 lg:col-span-2">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="h-7 w-7 bg-foreground rounded-lg flex items-center justify-center">
-                <span className="text-background font-bold text-sm">Z</span>
-              </div>
-              <span className="text-lg font-bold  text-foreground">Zync</span>
+            <Link to="/" className="flex items-center gap-2 mb-4 w-fit hover:opacity-80 transition-opacity">
+              <img
+                src="/zync-dark.webp"
+                alt="Zync Logo"
+                className="h-7 w-auto object-contain rounded-md"
+              />
+              <span className="text-lg font-bold text-foreground">Zync</span>
               <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded uppercase tracking-wider">Beta</span>
-            </div>
+            </Link>
             <p className="text-muted-foreground text-sm mb-5 max-w-xs leading-relaxed">
               The focused workspace for software teams. Currently in public beta.
             </p>
@@ -95,15 +97,10 @@ const Footer = () => {
         </div>
 
         {}
-        <div className="pt-8 border-t border-border/10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-8 border-t border-border/10 flex items-center justify-center">
           <p className="text-xs text-muted-foreground">
             © 2026 Zync · Public Beta 1.0
           </p>
-          <div className="flex gap-5">
-            <Link to="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
-              Privacy
-            </Link>
-          </div>
         </div>
       </div>
     </footer>
