@@ -22,26 +22,36 @@ export const SimulatedCursor = ({ x, y, isClicking = false, name, color }: Simul
         mass: 0.5,
       }}
     >
-      {/* Soft shadow for depth, translucent fill */}
-      <MousePointer2 
-        className="w-5 h-5 -rotate-12 drop-shadow-md" 
-        style={{ 
-          color: color || "hsl(var(--foreground))", 
-          fill: color ? `${color}40` : "hsl(var(--foreground)/0.2)" 
-        }} 
-      />
-      {/* Name Tag */}
-      {name && (
-        <motion.div 
-          className="ml-4 mt-1 px-1.5 py-0.5 rounded shadow-sm text-[8px] font-medium text-white whitespace-nowrap overflow-hidden"
-          style={{ backgroundColor: color || "hsl(var(--primary))" }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.1 }}
-        >
-          {name}
-        </motion.div>
-      )}
+      <div className="relative flex items-start">
+        {/* Pointer Arrow */}
+        <MousePointer2 
+          className="w-7 h-7 -rotate-12 absolute -left-2 -top-2 drop-shadow-lg z-10" 
+          style={{ 
+            color: color || "hsl(var(--foreground))", 
+            fill: color || "hsl(var(--foreground))" 
+          }} 
+        />
+        
+        {/* Feature Tag (Liquid Glass) */}
+        {name && (
+          <motion.div 
+            className="ml-6 mt-4 px-5 py-2 rounded-full bg-surface-glass-regular backdrop-blur-thick border border-white/10 shadow-lg flex items-center gap-2.5"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.1, type: "spring", stiffness: 300, damping: 25 }}
+          >
+            {/* Tiny Accent Dot */}
+            <div 
+              className="w-2 h-2 rounded-full" 
+              style={{ backgroundColor: color || "hsl(var(--primary))", boxShadow: `0 0 8px ${color}80` }} 
+            />
+            {/* Text */}
+            <span className="font-mono text-xs uppercase font-bold tracking-widest text-foreground whitespace-nowrap opacity-90">
+              {name}
+            </span>
+          </motion.div>
+        )}
+      </div>
       {/* Click ripple effect */}
       {isClicking && (
         <motion.div
