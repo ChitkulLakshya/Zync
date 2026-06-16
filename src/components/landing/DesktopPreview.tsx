@@ -494,25 +494,35 @@ const DesktopPreview = () => {
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground"><Bell className="w-3.5 h-3.5" /></Button>
                     </div>
                 </header>
-                <div className="flex-1 min-h-0 overflow-hidden">
-                    {activeSection === "Dashboard" && renderDashboard()}
-                    {activeSection === "My Workspace" && renderMyWorkspace()}
-                    {activeSection === "Tasks" && renderTasks()}
-                    {activeSection === "Activity log" && renderActivityLog()}
-                    {activeSection === "People" && renderPeople()}
-                    {activeSection === "Design" && renderDesign()}
-                    {activeSection === "Calendar" && renderCalendar()}
-                    {activeSection === "Meet" && renderMeet()}
-                    {activeSection === "Notes" && renderNotes()}
-                    {activeSection === "Settings" && renderSettings()}
-                    {!["Dashboard", "My Workspace", "Tasks", "Activity log", "Design", "Calendar", "People", "Meet", "Settings", "Notes"].includes(activeSection) && (
-                         <div className="flex flex-col items-center justify-center h-full text-center">
-                            <div className="w-10 h-10 bg-secondary/50 rounded-full flex items-center justify-center mb-2">
-                                <h3 className="text-xs font-semibold text-foreground">{activeSection}</h3>
+                <div className="flex-1 min-h-0 overflow-hidden relative">
+                    <div 
+                        className="absolute top-0 left-0"
+                        style={{ 
+                            width: '142.857%', 
+                            height: '142.857%', 
+                            transform: 'scale(0.7)', 
+                            transformOrigin: 'top left' 
+                        }}
+                    >
+                        {activeSection === "Dashboard" && renderDashboard()}
+                        {activeSection === "My Workspace" && renderMyWorkspace()}
+                        {activeSection === "Tasks" && renderTasks()}
+                        {activeSection === "Activity log" && renderActivityLog()}
+                        {activeSection === "People" && renderPeople()}
+                        {activeSection === "Design" && renderDesign()}
+                        {activeSection === "Calendar" && renderCalendar()}
+                        {activeSection === "Meet" && renderMeet()}
+                        {activeSection === "Notes" && renderNotes()}
+                        {activeSection === "Settings" && renderSettings()}
+                        {!["Dashboard", "My Workspace", "Tasks", "Activity log", "Design", "Calendar", "People", "Meet", "Settings", "Notes"].includes(activeSection) && (
+                             <div className="flex flex-col items-center justify-center h-full text-center">
+                                <div className="w-10 h-10 bg-secondary/50 rounded-full flex items-center justify-center mb-2">
+                                    <h3 className="text-xs font-semibold text-foreground">{activeSection}</h3>
+                                </div>
+                                <p className="text-[10px] text-muted-foreground mt-1">This module is visually accurate to the live application.</p>
                             </div>
-                            <p className="text-[10px] text-muted-foreground mt-1">This module is visually accurate to the live application.</p>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
             </main>
         </div>
