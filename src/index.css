@@ -61,6 +61,12 @@
     --shadow-xl: 0 24px 48px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.06);
     --shadow-glow: 0 0 40px hsl(199 89% 48% / 0.15);
 
+    --shadow-elevation1: 0 1px 3px rgba(0,0,0,0.05);
+    --shadow-elevation2: 0 4px 12px rgba(0,0,0,0.08);
+    --shadow-elevation3: 0 12px 32px rgba(0,0,0,0.12);
+    --shadow-elevation4: 0 24px 64px rgba(0,0,0,0.16);
+    --shadow-elevation5: 0 32px 80px rgba(0,0,0,0.2);
+
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 215 20% 10%;
@@ -85,8 +91,8 @@
   }
 
   .dark {
-    --background: 0 0% 0%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 8%;
+    --foreground: 0 0% 87%;
 
     --card: 0 0% 11%;
     --card-foreground: 0 0% 98%;
@@ -94,7 +100,7 @@
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 212 99% 48%;
+    --primary: 212 70% 58%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 0 0% 16%;
@@ -104,9 +110,9 @@
     --muted-foreground: 0 0% 65%;
 
     --accent: 0 0% 16%;
-    --accent-foreground: 212 99% 60%;
+    --accent-foreground: 212 70% 65%;
 
-    --gradient-hero: linear-gradient(180deg, hsl(0 0% 0%) 0%, hsl(0 0% 2%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 11%) 0%, hsl(0 0% 8%) 100%);
 
     --destructive: 0 63% 31%;
@@ -114,18 +120,35 @@
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 212 99% 48%;
+    --ring: 212 70% 58%;
+
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --shadow-elevation1: none;
+    --shadow-elevation2: none;
+    --shadow-elevation3: none;
+    --shadow-elevation4: none;
+    --shadow-elevation5: none;
 
     --glass-bevel: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
     --sidebar-background: 222 47% 4%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary: 199 65% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 222 47% 10%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 222 47% 12%;
-    --sidebar-ring: 199 89% 48%;
+    --sidebar-ring: 199 65% 55%;
+
+    --task-orange: 25 70% 60%;
+    --task-green: 142 50% 55%;
+    --task-teal: 173 55% 50%;
+    --task-pink: 330 60% 68%;
+    --task-purple: 258 65% 72%;
+    --task-yellow: 45 70% 55%;
 
 
     --level-0: #161b22;
@@ -508,7 +531,7 @@
 
 
 .dark .bg-geometric-elegant {
-  background-color: #000000;
+  background-color: #121212;
   opacity: 0.5;
 
 
