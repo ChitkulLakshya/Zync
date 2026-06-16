@@ -12,7 +12,7 @@ const MobileAppSection = () => {
   };
 
   return (
-    <section id="mobile" className="py-20 lg:py-28 bg-secondary/20 overflow-hidden scroll-mt-20">
+    <section id="mobile" className="pt-28 pb-20 lg:pt-36 lg:pb-28 bg-secondary/20 overflow-hidden scroll-mt-20">
       <div className="container mx-auto px-4">
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {}
@@ -41,10 +41,10 @@ const MobileAppSection = () => {
 
           {}
           <motion.div 
-            className="relative flex justify-center [perspective:1500px]"
+            className="relative flex justify-center [perspective:1500px] py-12 lg:py-16"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
+            viewport={{ once: false, amount: 0.15 }}
           >
             <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-task-teal/5 rounded-full blur-3xl" />
 
@@ -64,7 +64,7 @@ const MobileAppSection = () => {
                   rotateX: 0, 
                   rotateY: 0, 
                   rotateZ: 0,
-                  scale: 1, 
+                  scale: 1.15, 
                   opacity: 1,
                   transition: { 
                     type: "spring", 
