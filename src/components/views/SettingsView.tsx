@@ -54,9 +54,16 @@ const countries = [
   { name: "Brazil", code: "BR", dial_code: "+55", flag: "🇧🇷" },
 ];
 
-export default function SettingsView() {
-  const { data: userData, isLoading: isMeLoading } = useMe();
-  const [currentUser, setCurrentUser] = useState(auth.currentUser);
+interface SettingsViewProps {
+  isPreview?: boolean;
+  mockMe?: any;
+  mockTeams?: any[];
+}
+
+export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsViewProps = {}) {
+  const { data: realUserData, isLoading: isMeLoading } = useMe();
+  const userData = isPreview && mockMe ? mockMe : realUserData;
+  const [currentUser, setCurrentUser] = useState(isPreview && mockMe ? mockMe : auth.currentUser);
   
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -68,10 +75,11 @@ export default function SettingsView() {
 
 
   useEffect(() => {
+    if (isPreview) return;
     return onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
     });
-  }, []);
+  }, [isPreview]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { theme, setTheme } = useTheme()
 
@@ -672,6 +680,8 @@ export default function SettingsView() {
               teamLoading={teamLoading}
               setTeamLoading={setTeamLoading}
               setUserData={setUserData}
+              isPreview={isPreview}
+              mockTeams={mockTeams}
             />
           </TabsContent>
 
@@ -904,7 +914,7 @@ export default function SettingsView() {
 }
 
 
-function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLoading, setTeamLoading, setUserData }: any) {
+function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLoading, setTeamLoading, setUserData, isPreview, mockTeams }: any) {
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -966,6 +976,11 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
 
   useEffect(() => {
     const fetchAllTeams = async () => {
+      if (isPreview) {
+        setTeamsData(mockTeams || []);
+        setTeamLoading(false);
+        return;
+      }
       if (!currentUser) {
         setTeamsData([]);
         return;

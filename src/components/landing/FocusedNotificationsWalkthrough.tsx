@@ -7,22 +7,30 @@ export const FocusedNotificationsWalkthrough = () => {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let active = true;
     const sequence = async () => {
+      if (!active) return;
       setStep(0);
       await new Promise(r => setTimeout(r, 1000));
+      if (!active) return;
       setStep(1); // Cursor moves to bell
       await new Promise(r => setTimeout(r, 800));
+      if (!active) return;
       setStep(2); // Clicks bell
       await new Promise(r => setTimeout(r, 1500));
+      if (!active) return;
       setStep(3); // Moves to notification
       await new Promise(r => setTimeout(r, 800));
+      if (!active) return;
       setStep(4); // Clicks notification
       await new Promise(r => setTimeout(r, 3000));
+      if (!active) return;
       sequence(); // Loop
     };
     sequence();
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+    };
   }, []);
 
   return (
@@ -113,17 +121,22 @@ export const FocusedNotificationsWalkthrough = () => {
       </AnimatePresence>
 
       {/* Simulated Cursor */}
-      <SimulatedCursor 
-        position={
+      {(() => {
+        const cursorPos = 
           step === 0 ? { x: 50, y: 150 } :
           step === 1 ? { x: 260, y: 25 } : // Move to bell
           step === 2 ? { x: 260, y: 25 } : // Click bell
           step === 3 ? { x: 150, y: 80 } : // Move to notification
           step === 4 ? { x: 150, y: 80 } : // Click notification
-          { x: 50, y: 150 }
-        }
-        click={step === 2 || step === 4}
-      />
+          { x: 50, y: 150 };
+        return (
+          <SimulatedCursor 
+            x={cursorPos.x}
+            y={cursorPos.y}
+            isClicking={step === 2 || step === 4}
+          />
+        );
+      })()}
     </div>
   );
 };

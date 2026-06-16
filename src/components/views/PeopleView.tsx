@@ -66,16 +66,19 @@ interface PeopleViewProps {
     onChat: (user: User) => void;
     onMessages?: () => void;
     isPreview?: boolean;
+    mockTeams?: any[];
+    mockMe?: any;
 }
 
 import { useMe } from "@/hooks/useMe";
 
-const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: PeopleViewProps) => {
-    const currentUser = auth.currentUser;
+const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview, mockTeams, mockMe }: PeopleViewProps) => {
+    const currentUser = isPreview && mockMe ? mockMe : auth.currentUser;
     const { toast } = useToast();
     const queryClient = useQueryClient();
 
-    const { data: userData } = useMe();
+    const { data: realUserData } = useMe();
+    const userData = isPreview && mockMe ? mockMe : realUserData;
 
     const { data: myTeamsData, isLoading: myTeamsLoading } = useQuery({
         queryKey: ['myTeams', currentUser?.uid],
@@ -110,7 +113,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
     const [teamInfo, setTeamInfo] = useState<Team | null>(null);
     const [hasTeam, setHasTeam] = useState<boolean>(true);
 
-    const myTeams: Team[] = myTeamsData || [];
+    const myTeams: Team[] = isPreview && mockTeams ? mockTeams : (myTeamsData || []);
 
     useEffect(() => {
         if (myTeams.length > 0) {
@@ -149,7 +152,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview }: Peopl
     );
 
     const localCloseFriendsIds = userData?.closeFriends || [];
-    const allKnownUsers: User[] = allUsersData || [];
+    const allKnownUsers: User[] = isPreview && propUsers ? propUsers : (allUsersData || []);
     const closeFriendUsers: User[] = allKnownUsers.filter((u) => localCloseFriendsIds.includes(u.uid));
 
     const toggleCloseFriendMutation = useMutation({

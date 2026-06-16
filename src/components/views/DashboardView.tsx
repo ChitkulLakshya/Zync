@@ -45,31 +45,43 @@ import { useGitHubStats, useGitHubEvents, useGitHubContributions } from "@/hooks
 import { useProjects } from "@/hooks/useProjects";
 import { useQueryClient } from "@tanstack/react-query";
 
-const DashboardView = ({ currentUser }: { currentUser: any }) => {
+interface DashboardViewProps {
+    currentUser: any;
+    isPreview?: boolean;
+    mockGitHubData?: any;
+    mockProjects?: any[];
+}
+
+const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }: DashboardViewProps) => {
     const queryClient = useQueryClient();
-    const { data: projects = [] } = useProjects();
+    const { data: realProjects = [] } = useProjects();
+    const projects = isPreview && mockProjects ? mockProjects : realProjects;
     const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
 
     const { 
-        data: stats, 
+        data: realStats, 
         isLoading: statsLoading, 
         error: statsError, 
         isRefetching: statsRefetching 
-    } = useGitHubStats(!!currentUser);
+    } = useGitHubStats(!!currentUser && !isPreview);
 
     const { 
-        data: events = [], 
+        data: realEvents = [], 
         isLoading: eventsLoading 
-    } = useGitHubEvents(!!currentUser);
+    } = useGitHubEvents(!!currentUser && !isPreview);
 
     const { 
-        data: contributions = [], 
+        data: realContributions = [], 
         isLoading: contribLoading 
-    } = useGitHubContributions(selectedYear, !!currentUser);
+    } = useGitHubContributions(selectedYear, !!currentUser && !isPreview);
 
-    const loading = statsLoading || eventsLoading || contribLoading;
-    const isRefreshing = statsRefetching;
-    const error = statsError ? (statsError as Error).message : (stats?.connected === false ? "GitHub not connected. Sign in with GitHub to see your activity." : null);
+    const stats = isPreview ? mockGitHubData?.stats : realStats;
+    const events = isPreview ? mockGitHubData?.events : realEvents;
+    const contributions = isPreview ? mockGitHubData?.contributions : realContributions;
+
+    const loading = !isPreview && (statsLoading || eventsLoading || contribLoading);
+    const isRefreshing = !isPreview && statsRefetching;
+    const error = isPreview ? null : (statsError ? (statsError as Error).message : (stats?.connected === false ? "GitHub not connected. Sign in with GitHub to see your activity." : null));
 
     const formatEventType = (type: string) => {
         const typeMap: Record<string, { label: string; icon: JSX.Element }> = {
@@ -125,12 +137,12 @@ const DashboardView = ({ currentUser }: { currentUser: any }) => {
     };
 
 
-    const contributionMap = contributions.reduce((acc, c) => {
+    const contributionMap = contributions.reduce((acc: Record<string, number>, c: any) => {
         acc[c.date] = c.count;
         return acc;
     }, {} as Record<string, number>);
 
-    const maxCount = Math.max(...contributions.map(c => c.count), 1);
+    const maxCount = Math.max(...contributions.map((c: any) => c.count), 1);
 
 
     const yearStart = new Date(selectedYear, 0, 1);
