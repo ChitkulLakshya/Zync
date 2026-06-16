@@ -1,14 +1,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SimulatedCursor } from "./SimulatedCursor";
-import { Terminal, GitBranch, Columns, CheckCircle2 } from "lucide-react";
+import { Copy, Check, Github, CheckCircle2 } from "lucide-react";
 
-type WalkthroughState = "idle" | "clicking" | "pushing" | "syncing" | "moving" | "done";
+type WalkthroughState = "idle" | "copying" | "terminal" | "typing" | "pushing" | "success";
 
 export const GithubSyncWalkthrough = () => {
   const [phase, setPhase] = useState<WalkthroughState>("idle");
-  const [cursorPos, setCursorPos] = useState({ x: "90%", y: "90%" });
+  const [cursorPos, setCursorPos] = useState({ x: "85%", y: "85%" });
   const [isClicking, setIsClicking] = useState(false);
+  const [termText, setTermText] = useState("");
+
+  const commitCommand = 'git commit -m "Fix auth [ZYNC-COMPLETE #142]"';
 
   useEffect(() => {
     let isActive = true;
@@ -16,43 +19,58 @@ export const GithubSyncWalkthrough = () => {
     const runSequence = async () => {
       if (!isActive) {return;}
       setPhase("idle");
-      setCursorPos({ x: "90%", y: "90%" });
+      setTermText("");
+      setCursorPos({ x: "50%", y: "90%" }); // Start at bottom middle
       setIsClicking(false);
       
       await new Promise(r => setTimeout(r, 1000));
       
-      // Move to terminal
+      // Move to Copy Button
       if (!isActive) {return;}
-      setCursorPos({ x: "15%", y: "55%" });
+      // The container is flexible, but centered. Copy button is on the far right middle of the sync card.
+      setCursorPos({ x: "85%", y: "56%" });
+      await new Promise(r => setTimeout(r, 800)); // Natural hover time
+      
+      // Click Copy
+      if (!isActive) {return;}
+      setIsClicking(true);
+      await new Promise(r => setTimeout(r, 150));
+      setIsClicking(false);
+      setPhase("copying");
+      
       await new Promise(r => setTimeout(r, 600));
       
-      // Click "push"
+      // Move mouse away after copying
       if (!isActive) {return;}
-      setPhase("clicking");
-      setIsClicking(true);
-      await new Promise(r => setTimeout(r, 200));
-      setIsClicking(false);
+      setCursorPos({ x: "90%", y: "80%" });
+      await new Promise(r => setTimeout(r, 500));
       
-      // Pushing
+      // Show Terminal
+      if (!isActive) {return;}
+      setPhase("terminal");
+      setCursorPos({ x: "95%", y: "110%" }); // Move completely out smoothly
+      await new Promise(r => setTimeout(r, 600));
+      
+      // Type in terminal
+      if (!isActive) {return;}
+      setPhase("typing");
+      for (let i = 0; i <= commitCommand.length; i++) {
+        if (!isActive) {break;}
+        setTermText(commitCommand.slice(0, i));
+        const typingDelay = 15 + Math.random() * 25 + (commitCommand[i] === " " ? 30 : 0);
+        await new Promise(r => setTimeout(r, typingDelay));
+      }
+      
+      await new Promise(r => setTimeout(r, 400));
+      
+      // Push and Success
       if (!isActive) {return;}
       setPhase("pushing");
-      setCursorPos({ x: "120%", y: "120%" }); // cursor leaves
-      await new Promise(r => setTimeout(r, 800));
-      
-      // Syncing (Toast shows up)
-      if (!isActive) {return;}
-      setPhase("syncing");
       await new Promise(r => setTimeout(r, 1200));
       
-      // Moving task
       if (!isActive) {return;}
-      setPhase("moving");
-      await new Promise(r => setTimeout(r, 800));
-      
-      // Done
-      if (!isActive) {return;}
-      setPhase("done");
-      await new Promise(r => setTimeout(r, 3000));
+      setPhase("success");
+      await new Promise(r => setTimeout(r, 4000));
       
       if (isActive) {runSequence();}
     };
@@ -65,132 +83,97 @@ export const GithubSyncWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
+    <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-2xl rounded-[2rem] p-6 mx-auto flex flex-col justify-center min-h-[320px] font-sans overflow-hidden">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
-      {/* Toast Notification */}
-      <AnimatePresence>
-        {(phase === "syncing" || phase === "moving" || phase === "done") && (
-          <motion.div
-            className="absolute top-3 left-1/2 -translate-x-1/2 z-40 bg-card/90 backdrop-blur-md border border-task-green/30 shadow-elevation3 px-3 py-1.5 rounded-full flex items-center gap-2"
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -20, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 25 }}
+      {/* Authentic TaskGitSync Component */}
+      <div className="p-5 rounded-2xl border border-border/10 bg-card/80 backdrop-blur-xl shadow-sm">
+        <div className="flex items-center gap-2 mb-2.5">
+          <Github className="w-4 h-4 text-foreground" />
+          <h4 className="font-medium text-sm text-foreground">Sync with GitHub</h4>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">
+          Include this tag in your commit message to automatically complete this task.
+        </p>
+
+        <div className="flex items-center gap-2">
+          <code className="flex-1 bg-secondary/40 px-3 py-2.5 rounded-xl text-xs font-mono text-foreground truncate border border-border/5">
+            [ZYNC-COMPLETE #142]
+          </code>
+          <motion.button
+            className="shrink-0 h-10 w-10 border border-border/10 rounded-xl flex items-center justify-center bg-background shadow-sm"
+            animate={isClicking && phase === "idle" ? { scale: 0.9 } : { scale: 1 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
           >
-            <GitBranch className="w-3.5 h-3.5 text-task-green" />
-            <span className="text-[10px] font-medium text-foreground whitespace-nowrap">Commit detected: Fix auth bug (#142)</span>
+            {phase !== "idle" ? (
+              <Check className="w-4 h-4 text-task-green" />
+            ) : (
+              <Copy className="w-4 h-4 text-muted-foreground" />
+            )}
+          </motion.button>
+        </div>
+      </div>
+
+      {/* Authentic GitCommandsDrawer Terminal Snippet */}
+      <AnimatePresence>
+        {(phase === "terminal" || phase === "typing" || phase === "pushing" || phase === "success") && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            className="absolute bottom-6 left-6 right-6 overflow-hidden rounded-xl bg-[#0d0d0d] border border-white/10 shadow-2xl font-mono text-xs"
+          >
+            {/* Mac dots */}
+            <div className="absolute top-3.5 left-3.5 flex gap-1.5 opacity-50">
+              <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+              <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
+            </div>
+
+            <div className="p-4 pt-10 text-blue-200/90 leading-relaxed min-h-[100px]">
+              <div className="flex">
+                <span className="text-green-500 mr-2 shrink-0">$</span>
+                <span className="break-all">
+                  {termText}
+                  {phase === "typing" && <span className="inline-block w-2 h-3.5 bg-blue-200/80 ml-1 animate-pulse align-middle" />}
+                </span>
+              </div>
+              
+              {phase === "pushing" && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-muted-foreground mt-2 space-y-1">
+                  <div>[main a1b2c3d] Fix auth</div>
+                  <div>1 file changed, 12 ins(+)</div>
+                </motion.div>
+              )}
+              
+              {phase === "success" && (
+                <div className="text-muted-foreground mt-2 space-y-1">
+                  <div>[main a1b2c3d] Fix auth</div>
+                  <div>1 file changed, 12 ins(+)</div>
+                  <div className="mt-2 text-foreground/80 flex items-center gap-2">
+                    <span className="text-task-green">✔</span> Pushed to origin main
+                  </div>
+                </div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* Left: Terminal */}
-        <div className="flex-1 border-r border-border/30 flex flex-col bg-background/50">
-          <div className="h-7 flex items-center px-3 gap-2 border-b border-border/30 bg-secondary/30">
-            <Terminal className="w-3.5 h-3.5 text-muted-foreground" />
-            <span className="text-[9px] text-muted-foreground font-mono font-medium">bash</span>
-          </div>
-          <div className="p-3 space-y-2 flex-1 font-mono text-[10px] text-muted-foreground tracking-tight">
-            <div className="flex gap-2">
-              <span className="text-task-green">~</span>
-              <span>git commit -m "Fix auth"</span>
-            </div>
-            <div className="text-foreground/80">[main a1b2c3d] Fix auth</div>
-            <div>1 file changed, 12 ins(+)</div>
-            
-            <div className="mt-4 flex gap-2 items-center">
-              <span className="text-task-green">~</span>
-              {phase === "idle" ? (
-                <motion.span 
-                  className="bg-primary/20 text-foreground px-1 rounded inline-block shadow-sm"
-                  animate={{ opacity: [1, 0.7, 1] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  git push
-                </motion.span>
-              ) : (
-                <span className="text-foreground/90">git push</span>
-              )}
-            </div>
-            
-            {phase !== "idle" && phase !== "clicking" && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="space-y-1 mt-1 text-muted-foreground"
-              >
-                <div>Counting objects: 5, done.</div>
-                <div>Writing objects: 100% (3/3).</div>
-                <div>To github.com:user/repo.git</div>
-                <div className="text-foreground/80">  d9e0f1..a1b2c3  main -{">"} main</div>
-              </motion.div>
-            )}
-          </div>
-        </div>
-
-        {/* Right: Zync Task Board */}
-        <div className="flex-1 flex flex-col bg-surface-glass-thin relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-task-green/5 to-transparent pointer-events-none" />
-          <div className="h-7 flex items-center px-3 gap-2 border-b border-border/30 bg-secondary/30 relative z-10">
-            <Columns className="w-3.5 h-3.5 text-task-green" />
-            <span className="text-[9px] font-semibold tracking-wider text-foreground uppercase">Board</span>
-          </div>
-          <div className="p-2 flex gap-2 flex-1 relative z-10">
-            {/* Column 1: In Progress */}
-            <div className="flex-1 flex flex-col gap-1.5">
-              <div className="text-[8px] uppercase font-bold text-task-orange flex items-center justify-between px-1">
-                Doing <span>1</span>
-              </div>
-              <AnimatePresence>
-                {phase !== "moving" && phase !== "done" && (
-                  <motion.div
-                    layoutId="github-sync-task-card"
-                    className="bg-card border border-border/10 rounded-md p-2 shadow-elevation1"
-                    animate={phase === "syncing" ? { 
-                      boxShadow: "0 0 0 2px hsl(var(--task-green)/0.4)",
-                      borderColor: "hsl(var(--task-green))",
-                      scale: 1.02
-                    } : {}}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <div className="text-[9px] font-medium text-foreground leading-tight">Fix auth bug (#142)</div>
-                    <div className="text-[7px] text-muted-foreground mt-1.5 flex justify-between items-center">
-                      <span className="bg-secondary px-1 py-0.5 rounded">ENG-42</span>
-                      <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center text-[5px] text-foreground font-bold">AJ</div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {/* Column 2: Done */}
-            <div className="flex-1 flex flex-col gap-1.5">
-              <div className="text-[8px] uppercase font-bold text-task-green flex items-center justify-between px-1">
-                Done <span>{phase === "moving" || phase === "done" ? "1" : "0"}</span>
-              </div>
-              <AnimatePresence>
-                {(phase === "moving" || phase === "done") && (
-                  <motion.div
-                    layoutId="github-sync-task-card"
-                    className="bg-card border border-task-green/30 rounded-md p-2 shadow-elevation2 relative overflow-hidden"
-                  >
-                    <div className="absolute inset-0 bg-task-green/5" />
-                    <div className="text-[9px] font-medium text-foreground leading-tight flex gap-1 items-start">
-                      <CheckCircle2 className="w-3 h-3 text-task-green shrink-0 mt-0.5" />
-                      Fix auth bug (#142)
-                    </div>
-                    <div className="text-[7px] text-muted-foreground mt-1.5 flex justify-between items-center pl-4">
-                      <span className="bg-secondary px-1 py-0.5 rounded">ENG-42</span>
-                      <div className="w-3 h-3 rounded-full bg-primary/20 flex items-center justify-center text-[5px] text-foreground font-bold">AJ</div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </div>
-        </div>
-      </div>
+      {/* Success Toast */}
+      <AnimatePresence>
+        {phase === "success" && (
+          <motion.div
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="absolute top-6 left-1/2 -translate-x-1/2 bg-card border border-task-green/30 shadow-elevation4 px-4 py-2.5 rounded-full flex items-center gap-2 z-20 whitespace-nowrap"
+          >
+            <CheckCircle2 className="w-4 h-4 text-task-green" />
+            <span className="text-xs font-medium text-foreground">Task #142 marked as Done</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

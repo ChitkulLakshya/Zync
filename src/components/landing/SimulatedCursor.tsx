@@ -13,8 +13,8 @@ export const SimulatedCursor = ({ x, y, isClicking = false, name, color }: Simul
   return (
     <motion.div
       className="absolute z-50 pointer-events-none flex flex-col"
-      initial={{ x: 0, y: 0, opacity: 0 }}
-      animate={{ x, y, opacity: 1, scale: isClicking ? 0.9 : 1 }}
+      initial={{ left: "50%", top: "50%", opacity: 0 }}
+      animate={{ left: x, top: y, opacity: 1, scale: isClicking ? 0.9 : 1 }}
       transition={{
         type: "spring",
         stiffness: 260,
