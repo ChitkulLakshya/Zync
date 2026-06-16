@@ -116,7 +116,7 @@ const FeaturesSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center py-16 border-t border-border/30">
           <div className="order-2 lg:order-1">
             <div className="relative z-10 flex justify-center lg:justify-start">
-              <div className="w-full max-w-sm flex justify-center relative">
+              <div className="w-full max-w-lg flex justify-center relative">
                 <div className="absolute inset-0 bg-secondary/50 blur-3xl -z-10 rounded-full mix-blend-multiply" />
                 <MultiplayerWalkthrough />
               </div>
