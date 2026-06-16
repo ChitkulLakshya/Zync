@@ -107,7 +107,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   }, []);
 
   const [activeSection, setActiveSection] = useState(() => {
-    if (isPreview) { return "My Workspace"; }
+    if (isPreview) { return "Dashboard"; }
     return localStorage.getItem("ZYNC-active-section") || "Dashboard";
   });
   const {

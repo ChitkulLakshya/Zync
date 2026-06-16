@@ -7,22 +7,30 @@ export const BuiltinChatWalkthrough = () => {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    let active = true;
     const sequence = async () => {
+      if (!active) return;
       setStep(0);
       await new Promise(r => setTimeout(r, 1000));
+      if (!active) return;
       setStep(1); // Cursor moves to input
       await new Promise(r => setTimeout(r, 800));
+      if (!active) return;
       setStep(2); // Typing starts
       await new Promise(r => setTimeout(r, 2000));
+      if (!active) return;
       setStep(3); // Clicks send
       await new Promise(r => setTimeout(r, 600));
+      if (!active) return;
       setStep(4); // Message sent
       await new Promise(r => setTimeout(r, 3000));
+      if (!active) return;
       sequence(); // Loop
     };
     sequence();
-    return () => clearTimeout(timer);
+    return () => {
+      active = false;
+    };
   }, []);
 
   const textToType = "Hey team, the new design is ready for review!";
@@ -99,17 +107,22 @@ export const BuiltinChatWalkthrough = () => {
       </div>
 
       {/* Simulated Cursor */}
-      <SimulatedCursor 
-        position={
+      {(() => {
+        const cursorPos = 
           step === 0 ? { x: 50, y: 180 } :
           step === 1 ? { x: 100, y: 155 } : // Click input
           step === 2 ? { x: 100, y: 155 } : // Typing
           step === 3 ? { x: 260, y: 155 } : // Click send
           step === 4 ? { x: 260, y: 155 } :
-          { x: 50, y: 180 }
-        }
-        click={step === 1 || step === 3}
-      />
+          { x: 50, y: 180 };
+        return (
+          <SimulatedCursor 
+            x={cursorPos.x}
+            y={cursorPos.y}
+            isClicking={step === 1 || step === 3}
+          />
+        );
+      })()}
     </div>
   );
 };

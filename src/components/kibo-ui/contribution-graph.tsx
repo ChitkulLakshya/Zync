@@ -219,10 +219,10 @@ const ContributionGraphBlock = ({
 
     const levelColors = [
         "hsl(var(--foreground) / 0.05)",
-        "hsl(var(--foreground) / 0.2)",
-        "hsl(var(--foreground) / 0.4)",
-        "hsl(var(--foreground) / 0.6)",
-        "hsl(var(--foreground) / 0.8)",
+        "#0e4429",
+        "#006d32",
+        "#26a641",
+        "#39d353",
     ];
 
     return (
@@ -297,19 +297,19 @@ const ContributionGraphLegend = ({
             />
             <div
                 className="w-3 h-3 rounded-sm"
-                style={{ backgroundColor: "hsl(var(--foreground) / 0.2)" }}
+                style={{ backgroundColor: "#0e4429" }}
             />
             <div
                 className="w-3 h-3 rounded-sm"
-                style={{ backgroundColor: "hsl(var(--foreground) / 0.4)" }}
+                style={{ backgroundColor: "#006d32" }}
             />
             <div
                 className="w-3 h-3 rounded-sm"
-                style={{ backgroundColor: "hsl(var(--foreground) / 0.6)" }}
+                style={{ backgroundColor: "#26a641" }}
             />
             <div
                 className="w-3 h-3 rounded-sm"
-                style={{ backgroundColor: "hsl(var(--foreground) / 0.8)" }}
+                style={{ backgroundColor: "#39d353" }}
             />
             <span>More</span>
         </div>

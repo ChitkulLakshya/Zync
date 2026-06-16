@@ -73,6 +73,9 @@ interface NotesLayoutProps {
   users?: any[];
   initialNoteId?: string | null;
   className?: string;
+  isPreview?: boolean;
+  mockFolders?: Folder[];
+  mockNotes?: Note[];
 }
 
 
@@ -293,7 +296,7 @@ const FolderListItem: React.FC<{
     );
   };
 
-export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], initialNoteId, className }) => {
+export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], initialNoteId, className, isPreview, mockFolders, mockNotes }) => {
   const [folders, setFolders] = useState<Folder[]>([]);
   const [notes, setNotes] = useState<Note[]>([]);
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
@@ -438,12 +441,21 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
 
   // Subscriptions
   useEffect(() => {
+    if (isPreview) {
+      setFolders(mockFolders || []);
+      return;
+    }
     if (!user?.uid) {return;}
     const unsubscribeFolders = subscribeToFolders(user.uid, setFolders);
     return () => unsubscribeFolders();
-  }, [user?.uid]);
+  }, [user?.uid, isPreview, mockFolders]);
 
   useEffect(() => {
+    if (isPreview) {
+      setNotes(mockNotes || []);
+      setIsLoading(false);
+      return;
+    }
     if (!user?.uid) {return;}
     const safeFolders = Array.isArray(folders) ? folders : [];
     const sharedFolderIds = safeFolders
@@ -456,7 +468,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
       setIsLoading(false);
     });
     return () => unsubscribeNotes();
-  }, [user?.uid, JSON.stringify(folders.map(f => f.id))]);
+  }, [user?.uid, JSON.stringify(Array.isArray(folders) ? folders.map(f => f.id) : []), isPreview, mockNotes]);
 
   // Sync selected note with updates
   useEffect(() => {

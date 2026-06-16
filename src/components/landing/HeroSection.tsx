@@ -172,7 +172,7 @@ const HeroSection = () => {
               }}
             >
               <div 
-                className="relative rounded-[1.5rem] bg-background border-0 w-full flex-1"
+                className="relative rounded-[1.5rem] bg-background border-0 w-full flex-1 min-h-0 overflow-hidden"
                 style={{ 
                   boxShadow: 'var(--shadow-sm), var(--glass-bevel)',
                   clipPath: 'inset(0 round 1.5rem)'

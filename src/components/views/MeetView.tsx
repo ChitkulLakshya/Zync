@@ -29,6 +29,9 @@ interface MeetViewProps {
     currentUser: User | null;
     usersList: any[];
     userStatuses?: Record<string, any>;
+    isPreview?: boolean;
+    mockTeams?: any[];
+    mockMe?: any;
 }
 
 interface Meeting {
@@ -51,7 +54,8 @@ interface Team {
     ownerId: string;
 }
 
-export default function MeetView({ currentUser, usersList, userStatuses = {} }: MeetViewProps) {
+export default function MeetView({ currentUser: realCurrentUser, usersList, userStatuses = {}, isPreview, mockTeams, mockMe }: MeetViewProps) {
+    const currentUser = isPreview && mockMe ? mockMe : realCurrentUser;
     const { toast } = useToast();
     const [isGenerating, setIsGenerating] = useState(false);
     const [invitedUserIds, setInvitedUserIds] = useState<string[]>([]);
@@ -71,7 +75,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
     const [isTeamSelectDialogOpen, setIsTeamSelectDialogOpen] = useState(false);
     const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
 
-    const { data: teams = [], isLoading: isLoadingTeams } = useQuery<Team[]>({
+    const { data: fetchedTeams = [], isLoading: isLoadingTeams } = useQuery<Team[]>({
         queryKey: ['myTeams', currentUser?.uid],
         queryFn: async () => {
             if (!currentUser?.uid) {return [];}
@@ -82,19 +86,28 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
             if (!res.ok) {throw new Error('Failed to fetch teams');}
             return res.json();
         },
-        enabled: !!currentUser?.uid,
+        enabled: !isPreview && !!currentUser?.uid,
         refetchOnMount: false,
     });
+    
+    const teams = isPreview && mockTeams ? mockTeams : fetchedTeams;
 
 
     useEffect(() => {
+        if (isPreview) {
+            setMeetings([
+                { id: "1", title: "Daily Standup", status: "scheduled", startTime: new Date().toISOString(), meetLink: "#", participants: [], organizerName: mockMe?.displayName || "Alex", organizerId: "1" },
+                { id: "2", title: "Design Sync", status: "live", startTime: new Date().toISOString(), meetLink: "#", participants: [], organizerName: "Sarah Connor", organizerId: "2" },
+                { id: "3", title: "Project Kickoff", status: "ended", startTime: new Date(Date.now() - 3600000).toISOString(), endTime: new Date().toISOString(), meetLink: "#", participants: [], organizerName: "John Doe", organizerId: "3" }
+            ]);
+            return;
+        }
         if (currentUser?.uid) {
             fetchMeetings();
-
             const interval = setInterval(fetchMeetings, 30000);
             return () => clearInterval(interval);
         }
-    }, [currentUser?.uid]);
+    }, [currentUser?.uid, isPreview]);
 
     const fetchMeetings = async () => {
         if (!currentUser?.uid) {return;}
@@ -158,7 +171,7 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
             } else if (teamId) {
                 const selectedTeam = teams.find(t => t.id === teamId);
                 if (selectedTeam) {
-                    receiverIds = selectedTeam.members.filter(uid => uid !== currentUser?.uid);
+                    receiverIds = selectedTeam.members.filter((uid: any) => uid !== currentUser?.uid);
                 }
             }
 
@@ -429,9 +442,9 @@ export default function MeetView({ currentUser, usersList, userStatuses = {} }: 
                                         <Label className="text-muted-foreground text-xs uppercase tracking-wider">Select a Team</Label>
                                         <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                                             {teams.map((team) => {
-                                                const memberCount = team.members.filter(uid => uid !== currentUser?.uid).length;
+                                                const memberCount = team.members.filter((uid: any) => uid !== currentUser?.uid).length;
                                                 const isSelected = selectedTeamId === team.id;
-                                                const teamMembers = usersList.filter(u => team.members.includes(u.uid) && u.uid !== currentUser?.uid);
+                                                const teamMembers = usersList.filter((u: any) => team.members.includes(u.uid) && u.uid !== currentUser?.uid);
 
                                                 return (
                                                     <div
