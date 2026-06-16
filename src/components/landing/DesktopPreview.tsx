@@ -260,8 +260,8 @@ const DesktopPreview = () => {
                 user={{ uid: '1', displayName: mockName, email: mockEmail, photoURL: mockAvatar }}
                 isPreview={true}
                 mockFolders={[
-                    { id: 'f1', name: 'Personal', ownerId: '1', collaborators: [], type: 'personal', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
-                    { id: 'f2', name: 'Zync Ideas', ownerId: '1', collaborators: ['2'], type: 'team', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() }
+                    { id: 'f1', name: 'Personal', ownerId: '1', collaborators: [], type: 'personal', parentId: null, color: '#4f46e5' },
+                    { id: 'f2', name: 'Zync Ideas', ownerId: '1', collaborators: ['2'], type: 'team', parentId: null, color: '#4f46e5' }
                 ]}
                 mockNotes={[
                     { id: 'n1', title: 'Brainstorming Session', content: 'We need to revamp the dashboard component.', folderId: 'f2', ownerId: '1', createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
