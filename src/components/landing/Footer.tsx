@@ -10,10 +10,10 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-background relative overflow-hidden pt-24 pb-6 border-t border-border/10">
+    <footer className="bg-background relative overflow-hidden pt-32 pb-6 border-t border-border/10 w-full">
       {/* Main Grid Content */}
-      <div className="container mx-auto px-6 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-8 gap-y-16 mb-32">
+      <div className="w-full px-8 md:px-16 lg:px-24 xl:px-32 relative z-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-8 gap-y-16 mb-40">
           
           {/* SITEMAP */}
           <div className="col-span-2 lg:col-span-2">
@@ -34,9 +34,9 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* LEGAL */}
+          {/* COMPANY */}
           <div className="col-span-2 lg:col-span-2">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">Legal</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">Company</h4>
             <ul className="space-y-4">
               <li>
                 <Link to="/privacy" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Privacy Policy</Link>
@@ -50,18 +50,18 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* SOCIALS */}
+          {/* CONTACT */}
           <div className="col-span-2 lg:col-span-2">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">Community</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">Contact</h4>
             <ul className="space-y-4">
               <li>
-                <a href="https://github.com/zync-meet/Zync" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">GitHub</a>
+                <a href="mailto:support@zync.meet" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Support</a>
               </li>
               <li>
-                <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Twitter / X</a>
+                <a href="#" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Help Center</a>
               </li>
               <li>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">LinkedIn</a>
+                <a href="#" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">FAQ</a>
               </li>
             </ul>
           </div>
@@ -92,9 +92,9 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between items-center text-[10px] text-muted-foreground font-mono uppercase tracking-widest border-t border-border/10 pt-8 pb-4">
           <p className="mb-4 md:mb-0">©2026 ZYNC. ALL RIGHTS RESERVED.</p>
           
-          <div className="flex gap-6 mb-4 md:mb-0">
+          <div className="flex gap-8 mb-4 md:mb-0">
             <a href="https://github.com/zync-meet/Zync" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">GITHUB</a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">TWITTER</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">TWITTER / X</a>
             <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">LINKEDIN</a>
           </div>
           
@@ -103,8 +103,8 @@ const Footer = () => {
       </div>
 
       {/* Giant Watermark Logo */}
-      <div className="absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none select-none overflow-hidden -z-0 translate-y-[28%] opacity-[0.02]">
-        <span className="text-[28vw] font-black tracking-tighter leading-none text-foreground whitespace-nowrap">
+      <div className="absolute bottom-0 left-0 right-0 flex justify-center pointer-events-none select-none overflow-hidden -z-0 translate-y-[35%] opacity-[0.02]">
+        <span className="text-[32vw] font-black tracking-tighter leading-none text-foreground whitespace-nowrap">
           ZYNC
         </span>
       </div>
