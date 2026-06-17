@@ -84,7 +84,7 @@ export const ProjectSetupWalkthrough = () => {
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       {/* Exact replica using real components */}
-      <Card className="bg-secondary/5 border-border/10 shadow-2xl rounded-[2rem] overflow-hidden pointer-events-none">
+      <Card className="bg-secondary/5 border-border/10 shadow-elevation5 rounded-[2rem] overflow-hidden pointer-events-none">
         <CardHeader>
           <CardTitle>Create New Project</CardTitle>
           <CardDescription>
@@ -100,7 +100,7 @@ export const ProjectSetupWalkthrough = () => {
               placeholder="e.g., E-commerce Platform"
               value="RemoteSync App"
               readOnly
-              className="bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-border rounded-xl h-12 px-4"
+              className="bg-black/5 dark:bg-black/40 border border-border/10 shadow-inner focus-visible:ring-1 focus-visible:ring-border rounded-xl h-12 px-4"
             />
           </div>
 
@@ -111,7 +111,7 @@ export const ProjectSetupWalkthrough = () => {
             <div className="relative">
               <Textarea
                 placeholder="Describe your project features, goals, and requirements..."
-                className="min-h-[150px] resize-none bg-secondary/30 border-0 focus-visible:ring-1 focus-visible:ring-border rounded-xl p-4 relative z-10 bg-transparent"
+                className="min-h-[150px] resize-none bg-black/5 dark:bg-black/40 border border-border/10 shadow-inner focus-visible:ring-1 focus-visible:ring-border rounded-xl p-4 relative z-10"
                 value={text}
                 readOnly
               />

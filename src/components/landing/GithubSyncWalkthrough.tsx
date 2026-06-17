@@ -83,11 +83,11 @@ export const GithubSyncWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-2xl rounded-[2rem] p-6 mx-auto flex flex-col justify-center min-h-[320px] font-sans overflow-hidden">
+    <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-elevation5 rounded-[2rem] p-6 mx-auto flex flex-col justify-center min-h-[320px] font-sans overflow-hidden">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       {/* Exact replica of TaskGitSync Component */}
-      <div className="p-4 rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl shadow-sm pointer-events-none">
+      <div className="p-4 rounded-2xl border border-white/5 dark:border-white/10 bg-card/90 backdrop-blur-xl shadow-sm pointer-events-none">
         <div className="flex items-center gap-2 mb-2">
           <Github className="w-4 h-4 text-foreground" />
           <h4 className="font-medium text-sm text-foreground">Sync with GitHub</h4>
@@ -97,7 +97,7 @@ export const GithubSyncWalkthrough = () => {
         </p>
 
         <div className="flex items-center gap-2">
-          <code className="flex-1 bg-card/50 backdrop-blur-md px-3 py-2 rounded-xl text-xs font-mono text-foreground truncate border border-border/10">
+          <code className="flex-1 bg-black/5 dark:bg-black/40 backdrop-blur-md px-3 py-2 rounded-xl text-xs font-mono text-foreground truncate border border-border/10 shadow-inner">
             [ZYNC-COMPLETE #142]
           </code>
           <motion.div animate={isClicking && phase === "idle" ? { scale: 0.9 } : { scale: 1 }}>
@@ -123,7 +123,7 @@ export const GithubSyncWalkthrough = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-6 left-6 right-6 overflow-hidden rounded-xl bg-[#0d0d0d] border border-white/10 shadow-2xl font-mono text-xs"
+            className="absolute bottom-6 left-6 right-6 overflow-hidden rounded-xl bg-[#0d0d0d] border border-white/10 shadow-elevation4 font-mono text-xs"
           >
             {/* Mac dots */}
             <div className="absolute top-3.5 left-3.5 flex gap-1.5 opacity-50">
