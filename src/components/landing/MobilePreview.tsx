@@ -60,13 +60,20 @@ const MobilePreview = () => {
     ];
 
     return (
-        <div className="relative mx-auto border-gray-800 dark:border-gray-800 bg-gray-800 border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-xl">
-            <div className="w-[148px] h-[18px] bg-black top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute z-20"></div>
-            <div className="h-[32px] w-[3px] bg-gray-800 absolute -left-[17px] top-[72px] rounded-l-lg"></div>
-            <div className="h-[46px] w-[3px] bg-gray-800 absolute -left-[17px] top-[124px] rounded-l-lg"></div>
-            <div className="h-[46px] w-[3px] bg-gray-800 absolute -left-[17px] top-[178px] rounded-l-lg"></div>
-            <div className="h-[64px] w-[3px] bg-gray-800 absolute -right-[17px] top-[142px] rounded-r-lg"></div>
-            <div className="rounded-[2rem] overflow-hidden w-full h-full bg-background flex flex-col relative">
+        <div className="relative mx-auto bg-[#1c1d1e] border-[#2a2b2c] border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-2xl ring-1 ring-black/20 dark:ring-white/10">
+            {/* Camera Notch */}
+            <div className="w-[120px] h-[24px] bg-black top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute z-20 flex items-center justify-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[#111] shadow-inner border border-white/5 flex items-center justify-center">
+                    <div className="w-0.5 h-0.5 rounded-full bg-blue-500/50" />
+                </div>
+            </div>
+            {/* Side Buttons */}
+            <div className="h-[32px] w-[3px] bg-[#2a2b2c] absolute -left-[17px] top-[72px] rounded-l-lg border-l border-white/10"></div>
+            <div className="h-[46px] w-[3px] bg-[#2a2b2c] absolute -left-[17px] top-[124px] rounded-l-lg border-l border-white/10"></div>
+            <div className="h-[46px] w-[3px] bg-[#2a2b2c] absolute -left-[17px] top-[178px] rounded-l-lg border-l border-white/10"></div>
+            <div className="h-[64px] w-[3px] bg-[#2a2b2c] absolute -right-[17px] top-[142px] rounded-r-lg border-r border-white/10"></div>
+            {/* Screen Content */}
+            <div className="rounded-[2rem] overflow-hidden w-full h-full bg-background flex flex-col relative" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
 
                 {/* Header */}
                 <header className="flex items-center justify-between px-4 py-2 border-b border-border/10 bg-background/60 backdrop-blur-md">

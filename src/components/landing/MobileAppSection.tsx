@@ -46,8 +46,6 @@ const MobileAppSection = () => {
             whileInView="visible"
             viewport={{ once: false, amount: 0.15 }}
           >
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-task-teal/5 rounded-full blur-3xl" />
-
             <motion.div 
               className="relative"
               variants={{
