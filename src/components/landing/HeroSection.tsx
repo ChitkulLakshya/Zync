@@ -165,27 +165,29 @@ const HeroSection = () => {
 
             {/* MacBook Pro Frame Wrapping the Preview */}
             <div 
-              className="relative rounded-[2.5rem] bg-[#2a2b2c] p-[4px] sm:p-[6px] flex flex-col h-[calc(100vh-6rem)] lg:h-[calc(100vh-7rem)] shadow-2xl ring-1 ring-black/20 dark:ring-white/10"
+              className="relative mx-auto rounded-[1rem] sm:rounded-[2rem] lg:rounded-[2.5rem] bg-[#2a2b2c] p-[3px] sm:p-[5px] lg:p-[6px] flex flex-col shadow-2xl ring-1 ring-black/20 dark:ring-white/10"
               style={{ 
-                backgroundImage: 'linear-gradient(to bottom, #3a3b3c, #1c1d1e)'
+                backgroundImage: 'linear-gradient(to bottom, #3a3b3c, #1c1d1e)',
+                aspectRatio: '16/10',
+                width: '100%',
+                maxWidth: 'min(1400px, 140vh)'
               }}
             >
               {/* Inner Black Bezel */}
-              <div className="relative rounded-[2.2rem] bg-black p-2 sm:p-3 md:p-4 flex flex-col w-full flex-1 overflow-hidden border border-white/10">
+              <div className="relative rounded-[0.8rem] sm:rounded-[1.8rem] lg:rounded-[2.2rem] bg-black p-1.5 sm:p-3 md:p-4 flex flex-col w-full flex-1 overflow-hidden border border-white/10">
                 
                 {/* Camera Notch */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120px] md:w-[160px] h-[24px] md:h-[28px] bg-black rounded-b-[1rem] z-50 flex items-center justify-center">
-                  <div className="w-2 h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#111] shadow-inner border border-white/5 flex items-center justify-center">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80px] sm:w-[120px] md:w-[160px] h-[16px] sm:h-[24px] md:h-[28px] bg-black rounded-b-[0.5rem] sm:rounded-b-[1rem] z-50 flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 md:w-2.5 md:h-2.5 rounded-full bg-[#111] shadow-inner border border-white/5 flex items-center justify-center">
                     <div className="w-0.5 h-0.5 md:w-1 md:h-1 rounded-full bg-blue-500/50" />
                   </div>
                 </div>
 
                 {/* The Screen / Preview */}
                 <div 
-                  className="relative rounded-[1.2rem] sm:rounded-[1.5rem] bg-background border border-border/50 w-full flex-1 overflow-hidden"
+                  className="relative rounded-[0.5rem] sm:rounded-[1rem] lg:rounded-[1.2rem] bg-background border border-border/50 w-full flex-1 overflow-hidden"
                   style={{
-                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)',
-                    clipPath: 'inset(0 round 1.5rem)'
+                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)'
                   }}
                 >
                   <DesktopPreview />
