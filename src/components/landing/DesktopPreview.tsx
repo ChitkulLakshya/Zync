@@ -539,7 +539,7 @@ const DesktopPreview = () => {
                         animate={{ opacity: 1, y: 0, x: "-50%" }}
                         exit={{ opacity: 0, y: 10, x: "-50%", scale: 0.95 }}
                         transition={{ duration: 0.5, delay: 0.5 }}
-                        className="absolute bottom-6 left-1/2 z-[100] px-5 py-2.5 rounded-full bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center gap-3 pointer-events-none"
+                        className="absolute bottom-6 left-1/2 z-[100] px-5 py-2.5 rounded-full bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center gap-3 pointer-events-none"
                     >
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>

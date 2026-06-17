@@ -141,7 +141,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="relative w-full rounded-[32px] bg-white/[0.02] backdrop-blur-[40px] border border-white/[0.08] shadow-[0_40px_80px_-20px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
+          className="relative w-full rounded-[32px] bg-white/[0.02] backdrop-blur-[40px] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
         >
           {/* Holographic Glare */}
           <motion.div
@@ -158,7 +158,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.1 }}
-              className="relative z-10 w-24 h-24 rounded-full p-[2px] bg-gradient-to-b from-white/20 to-white/5 shadow-2xl"
+              className="relative z-10 w-24 h-24 rounded-full p-[2px] bg-gradient-to-b from-white/20 to-white/5 shadow-elevation5"
             >
               <div className="w-full h-full rounded-full overflow-hidden bg-black">
                 <img src={githubUser?.avatar_url} alt={githubUser?.login} className="w-full h-full object-cover opacity-90" />
@@ -206,7 +206,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           rotateY,
           transformStyle: "preserve-3d"
         }}
-        className="relative w-full rounded-2xl bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5),inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
+        className="relative w-full rounded-2xl bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 p-8 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
       >
         {/* Holographic Glare */}
         <motion.div 
