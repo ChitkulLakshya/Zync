@@ -131,9 +131,12 @@ const DesktopPreview = () => {
         
         if (e && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect();
-            // Calculate percentage based on current bounding rect to handle any CSS scaling gracefully
-            const x = ((e.clientX - rect.left) / rect.width) * 100;
-            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            // Calculate exact unscaled pixels to use hardware-accelerated 'x' and 'y' translates
+            // This prevents layout thrashing (flickering) that 'left' and 'top' cause.
+            const scaleX = rect.width / containerRef.current.offsetWidth;
+            const scaleY = rect.height / containerRef.current.offsetHeight;
+            const x = (e.clientX - rect.left) / scaleX;
+            const y = (e.clientY - rect.top) / scaleY;
             setMousePos({ x, y });
         }
     };
@@ -577,11 +580,10 @@ const DesktopPreview = () => {
             <AnimatePresence>
                 {isHovering && hasInteracted && (
                     <motion.div
-                        className="absolute z-[120] pointer-events-none"
-                        animate={{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }}
+                        className="absolute top-0 left-0 z-[120] pointer-events-none will-change-transform"
                         transition={{ type: "spring", damping: 20, stiffness: 300, mass: 0.5 }}
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1, left: `${mousePos.x}%`, top: `${mousePos.y}%` }}
+                        initial={{ opacity: 0, scale: 0.5, x: mousePos.x, y: mousePos.y }}
+                        animate={{ opacity: 1, scale: 1, x: mousePos.x, y: mousePos.y }}
                         exit={{ opacity: 0, scale: 0.5 }}
                     >
                         <SimulatedCursor x={0} y={0} name="You" color="#ffffff" isClicking={false} />
