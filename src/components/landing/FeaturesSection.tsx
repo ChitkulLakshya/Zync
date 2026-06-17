@@ -117,7 +117,6 @@ const FeaturesSection = () => {
           <div className="order-2 lg:order-1">
             <div className="relative z-10 flex justify-center lg:justify-start">
               <div className="w-full max-w-lg flex justify-center relative">
-                <div className="absolute inset-0 bg-secondary/50 blur-3xl -z-10 rounded-full mix-blend-multiply" />
                 <MultiplayerWalkthrough />
               </div>
             </div>
@@ -160,7 +159,6 @@ const FeaturesSection = () => {
           </div>
           <div className="relative z-10 flex justify-center lg:justify-end">
             <div className="w-full max-w-sm flex justify-center relative">
-              <div className="absolute inset-0 bg-secondary/50 blur-3xl -z-10 rounded-full mix-blend-multiply" />
               <SmartCalendarWalkthrough />
             </div>
           </div>
@@ -171,7 +169,6 @@ const FeaturesSection = () => {
           <div className="order-2 lg:order-1">
             <div className="relative z-10 flex justify-center lg:justify-start">
               <div className="w-full max-w-sm flex justify-center relative">
-                <div className="absolute inset-0 bg-secondary/50 blur-3xl -z-10 rounded-full mix-blend-multiply" />
                 <BuiltinChatWalkthrough />
               </div>
             </div>
@@ -214,7 +211,6 @@ const FeaturesSection = () => {
           </div>
           <div className="relative z-10 flex justify-center lg:justify-end">
             <div className="w-full max-w-sm flex justify-center relative">
-              <div className="absolute inset-0 bg-secondary/50 blur-3xl -z-10 rounded-full mix-blend-multiply" />
               <FocusedNotificationsWalkthrough />
             </div>
           </div>
