@@ -28,7 +28,7 @@ const HeroSection = () => {
   return (
     <section ref={containerRef} className="relative h-[250vh]">
       {/* Background Gradient */}
-      <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-primary/[0.03] pointer-events-none" />
+      <div className="absolute inset-0 bg-background pointer-events-none" />
       {/* Structural Dot Matrix Background */}
       <div 
         className="absolute inset-0 z-0 opacity-[0.03]"
@@ -154,15 +154,6 @@ const HeroSection = () => {
               transformStyle: "preserve-3d"
             }}
           >
-            {/* Glass layers separating effect on scroll */}
-            <motion.div 
-              className="absolute -inset-4 bg-foreground/5 rounded-[2.5rem] blur-2xl -z-10"
-              style={{ 
-                scale: useTransform(scrollYProgress, [0, 0.7], [1, 1.1]),
-                opacity: useTransform(scrollYProgress, [0, 0.7], [0.3, 0])
-              }} 
-            />
-
             {/* MacBook Pro Frame Wrapping the Preview */}
             <div 
               className="relative mx-auto rounded-[1rem] sm:rounded-[2rem] lg:rounded-[2.5rem] bg-[#2a2b2c] p-[3px] sm:p-[5px] lg:p-[6px] flex flex-col shadow-2xl ring-1 ring-black/20 dark:ring-white/10"
