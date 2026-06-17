@@ -18,7 +18,6 @@ interface ContributorTicketProps {
 
 const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   const [githubUsername, setGithubUsername] = useState("");
-  const [debouncedUsername, setDebouncedUsername] = useState("");
   const [githubUser, setGithubUser] = useState<GithubUser | null>(null);
   const [isFetchingGithub, setIsFetchingGithub] = useState(false);
   const [githubError, setGithubError] = useState("");
@@ -66,44 +65,38 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
     y.set(0);
   };
 
-  // Debounce the github username input
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedUsername(githubUsername);
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [githubUsername]);
-
-  // Fetch github user details when debounced username changes
-  useEffect(() => {
-    if (!debouncedUsername) {
+  const handleFetchGithubUser = async () => {
+    if (!githubUsername.trim()) {
       setGithubUser(null);
       setGithubError("");
       return;
     }
 
-    const fetchGithubUser = async () => {
-      setIsFetchingGithub(true);
-      setGithubError("");
-      setGithubUser(null);
+    setIsFetchingGithub(true);
+    setGithubError("");
+    setGithubUser(null);
 
-      try {
-        const response = await fetch(`https://api.github.com/users/${debouncedUsername}`);
-        if (!response.ok) {
-          throw new Error("GitHub user not found");
-        }
-        const data = await response.json();
-        setGithubUser(data);
-        onMint();
-      } catch (err: any) {
-        setGithubError(err.message || "GitHub user not found");
-      } finally {
-        setIsFetchingGithub(false);
+    try {
+      const response = await fetch(`https://api.github.com/users/${githubUsername.trim()}`);
+      if (!response.ok) {
+        throw new Error("GitHub user not found");
       }
-    };
+      const data = await response.json();
+      setGithubUser(data);
+      onMint();
+    } catch (err: any) {
+      setGithubError(err.message || "GitHub user not found");
+    } finally {
+      setIsFetchingGithub(false);
+    }
+  };
 
-    fetchGithubUser();
-  }, [debouncedUsername]);
+  const handleUsernameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent main form submission
+      handleFetchGithubUser();
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -274,19 +267,28 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                     GitHub Username
                   </label>
                   <div className="relative">
-                    <input
+                      <input
                       type="text"
                       placeholder="e.g. torvalds"
                       value={githubUsername}
                       onChange={(e) => setGithubUsername(e.target.value)}
+                      onKeyDown={handleUsernameKeyDown}
                       className="w-full h-12 bg-transparent border-b border-white/10 focus:border-white/40 outline-none text-foreground placeholder:text-muted-foreground/30 text-lg transition-colors pb-2"
                       spellCheck={false}
                       required
                     />
-                    {isFetchingGithub && (
+                    {isFetchingGithub ? (
                       <div className="absolute right-0 top-1/2 -translate-y-1/2 pb-2">
                         <Loader2 className="w-5 h-5 text-muted-foreground animate-spin" />
                       </div>
+                    ) : githubUsername.trim().length > 0 && (
+                      <button 
+                        type="button"
+                        onClick={handleFetchGithubUser}
+                        className="absolute right-0 top-1/2 -translate-y-1/2 pb-2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <ArrowRight className="w-5 h-5" />
+                      </button>
                     )}
                   </div>
                   {githubError && !isFetchingGithub && githubUsername && (
