@@ -48,14 +48,22 @@ const CTASection = () => {
         {/* The Ticket & Cursors Stage */}
         <div className="relative w-full max-w-3xl mx-auto flex justify-center items-center py-10">
           
-          {/* Simulated Cursors */}
+          {/* 
+            =========================================
+            CURSOR 1: prem22k (Top Left)
+            =========================================
+            To reposition this cursor manually, adjust the CSS coordinates below:
+            - floating: The idle position before a user types their github name.
+            - approving/clicking: Where the cursor flies to 'click' the card (keep these identical!).
+            - patrolling: Where the cursor escapes to after clicking so it doesn't block the screen.
+          */}
           <motion.div
             className="absolute z-50 pointer-events-none hidden md:block"
             variants={{
               floating: { left: "0%", top: "10%", y: [0, -20, 0], x: [0, 15, 0], transition: { y: { duration: 5, repeat: Infinity, ease: "easeInOut" }, x: { duration: 5, repeat: Infinity, ease: "easeInOut" } } },
               approving: { left: "25%", top: "40%", y: 0, x: 0, scale: 1.1, transition: { type: "spring", stiffness: 120, damping: 20 } },
               clicking: { left: "25%", top: "40%", y: 0, x: 0, scale: 0.9, transition: { type: "spring", stiffness: 400, damping: 15 } },
-              patrolling: { left: "-10%", top: "80%", y: [0, 20, 0], x: [0, -15, 0], transition: { type: "spring", stiffness: 60, damping: 20 } }
+              patrolling: { left: "-15%", top: "10%", y: [0, 20, 0], x: [0, -15, 0], transition: { type: "spring", stiffness: 60, damping: 20 } }
             }}
             initial="floating"
             animate={cursorState}
@@ -63,13 +71,18 @@ const CTASection = () => {
             <SimulatedCursor x={0} y={0} name="prem22k" color="#34d399" isClicking={cursorState === 'clicking'} />
           </motion.div>
 
+          {/* 
+            =========================================
+            CURSOR 2: chitkullakshya (Top Right)
+            =========================================
+          */}
           <motion.div
             className="absolute z-50 pointer-events-none hidden md:block"
             variants={{
               floating: { right: "5%", top: "20%", y: [0, 25, 0], x: [0, -10, 0], transition: { y: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }, x: { duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 } } },
               approving: { right: "25%", top: "45%", y: 0, x: 0, scale: 1.1, transition: { type: "spring", stiffness: 100, damping: 18, delay: 0.1 } },
               clicking: { right: "25%", top: "45%", y: 0, x: 0, scale: 0.9, transition: { type: "spring", stiffness: 400, damping: 15 } },
-              patrolling: { right: "-5%", top: "15%", y: [0, -25, 0], x: [0, 20, 0], transition: { type: "spring", stiffness: 60, damping: 20 } }
+              patrolling: { right: "0%", top: "55%", y: [0, -25, 0], x: [0, 20, 0], transition: { type: "spring", stiffness: 60, damping: 20 } }
             }}
             initial="floating"
             animate={cursorState}
@@ -77,13 +90,18 @@ const CTASection = () => {
             <SimulatedCursor x={0} y={0} name="chitkullakshya" color="#60a5fa" isClicking={cursorState === 'clicking'} />
           </motion.div>
 
+          {/* 
+            =========================================
+            CURSOR 3: eesha264 (Bottom Left)
+            =========================================
+          */}
           <motion.div
             className="absolute z-50 pointer-events-none hidden md:block"
             variants={{
               floating: { left: "10%", bottom: "0%", y: [0, -15, 0], x: [0, -20, 0], transition: { y: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 }, x: { duration: 7, repeat: Infinity, ease: "easeInOut", delay: 2 } } },
               approving: { left: "40%", bottom: "10%", y: 0, x: 0, scale: 1.1, transition: { type: "spring", stiffness: 140, damping: 22, delay: 0.15 } },
               clicking: { left: "40%", bottom: "10%", y: 0, x: 0, scale: 0.9, transition: { type: "spring", stiffness: 400, damping: 15 } },
-              patrolling: { right: "15%", bottom: "-10%", y: [0, 15, 0], x: [0, -25, 0], transition: { type: "spring", stiffness: 60, damping: 20 } }
+              patrolling: { right: "10%", bottom: "30%", y: [0, 15, 0], x: [0, -25, 0], transition: { type: "spring", stiffness: 60, damping: 20 } }
             }}
             initial="floating"
             animate={cursorState}
