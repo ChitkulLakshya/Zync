@@ -60,7 +60,7 @@ const MobilePreview = () => {
     ];
 
     return (
-        <div className="relative mx-auto bg-[#1c1d1e] border-[#2a2b2c] border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-2xl ring-1 ring-black/20 dark:ring-white/10">
+        <div className="relative mx-auto bg-[#1c1d1e] border-[#2a2b2c] border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-elevation5 ring-1 ring-black/20 dark:ring-white/10">
             {/* Camera Notch */}
             <div className="w-[120px] h-[24px] bg-black top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute z-20 flex items-center justify-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-[#111] shadow-inner border border-white/5 flex items-center justify-center">

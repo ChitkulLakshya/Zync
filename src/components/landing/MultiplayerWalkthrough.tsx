@@ -101,7 +101,7 @@ export const MultiplayerWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-[460px] bg-card/80 backdrop-blur-xl border border-border/10 shadow-2xl rounded-2xl flex flex-col font-sans overflow-hidden mx-auto h-[380px]">
+    <div className="relative w-full max-w-[460px] bg-card/80 backdrop-blur-xl border border-border/10 shadow-elevation5 rounded-2xl flex flex-col font-sans overflow-hidden mx-auto h-[380px]">
       {/* Background glow for premium feel */}
       <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-foreground/5 to-transparent pointer-events-none" />
 

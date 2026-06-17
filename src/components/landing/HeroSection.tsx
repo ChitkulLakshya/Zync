@@ -156,7 +156,7 @@ const HeroSection = () => {
           >
             {/* MacBook Pro Frame Wrapping the Preview */}
             <div 
-              className="relative mx-auto rounded-[1rem] sm:rounded-[2rem] lg:rounded-[2.5rem] bg-[#2a2b2c] p-[3px] sm:p-[5px] lg:p-[6px] flex flex-col shadow-2xl ring-1 ring-black/20 dark:ring-white/10"
+              className="relative mx-auto rounded-[1rem] sm:rounded-[2rem] lg:rounded-[2.5rem] bg-[#2a2b2c] p-[3px] sm:p-[5px] lg:p-[6px] flex flex-col shadow-elevation5 ring-1 ring-black/20 dark:ring-white/10"
               style={{ 
                 backgroundImage: 'linear-gradient(to bottom, #3a3b3c, #1c1d1e)',
                 aspectRatio: '16/10',
