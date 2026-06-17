@@ -1,4 +1,6 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { SimulatedCursor } from "@/components/landing/SimulatedCursor";
 import {
     Home, FolderKanban, Calendar as CalendarIcon, CheckSquare, FileText, Clock, Users, Video, Settings, Star, Search, Bell, Plus, ChevronDown, ArrowRight, Github, User, Terminal, Layout, ExternalLink, GitCommit, Kanban, BookMarked, MessageSquare, CalendarDays, StickyNote, GitPullRequest, GitFork, AlertCircle, Pin, FolderGit2, Trash2, ArrowUpRight
 } from "lucide-react";
@@ -81,6 +83,60 @@ const DesignCard = ({ item }: { item: any }) => {
 
 const DesktopPreview = () => {
     const [activeSection, setActiveSection] = useState("Dashboard");
+    const hasInteractedRef = useRef(false);
+    const [hasInteracted, setHasInteracted] = useState(false);
+    const [ghostState, setGhostState] = useState<"idle" | "entering" | "clicking" | "leaving" | "done">("idle");
+    const containerRef = useRef<HTMLDivElement>(null);
+    const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+    const [isHovering, setIsHovering] = useState(false);
+
+    useEffect(() => {
+        const sequence = async () => {
+            // Wait for the user to scroll down to this section
+            await new Promise(r => setTimeout(r, 2000));
+            if (hasInteractedRef.current) return;
+            setGhostState("entering");
+            
+            // Wait for it to travel to "My Workspace"
+            await new Promise(r => setTimeout(r, 1000));
+            if (hasInteractedRef.current) return;
+            setGhostState("clicking");
+            
+            // Trigger click
+            await new Promise(r => setTimeout(r, 200));
+            if (hasInteractedRef.current) return;
+            setActiveSection("My Workspace");
+            
+            // Leave
+            await new Promise(r => setTimeout(r, 400));
+            if (hasInteractedRef.current) return;
+            setGhostState("leaving");
+            
+            // Done
+            await new Promise(r => setTimeout(r, 800));
+            if (!hasInteractedRef.current) {
+                setGhostState("done");
+            }
+        };
+
+        sequence();
+    }, []);
+
+    const handleInteraction = (e?: React.MouseEvent) => {
+        if (!hasInteractedRef.current) {
+            hasInteractedRef.current = true;
+            setHasInteracted(true);
+            setGhostState("done");
+        }
+        
+        if (e && containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            // Calculate percentage based on current bounding rect to handle any CSS scaling gracefully
+            const x = ((e.clientX - rect.left) / rect.width) * 100;
+            const y = ((e.clientY - rect.top) / rect.height) * 100;
+            setMousePos({ x, y });
+        }
+    };
 
     // Fully faked user profile with pixel art avatar
     const mockName = "Alex Designer";
@@ -463,7 +519,76 @@ const DesktopPreview = () => {
     );
 
     return (
-        <div className="w-full h-full bg-background rounded-2xl border-0 overflow-hidden flex" style={{ boxShadow: 'var(--shadow-xl), var(--glass-bevel)' }}>
+        <div 
+            ref={containerRef}
+            onClickCapture={(e) => handleInteraction(e)}
+            onMouseMoveCapture={(e) => handleInteraction(e)}
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            className="w-full h-full bg-background rounded-2xl border-0 overflow-hidden flex relative" 
+            style={{ boxShadow: 'var(--shadow-xl), var(--glass-bevel)' }}
+        >
+            {/* VisionOS Pill */}
+            <AnimatePresence>
+                {!hasInteracted && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 20, x: "-50%" }}
+                        animate={{ opacity: 1, y: 0, x: "-50%" }}
+                        exit={{ opacity: 0, y: 10, x: "-50%", scale: 0.95 }}
+                        transition={{ duration: 0.5, delay: 0.5 }}
+                        className="absolute bottom-6 left-1/2 z-[100] px-5 py-2.5 rounded-full bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[0_20px_40px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center gap-3 pointer-events-none"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                        <span className="text-[13px] font-medium tracking-wide text-white/90 shadow-sm">
+                            ✧ Interactive Preview
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Ghost Cursor Sequence */}
+            <AnimatePresence>
+                {ghostState !== "idle" && ghostState !== "done" && !hasInteracted && (
+                    <motion.div
+                        className="absolute z-[110] pointer-events-none"
+                        variants={{
+                            entering: { left: "80%", top: "80%", opacity: 0 },
+                            moving: { left: "80px", top: "100px", opacity: 1, scale: 1, transition: { duration: 1, ease: "easeOut" } },
+                            clicking: { left: "80px", top: "100px", opacity: 1, scale: 0.9, transition: { duration: 0.2 } },
+                            leaving: { left: "-10%", top: "150px", opacity: 0, scale: 1, transition: { duration: 0.8, ease: "easeIn" } }
+                        }}
+                        initial="entering"
+                        animate={
+                            ghostState === "entering" ? "moving" :
+                            ghostState === "clicking" ? "clicking" :
+                            "leaving"
+                        }
+                        exit="leaving"
+                    >
+                        <SimulatedCursor x={0} y={0} name="Demo" color="#f87171" isClicking={ghostState === 'clicking'} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* The User's Own Trailing Cursor */}
+            <AnimatePresence>
+                {isHovering && hasInteracted && (
+                    <motion.div
+                        className="absolute z-[120] pointer-events-none"
+                        animate={{ left: `${mousePos.x}%`, top: `${mousePos.y}%` }}
+                        transition={{ type: "spring", damping: 20, stiffness: 300, mass: 0.5 }}
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1, left: `${mousePos.x}%`, top: `${mousePos.y}%` }}
+                        exit={{ opacity: 0, scale: 0.5 }}
+                    >
+                        <SimulatedCursor x={0} y={0} name="You" color="#ffffff" isClicking={false} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <aside className="w-48 bg-secondary/20 backdrop-blur-md border-r border-border/10 flex flex-col hidden md:flex shrink-0">
                 <div className="p-3 border-b border-border h-12 flex items-center">
                     <img src="/zync-dark.webp" alt="Zync" className="h-9 w-auto rounded-lg" />
