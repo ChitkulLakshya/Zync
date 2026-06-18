@@ -1,5 +1,5 @@
 import {
-  Users,
+  FileText,
   GitBranch,
   Calendar,
   MessageSquare,
@@ -30,9 +30,9 @@ const FeaturesSection = () => {
       color: "bg-task-green/10 text-task-green",
     },
     {
-      icon: Users,
-      title: "Team Workspaces",
-      description: "Invite your team, assign tasks, and track progress in real-time. Everyone stays in sync.",
+      icon: FileText,
+      title: "Real-Time Notes",
+      description: "Collaborate on documents with conflict-free block editing. Real-time cursors keep everyone on the same page.",
       color: "bg-secondary/20 text-foreground",
     },
     {
@@ -112,7 +112,7 @@ const FeaturesSection = () => {
           </div>
         </div>
 
-        {/* Team Workspaces */}
+        {/* Real-Time Notes */}
         <div className="grid lg:grid-cols-2 gap-12 items-center py-16 border-t border-border/30">
           <div className="order-2 lg:order-1">
             <div className="relative z-10 flex justify-center lg:justify-start">
@@ -123,13 +123,13 @@ const FeaturesSection = () => {
           </div>
           <div className="order-1 lg:order-2">
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-foreground">
-              Team Workspaces
+              Real-Time Notes
             </h2>
             <p className="text-muted-foreground mb-6 leading-relaxed font-light">
-              Invite your team, assign tasks, and track progress in real-time. Everyone stays in sync.
+              Collaborate on documents with conflict-free block editing. Real-time cursors and task linking keep everyone on the same page.
             </p>
             <div className="space-y-2.5">
-              {["Role-based access", "Live presence indicators", "Activity feed"].map((item) => (
+              {["Conflict-free CRDT editing", "Live cursors & presence", "Slash commands for tasks"].map((item) => (
                 <div key={item} className="flex items-center gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-foreground/60 flex-shrink-0" />
                   <span className="text-foreground text-sm">{item}</span>
