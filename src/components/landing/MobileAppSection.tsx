@@ -17,9 +17,14 @@ const MobileAppSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center">
           {}
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-task-orange/10 border border-task-orange/20 rounded-full mb-6">
+            <div 
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-surface-glass-thin backdrop-blur-md rounded-full mb-6 border border-white/5"
+              style={{ boxShadow: 'var(--shadow-sm)' }}
+            >
               <Smartphone className="w-3.5 h-3.5 text-task-orange" />
-              <span className="text-xs font-medium text-task-orange">Coming Soon</span>
+              <span className="text-xs font-medium tracking-wide text-foreground/80">
+                Coming Soon
+              </span>
             </div>
 
             <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 ">
