@@ -31,9 +31,10 @@ import {
 import { useTaskPersistence } from '@/hooks/useTaskPersistence';
 import { useTeamPersistence } from '@/hooks/useTeamPersistence';
 import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
+import { useTheme } from 'next-themes';
 
 /** Design tokens — Activity Log page only */
-const T = {
+const T_DARK = {
     bgBase: '#020617', // Deep slate/black
     bgCard: 'rgba(255, 255, 255, 0.04)',
     bgSurface: 'rgba(255, 255, 255, 0.06)',
@@ -47,6 +48,22 @@ const T = {
     text3: '#475569',
     purple: '#8b5cf6',
     pink: '#ec4899',
+} as const;
+
+const T_LIGHT = {
+    bgBase: '#FAFAFA', 
+    bgCard: '#FFFFFF', // Clean white cards
+    bgSurface: '#F8FAFC', // Light gray surfaces
+    border: '#E2E8F0', // subtle border
+    blue: '#2563EB', // Deeper blue for contrast
+    green: '#059669', // Deeper green
+    orange: '#D97706',
+    red: '#DC2626',
+    text1: '#0F172A', // Slate 900
+    text2: '#475569', // Slate 600
+    text3: '#64748B', // Slate 500
+    purple: '#7C3AED',
+    pink: '#DB2777',
 } as const;
 
 const FONT_LINK_ID = 'activity-log-dm-fonts';
@@ -199,14 +216,14 @@ interface FeedItem {
     logoId?: string;
 }
 
-const tagStyles: Record<FeedTag, { bg: string; text: string }> = {
+const getTagStyles = (T: typeof T_DARK | typeof T_LIGHT): Record<FeedTag, { bg: string; text: string }> => ({
     Commit: { bg: 'rgba(26,143,209,0.2)', text: T.blue },
     Completed: { bg: 'rgba(34,197,94,0.2)', text: T.green },
     Invite: { bg: 'rgba(168,85,247,0.2)', text: T.purple },
     Deadline: { bg: 'rgba(251,146,60,0.2)', text: T.orange },
     Comment: { bg: 'rgba(236,72,153,0.2)', text: T.pink },
     Session: { bg: 'rgba(26,143,209,0.15)', text: T.blue },
-};
+});
 
 export default function ActivityLogView({
     activityLogs,
@@ -227,6 +244,8 @@ export default function ActivityLogView({
     currentUserPhotoURL,
     currentUserEmail,
 }: ActivityLogViewProps) {
+    const { resolvedTheme } = useTheme();
+    const T = resolvedTheme === 'light' ? T_LIGHT : T_DARK;
     const { myTeams: myTeamsFromHook, loading: teamsLoading, syncTeamsFromApi } = useTeamPersistence(currentUserId);
     const normalizedCurrentUserId = useMemo(() => normalizeUid(currentUserId), [currentUserId]);
 
@@ -1063,7 +1082,7 @@ export default function ActivityLogView({
             <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
                 {/* Activity Summary Premium Card */}
                 <div 
-                    className="al-fade-up rounded-[2rem] border border-border/10 p-8 space-y-8 shadow-sm relative overflow-hidden bg-card/50 backdrop-blur-xl"
+                    className="al-fade-up rounded-[2rem] border border-border/40 dark:border-border/10 p-8 space-y-8 shadow-xl dark:shadow-sm relative overflow-hidden bg-white/70 dark:bg-card/50 backdrop-blur-xl ring-1 ring-black/5 dark:ring-0"
                     style={{ 
                         animationDelay: '0.1s', 
                     }}
@@ -1337,7 +1356,7 @@ export default function ActivityLogView({
                     {statCards.map((c, i) => (
                         <div
                             key={c.key}
-                            className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 transition-colors shadow-sm"
+                            className="al-fade-up rounded-2xl border border-border/40 dark:border-border/10 bg-white/70 dark:bg-card/50 backdrop-blur-xl p-5 transition-all shadow-lg dark:shadow-sm ring-1 ring-black/5 dark:ring-0 group hover:-translate-y-0.5 duration-200"
                             style={{
                                 animationDelay: `${0.05 + i * 0.05}s`,
                             }}
@@ -1397,7 +1416,7 @@ export default function ActivityLogView({
                     style={{ alignItems: 'stretch' }}
                 >
                     <div
-                        className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 shadow-sm"
+                        className="al-fade-up rounded-2xl border border-border/40 dark:border-border/10 bg-white/70 dark:bg-card/50 backdrop-blur-xl p-5 shadow-lg dark:shadow-sm ring-1 ring-black/5 dark:ring-0"
                         style={{ animationDelay: '0.4s' }}
                     >
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -1440,7 +1459,7 @@ export default function ActivityLogView({
                     </div>
 
                     <div
-                        className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 shadow-sm"
+                        className="al-fade-up rounded-2xl border border-border/40 dark:border-border/10 bg-white/70 dark:bg-card/50 backdrop-blur-xl p-5 shadow-lg dark:shadow-sm ring-1 ring-black/5 dark:ring-0"
                         style={{ animationDelay: '0.45s' }}
                     >
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -1483,7 +1502,7 @@ export default function ActivityLogView({
 
                 {/* Recent activity */}
                 <section
-                    className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl shadow-sm"
+                    className="al-fade-up rounded-2xl border border-border/40 dark:border-border/10 bg-white/70 dark:bg-card/50 backdrop-blur-xl shadow-lg dark:shadow-sm ring-1 ring-black/5 dark:ring-0"
                     style={{ animationDelay: '0.5s' }}
                 >
                     <div
@@ -1518,11 +1537,11 @@ export default function ActivityLogView({
                             </div>
                         ) : (
                             displayedFeed.map((item) => {
-                                const ts = tagStyles[item.tag];
+                                const ts = getTagStyles(T)[item.tag];
                                 return (
                                     <div
                                         key={item.id}
-                                        className="flex gap-3 px-5 py-4 transition-colors hover:bg-[rgba(16,27,46,0.5)]"
+                                        className="flex gap-3 px-5 py-4 transition-colors hover:bg-black/5 dark:hover:bg-[rgba(16,27,46,0.5)]"
                                     >
                                         <div
                                             className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] text-sm font-medium border border-white/5"
