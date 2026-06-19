@@ -591,27 +591,27 @@ const DesktopPreview = () => {
                 )}
             </AnimatePresence>
 
-            <aside className="w-48 bg-secondary/20 backdrop-blur-md border-r border-border/10 flex flex-col hidden md:flex shrink-0">
-                <div className="p-3 border-b border-border h-12 flex items-center">
-                    <img src="/zync-dark.webp" alt="Zync" className="h-9 w-auto rounded-lg" />
+            <aside className="w-48 bg-sidebar dark:bg-black backdrop-blur-md border-r border-border/40 dark:border-transparent shadow-[1px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none flex flex-col hidden md:flex shrink-0">
+                <div className="p-3 border-b border-transparent h-12 flex items-center">
+                    <img src="/zync-dark.webp" alt="Zync" className="h-9 w-auto rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
                 </div>
                 <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto custom-scrollbar">
                     {sidebarItems.map(item => (
-                        <button key={item.label} onClick={() => setActiveSection(item.label)} className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-colors ${activeSection === item.label ? "bg-secondary text-foreground shadow-sm" : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"}`}>
-                            <item.icon className="w-3.5 h-3.5" />{item.label}
+                        <button key={item.label} onClick={() => setActiveSection(item.label)} className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[11px] font-medium transition-all duration-200 group ${activeSection === item.label ? "bg-white dark:bg-sidebar-accent text-sidebar-foreground shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0" : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-black/5 dark:hover:bg-sidebar-accent/50"}`}>
+                            <item.icon className={`w-3.5 h-3.5 transition-transform duration-200 group-hover:scale-105 ${activeSection === item.label ? "text-foreground" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80"}`} />{item.label}
                         </button>
                     ))}
                 </nav>
                 <div className="p-2 border-t border-border/10">
-                    <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary/40 cursor-pointer transition-colors">
-                        <Avatar className="w-6 h-6 border-0">
+                    <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-black/5 dark:hover:bg-foreground/10 cursor-pointer transition-colors border border-transparent hover:border-black/5 dark:hover:border-transparent">
+                        <Avatar className="w-6 h-6 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-none">
                             <AvatarImage src={mockAvatar} /><AvatarFallback>{mockName.substring(0, 2).toUpperCase()}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 min-w-0">
-                            <div className="text-[10px] font-medium text-foreground truncate">{mockName}</div>
-                            <div className="text-[9px] text-muted-foreground truncate">Premium</div>
+                            <div className="text-[10px] font-medium text-sidebar-foreground truncate">{mockName}</div>
+                            <div className="text-[9px] text-sidebar-foreground/50 truncate">Premium</div>
                         </div>
-                        <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                        <ChevronDown className="w-3 h-3 text-sidebar-foreground/50" />
                     </div>
                 </div>
             </aside>

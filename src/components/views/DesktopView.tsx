@@ -857,7 +857,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       )}
 
       <PanelGroup direction="horizontal" autoSaveId="persistence" className="relative z-[1] h-full w-full bg-transparent">
-        {/* Sidebar Panel - Dark & Solid */}
+        {/* Sidebar Panel - Clean Premium Light Sidebar & Preserved Dark Mode */}
         <Panel
           ref={sidebarRef}
           defaultSize={16}
@@ -868,7 +868,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "relative bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-none",
+            "relative bg-sidebar dark:bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-r border-border/40 dark:border-transparent shadow-[1px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none",
             isCollapsed && "min-w-[70px]",
             // Animation logic: Hidden during landing, slides in when landing finishes
             isLanding ? "opacity-0 invisible" : ""
@@ -882,16 +882,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           >
             <div className={cn("p-4 flex items-center gap-2", isCollapsed ? "justify-center p-2 mb-4" : "mb-2")}>
               {mounted ? (
-                <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg" />
+                <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
               ) : <div className="w-8 h-8 bg-foreground rounded-xl" />}
               {!isCollapsed && <span className="font-bold text-lg text-sidebar-foreground tracking-wide">Zync</span>}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-2 space-y-1">
+            <div className="flex-1 overflow-y-auto px-3 space-y-1 custom-scrollbar">
               {/* Create New Project Button */}
-              <div className="mb-6 px-1">
+              <div className="mb-6">
                 <Button
-                  className={cn("w-full bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium rounded-xl", isCollapsed ? "px-0 justify-center" : "justify-start gap-2")}
+                  className={cn("w-full bg-foreground text-background hover:bg-foreground/90 transition-all font-medium rounded-xl shadow-sm dark:shadow-none hover:shadow-md dark:hover:shadow-none", isCollapsed ? "px-0 justify-center" : "justify-start gap-2")}
                   onClick={() => handleSectionChange("New Project")}
                 >
                   <Plus className="w-5 h-5" />
@@ -900,18 +900,20 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </div>
 
               {sidebarItems.map((item, index) => (
-                <div key={index}>
+                <div key={index} className="mb-0.5">
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full rounded-lg transition-all duration-200",
-                      item.active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
+                      "w-full rounded-lg transition-all duration-200 group",
+                      item.active 
+                        ? "bg-white dark:bg-sidebar-accent text-sidebar-foreground shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 font-medium" 
+                        : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-black/5 dark:hover:bg-sidebar-accent/50",
                       isCollapsed ? "justify-center px-0 py-3" : "justify-start gap-3 py-2 px-3"
                     )}
                     onClick={() => handleSectionChange(item.label)}
                   >
-                    <item.icon className={cn("w-5 h-5", item.active ? "text-foreground" : "text-muted-foreground")} />
-                    {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
+                    <item.icon className={cn("w-5 h-5 transition-transform duration-200 group-hover:scale-105", item.active ? "text-foreground" : "text-sidebar-foreground/50 group-hover:text-sidebar-foreground/80")} />
+                    {!isCollapsed && <span className="text-sm">{item.label}</span>}
                   </Button>
                 </div>
               ))}
@@ -921,8 +923,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <div className="p-4 mt-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-foreground/10 cursor-pointer transition-colors", isCollapsed ? "justify-center" : "")}>
-                    <Avatar className="w-9 h-9 border border-white/10">
+                  <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-black/5 dark:hover:bg-foreground/10 cursor-pointer transition-all duration-200 border border-transparent hover:border-black/5 dark:hover:border-transparent", isCollapsed ? "justify-center" : "")}>
+                    <Avatar className="w-9 h-9 border border-black/10 dark:border-white/10 shadow-sm dark:shadow-none">
                       <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
                       <AvatarFallback className="bg-muted text-muted-foreground">{isPreview ? "JD" : getUserInitials(pickUserForDisplay(userData, currentUser))}</AvatarFallback>
                     </Avatar>
@@ -932,7 +934,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
                       </div>
                     )}
-                    {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-zinc-500 ml-auto" />}
+                    {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-sidebar-foreground/50 ml-auto" />}
                   </div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-xl rounded-2xl">
