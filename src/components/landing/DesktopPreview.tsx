@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { SimulatedCursor } from "@/components/landing/SimulatedCursor";
+
 import {
     Home, FolderKanban, Calendar as CalendarIcon, CheckSquare, FileText, Clock, Users, Video, Settings, Star, Search, Bell, Plus, ChevronDown, ArrowRight, Github, User, Terminal, Layout, ExternalLink, GitCommit, Kanban, BookMarked, MessageSquare, CalendarDays, StickyNote, GitPullRequest, GitFork, AlertCircle, Pin, FolderGit2, Trash2, ArrowUpRight
 } from "lucide-react";
@@ -552,44 +552,7 @@ const DesktopPreview = () => {
                 )}
             </AnimatePresence>
 
-            {/* Ghost Cursor Sequence */}
-            <AnimatePresence>
-                {ghostState !== "idle" && ghostState !== "done" && !hasInteracted && (
-                    <motion.div
-                        className="absolute z-[110] pointer-events-none"
-                        variants={{
-                            entering: { left: "80%", top: "80%", opacity: 0 },
-                            moving: { left: "80px", top: "100px", opacity: 1, scale: 1, transition: { duration: 1, ease: "easeOut" } },
-                            clicking: { left: "80px", top: "100px", opacity: 1, scale: 0.9, transition: { duration: 0.2 } },
-                            leaving: { left: "-10%", top: "150px", opacity: 0, scale: 1, transition: { duration: 0.8, ease: "easeIn" } }
-                        }}
-                        initial="entering"
-                        animate={
-                            ghostState === "entering" ? "moving" :
-                            ghostState === "clicking" ? "clicking" :
-                            "leaving"
-                        }
-                        exit="leaving"
-                    >
-                        <SimulatedCursor x={0} y={0} name="Demo" color="#f87171" isClicking={ghostState === 'clicking'} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
-            {/* The User's Own Trailing Cursor */}
-            <AnimatePresence>
-                {isHovering && hasInteracted && (
-                    <motion.div
-                        className="absolute top-0 left-0 z-[120] pointer-events-none will-change-transform"
-                        transition={{ type: "spring", damping: 20, stiffness: 300, mass: 0.5 }}
-                        initial={{ opacity: 0, scale: 0.5, x: mousePos.x, y: mousePos.y }}
-                        animate={{ opacity: 1, scale: 1, x: mousePos.x, y: mousePos.y }}
-                        exit={{ opacity: 0, scale: 0.5 }}
-                    >
-                        <SimulatedCursor x={0} y={0} name="You" color="#ffffff" isClicking={false} />
-                    </motion.div>
-                )}
-            </AnimatePresence>
 
             <aside className="w-48 bg-sidebar dark:bg-black backdrop-blur-md border-r border-border/40 dark:border-transparent shadow-[1px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none flex flex-col hidden md:flex shrink-0">
                 <div className="p-3 border-b border-transparent h-12 flex items-center">

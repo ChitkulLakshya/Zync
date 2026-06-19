@@ -4,10 +4,11 @@ import FeaturesSection from "@/components/landing/FeaturesSection";
 import MobileAppSection from "@/components/landing/MobileAppSection";
 import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
+import { DotPatternBackground } from "@/components/layout/DotPatternBackground";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <DotPatternBackground containerClassName="min-h-screen">
       <Navbar />
       <main>
         <HeroSection />
@@ -16,7 +17,7 @@ const Index = () => {
         <CTASection />
       </main>
       <Footer />
-    </div>
+    </DotPatternBackground>
   );
 };
 

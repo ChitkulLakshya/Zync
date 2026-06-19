@@ -10,7 +10,7 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-background relative overflow-hidden pt-32 pb-6 border-t border-border/10 w-full">
+    <footer className="bg-transparent relative overflow-hidden pt-32 pb-6 border-t border-border/10 w-full">
       {/* Main Grid Content */}
       <div className="w-full px-8 md:px-16 lg:px-24 xl:px-32 relative z-10">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-8 gap-y-16 mb-40">

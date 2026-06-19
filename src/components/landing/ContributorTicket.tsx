@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform, useMotionTemplate } from "framer-motion";
 import { Github, Mail, Loader2, ArrowRight, Check } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -26,6 +27,8 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const { resolvedTheme } = useTheme();
+
   // --- 3D Physics State ---
   const ref = useRef<HTMLDivElement>(null);
   
@@ -41,7 +44,8 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   // Glare position
   const glareX = useTransform(mouseXSpring, [-0.5, 0.5], ["100%", "0%"]);
   const glareY = useTransform(mouseYSpring, [-0.5, 0.5], ["100%", "0%"]);
-  const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.1) 0%, transparent 60%)`;
+  const glareAlpha = resolvedTheme === 'light' ? 0.6 : 0.1;
+  const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,${glareAlpha}) 0%, transparent 60%)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!ref.current) return;
@@ -141,7 +145,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="relative w-full rounded-[32px] bg-slate-50/90 dark:bg-white/[0.02] backdrop-blur-[40px] border border-slate-200/60 dark:border-white/[0.08] shadow-2xl shadow-black/5 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
+          className="relative w-full rounded-[32px] bg-gradient-to-br from-slate-300/80 to-slate-200/80 dark:from-transparent dark:to-transparent dark:bg-white/[0.02] backdrop-blur-[40px] border border-white/60 dark:border-white/[0.08] shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1),inset_0_0_0_1px_rgba(255,255,255,0.5)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden will-change-transform"
         >
           {/* Holographic Glare */}
           <motion.div
@@ -206,11 +210,11 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           rotateY,
           transformStyle: "preserve-3d"
         }}
-        className="relative w-full rounded-2xl bg-slate-50/90 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border border-slate-200/60 dark:border-white/10 p-8 shadow-2xl shadow-black/5 dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
+        className="relative w-full rounded-2xl bg-gradient-to-br from-slate-300/80 to-slate-200/80 dark:from-transparent dark:to-transparent dark:bg-[#0a0a0a]/80 backdrop-blur-[40px] border border-white/60 dark:border-white/10 p-8 shadow-[0_8px_32px_rgba(0,0,0,0.08),inset_0_1px_0_rgba(255,255,255,1),inset_0_0_0_1px_rgba(255,255,255,0.4)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)] will-change-transform"
       >
         {/* Holographic Glare */}
         <motion.div 
-          className="pointer-events-none absolute inset-0 rounded-2xl z-0"
+          className="pointer-events-none absolute inset-0 rounded-2xl z-50 mix-blend-overlay"
           style={{ background }}
         />
         

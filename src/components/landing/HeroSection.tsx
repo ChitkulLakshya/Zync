@@ -4,7 +4,8 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import DesktopPreview from "@/components/landing/DesktopPreview";
-import { SimulatedCursor } from "@/components/landing/SimulatedCursor";
+
+
 
 const HeroSection = () => {
   const [email, setEmail] = useState("");
@@ -27,16 +28,6 @@ const HeroSection = () => {
 
   return (
     <section ref={containerRef} className="relative h-[250vh]">
-      {/* Background Gradient */}
-      <div className="absolute inset-0 bg-background pointer-events-none" />
-      {/* Structural Dot Matrix Background */}
-      <div 
-        className="absolute inset-0 z-0 opacity-[0.03]"
-        style={{
-          backgroundImage: 'radial-gradient(circle at center, white 1px, transparent 1px)',
-          backgroundSize: '24px 24px'
-        }}
-      />
 
       {/* The Sticky Stage */}
       <div className="sticky top-0 h-screen overflow-hidden flex flex-col pt-28 lg:pt-36">
@@ -67,45 +58,7 @@ const HeroSection = () => {
 
             {/* Heading with Cursor Wrappers */}
             <div className="relative inline-block">
-              {/* Feature 1 - Emerald/Green */}
-              <motion.div
-                className="absolute hidden md:block z-50 pointer-events-none"
-                style={{ left: "-140px", top: "-30px" }}
-                animate={{ y: [0, -12, 0], x: [0, 6, 0] }}
-                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }}
-              >
-                <SimulatedCursor x={0} y={0} name="Live Collaboration" color="#34d399" />
-              </motion.div>
 
-              {/* Feature 2 - Red */}
-              <motion.div
-                className="absolute hidden sm:block z-50 pointer-events-none"
-                style={{ right: "-80px", top: "60px" }}
-                animate={{ y: [0, 18, 0], x: [0, -12, 0] }}
-                transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 1 }}
-              >
-                <SimulatedCursor x={0} y={0} name="AI Planning" color="#f87171" />
-              </motion.div>
-
-              {/* Feature 3 - Violet */}
-              <motion.div
-                className="absolute hidden md:block z-50 pointer-events-none"
-                style={{ right: "-20px", bottom: "-20px" }}
-                animate={{ y: [0, -8, 0], x: [0, 15, 0] }}
-                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 0.5 }}
-              >
-                <SimulatedCursor x={0} y={0} name="GitHub Sync" color="#a78bfa" />
-              </motion.div>
-
-              {/* Feature 4 - Blue */}
-              <motion.div
-                className="absolute hidden lg:block z-50 pointer-events-none"
-                style={{ left: "-200px", bottom: "30px" }}
-                animate={{ y: [0, 14, 0], x: [0, -8, 0] }}
-                transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 2 }}
-              >
-                <SimulatedCursor x={0} y={0} name="Team Chat" color="#60a5fa" />
-              </motion.div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">
                 Build software,
