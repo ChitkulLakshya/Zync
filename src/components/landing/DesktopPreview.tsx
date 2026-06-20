@@ -556,7 +556,10 @@ const DesktopPreview = () => {
 
             <aside className="w-48 bg-sidebar dark:bg-black backdrop-blur-md border-r border-border/40 dark:border-transparent shadow-[1px_0_10px_rgba(0,0,0,0.02)] dark:shadow-none flex flex-col hidden md:flex shrink-0">
                 <div className="p-3 border-b border-transparent h-12 flex items-center">
-                    <img src="/zync-dark.webp" alt="Zync" className="h-9 w-auto rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
+                    <>
+                        <img src="/zync-dark.webp" alt="Zync" className="hidden dark:block h-9 w-auto rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
+                        <img src="/zync-white.webp" alt="Zync" className="block dark:hidden h-9 w-auto rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
+                    </>
                 </div>
                 <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto custom-scrollbar">
                     {sidebarItems.map(item => (

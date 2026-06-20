@@ -32,7 +32,10 @@ const IndexMobile = () => {
       <div className="mx-auto w-full max-w-sm space-y-5">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/zync-dark.webp" alt="Zync" className="h-9 w-9 rounded-lg object-contain" />
+            <>
+              <img src="/zync-dark.webp" alt="Zync" className="hidden dark:block h-9 w-9 rounded-lg object-contain" />
+              <img src="/zync-white.webp" alt="Zync" className="block dark:hidden h-9 w-9 rounded-lg object-contain" />
+            </>
             <span className="text-lg font-semibold text-foreground">Zync</span>
           </div>
           <Link to="/login" className="text-sm text-foreground">

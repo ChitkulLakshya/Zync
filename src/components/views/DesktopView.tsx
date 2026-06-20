@@ -882,7 +882,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           >
             <div className={cn("p-4 flex items-center gap-2", isCollapsed ? "justify-center p-2 mb-4" : "mb-2")}>
               {mounted ? (
-                <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
+                <img src={resolvedTheme === "dark" ? "/zync-dark.webp" : "/zync-white.webp"} alt="Logo" className="h-8 w-8 object-contain rounded-lg shadow-sm dark:shadow-none ring-1 ring-black/5 dark:ring-0 bg-white dark:bg-transparent" />
               ) : <div className="w-8 h-8 bg-foreground rounded-xl" />}
               {!isCollapsed && <span className="font-bold text-lg text-sidebar-foreground tracking-wide">Zync</span>}
             </div>

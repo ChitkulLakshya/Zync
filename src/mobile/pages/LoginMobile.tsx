@@ -190,7 +190,10 @@ const LoginMobile = () => {
       <div className="w-full max-w-sm space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img src="/zync-dark.webp" alt="Zync" className="h-8 w-8 rounded-md object-contain" />
+            <>
+              <img src="/zync-dark.webp" alt="Zync" className="hidden dark:block h-8 w-8 rounded-md object-contain" />
+              <img src="/zync-white.webp" alt="Zync" className="block dark:hidden h-8 w-8 rounded-md object-contain" />
+            </>
             <span className="text-base font-semibold">Zync</span>
           </div>
           <Link to="/" className="text-xs text-foreground">Back</Link>
