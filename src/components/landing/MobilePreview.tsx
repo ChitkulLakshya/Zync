@@ -12,6 +12,7 @@ import {
     Github,
     User
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 
 const MobilePreview = () => {
     const [activeTab, setActiveTab] = useState("home");
+    const [hasInteracted, setHasInteracted] = useState(false);
 
 
     const mockProjects = [
@@ -60,23 +62,33 @@ const MobilePreview = () => {
     ];
 
     return (
-        <div className="relative mx-auto bg-[#1c1d1e] border-[#2a2b2c] border-[14px] rounded-[2.5rem] h-[600px] w-[300px] shadow-elevation5 ring-1 ring-black/20 dark:ring-white/10">
-            {/* Camera Notch */}
-            <div className="w-[120px] h-[24px] bg-black top-0 rounded-b-[1rem] left-1/2 -translate-x-1/2 absolute z-20 flex items-center justify-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-[#111] shadow-inner border border-white/5 flex items-center justify-center">
-                    <div className="w-0.5 h-0.5 rounded-full bg-blue-500/50" />
+        <div 
+            className="relative mx-auto bg-black border-[#d4d4d8] dark:border-[#27272a] border-4 p-1.5 rounded-[3rem] h-[650px] w-[300px] shadow-[0_24px_80px_rgba(0,0,0,0.15)] ring-1 ring-black/5 dark:ring-white/10"
+            onPointerDown={() => setHasInteracted(true)}
+        >
+            {/* Dynamic Island (iPhone 16/17 Pro Max) */}
+            <div className="w-[90px] h-[26px] bg-black top-[12px] rounded-full left-1/2 -translate-x-1/2 absolute z-30 flex items-center justify-between px-2.5">
+                <div className="w-[8px] h-[8px] rounded-full bg-[#111] shadow-inner border border-white/10 flex items-center justify-center">
+                    <div className="w-[3px] h-[3px] rounded-full bg-blue-500/40" />
                 </div>
+                <div className="w-[8px] h-[8px] rounded-full bg-[#111] shadow-inner border border-white/10" />
             </div>
-            {/* Side Buttons */}
-            <div className="h-[32px] w-[3px] bg-[#2a2b2c] absolute -left-[17px] top-[72px] rounded-l-lg border-l border-white/10"></div>
-            <div className="h-[46px] w-[3px] bg-[#2a2b2c] absolute -left-[17px] top-[124px] rounded-l-lg border-l border-white/10"></div>
-            <div className="h-[46px] w-[3px] bg-[#2a2b2c] absolute -left-[17px] top-[178px] rounded-l-lg border-l border-white/10"></div>
-            <div className="h-[64px] w-[3px] bg-[#2a2b2c] absolute -right-[17px] top-[142px] rounded-r-lg border-r border-white/10"></div>
+            
+            {/* Titanium Side Buttons */}
+            {/* Action Button */}
+            <div className="h-[22px] w-[3px] bg-[#a1a1aa] dark:bg-[#3f3f46] absolute -left-[7px] top-[95px] rounded-l-md"></div>
+            {/* Volume Up */}
+            <div className="h-[42px] w-[3px] bg-[#a1a1aa] dark:bg-[#3f3f46] absolute -left-[7px] top-[135px] rounded-l-md"></div>
+            {/* Volume Down */}
+            <div className="h-[42px] w-[3px] bg-[#a1a1aa] dark:bg-[#3f3f46] absolute -left-[7px] top-[190px] rounded-l-md"></div>
+            {/* Power Button */}
+            <div className="h-[64px] w-[3px] bg-[#a1a1aa] dark:bg-[#3f3f46] absolute -right-[7px] top-[160px] rounded-r-md"></div>
+            
             {/* Screen Content */}
-            <div className="rounded-[2rem] overflow-hidden w-full h-full bg-background flex flex-col relative" style={{ boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)' }}>
+            <div className="rounded-[2.6rem] overflow-hidden w-full h-full bg-background flex flex-col relative shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05)]">
 
                 {/* Header */}
-                <header className="flex items-center justify-between px-4 py-2 border-b border-border/10 bg-background/60 backdrop-blur-md">
+                <header className="flex items-center justify-between px-5 pt-12 pb-3 border-b border-border/10 bg-background/60 backdrop-blur-md z-10 relative">
                     <div className="flex items-center">
                         <img
                             src="/zync-dark.webp"
@@ -252,7 +264,7 @@ const MobilePreview = () => {
                                     <div className="flex items-center gap-2">
                                         <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${task.done ? "bg-foreground border-foreground" : "border-muted-foreground/30"
                                             }`}>
-                                            {task.done && <CheckSquare className="w-2 h-2 text-white" />}
+                                            {task.done && <CheckSquare className="w-2 h-2 text-background" />}
                                         </div>
                                         <span className={`text-[10px] flex-1 ${task.done ? "line-through text-muted-foreground" : "text-foreground"}`}>
                                             {task.title}
@@ -323,6 +335,27 @@ const MobilePreview = () => {
                     </div>
                 </nav>
             </div>
+            
+            {/* Floating Interactive Badge (Disappears on interaction) */}
+            <AnimatePresence>
+                {!hasInteracted && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, x: 20 }}
+                        animate={{ opacity: 1, scale: 1, x: 0 }}
+                        exit={{ opacity: 0, scale: 0.8, x: 20 }}
+                        transition={{ duration: 0.5, delay: 0.8 }}
+                        className="absolute bottom-22 -left-30 z-[100] px-5 py-2.5 rounded-full bg-surface-glass-regular backdrop-blur-thick border border-black/10 dark:border-white/10 shadow-elevation3 flex items-center gap-2 pointer-events-none whitespace-nowrap"
+                    >
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                        <span className="text-[11px] font-semibold tracking-wide text-foreground/90 shadow-sm">
+                            Interactive Preview
+                        </span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

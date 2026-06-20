@@ -1,24 +1,38 @@
+import { useRef } from "react";
 import { Smartphone, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useScroll, useTransform } from "framer-motion";
 import MobilePreview from "@/components/landing/MobilePreview";
 
 const MobileAppSection = () => {
   const navigate = useNavigate();
+  const containerRef = useRef<HTMLElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start end", "end end"]
+  });
+
+  const x = useTransform(scrollYProgress, [0, 0.7, 1], [450, 0, 0]);
+  const rotateX = useTransform(scrollYProgress, [0, 0.7, 1], [75, 0, 0]);
+  const rotateZ = useTransform(scrollYProgress, [0, 0.7, 1], [-35, 0, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.7, 1], [0.74, 1, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0, 1, 1]);
 
   const handleNotifyMe = () => {
     navigate("/signup", { state: { source: "mobile-waitlist" } });
   };
 
   return (
-    <section id="mobile" className="pt-28 pb-20 lg:pt-36 lg:pb-28 overflow-hidden scroll-mt-20">
-      <div className="container mx-auto px-4">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+    <section id="mobile" ref={containerRef} className="relative h-[200vh] scroll-mt-20">
+      <div className="sticky top-0 h-screen overflow-hidden flex items-center">
+        <div className="container mx-auto px-4">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
           {}
           <div>
             <div 
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-surface-glass-thin backdrop-blur-md rounded-full mb-6 border border-white/5"
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-surface-glass-thin backdrop-blur-md rounded-full mb-6 border border-black/5 dark:border-white/5"
               style={{ boxShadow: 'var(--shadow-sm)' }}
             >
               <Smartphone className="w-3.5 h-3.5 text-task-orange" />
@@ -37,55 +51,35 @@ const MobileAppSection = () => {
             </p>
 
             <div className="flex flex-wrap gap-3">
-              <Button variant="outline" size="lg" className="gap-2" onClick={handleNotifyMe}>
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="gap-2 rounded-full border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5" 
+                onClick={handleNotifyMe}
+              >
                 <Bell className="w-4 h-4" />
                 Notify me when ready
               </Button>
             </div>
           </div>
-
-          {}
-          <motion.div 
-            className="relative flex justify-center [perspective:1500px] py-12 lg:py-16"
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: false, amount: 0.15 }}
-          >
+          {/* Right Side: Mobile App Preview */}
+          <div className="relative flex justify-center [perspective:1500px] py-12 lg:py-16">
             <motion.div 
               className="relative"
-              variants={{
-                hidden: { 
-                  x: 450, 
-                  rotateX: 75, 
-                  rotateY: 0, 
-                  rotateZ: -35,
-                  scale: 0.85, 
-                  opacity: 0 
-                },
-                visible: { 
-                  x: 0, 
-                  rotateX: 0, 
-                  rotateY: 0, 
-                  rotateZ: 0,
-                  scale: 1.15, 
-                  opacity: 1,
-                  transition: { 
-                    type: "spring", 
-                    stiffness: 45, 
-                    damping: 15,
-                    mass: 1.2
-                  }
-                }
-              }}
               style={{ 
-                transformOrigin: "bottom center",
-                transformStyle: "preserve-3d"
+                x, 
+                rotateX, 
+                rotateZ, 
+                scale, 
+                opacity,
+                transformOrigin: "bottom center"
               }}
             >
               <MobilePreview />
             </motion.div>
-          </motion.div>
+          </div>
         </div>
+      </div>
       </div>
     </section>
   );
