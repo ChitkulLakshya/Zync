@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import {
   Search,
@@ -820,18 +821,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return null;
     }
   };
-
-  if (userLoading && !isPreview) {
-    return (
-      <div className="h-screen w-full bg-background text-foreground flex items-center justify-center">
-        <div className="flex items-center gap-2 text-sm">
-          <RefreshCw className="w-4 h-4 animate-spin" />
-          Loading workspace…
-        </div>
-      </div>
-    );
-  }
-
   return (
 
     <div className="h-screen w-full relative text-foreground overflow-hidden font-sans">
@@ -1012,7 +1001,54 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               <div
                 className="flex-1 overflow-y-auto relative z-10 w-full bg-transparent hover:overflow-y-overlay custom-scrollbar"
               >
-                {(isExiting || !isLanding) && renderActiveView()}
+                <AnimatePresence mode="wait">
+                  {(userLoading && !isPreview) ? (
+                    <motion.div
+                      key="skeleton"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.16 }}
+                      className="p-8 h-full flex flex-col gap-6"
+                    >
+                      {/* Bento grid style liquid glass skeleton */}
+                      <div className="flex gap-6 h-[30%]">
+                        <motion.div 
+                          className="w-2/3 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
+                          animate={{ opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                        <motion.div 
+                          className="w-1/3 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
+                          animate={{ opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                        />
+                      </div>
+                      <div className="flex gap-6 h-[70%]">
+                        <motion.div 
+                          className="w-1/4 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
+                          animate={{ opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
+                        />
+                        <motion.div 
+                          className="w-3/4 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
+                          animate={{ opacity: [0.4, 0.8, 0.4] }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                        />
+                      </div>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="content"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.16 }}
+                      className="h-full w-full"
+                    >
+                      {(isExiting || !isLanding) && renderActiveView()}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </div>
