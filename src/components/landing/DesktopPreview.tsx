@@ -539,13 +539,13 @@ const DesktopPreview = () => {
                         animate={{ opacity: 1, y: 0, x: "-50%" }}
                         exit={{ opacity: 0, y: 10, x: "-50%", scale: 0.95 }}
                         transition={{ duration: 0.5, delay: 0.5 }}
-                        className="absolute bottom-6 left-1/2 z-[100] px-5 py-2.5 rounded-full bg-white/[0.03] backdrop-blur-[40px] border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center gap-3 pointer-events-none"
+                        className="absolute bottom-6 left-1/2 z-[100] px-5 py-2.5 rounded-full bg-black/[0.03] dark:bg-white/[0.03] backdrop-blur-[40px] border border-black/10 dark:border-white/10 shadow-[inset_0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] flex items-center gap-3 pointer-events-none"
                     >
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
                         </span>
-                        <span className="text-[13px] font-medium tracking-wide text-white/90 shadow-sm">
+                        <span className="text-[13px] font-medium tracking-wide text-foreground/90 shadow-sm">
                             ✧ Interactive Preview
                         </span>
                     </motion.div>
@@ -586,7 +586,7 @@ const DesktopPreview = () => {
                         animate={{ opacity: 1, scale: 1, x: mousePos.x, y: mousePos.y }}
                         exit={{ opacity: 0, scale: 0.5 }}
                     >
-                        <SimulatedCursor x={0} y={0} name="You" color="#ffffff" isClicking={false} />
+                        <SimulatedCursor x={0} y={0} name="You" color="hsl(var(--foreground))" isClicking={false} />
                     </motion.div>
                 )}
             </AnimatePresence>

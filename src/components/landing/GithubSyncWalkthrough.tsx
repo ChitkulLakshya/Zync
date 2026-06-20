@@ -87,7 +87,7 @@ export const GithubSyncWalkthrough = () => {
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       {/* Exact replica of TaskGitSync Component */}
-      <div className="p-4 rounded-2xl border border-white/5 dark:border-white/10 bg-card/90 backdrop-blur-xl shadow-sm pointer-events-none">
+      <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 bg-card/90 backdrop-blur-xl shadow-sm pointer-events-none">
         <div className="flex items-center gap-2 mb-2">
           <Github className="w-4 h-4 text-foreground" />
           <h4 className="font-medium text-sm text-foreground">Sync with GitHub</h4>

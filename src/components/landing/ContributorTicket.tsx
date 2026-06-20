@@ -141,7 +141,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="relative w-full rounded-[32px] bg-white/[0.02] backdrop-blur-[40px] border border-white/[0.08] shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
+          className="relative w-full rounded-[32px] bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[40px] border border-black/[0.08] dark:border-white/[0.08] shadow-[inset_0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
         >
           {/* Holographic Glare */}
           <motion.div
@@ -150,7 +150,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           />
 
           {/* Ambient Edge Lighting - visionOS style */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.07] via-transparent to-transparent opacity-50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-black/[0.07] dark:from-white/[0.07] via-transparent to-transparent opacity-50 pointer-events-none" />
 
           {/* Hero Avatar & Badge */}
           <div className="relative mb-8">
@@ -158,7 +158,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.1 }}
-              className="relative z-10 w-24 h-24 rounded-full p-[2px] bg-gradient-to-b from-white/20 to-white/5 shadow-elevation5"
+              className="relative z-10 w-24 h-24 rounded-full p-[2px] bg-gradient-to-b from-black/10 to-black/5 dark:from-white/20 dark:to-white/5 shadow-elevation5"
             >
               <div className="w-full h-full rounded-full overflow-hidden bg-black">
                 <img src={githubUser?.avatar_url} alt={githubUser?.login} className="w-full h-full object-cover opacity-90" />
@@ -169,7 +169,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20, delay: 0.4 }}
-                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-foreground flex items-center justify-center shadow-lg border-[3px] border-[#0a0a0a]"
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-foreground flex items-center justify-center shadow-lg border-[3px] border-background"
               >
                 <Check className="w-4 h-4 text-background" strokeWidth={4} />
               </motion.div>
@@ -206,7 +206,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           rotateY,
           transformStyle: "preserve-3d"
         }}
-        className="relative w-full rounded-2xl bg-[#0a0a0a]/80 backdrop-blur-xl border border-white/10 p-8 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
+        className="relative w-full rounded-2xl bg-card/80 backdrop-blur-xl border border-black/10 dark:border-white/10 p-8 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05),inset_0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
       >
         {/* Holographic Glare */}
         <motion.div 
@@ -218,14 +218,14 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
         <div style={{ transform: "translateZ(40px)" }} className="relative z-10">
           
           {/* Badge Header */}
-          <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
+          <div className="flex justify-between items-center mb-8 border-b border-black/5 dark:border-white/5 pb-4">
             <div className="flex items-center gap-2">
               <Github className="w-4 h-4 text-foreground/50" />
               <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                 Open Source
               </span>
             </div>
-            <div className="text-[10px] font-mono text-foreground/80 bg-white/5 px-2 py-1 rounded-sm uppercase tracking-wider">
+            <div className="text-[10px] font-mono text-foreground/80 bg-black/5 dark:bg-white/5 px-2 py-1 rounded-sm uppercase tracking-wider">
               CONTRIBUTOR #004
             </div>
           </div>
@@ -246,7 +246,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                   <img 
                     src={githubUser.avatar_url} 
                     alt={githubUser.login} 
-                    className="w-20 h-20 rounded-full border-2 border-white/10 shadow-[0_0_20px_rgba(255,255,255,0.05)] mb-4"
+                    className="w-20 h-20 rounded-full border-2 border-black/10 dark:border-white/10 shadow-[0_0_20px_rgba(0,0,0,0.05)] dark:shadow-[0_0_20px_rgba(255,255,255,0.05)] mb-4"
                   />
                   <h4 className="text-xl font-bold tracking-tight text-foreground uppercase">
                     {githubUser.name || githubUser.login}
@@ -273,7 +273,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                       value={githubUsername}
                       onChange={(e) => setGithubUsername(e.target.value)}
                       onKeyDown={handleUsernameKeyDown}
-                      className="w-full h-12 bg-transparent border-b border-white/10 focus:border-white/40 outline-none text-foreground placeholder:text-muted-foreground/30 text-lg transition-colors pb-2"
+                      className="w-full h-12 bg-transparent border-b border-black/10 dark:border-white/10 focus:border-black/40 dark:focus:border-white/40 outline-none text-foreground placeholder:text-muted-foreground/30 text-lg transition-colors pb-2"
                       spellCheck={false}
                       required
                     />
@@ -304,7 +304,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                 <motion.div 
                   initial={{ opacity: 0, y: 10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: "auto" }}
-                  className="pt-4 border-t border-white/5 space-y-4 overflow-hidden"
+                  className="pt-4 border-t border-black/5 dark:border-white/5 space-y-4 overflow-hidden"
                 >
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -315,14 +315,14 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                       placeholder="Email address for invite"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-11 bg-white/5 border-white/5 focus-visible:ring-1 focus-visible:ring-white/20 text-sm"
+                      className="pl-10 h-11 bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 focus-visible:ring-1 focus-visible:ring-black/20 dark:focus-visible:ring-white/20 text-sm"
                       required
                     />
                   </div>
 
                   <Button 
                     type="submit" 
-                    className="w-full h-11 font-medium bg-white text-black hover:bg-white/90 group"
+                    className="w-full h-11 font-medium bg-foreground text-background hover:opacity-90 group"
                     disabled={isSubmitting || !email}
                   >
                     {isSubmitting ? (
@@ -340,11 +340,11 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           </form>
 
           {/* Founders Endorsement */}
-          <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
+          <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
             <div className="flex -space-x-2">
-               <img src="https://github.com/prem22k.png" className="w-6 h-6 rounded-full border border-[#0a0a0a]" alt="prem22k" />
-               <img src="https://github.com/chitkullakshya.png" className="w-6 h-6 rounded-full border border-[#0a0a0a]" alt="chitkullakshya" />
-               <img src="https://github.com/eesha264.png" className="w-6 h-6 rounded-full border border-[#0a0a0a]" alt="eesha264" />
+               <img src="https://github.com/prem22k.png" className="w-6 h-6 rounded-full border border-background" alt="prem22k" />
+               <img src="https://github.com/chitkullakshya.png" className="w-6 h-6 rounded-full border border-background" alt="chitkullakshya" />
+               <img src="https://github.com/eesha264.png" className="w-6 h-6 rounded-full border border-background" alt="eesha264" />
             </div>
             <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">Endorsed by Core</span>
           </div>

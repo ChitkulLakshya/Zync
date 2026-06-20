@@ -139,7 +139,7 @@ export const SmartCalendarWalkthrough = () => {
                 {(isStartDay && phase !== "dropping" && phase !== "done") && (
                   <motion.div
                     layoutId="draggable-event"
-                    className="bg-task-orange text-white text-[5px] px-1 py-[2px] rounded-[3px] shadow-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis cursor-grab relative z-20 mt-auto mb-1"
+                    className="bg-task-orange text-background text-[5px] px-1 py-[2px] rounded-[3px] shadow-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis cursor-grab relative z-20 mt-auto mb-1"
                     animate={
                       phase === "dragging" 
                         ? { x: "205%", y: 0, scale: 1.05, boxShadow: "0 8px 24px rgba(0,0,0,0.2)", zIndex: 50, rotate: 2 } 
@@ -159,7 +159,7 @@ export const SmartCalendarWalkthrough = () => {
                 {(isTargetDay && (phase === "dropping" || phase === "done")) && (
                   <motion.div
                     layoutId="draggable-event"
-                    className="bg-task-orange text-white text-[5px] px-1 py-[2px] rounded-[3px] shadow-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis relative z-20 mt-auto mb-1"
+                    className="bg-task-orange text-background text-[5px] px-1 py-[2px] rounded-[3px] shadow-sm font-medium whitespace-nowrap overflow-hidden text-ellipsis relative z-20 mt-auto mb-1"
                     initial={{ scale: 1.05, rotate: 2 }}
                     animate={{ scale: 1, rotate: 0 }}
                     transition={{ type: "spring", stiffness: 420, damping: 32 }}

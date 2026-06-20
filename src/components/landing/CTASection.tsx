@@ -29,10 +29,10 @@ const CTASection = () => {
   }, [cursorState]);
 
   return (
-    <section id="cta" className="py-32 relative overflow-hidden bg-background border-t border-white/5">
+    <section id="cta" className="py-32 relative overflow-hidden bg-background border-t border-black/5 dark:border-white/5">
       {/* Brutalist Grid Lines */}
       <div className="absolute inset-0 z-0 opacity-[0.03]" style={{
-          backgroundImage: `linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(hsl(var(--foreground) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.5) 1px, transparent 1px)`,
           backgroundSize: '40px 40px'
       }} />
 
@@ -68,7 +68,7 @@ const CTASection = () => {
             initial="floating"
             animate={cursorState}
           >
-            <SimulatedCursor x={0} y={0} name="prem22k" color="#34d399" isClicking={cursorState === 'clicking'} />
+            <SimulatedCursor x={0} y={0} name="prem22k" color="hsl(var(--task-green))" isClicking={cursorState === 'clicking'} />
           </motion.div>
 
           {/* 
@@ -87,7 +87,7 @@ const CTASection = () => {
             initial="floating"
             animate={cursorState}
           >
-            <SimulatedCursor x={0} y={0} name="chitkullakshya" color="#60a5fa" isClicking={cursorState === 'clicking'} />
+            <SimulatedCursor x={0} y={0} name="chitkullakshya" color="hsl(var(--primary))" isClicking={cursorState === 'clicking'} />
           </motion.div>
 
           {/* 
@@ -106,7 +106,7 @@ const CTASection = () => {
             initial="floating"
             animate={cursorState}
           >
-            <SimulatedCursor x={0} y={0} name="eesha264" color="#a78bfa" isClicking={cursorState === 'clicking'} />
+            <SimulatedCursor x={0} y={0} name="eesha264" color="hsl(var(--task-purple))" isClicking={cursorState === 'clicking'} />
           </motion.div>
 
           {/* The Holographic Ticket */}

@@ -52,7 +52,7 @@ const HeroSection = () => {
           <div className="max-w-4xl mx-auto text-center flex flex-col items-center">
             {/* Badge (Live Status Indicator) */}
             <div 
-              className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-surface-glass-thin backdrop-blur-md rounded-full mb-8 animate-fade-in border border-white/5"
+              className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-surface-glass-thin backdrop-blur-md rounded-full mb-8 animate-fade-in border border-black/5 dark:border-white/5"
               style={{ boxShadow: 'var(--shadow-sm)' }}
             >
               {/* Pulsing Dot */}
@@ -74,7 +74,7 @@ const HeroSection = () => {
                 animate={{ y: [0, -12, 0], x: [0, 6, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }}
               >
-                <SimulatedCursor x={0} y={0} name="Live Collaboration" color="#34d399" />
+                <SimulatedCursor x={0} y={0} name="Live Collaboration" color="hsl(var(--task-green))" />
               </motion.div>
 
               {/* Feature 2 - Red */}
@@ -84,7 +84,7 @@ const HeroSection = () => {
                 animate={{ y: [0, 18, 0], x: [0, -12, 0] }}
                 transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 1 }}
               >
-                <SimulatedCursor x={0} y={0} name="AI Planning" color="#f87171" />
+                <SimulatedCursor x={0} y={0} name="AI Planning" color="hsl(var(--task-orange))" />
               </motion.div>
 
               {/* Feature 3 - Violet */}
@@ -94,7 +94,7 @@ const HeroSection = () => {
                 animate={{ y: [0, -8, 0], x: [0, 15, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 0.5 }}
               >
-                <SimulatedCursor x={0} y={0} name="GitHub Sync" color="#a78bfa" />
+                <SimulatedCursor x={0} y={0} name="GitHub Sync" color="hsl(var(--task-purple))" />
               </motion.div>
 
               {/* Feature 4 - Blue */}
@@ -104,7 +104,7 @@ const HeroSection = () => {
                 animate={{ y: [0, 14, 0], x: [0, -8, 0] }}
                 transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 2 }}
               >
-                <SimulatedCursor x={0} y={0} name="Team Chat" color="#60a5fa" />
+                <SimulatedCursor x={0} y={0} name="Team Chat" color="hsl(var(--primary))" />
               </motion.div>
 
               <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter mb-6 text-foreground leading-[1.05]">
@@ -134,7 +134,7 @@ const HeroSection = () => {
                 variant="outline"
                 size="lg"
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="h-12 px-8 rounded-full text-base font-medium bg-surface-glass-regular backdrop-blur-md border-white/5 hover:bg-white/5 group active:scale-95 transition-all"
+                className="h-12 px-8 rounded-full text-base font-medium bg-surface-glass-regular backdrop-blur-md border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 group active:scale-95 transition-all"
               >
                 Explore How It Works
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -178,7 +178,7 @@ const HeroSection = () => {
                 <div 
                   className="relative rounded-[0.5rem] sm:rounded-[1rem] lg:rounded-[1.2rem] bg-background border border-border/50 w-full flex-1 overflow-hidden"
                   style={{
-                    boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.05)'
+                    boxShadow: 'inset 0 0 0 1px hsl(var(--foreground) / 0.05)'
                   }}
                 >
                   <DesktopPreview />

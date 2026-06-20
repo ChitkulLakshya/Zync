@@ -125,13 +125,13 @@ export const MultiplayerWalkthrough = () => {
         <div className="flex items-center justify-between mb-5">
           <div className="flex -space-x-1.5">
             <div className="w-7 h-7 rounded-full bg-task-green flex items-center justify-center border-[2.5px] border-card shadow-sm z-30">
-              <span className="text-[10px] text-white font-bold">A</span>
+              <span className="text-[10px] text-background font-bold">A</span>
             </div>
             <div className="w-7 h-7 rounded-full bg-task-purple flex items-center justify-center border-[2.5px] border-card shadow-sm z-20">
-              <span className="text-[10px] text-white font-bold">S</span>
+              <span className="text-[10px] text-background font-bold">S</span>
             </div>
             <div className="w-7 h-7 rounded-full bg-task-orange flex items-center justify-center border-[2.5px] border-card shadow-sm z-10">
-              <span className="text-[10px] text-white font-bold">M</span>
+              <span className="text-[10px] text-background font-bold">M</span>
             </div>
           </div>
           
