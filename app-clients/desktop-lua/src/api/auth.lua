@@ -3,21 +3,19 @@ local json = require("utils.json")
 
 local AuthApi = {}
 
-function AuthApi.login(email, password)
-    local payload = json.encode({ email = email, passwordHash = password })
-    -- Simulating HTTP POST
-    local response = http.request("/api/users/login", "POST", payload)
+-- Zync backend uses Firebase Auth, so desktop client must sync the user token
+function AuthApi.sync(firebaseToken, uid, email, displayName)
+    local payload = json.encode({ uid = uid, email = email, displayName = displayName })
+    
+    -- Passing the token in the header would happen in the HTTP client implementation
+    local headers = { ["Authorization"] = "Bearer " .. firebaseToken }
+    local response = http.request("/api/users/sync", "POST", payload, headers)
     
     if response.status == 200 then
         return json.decode(response.body)
     else
-        error("Login failed: " .. response.status)
+        error("Sync failed: " .. response.status)
     end
-end
-
-function AuthApi.register(name, email, password)
-    local payload = json.encode({ name = name, email = email, passwordHash = password })
-    return http.request("/api/users/register", "POST", payload)
 end
 
 return AuthApi

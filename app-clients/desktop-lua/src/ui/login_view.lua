@@ -5,16 +5,16 @@ local session = require("state.session")
 local LoginView = {}
 
 function LoginView.render()
-    print("=== Zync Login ===")
+    print("=== Zync Firebase Sync ===")
     components.drawTextField("Email", 10, 20, 200)
-    components.drawTextField("Password", 10, 60, 200)
+    components.drawTextField("Password (Firebase)", 10, 60, 200)
     
     components.drawButton("Log In", 10, 100, function()
-        print("Attempting login...")
-        local success, result = pcall(authApi.login, "test@zync-meet.com", "password")
+        print("Mocking Firebase Login -> Sync...")
+        local success, result = pcall(authApi.sync, "mock_firebase_token", "test_uid", "test@zync-meet.com", "Test User")
         if success then
-            session.saveToken(result.token)
-            print("Login successful!")
+            session.saveToken("mock_firebase_token")
+            print("Sync successful!")
         else
             print("Error: " .. tostring(result))
         end
