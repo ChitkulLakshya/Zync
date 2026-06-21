@@ -90,11 +90,18 @@ const MobilePreview = () => {
                 {/* Header */}
                 <header className="flex items-center justify-between px-5 pt-12 pb-3 border-b border-border/10 bg-background/60 backdrop-blur-md z-10 relative">
                     <div className="flex items-center">
-                        <img
-                            src="/zync-dark.webp"
-                            alt="Zync"
-                            className="h-8 w-auto rounded-lg"
-                        />
+                        <>
+                            <img
+                                src="/zync-white.webp"
+                                alt="Zync"
+                                className="h-8 w-auto rounded-lg block dark:hidden"
+                            />
+                            <img
+                                src="/zync-dark.webp"
+                                alt="Zync"
+                                className="h-8 w-auto rounded-lg hidden dark:block"
+                            />
+                        </>
                     </div>
                     <Avatar className="w-6 h-6 border-0">
                         <AvatarFallback className="text-[10px] bg-foreground text-background">YU</AvatarFallback>

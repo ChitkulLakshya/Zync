@@ -44,8 +44,8 @@ const Navbar = () => {
     <nav 
       className={`fixed left-1/2 -translate-x-1/2 z-50 box-border transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] border ${
         isPill 
-          ? "top-6 w-[90%] max-w-[896px] rounded-full bg-surface-glass-regular backdrop-blur-thick border-white/10"
-          : "top-0 w-[100%] max-w-[3000px] rounded-none bg-background/70 backdrop-blur-md border-transparent border-b-white/5"
+          ? "top-6 w-[90%] max-w-[896px] rounded-full bg-surface-glass-regular backdrop-blur-thick border-border/50"
+          : "top-0 w-[100%] max-w-[3000px] rounded-none bg-background/70 backdrop-blur-md border-transparent border-b-border/30"
       }`}
       style={{
         boxShadow: isPill ? '0 16px 40px -8px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)' : 'none'
@@ -58,11 +58,18 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             {mounted ? (
-              <img
-                src="/zync-dark.webp"
-                alt="Zync Logo"
-                className="h-8 w-auto object-contain rounded-lg"
-              />
+              <>
+                <img 
+                  src="/zync-white.webp" 
+                  alt="Zync Logo" 
+                  className="w-8 h-8 rounded-lg relative z-10 block dark:hidden" 
+                />
+                <img 
+                  src="/zync-dark.webp" 
+                  alt="Zync Logo" 
+                  className="w-8 h-8 rounded-lg relative z-10 hidden dark:block" 
+                />
+              </>
             ) : (
               <div className="w-8 h-8 bg-foreground rounded-lg flex items-center justify-center">
                 <span className="text-background font-bold text-lg">Z</span>
