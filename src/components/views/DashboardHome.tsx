@@ -15,7 +15,7 @@ const DashboardHome = ({ onNavigate }: { onNavigate: (section: string) => void }
                         <span className="text-xl font-bold tracking-widest uppercase">Zync</span>
                     </div>
 
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent pb-2 opacity-0 animate-fade-in-up" style={{ animationDelay: "150ms", animationFillMode: "forwards" }}>
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight bg-gradient-to-b from-foreground to-foreground/60 bg-clip-text text-transparent pb-2 opacity-0 animate-fade-in-up" style={{ animationDelay: "150ms", animationFillMode: "forwards" }}>
                         Unified Workspace for <br />
                         High-Performance Teams
                     </h1>

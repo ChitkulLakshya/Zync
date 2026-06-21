@@ -260,7 +260,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
                     <DialogTitle>User Profile</DialogTitle>
                 </DialogHeader>
                 <div className="flex flex-col items-center justify-center p-6 space-y-4">
-                     <Avatar className="w-32 h-32 ring-4 ring-background shadow-xl">
+                     <Avatar className="w-32 h-32 ring-4 ring-background shadow-elevation4">
                         <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
                         <AvatarFallback className="text-4xl">{getUserInitials(selectedUser)}</AvatarFallback>
                     </Avatar>

@@ -168,8 +168,8 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
                                             variant="ghost"
                                             size="icon"
                                             className={cn(
-                                                "h-10 w-10 p-0 transition-all hover:bg-white/10",
-                                                selectedLogoId === logo.id ? "bg-white/15 ring-2 ring-white/20" : ""
+                                                "h-10 w-10 p-0 transition-all hover:bg-foreground/10",
+                                                selectedLogoId === logo.id ? "bg-foreground/15 ring-2 ring-foreground/20" : ""
                                             )}
                                             onClick={() => setSelectedLogoId(logo.id)}
                                             title={logo.label}

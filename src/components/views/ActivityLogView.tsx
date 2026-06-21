@@ -1086,7 +1086,7 @@ export default function ActivityLogView({
                                         }
                                     }}
                                 >
-                                    <SelectTrigger className="w-[170px] h-9 bg-white/[0.04] border-white/20 text-[11px] text-text2 backdrop-blur-md hover:bg-white/[0.08]">
+                                    <SelectTrigger className="w-[170px] h-9 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[11px] text-muted-foreground backdrop-blur-md hover:bg-black/10 dark:hover:bg-white/10">
                                         {selectedTeamId !== 'all' && selectedTeamOption ? (
                                             (() => {
                                                 const logoId = selectedTeamOption.logoId || getDeterministicLogoId(selectedTeamOption.id);
@@ -1107,9 +1107,9 @@ export default function ActivityLogView({
                                             <SelectValue placeholder="Select Team" />
                                         )}
                                     </SelectTrigger>
-                                    <SelectContent className="bg-white/[0.05] backdrop-blur-xl border-white/20 text-text2">
+                                    <SelectContent className="bg-background/80 backdrop-blur-xl border-border text-foreground">
                                         {normalizedTeamFilterOptions.length === 0 ? (
-                                            <SelectItem value="__no_team_available" disabled className="text-text2/70 focus:bg-white/10">
+                                            <SelectItem value="__no_team_available" disabled className="text-muted-foreground focus:bg-accent">
                                                 No teams available
                                             </SelectItem>
                                         ) : (
@@ -1136,14 +1136,14 @@ export default function ActivityLogView({
                                 
                                 {selectedTeamId !== 'all' && (
                                     <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                                        <SelectTrigger className="w-[170px] h-9 bg-white/[0.04] border-white/20 text-[11px] text-text2 backdrop-blur-md hover:bg-white/[0.08]">
+                                        <SelectTrigger className="w-[170px] h-9 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[11px] text-muted-foreground backdrop-blur-md hover:bg-black/10 dark:hover:bg-white/10">
                                             {selectedUserId !== 'all' && selectedMemberOption ? (
                                                 <div className="flex items-center gap-2 truncate">
                                                     {selectedMemberOption.photoURL ? (
                                                         <img
                                                             src={selectedMemberOption.photoURL}
                                                             alt={selectedMemberOption.label}
-                                                            className="h-5 w-5 rounded-full object-cover border border-white/20 shrink-0"
+                                                            className="h-5 w-5 rounded-full object-cover border border-border shrink-0"
                                                         />
                                                     ) : (
                                                         <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
@@ -1156,9 +1156,9 @@ export default function ActivityLogView({
                                                 <SelectValue placeholder="Select Member" />
                                             )}
                                         </SelectTrigger>
-                                        <SelectContent className="bg-white/[0.05] backdrop-blur-xl border-white/20 text-text2">
+                                        <SelectContent className="bg-background/80 backdrop-blur-xl border-border text-foreground">
                                             {selectedTeamMemberOptions.length === 0 ? (
-                                                <SelectItem value="__no_member_available" disabled className="text-text2/70 focus:bg-white/10">
+                                                <SelectItem value="__no_member_available" disabled className="text-muted-foreground focus:bg-accent">
                                                     No members found
                                                 </SelectItem>
                                             ) : (
@@ -1169,7 +1169,7 @@ export default function ActivityLogView({
                                                                 <img
                                                                     src={u.photoURL}
                                                                     alt={u.label}
-                                                                    className="h-5 w-5 rounded-full object-cover border border-white/20"
+                                                                    className="h-5 w-5 rounded-full object-cover border border-border"
                                                                 />
                                                             ) : (
                                                                 <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
@@ -1185,12 +1185,12 @@ export default function ActivityLogView({
                                     </Select>
                                 )}
                             </div>
-                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-xs text-text2">
+                            <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 border border-border rounded-lg px-3 py-1.5 text-xs text-muted-foreground">
                                 <Calendar className="h-3.5 w-3.5" />
                                 <span>{new Date().getFullYear()}</span>
                                 <ChevronDown className="h-3 w-3 ml-1" />
                             </div>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full border border-white/10 text-text2">
+                            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full border border-border text-muted-foreground">
                                 <span className="text-xl leading-none">···</span>
                             </Button>
                         </div>
@@ -1198,7 +1198,7 @@ export default function ActivityLogView({
 
                     <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 pt-4">
                         <div className="flex items-center gap-4">
-                            <div className="h-16 w-16 rounded-[20px] overflow-hidden border-2 border-blue/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-slate-900 flex items-center justify-center p-0">
+                            <div className="h-16 w-16 rounded-[20px] overflow-hidden border-2 border-blue/30 shadow-[0_0_20px_rgba(59,130,246,0.15)] bg-muted flex items-center justify-center p-0">
                                 {selectedUserId !== 'all' ? (
                                     activeUser?.photoURL ? (
                                         <img 
@@ -1207,7 +1207,7 @@ export default function ActivityLogView({
                                             className="h-full w-full object-cover"
                                         />
                                     ) : (
-                                        <div className="h-full w-full flex items-center justify-center text-2xl font-bold bg-gradient-to-br from-blue to-purple text-white">
+                                        <div className="h-full w-full flex items-center justify-center text-2xl font-bold bg-gradient-to-br from-blue to-purple text-primary-foreground">
                                             {(activeUser?.displayName || 'Z').charAt(0)}
                                         </div>
                                     )
@@ -1248,7 +1248,7 @@ export default function ActivityLogView({
                         </div>
                     </div>
 
-                    <div className="space-y-4 pt-4 border-t border-white/5">
+                    <div className="space-y-4 pt-4 border-t border-border">
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
                                 <span className="h-3 w-3 rounded-full bg-green" />
@@ -1264,7 +1264,7 @@ export default function ActivityLogView({
                             </div>
                         </div>
 
-                        <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden flex">
+                        <div className="h-3 w-full bg-black/5 dark:bg-white/5 rounded-full overflow-hidden flex">
                             <div 
                                 className="h-full bg-green transition-all duration-1000 shadow-[0_0_15px_rgba(16,185,129,0.3)]" 
                                 style={{ width: `${taskStats.total ? (taskStats.completed / taskStats.total) * 100 : 0}%` }}
@@ -1525,7 +1525,7 @@ export default function ActivityLogView({
                                         className="flex gap-3 px-5 py-4 transition-colors hover:bg-[rgba(16,27,46,0.5)]"
                                     >
                                         <div
-                                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] text-sm font-medium border border-white/5"
+                                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[8px] text-sm font-medium border border-border"
                                             style={{ background: item.iconBg, color: T.text2 }}
                                         >
                                             {item.logoId ? (

@@ -830,7 +830,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       {/* Full Screen Landing Page Overlay */}
       {isLanding && (
         <div className={cn(
-          "fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-black flex flex-col items-center justify-center transition-all duration-1000 ease-in-out",
+          "fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-background flex flex-col items-center justify-center transition-all duration-1000 ease-in-out",
           isExiting ? "opacity-0 -translate-y-full blur-3xl scale-110" : "opacity-100 translate-y-0"
         )}>
           {/* Background Gradients for Landing Page */}
@@ -857,7 +857,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "relative bg-black flex flex-col transition-all duration-300 ease-in-out h-full border-none",
+            "relative bg-background flex flex-col transition-all duration-300 ease-in-out h-full border-none",
             isCollapsed && "min-w-[70px]",
             // Animation logic: Hidden during landing, slides in when landing finishes
             isLanding ? "opacity-0 invisible" : ""
@@ -871,7 +871,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           >
             <div className={cn("p-4 flex items-center gap-2", isCollapsed ? "justify-center p-2 mb-4" : "mb-2")}>
               {mounted ? (
-                <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg" />
+                <>
+                  <img src="/zync-white.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg block dark:hidden" />
+                  <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg hidden dark:block" />
+                </>
               ) : <div className="w-8 h-8 bg-foreground rounded-xl" />}
               {!isCollapsed && <span className="font-bold text-lg text-sidebar-foreground tracking-wide">Zync</span>}
             </div>
@@ -911,7 +914,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-foreground/10 cursor-pointer transition-colors", isCollapsed ? "justify-center" : "")}>
-                    <Avatar className="w-9 h-9 border border-white/10">
+                    <Avatar className="w-9 h-9 border border-border">
                       <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
                       <AvatarFallback className="bg-muted text-muted-foreground">{isPreview ? "JD" : getUserInitials(pickUserForDisplay(userData, currentUser))}</AvatarFallback>
                     </Avatar>
@@ -924,7 +927,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-zinc-500 ml-auto" />}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-xl rounded-2xl">
+                <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-elevation4 rounded-2xl">
                   <DropdownMenuLabel className="text-muted-foreground font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-border/50" />
                   <DropdownMenuItem onClick={() => handleSectionChange("Settings")} className="focus:bg-foreground/10 focus:text-foreground cursor-pointer py-2">

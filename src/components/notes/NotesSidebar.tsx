@@ -291,11 +291,11 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
 
           <div className="flex items-center gap-1">
             {!effectiveCollapsed && (
-              <button onClick={() => setNewFolderMode(true)} className="p-1 rounded hover:bg-black/5 text-gray-500 hover:text-black dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white" title="New Folder">
+              <button onClick={() => setNewFolderMode(true)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground" title="New Folder">
                 <Plus size={16} />
               </button>
             )}
-            <button onClick={toggleCollapse} className="p-1 rounded hover:bg-black/5 text-gray-500 hover:text-black dark:hover:bg-white/10 dark:text-slate-400 dark:hover:text-white" title={isCollapsed ? "Expand" : "Collapse"}>
+            <button onClick={toggleCollapse} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground" title={isCollapsed ? "Expand" : "Collapse"}>
               {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
           </div>
@@ -356,7 +356,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           {/* MY FOLDERS */}
           {(!effectiveCollapsed || myFolders.length > 0) && (
             <div className="mb-1">
-              {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70">My Folders</div>}
+              {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">My Folders</div>}
               {myFolders.map(folder => (
                 <FolderItem
                   key={folder.id}
@@ -387,7 +387,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, null)} // Drop to root
           >
-            {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-gray-500/80 dark:text-muted-foreground/70">My Notes</div>}
+            {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">My Notes</div>}
             {effectiveCollapsed && <div className="h-px bg-border/10 w-8 mx-auto my-2" />}
 
             {myUnorganizedNotes.map(note => (
@@ -409,7 +409,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
               onClick={() => handleCreateNote()}
               className={cn(
                 "w-full flex items-center rounded-md text-xs mt-1 group text-muted-foreground hover:text-foreground transition-all",
-                effectiveCollapsed ? "justify-center py-2 hover:bg-black/5 dark:hover:bg-white/5" : "text-left px-2 py-1.5"
+                effectiveCollapsed ? "justify-center py-2 hover:bg-accent" : "text-left px-2 py-1.5"
               )}
               title="New Note"
             >

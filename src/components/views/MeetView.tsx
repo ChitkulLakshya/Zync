@@ -678,9 +678,9 @@ export default function MeetView({ currentUser: realCurrentUser, usersList, user
                     )}
                 </div>
 
-                <div className="bg-white/[0.02] border border-white/5 rounded-2xl overflow-hidden p-1">
+                <div className="bg-foreground/[0.02] border border-border rounded-2xl overflow-hidden p-1">
                     {/* Search Bar */}
-                    <div className="relative px-3 py-2 border-b border-white/5">
+                    <div className="relative px-3 py-2 border-b border-border">
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                         <input
                             type="text"
@@ -706,8 +706,8 @@ export default function MeetView({ currentUser: realCurrentUser, usersList, user
                                             <tr
                                                 key={user.uid}
                                                 className={cn(
-                                                    "group border-b border-white/[0.02] last:border-none transition-colors cursor-pointer",
-                                                    isSelected ? "bg-blue-500/5 hover:bg-blue-500/10" : "hover:bg-white/[0.02]"
+                                                    "group border-b border-border/50 last:border-none transition-colors cursor-pointer",
+                                                    isSelected ? "bg-blue-500/5 hover:bg-blue-500/10" : "hover:bg-foreground/[0.02]"
                                                 )}
                                                 onClick={() => toggleInviteUser(user.uid)}
                                             >
@@ -722,7 +722,7 @@ export default function MeetView({ currentUser: realCurrentUser, usersList, user
                                                 </td>
                                                 <td className="py-3 px-4">
                                                     <div className="flex items-center gap-3">
-                                                        <Avatar className="h-9 w-9 border border-white/10">
+                                                        <Avatar className="h-9 w-9 border border-border">
                                                             <AvatarImage src={getFullUrl(user.photoURL)} />
                                                             <AvatarFallback className="bg-muted text-muted-foreground">{getUserInitials(user)}</AvatarFallback>
                                                         </Avatar>

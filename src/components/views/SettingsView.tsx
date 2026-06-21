@@ -567,7 +567,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                         <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
                       </Avatar>
                       <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Camera className="w-8 h-8 text-white" />
+                        <Camera className="w-8 h-8 text-primary-foreground" />
                       </div>
                     </div>
                     <input
@@ -724,7 +724,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                 {}
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 bg-blue-50" : "text-gray-500 bg-gray-100")}>G</div>
+                    <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 dark:text-blue-400 bg-blue-500/10" : "text-muted-foreground bg-muted")}>G</div>
                     <div>
                       <p className="font-medium">Google Calendar</p>
                       <p className="text-sm text-muted-foreground">

@@ -291,7 +291,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview, mockTea
                     <div
                         className={cn(
                             "h-full flex flex-col bg-transparent text-foreground overflow-hidden",
-                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-xl border-r bg-background" : "w-full"
+                            isFloating ? "absolute inset-y-0 left-0 z-50 shadow-elevation4 border-r border-border/5 bg-background" : "w-full"
                         )}
                         style={{ width: isFloating ? sidebarWidth : '100%', transition: 'width 0.2s ease-out' }}
                         onMouseEnter={() => {
@@ -766,7 +766,7 @@ const PeopleView = ({ users: propUsers, userStatuses, onChat, isPreview, mockTea
 
                     {}
                     <div className={cn(
-                        "absolute inset-0 bg-background/50 backdrop-blur-xl z-50 transition-transform duration-300 ease-in-out will-change-transform shadow-2xl",
+                        "absolute inset-0 bg-background/50 backdrop-blur-xl z-50 transition-transform duration-300 ease-in-out will-change-transform shadow-elevation5",
                         showMessages ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
                     )}>
                         <MessagesPage

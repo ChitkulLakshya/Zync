@@ -899,7 +899,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({ user, users = [], init
         ) : (
           /* Empty State */
           <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground bg-transparent">
-            <div className="mb-6 p-6 bg-white/[0.05] rounded-2xl border border-white/12 backdrop-blur-md">
+            <div className="mb-6 p-6 bg-foreground/[0.05] rounded-2xl border border-border backdrop-blur-md">
               <FilePenLine size={40} className="text-muted-foreground/50" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">No note selected</h3>

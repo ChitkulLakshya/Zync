@@ -54,7 +54,7 @@ const CommandBlock = ({ label, command, stepNumber }: { label: string, command: 
 
             <div
                 className={cn(
-                    "relative overflow-hidden rounded-md bg-[#0d0d0d] border border-white/5 shadow-2xl transition-all duration-200 group-hover:border-white/10",
+                    "relative overflow-hidden rounded-md bg-zinc-950 dark:bg-card border border-border shadow-elevation3 transition-all duration-200 group-hover:border-foreground/10",
                     "font-mono text-xs text-blue-200"
                 )}
             >
