@@ -653,3 +653,26 @@
       color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%,
       transparent 100%);
 }
+
+/* Theme Toggle View Transitions */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* Dark -> Light: Old (Dark) shrinks on top */
+::view-transition-old(root) {
+  z-index: 2;
+}
+::view-transition-new(root) {
+  z-index: 1;
+}
+
+/* Light -> Dark: New (Dark) grows on top */
+.dark::view-transition-old(root) {
+  z-index: 1;
+}
+.dark::view-transition-new(root) {
+  z-index: 2;
+}
