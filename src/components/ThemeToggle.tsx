@@ -23,6 +23,9 @@ export function ThemeToggle() {
       Math.max(y, innerHeight - y)
     );
 
+    document.documentElement.style.setProperty('--theme-x', `${x}px`);
+    document.documentElement.style.setProperty('--theme-y', `${y}px`);
+
     const transition = document.startViewTransition(() => {
       flushSync(() => {
         setTheme(newTheme);

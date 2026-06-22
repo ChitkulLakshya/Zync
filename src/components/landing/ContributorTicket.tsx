@@ -141,7 +141,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="relative w-full rounded-[32px] bg-black/[0.02] dark:bg-white/[0.02] backdrop-blur-[40px] border border-black/[0.08] dark:border-white/[0.08] shadow-[inset_0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
+          className="relative w-full rounded-[32px] bg-surface-glass-thin backdrop-blur-thick border border-border/10 shadow-[inset_0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
         >
           {/* Holographic Glare */}
           <motion.div
@@ -150,7 +150,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           />
 
           {/* Ambient Edge Lighting - visionOS style */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/[0.07] dark:from-white/[0.07] via-transparent to-transparent opacity-50 pointer-events-none" />
+          <div className="absolute inset-0 bg-gradient-to-br from-border/10 via-transparent to-transparent opacity-50 pointer-events-none" />
 
           {/* Hero Avatar & Badge */}
           <div className="relative mb-8">
@@ -225,7 +225,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                 Open Source
               </span>
             </div>
-            <div className="text-[10px] font-mono text-foreground/80 bg-black/5 dark:bg-white/5 px-2 py-1 rounded-sm uppercase tracking-wider">
+            <div className="text-[10px] font-mono text-foreground/80 bg-surface-glass-thin px-2 py-1 rounded-sm uppercase tracking-wider">
               CONTRIBUTOR #004
             </div>
           </div>
@@ -315,7 +315,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                       placeholder="Email address for invite"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-11 bg-black/5 dark:bg-white/5 border-black/5 dark:border-white/5 focus-visible:ring-1 focus-visible:ring-black/20 dark:focus-visible:ring-white/20 text-sm"
+                      className="pl-10 h-11 bg-surface-glass-thin border-border/10 focus-visible:ring-1 focus-visible:ring-foreground/20 text-sm"
                       required
                     />
                   </div>

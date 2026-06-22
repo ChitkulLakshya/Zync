@@ -266,7 +266,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
       <div
         className={cn(
           "h-full flex flex-col bg-transparent text-foreground overflow-hidden",
-          isFloating ? "absolute inset-y-0 left-0 z-50 shadow-xl w-[width]px border-r bg-background" : "w-full"
+          isFloating ? "absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r border-border/10 bg-background/80 backdrop-blur-2xl" : "w-full"
         )}
         style={{ width: isFloating ? width : '100%', transition: 'width 0.2s ease-out' }}
         onMouseEnter={() => {

@@ -134,7 +134,7 @@ const HeroSection = () => {
                 variant="outline"
                 size="lg"
                 onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
-                className="h-12 px-8 rounded-full text-base font-medium bg-surface-glass-regular backdrop-blur-md border-black/5 dark:border-white/5 hover:bg-black/5 dark:hover:bg-white/5 group active:scale-95 transition-all"
+                className="h-12 px-8 rounded-full text-base font-medium bg-surface-glass-regular backdrop-blur-md border border-border/10 hover:bg-surface-glass-thick group active:scale-95 transition-all"
               >
                 Explore How It Works
                 <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

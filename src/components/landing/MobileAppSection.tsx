@@ -15,10 +15,10 @@ const MobileAppSection = () => {
   });
 
   const x = useTransform(scrollYProgress, [0, 0.7, 1], [450, 0, 0]);
-  const rotateX = useTransform(scrollYProgress, [0, 0.7, 1], [75, 0, 0]);
-  const rotateZ = useTransform(scrollYProgress, [0, 0.7, 1], [-35, 0, 0]);
-  const scale = useTransform(scrollYProgress, [0, 0.7, 1], [0.74, 1, 1]);
-  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0, 1, 1]);
+  const rotateX = useTransform(scrollYProgress, [0, 0.5, 1], [45, 0, 0]);
+  const rotateZ = useTransform(scrollYProgress, [0, 0.5, 1], [-15, 0, 0]);
+  const scale = useTransform(scrollYProgress, [0, 0.5, 1], [0.8, 1, 1]);
+  const opacity = useTransform(scrollYProgress, [0, 0.3, 1], [0.4, 1, 1]);
 
   const handleNotifyMe = () => {
     navigate("/signup", { state: { source: "mobile-waitlist" } });
@@ -54,7 +54,7 @@ const MobileAppSection = () => {
               <Button 
                 variant="outline" 
                 size="lg" 
-                className="gap-2 rounded-full border-black/10 dark:border-white/10 bg-transparent hover:bg-black/5 dark:hover:bg-white/5" 
+                className="gap-2 rounded-full"
                 onClick={handleNotifyMe}
               >
                 <Bell className="w-4 h-4" />
@@ -67,7 +67,6 @@ const MobileAppSection = () => {
             <motion.div 
               className="relative"
               style={{ 
-                x, 
                 rotateX, 
                 rotateZ, 
                 scale, 
