@@ -34,19 +34,19 @@ import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
 
 /** Design tokens — Activity Log page only */
 const T = {
-    bgBase: '#020617', // Deep slate/black
-    bgCard: 'rgba(255, 255, 255, 0.04)',
-    bgSurface: 'rgba(255, 255, 255, 0.06)',
-    border: 'rgba(255, 255, 255, 0.12)',
+    bgBase: 'hsl(var(--background))',
+    bgCard: 'hsl(var(--card) / 0.5)',
+    bgSurface: 'hsl(var(--card) / 0.8)',
+    border: 'hsl(var(--border) / 0.5)',
     blue: '#3b82f6',
     green: '#10b981',
     orange: '#f59e0b',
     red: '#ef4444',
-    text1: '#f8fafc',
-    text2: '#94a3b8',
-    text3: '#475569',
     purple: '#8b5cf6',
     pink: '#ec4899',
+    text1: 'hsl(var(--foreground))',
+    text2: 'hsl(var(--muted-foreground))',
+    text3: 'hsl(var(--muted-foreground) / 0.6)',
 } as const;
 
 const FONT_LINK_ID = 'activity-log-dm-fonts';
@@ -907,7 +907,7 @@ export default function ActivityLogView({
                 datasets: [
                     {
                         data: myProgressSegments.values,
-                        backgroundColor: [T.blue, T.orange, T.bgSurface],
+                        backgroundColor: [T.blue, T.orange, T.green, T.red],
                         borderWidth: 0,
                         hoverOffset: 4,
                     },
@@ -1063,13 +1063,13 @@ export default function ActivityLogView({
             <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
                 {/* Activity Summary Premium Card */}
                 <div 
-                    className="al-fade-up rounded-[2rem] border border-border/10 p-8 space-y-8 shadow-sm relative overflow-hidden bg-card/50 backdrop-blur-xl"
+                    className="al-fade-up rounded-[2rem] border border-border/10 p-8 space-y-8 shadow-sm relative overflow-hidden bg-surface-glass-regular"
                     style={{ 
                         animationDelay: '0.1s', 
                     }}
                 >
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-text1 opacity-80 uppercase tracking-[0.2em] text-[10px] font-bold">
+                        <div className="flex items-center gap-2 text-foreground opacity-80 uppercase tracking-[0.2em] text-[10px] font-bold">
                             <PlayCircle className="h-4 w-4 text-blue" />
                             Activity Summary
                         </div>
@@ -1228,21 +1228,21 @@ export default function ActivityLogView({
                                 )}
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold text-text1">
+                                <h2 className="text-xl font-bold text-foreground">
                                     {selectedUserId === 'all' 
                                         ? (selectedTeamId === 'all' ? 'Organization Overview' : `${allTeams.find(t => t.id === selectedTeamId)?.name || 'Team'} Overview`)
                                         : (activeUser?.displayName || 'Member Profile')}
                                 </h2>
                                 {selectedUserId !== 'all' && activeUser?.email && (
-                                    <p className="text-xs text-text2/90">{activeUser.email}</p>
+                                    <p className="text-xs text-muted-foreground/90">{activeUser.email}</p>
                                 )}
-                                <p className="text-sm text-text2">{taskStats.completed} Tasks completed</p>
+                                <p className="text-sm text-muted-foreground">{taskStats.completed} Tasks completed</p>
                             </div>
                         </div>
 
                         <div className="text-right">
-                            <p className="text-[10px] text-text3 uppercase tracking-[0.15em] font-bold mb-1">Total time worked</p>
-                            <h3 className="text-4xl font-bold tracking-tight text-text1">
+                            <p className="text-[10px] text-muted-foreground/60 uppercase tracking-[0.15em] font-bold mb-1">Total time worked</p>
+                            <h3 className="text-4xl font-bold tracking-tight text-foreground">
                                 {formatSecondsToHoursMinutes(totalActiveSeconds)}
                             </h3>
                         </div>
@@ -1252,15 +1252,15 @@ export default function ActivityLogView({
                         <div className="flex items-center gap-6">
                             <div className="flex items-center gap-2">
                                 <span className="h-3 w-3 rounded-full bg-green" />
-                                <span className="text-[11px] font-bold text-text2 uppercase tracking-wider">Completed</span>
+                                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Completed</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="h-3 w-3 rounded-full bg-blue" />
-                                <span className="text-[11px] font-bold text-text2 uppercase tracking-wider">In Progress</span>
+                                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">In Progress</span>
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className="h-3 w-3 rounded-full bg-orange" />
-                                <span className="text-[11px] font-bold text-text2 uppercase tracking-wider">Overdue</span>
+                                <span className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider">Overdue</span>
                             </div>
                         </div>
 
@@ -1279,18 +1279,18 @@ export default function ActivityLogView({
                             />
                         </div>
                         
-                        <div className="flex justify-between items-center text-[11px] text-text3 font-mono">
+                        <div className="flex justify-between items-center text-[11px] text-muted-foreground/60 font-mono">
                            <div className="flex gap-12">
                                 <div>
-                                    <p className="text-text1 font-bold">{taskStats.efficiency}%</p>
+                                    <p className="text-foreground font-bold">{taskStats.efficiency}%</p>
                                     <p>Efficiency</p>
                                 </div>
                                 <div>
-                                    <p className="text-text1 font-bold">{formatHoursMinutes(taskStats.dailyActiveAvg)}</p>
+                                    <p className="text-foreground font-bold">{formatHoursMinutes(taskStats.dailyActiveAvg)}</p>
                                     <p>Daily Active (Avg)</p>
                                 </div>
                                 <div>
-                                    <p className="text-text1 font-bold">{dailyStats.totalDays}</p>
+                                    <p className="text-foreground font-bold">{dailyStats.totalDays}</p>
                                     <p>Days Active</p>
                                 </div>
                            </div>
@@ -1337,7 +1337,7 @@ export default function ActivityLogView({
                     {statCards.map((c, i) => (
                         <div
                             key={c.key}
-                            className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 transition-colors shadow-sm"
+                            className="al-fade-up rounded-2xl border border-border/10 bg-surface-glass-regular p-5 transition-colors shadow-sm"
                             style={{
                                 animationDelay: `${0.05 + i * 0.05}s`,
                             }}
@@ -1397,7 +1397,7 @@ export default function ActivityLogView({
                     style={{ alignItems: 'stretch' }}
                 >
                     <div
-                        className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 shadow-sm"
+                        className="al-fade-up rounded-2xl border border-border/10 bg-surface-glass-regular p-5 shadow-sm"
                         style={{ animationDelay: '0.4s' }}
                     >
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -1426,7 +1426,7 @@ export default function ActivityLogView({
                                         <span
                                             className="h-2.5 w-2.5 shrink-0 rounded-full"
                                             style={{
-                                                background: [T.blue, '#f59e0b', T.green, T.red][idx],
+                                                background: [T.blue, T.orange, T.green, T.red][idx],
                                             }}
                                         />
                                         <span className="flex-1">{lab}</span>
@@ -1440,7 +1440,7 @@ export default function ActivityLogView({
                     </div>
 
                     <div
-                        className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl p-5 shadow-sm"
+                        className="al-fade-up rounded-2xl border border-border/10 bg-surface-glass-regular p-5 shadow-sm"
                         style={{ animationDelay: '0.45s' }}
                     >
                         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -1483,7 +1483,7 @@ export default function ActivityLogView({
 
                 {/* Recent activity */}
                 <section
-                    className="al-fade-up rounded-2xl border border-border/10 bg-card/50 backdrop-blur-xl shadow-sm"
+                    className="al-fade-up rounded-2xl border border-border/10 bg-surface-glass-regular shadow-sm"
                     style={{ animationDelay: '0.5s' }}
                 >
                     <div

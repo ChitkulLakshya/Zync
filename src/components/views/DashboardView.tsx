@@ -72,7 +72,8 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
 
     const { 
         data: realContributions = [], 
-        isLoading: contribLoading 
+        isLoading: contribLoading,
+        isFetching: contribFetching
     } = useGitHubContributions(selectedYear, !!currentUser && !isPreview);
 
     const stats = isPreview ? mockGitHubData?.stats : realStats;
@@ -80,7 +81,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
     const contributions = isPreview ? mockGitHubData?.contributions : realContributions;
 
     const loading = !isPreview && (statsLoading || eventsLoading || contribLoading);
-    const isRefreshing = !isPreview && statsRefetching;
+    const isRefreshing = !isPreview && (statsRefetching || contribFetching);
     const error = isPreview ? null : (statsError ? (statsError as Error).message : (stats?.connected === false ? "GitHub not connected. Sign in with GitHub to see your activity." : null));
 
     const formatEventType = (type: string) => {
@@ -199,10 +200,10 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
 
         return (
             <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
-                <Card className="border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm">
+                <Card className="glass-card">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-6">
-                            <div className="h-20 w-20 rounded-full bg-foreground/10 flex items-center justify-center">
+                            <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center">
                                 <Github className="h-10 w-10 text-foreground" />
                             </div>
                             <div className="flex-1">
@@ -218,21 +219,21 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                 </Card>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
+                    <Card className="glass-card">
                         <CardContent className="pt-6 text-center">
                             <Kanban className="h-8 w-8 text-foreground mx-auto mb-2" />
                             <p className="text-2xl font-bold">{projects.length}</p>
                             <p className="text-sm text-muted-foreground">Projects</p>
                         </CardContent>
                     </Card>
-                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
+                    <Card className="glass-card">
                         <CardContent className="pt-6 text-center">
                             <GitCommit className="h-8 w-8 text-foreground mx-auto mb-2" />
                             <p className="text-2xl font-bold">{totalTasks}</p>
                             <p className="text-sm text-muted-foreground">Total Tasks</p>
                         </CardContent>
                     </Card>
-                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
+                    <Card className="glass-card">
                         <CardContent className="pt-6 text-center">
                             <Star className="h-8 w-8 text-foreground mx-auto mb-2" />
                             <p className="text-2xl font-bold">{completedTasks}</p>
@@ -242,7 +243,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                 </div>
 
                 {projects.length > 0 ? (
-                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
+                    <Card className="glass-card">
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center gap-2">
                                 <BookMarked className="h-5 w-5" />
@@ -277,7 +278,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                         </CardContent>
                     </Card>
                 ) : (
-                    <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
+                    <Card className="glass-card">
                         <CardContent className="pt-6 text-center space-y-4">
                             <Kanban className="h-12 w-12 text-muted-foreground mx-auto" />
                             <div>
@@ -298,9 +299,9 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                         { icon: CalendarDays, title: "Calendar", desc: "Schedule meetings and track holidays", href: "/dashboard" },
                         { icon: StickyNote, title: "Notes", desc: "Share project documentation", href: "/dashboard" },
                     ].map((item) => (
-                        <Card key={item.title} className="hover:border-border/30 border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm transition-colors cursor-pointer">
+                        <Card key={item.title} className="glass-card hover:bg-surface-glass-thick transition-colors cursor-pointer">
                             <CardContent className="pt-6 flex items-center gap-4">
-                                <div className="w-10 h-10 rounded-lg bg-foreground/10 flex items-center justify-center shrink-0">
+                                <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
                                     <item.icon className="w-5 h-5 text-foreground" />
                                 </div>
                                 <div>
@@ -320,7 +321,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
         <div className="max-w-7xl mx-auto w-full p-6 md:p-8 space-y-8">
             {}
             {stats && (
-                <Card className="border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl shadow-sm">
+                <Card className="glass-card">
                     <CardContent className="pt-6">
                         <div className="flex items-center gap-6">
                             <Avatar className="h-20 w-20 border-4 border-primary/20">
@@ -330,7 +331,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                             <div className="flex-1">
                                 <div className="flex items-center gap-3">
                                     <h1 className="text-2xl font-bold">{stats.name || stats.login}</h1>
-                                    <Badge variant="secondary" className="bg-foreground/10 text-foreground">
+                                    <Badge variant="secondary" className="bg-muted text-foreground">
                                         <Github className="h-3 w-3 mr-1" />
                                         @{stats.login}
                                     </Badge>
@@ -351,7 +352,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                                     </div>
                                 </div>
                             </div>
-                            <Button variant="outline" asChild className="bg-background/50">
+                            <Button variant="outline" asChild className="bg-surface-glass-regular">
                                 <a href={stats.html_url} target="_blank" rel="noopener noreferrer">
                                     <ExternalLink className="h-4 w-4 mr-2" />
                                     View Profile
@@ -364,7 +365,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
 
             {}
             <div className="flex flex-col md:flex-row gap-6">
-                <div className={`flex-1 bg-card/50 border rounded-xl p-4 shadow-sm transition-opacity duration-200 ${isRefreshing ? 'opacity-60 pointer-events-none' : ''}`}>
+                <div className={`flex-1 glass-card p-4 transition-opacity duration-200 ${isRefreshing ? 'opacity-60 pointer-events-none' : ''}`}>
                     <ContributionGraph data={graphData} blockSize={12} blockMargin={3} blockRadius={2} className="w-full">
                         {}
                         <div className="flex items-center justify-between mb-4">
@@ -416,7 +417,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                             key={year}
                             type="button"
                             variant={selectedYear === year ? "default" : "ghost"}
-                            className={`w-full justify-start ${selectedYear === year ? "bg-blue-600 hover:bg-blue-700 text-white" : "text-muted-foreground hover:text-foreground"}`}
+                            className={`w-full justify-start ${selectedYear === year ? "bg-primary hover:bg-primary/90 text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
                             onClick={() => setSelectedYear(year)}
                             disabled={isRefreshing}
                         >
@@ -428,7 +429,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
 
             {}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-card/50 border rounded-xl p-6 shadow-sm">
+                <div className="glass-card p-6">
                     <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                         <BookMarked className="h-5 w-5" />
                         Activity overview
@@ -458,7 +459,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
                     </div>
                 </div>
 
-                <div className="bg-card/50 border rounded-xl p-6 shadow-sm flex items-center justify-center min-h-[300px]">
+                <div className="glass-card p-6 flex items-center justify-center min-h-[300px]">
                     <ResponsiveContainer width="100%" height={300}>
                         <RadarChart cx="50%" cy="50%" outerRadius="80%" data={activityStats}>
                             <PolarGrid stroke="hsl(var(--muted-foreground))" strokeOpacity={0.2} />
@@ -477,7 +478,7 @@ const DashboardView = ({ currentUser, isPreview, mockGitHubData, mockProjects }:
             </div>
 
             {}
-            <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm rounded-2xl">
+            <Card className="glass-card">
                 <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                         <Clock className="h-5 w-5" />
