@@ -823,15 +823,14 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   };
   return (
 
-    <div className="h-screen w-full relative text-foreground overflow-hidden font-sans">
-      {/* Full-viewport canvas — main column is transparent so this is visible (not body bg-black). */}
-      <div className="pointer-events-none fixed inset-0 z-0 bg-background" aria-hidden />
+    <div className="h-screen w-full flex flex-col overflow-hidden bg-sidebar">
+      {/* Top Banner (if any) */}
 
       {/* Full Screen Landing Page Overlay */}
       {isLanding && (
         <div className={cn(
-          "fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-background flex flex-col items-center justify-center transition-all duration-1000 ease-in-out",
-          isExiting ? "opacity-0 -translate-y-full blur-3xl scale-110" : "opacity-100 translate-y-0"
+          "fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-background flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.2,0.0,0.0,1.0)]",
+          isExiting ? "opacity-0 -translate-y-8 blur-xl scale-[1.02]" : "opacity-100 translate-y-0"
         )}>
           {/* Background Gradients for Landing Page */}
           <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
@@ -840,13 +839,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
           <DashboardHome onNavigate={(section) => {
             setIsExiting(true);
-            setTimeout(() => handleSectionChange(section), 800);
+            setTimeout(() => handleSectionChange(section), 400);
           }} />
         </div>
       )}
 
-      <PanelGroup direction="horizontal" autoSaveId="persistence" className="relative z-[1] h-full w-full bg-transparent">
-        {/* Sidebar Panel - Dark & Solid */}
+      <PanelGroup direction="horizontal" autoSaveId="persistence" className="relative z-[1] h-full w-full bg-sidebar">
+        {/* Sidebar Panel - The Base Tray */}
         <Panel
           ref={sidebarRef}
           defaultSize={16}
@@ -857,7 +856,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "relative bg-background flex flex-col transition-all duration-300 ease-in-out h-full border-none",
+            "relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none",
             isCollapsed && "min-w-[70px]",
             // Animation logic: Hidden during landing, slides in when landing finishes
             isLanding ? "opacity-0 invisible" : ""
@@ -953,10 +952,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       <PanelResizeHandle className="w-px bg-transparent opacity-0" />
 
-        {/* Main Content Panel - The "Card" Look */}
-        <Panel defaultSize={84} className="min-h-0 bg-transparent">
+        {/* Main Content Panel - The Floating Canvas */}
+        <Panel defaultSize={84} className="min-h-0 bg-transparent py-2 pr-0">
           <div className="h-full w-full p-0 bg-transparent">
-            <div className="h-full w-full bg-background/50 backdrop-blur-xl border border-border/10 rounded-[32px] overflow-hidden relative shadow-none flex flex-col">
+            <div className="h-full w-full bg-background border-l border-y border-sidebar-border/40 shadow-elevation4 rounded-l-[32px] overflow-hidden relative flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">

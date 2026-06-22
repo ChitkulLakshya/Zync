@@ -10,8 +10,8 @@
   
   :root {
 
-    --background: 215 16% 98%;
-    --foreground: 215 20% 10%;
+    --background: 0 0% 100%;
+    --foreground: 0 0% 10%;
 
     --card: 0 0% 100%;
     --card-foreground: 215 20% 10%;
@@ -68,13 +68,13 @@
     --shadow-elevation5: 0 32px 80px rgba(0,0,0,0.2);
 
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 215 16% 96%;
     --sidebar-foreground: 215 20% 10%;
     --sidebar-primary: 212 99% 48%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 94%;
+    --sidebar-accent: 0 0% 92%;
     --sidebar-accent-foreground: 215 20% 10%;
-    --sidebar-border: 0 0% 89%;
+    --sidebar-border: 215 16% 90%;
     --sidebar-ring: 212 99% 48%;
 
 
@@ -91,8 +91,8 @@
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 0 0% 87%;
+    --background: 0 0% 5%;
+    --foreground: 0 0% 98%;
 
     --card: 0 0% 11%;
     --card-foreground: 0 0% 98%;
@@ -134,13 +134,13 @@
 
     --glass-bevel: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
-    --sidebar-background: 222 47% 4%;
+    --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-primary: 199 65% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 222 47% 10%;
+    --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 12%;
+    --sidebar-border: 0 0% 12%;
     --sidebar-ring: 199 65% 55%;
 
     --task-orange: 25 70% 60%;
@@ -675,4 +675,5 @@
 }
 .dark::view-transition-new(root) {
   z-index: 2;
+  clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
 }
