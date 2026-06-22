@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { API_BASE_URL } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 
@@ -77,6 +77,7 @@ export const useGitHubContributions = (year: number, enabled: boolean) => {
         queryKey: ['github', 'contributions', year],
         queryFn: () => fetchWithAuth(`${API_BASE_URL}/api/github/contributions?year=${year}`),
         enabled,
+        placeholderData: keepPreviousData,
     });
 };
 
