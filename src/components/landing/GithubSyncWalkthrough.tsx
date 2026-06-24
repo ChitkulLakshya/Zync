@@ -11,8 +11,16 @@ export const GithubSyncWalkthrough = () => {
   const [cursorPos, setCursorPos] = useState({ x: "50%", y: "90%" });
   const [isClicking, setIsClicking] = useState(false);
   const [termText, setTermText] = useState("");
+  const [isMobile, setIsMobile] = useState(false);
 
   const commitCommand = 'git commit -m "Fix auth [ZYNC-COMPLETE #142]"';
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -28,7 +36,7 @@ export const GithubSyncWalkthrough = () => {
       
       // Move to Copy Button
       if (!isActive) {return;}
-      setCursorPos({ x: "85%", y: "61%" });
+      setCursorPos({ x: isMobile ? "82%" : "85%", y: isMobile ? "63%" : "61%" });
       await new Promise(r => setTimeout(r, 800));
       
       // Click Copy
@@ -42,13 +50,14 @@ export const GithubSyncWalkthrough = () => {
       
       // Move mouse away after copying
       if (!isActive) {return;}
-      setCursorPos({ x: "90%", y: "80%" });
+      setCursorPos({ x: isMobile ? "85%" : "90%", y: isMobile ? "75%" : "80%" });
       await new Promise(r => setTimeout(r, 500));
       
       // Show Terminal
       if (!isActive) {return;}
       setPhase("terminal");
-      setCursorPos({ x: "95%", y: "110%" });
+      // Prevent cursor from overlapping surrounding content outside the card by constraining y on mobile
+      setCursorPos({ x: isMobile ? "85%" : "95%", y: isMobile ? "94%" : "110%" });
       await new Promise(r => setTimeout(r, 600));
       
       // Type in terminal
@@ -80,14 +89,14 @@ export const GithubSyncWalkthrough = () => {
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [isMobile]);
 
   return (
-    <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-elevation5 rounded-[2rem] p-6 mx-auto flex flex-col justify-center min-h-[320px] font-sans overflow-hidden">
+    <div className="relative w-full max-w-[420px] bg-secondary/5 border border-border/10 shadow-elevation5 rounded-3xl sm:rounded-[2rem] p-4 sm:p-6 mx-auto flex flex-col justify-center min-h-[300px] sm:min-h-[320px] font-sans overflow-hidden">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
       
       {/* Exact replica of TaskGitSync Component */}
-      <div className="p-4 rounded-2xl border border-black/5 dark:border-white/10 bg-card/90 backdrop-blur-xl shadow-sm pointer-events-none">
+      <div className={`p-4 rounded-2xl border border-black/5 dark:border-white/10 bg-card/90 backdrop-blur-xl shadow-sm pointer-events-none transition-transform duration-500 ${phase !== "idle" && phase !== "copying" && isMobile ? "-translate-y-8" : ""}`}>
         <div className="flex items-center gap-2 mb-2">
           <Github className="w-4 h-4 text-foreground" />
           <h4 className="font-medium text-sm text-foreground">Sync with GitHub</h4>
@@ -97,17 +106,17 @@ export const GithubSyncWalkthrough = () => {
         </p>
 
         <div className="flex items-center gap-2">
-          <code className="flex-1 bg-black/5 dark:bg-black/40 backdrop-blur-md px-3 py-2 rounded-xl text-xs font-mono text-foreground truncate border border-border/10 shadow-inner">
+          <code className="flex-1 bg-black/5 dark:bg-black/40 backdrop-blur-md px-3 py-2 rounded-xl text-[10px] sm:text-xs font-mono text-foreground truncate border border-border/10 shadow-inner">
             [ZYNC-COMPLETE #142]
           </code>
           <motion.div animate={isClicking && phase === "idle" ? { scale: 0.9 } : { scale: 1 }}>
             <Button
               variant="outline"
               size="icon"
-              className="shrink-0 h-9 w-9"
+              className="shrink-0 h-9 w-9 sm:h-9 sm:w-9"
             >
               {phase !== "idle" ? (
-                <Check className="w-4 h-4 text-green-500" />
+                <Check className="w-4 h-4 text-task-green" />
               ) : (
                 <Copy className="w-4 h-4" />
               )}
@@ -123,7 +132,7 @@ export const GithubSyncWalkthrough = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute bottom-6 left-6 right-6 overflow-hidden rounded-xl bg-[#0d0d0d] border border-white/10 shadow-elevation4 font-mono text-xs"
+            className="absolute bottom-4 sm:bottom-6 left-4 sm:left-6 right-4 sm:right-6 overflow-hidden rounded-xl bg-[#0d0d0d] border border-white/10 shadow-elevation4 font-mono text-[10px] sm:text-xs"
           >
             {/* Mac dots */}
             <div className="absolute top-3.5 left-3.5 flex gap-1.5 opacity-50">
@@ -132,12 +141,12 @@ export const GithubSyncWalkthrough = () => {
               <div className="w-2.5 h-2.5 rounded-full bg-white/20" />
             </div>
 
-            <div className="p-4 pt-10 text-blue-200/90 leading-relaxed min-h-[100px]">
+            <div className="p-3 sm:p-4 pt-10 sm:pt-10 text-blue-200/90 leading-relaxed min-h-[90px] sm:min-h-[100px]">
               <div className="flex">
-                <span className="text-green-500 mr-2 shrink-0">$</span>
+                <span className="text-task-green mr-2 shrink-0">$</span>
                 <span className="break-all">
                   {termText}
-                  {phase === "typing" && <span className="inline-block w-2 h-3.5 bg-blue-200/80 ml-1 animate-pulse align-middle" />}
+                  {phase === "typing" && <span className="inline-block w-1.5 sm:w-2 h-3 sm:h-3.5 bg-blue-200/80 ml-1 animate-pulse align-middle" />}
                 </span>
               </div>
               
@@ -169,10 +178,10 @@ export const GithubSyncWalkthrough = () => {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
-            className="absolute top-6 left-1/2 -translate-x-1/2 bg-card border border-task-green/30 shadow-elevation4 px-4 py-2.5 rounded-full flex items-center gap-2 z-20 whitespace-nowrap"
+            className="absolute top-4 sm:top-6 left-1/2 -translate-x-1/2 bg-card border border-task-green/30 shadow-elevation4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full flex items-center gap-1.5 sm:gap-2 z-20 whitespace-nowrap"
           >
-            <CheckCircle2 className="w-4 h-4 text-task-green" />
-            <span className="text-xs font-medium text-foreground">Task #142 marked as Done</span>
+            <CheckCircle2 className="w-4 h-4 sm:w-4 sm:h-4 text-task-green" />
+            <span className="text-[10px] sm:text-xs font-medium text-foreground">Task #142 marked as Done</span>
           </motion.div>
         )}
       </AnimatePresence>

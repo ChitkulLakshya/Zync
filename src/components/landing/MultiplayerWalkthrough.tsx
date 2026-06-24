@@ -17,6 +17,15 @@ export const MultiplayerWalkthrough = () => {
   const [mikePhase, setMikePhase] = useState("idle");
   const [mikePos, setMikePos] = useState({ x: "50%", y: "120%" });
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   useEffect(() => {
     let isActive = true;
 
@@ -37,12 +46,12 @@ export const MultiplayerWalkthrough = () => {
 
       // 1. Alex moves in to type
       if (!isActive) {return;}
-      setAlexPos({ x: "13%", y: "65%" }); // Positioned at the end of the green typing block
+      setAlexPos({ x: isMobile ? "10%" : "13%", y: isMobile ? "63%" : "69%" }); 
       setAlexPhase("typing");
       
       // Sarah moves in right after
-      setSarahPos({ x: "13%", y: "77%" }); // Over the purple block
-      setMikePos({ x: "60%", y: "90%" }); // Mike hovers the orange bottom block
+      setSarahPos({ x: isMobile ? "10%" : "13%", y: isMobile ? "74%" : "81%" }); 
+      setMikePos({ x: isMobile ? "65%" : "60%", y: isMobile ? "88%" : "94%" }); 
 
       await new Promise(r => setTimeout(r, 800));
 
@@ -53,7 +62,7 @@ export const MultiplayerWalkthrough = () => {
         if (!isActive) {break;}
         setAlexText(fullText.slice(0, i));
         // Slowly move Alex cursor to the right as they type
-        setAlexPos(prev => ({ ...prev, x: `${13 + (i * 1.8)}%` }));
+        setAlexPos(prev => ({ ...prev, x: `${(isMobile ? 10 : 13) + (i * 1.8)}%` }));
         await new Promise(r => setTimeout(r, 40 + Math.random() * 40));
       }
       
@@ -71,7 +80,7 @@ export const MultiplayerWalkthrough = () => {
 
       // 3. Sarah moves down to click a task
       if (!isActive) {return;}
-      setSarahPos({ x: "30%", y: "97%" }); // Move to slash menu item
+      setSarahPos({ x: isMobile ? "25%" : "30%", y: isMobile ? "94%" : "101%" }); 
       await new Promise(r => setTimeout(r, 600));
       setSarahClicking(true);
       await new Promise(r => setTimeout(r, 150));
@@ -82,8 +91,8 @@ export const MultiplayerWalkthrough = () => {
       setSarahPhase("inserted");
       
       // Move Sarah cursor away slightly to the end of the tag
-      setSarahPos({ x: "73%", y: "75%" });
-      setAlexPos({ x: "77%", y: "65%" });
+      setSarahPos({ x: isMobile ? "80%" : "73%", y: isMobile ? "74%" : "79%" });
+      setAlexPos({ x: isMobile ? "85%" : "77%", y: isMobile ? "63%" : "69%" });
 
       await new Promise(r => setTimeout(r, 2000));
 
@@ -98,12 +107,12 @@ export const MultiplayerWalkthrough = () => {
 
     runSequence();
     return () => { isActive = false; };
-  }, []);
+  }, [isMobile]);
 
   return (
-    <div className="relative w-full max-w-[460px] bg-card/80 backdrop-blur-xl border border-border/10 shadow-elevation5 rounded-2xl flex flex-col font-sans overflow-hidden mx-auto h-[380px]">
+    <div className="relative w-full max-w-[460px] bg-card/80 backdrop-blur-xl border border-border/10 shadow-elevation5 rounded-2xl flex flex-col font-sans overflow-hidden mx-auto h-[340px] sm:h-[380px]">
       {/* Background glow for premium feel */}
-      <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-foreground/5 to-transparent pointer-events-none" />
+      <div className="absolute top-0 inset-x-0 h-24 sm:h-32 bg-gradient-to-b from-foreground/5 to-transparent pointer-events-none" />
 
       {/* Simulated Cursors */}
       <SimulatedCursor x={alexPos.x} y={alexPos.y} isClicking={alexClicking} name="Alex" color="hsl(var(--task-green))" />
@@ -111,8 +120,8 @@ export const MultiplayerWalkthrough = () => {
       <SimulatedCursor x={mikePos.x} y={mikePos.y} isClicking={false} name="Mike" color="hsl(var(--task-orange))" />
 
       {/* Top Bar */}
-      <div className="h-12 shrink-0 flex items-center px-5 border-b border-border/10 bg-secondary/20 relative z-10">
-        <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
+      <div className="h-10 sm:h-12 shrink-0 flex items-center px-4 sm:px-5 border-b border-border/10 bg-secondary/20 relative z-10">
+        <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground font-medium">
           <span>My Notes</span>
           <ChevronRight size={14} className="text-border/50" />
           <span className="text-foreground">Project Specs</span>
@@ -120,33 +129,33 @@ export const MultiplayerWalkthrough = () => {
       </div>
 
       {/* Editor Canvas */}
-      <div className="flex-1 p-6 relative z-10">
+      <div className="flex-1 p-4 sm:p-6 relative z-10">
         {/* EditorHeader */}
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-4 sm:mb-5">
           <div className="flex -space-x-1.5">
-            <div className="w-7 h-7 rounded-full bg-task-green flex items-center justify-center border-[2.5px] border-card shadow-sm z-30">
-              <span className="text-[10px] text-background font-bold">A</span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-task-green flex items-center justify-center border-[2.5px] border-card shadow-sm z-30">
+              <span className="text-[9px] sm:text-[10px] text-background font-bold">A</span>
             </div>
-            <div className="w-7 h-7 rounded-full bg-task-purple flex items-center justify-center border-[2.5px] border-card shadow-sm z-20">
-              <span className="text-[10px] text-background font-bold">S</span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-task-purple flex items-center justify-center border-[2.5px] border-card shadow-sm z-20">
+              <span className="text-[9px] sm:text-[10px] text-background font-bold">S</span>
             </div>
-            <div className="w-7 h-7 rounded-full bg-task-orange flex items-center justify-center border-[2.5px] border-card shadow-sm z-10">
-              <span className="text-[10px] text-background font-bold">M</span>
+            <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-task-orange flex items-center justify-center border-[2.5px] border-card shadow-sm z-10">
+              <span className="text-[9px] sm:text-[10px] text-background font-bold">M</span>
             </div>
           </div>
           
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground bg-secondary/30 px-2 py-1 rounded-md border border-border/10">
+          <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground bg-secondary/30 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-md border border-border/10">
             <CheckCircle2 size={12} className="text-task-green" />
             <span className="text-task-green font-medium">Saved</span>
           </div>
         </div>
 
-        <h1 className="text-[28px] font-bold text-foreground tracking-tight leading-tight mb-5">
+        <h1 className="text-2xl sm:text-[28px] font-bold text-foreground tracking-tight leading-tight mb-3 sm:mb-5">
           Project Specs
         </h1>
 
         {/* Blocks */}
-        <div className="space-y-2.5 text-[15px] leading-relaxed text-muted-foreground">
+        <div className="space-y-2 sm:space-y-2.5 text-sm sm:text-[15px] leading-relaxed text-muted-foreground">
           
           {/* Static block */}
           <div className="py-1 px-1">
@@ -154,7 +163,7 @@ export const MultiplayerWalkthrough = () => {
           </div>
 
           {/* Block active by Alex */}
-          <div className="relative py-1.5 px-3 border-l-[3px] border-task-green bg-task-green/5 rounded-r-md transition-colors">
+          <div className="relative py-1 sm:py-1.5 px-2 sm:px-3 border-l-[3px] border-task-green bg-task-green/5 rounded-r-md transition-colors">
             <p className="text-foreground">
               {alexText}
               {alexPhase === "typing" && <span className="inline-block w-[2px] h-[1em] bg-task-green ml-0.5 animate-pulse translate-y-0.5" />}
@@ -162,14 +171,14 @@ export const MultiplayerWalkthrough = () => {
           </div>
 
           {/* Block active by Sarah */}
-          <div className="relative py-1.5 px-3 border-l-[3px] border-task-purple bg-task-purple/5 rounded-r-md min-h-[36px] flex items-center transition-colors">
+          <div className="relative py-1 sm:py-1.5 px-2 sm:px-3 border-l-[3px] border-task-purple bg-task-purple/5 rounded-r-md min-h-[32px] sm:min-h-[36px] flex items-center transition-colors">
             {sarahPhase === "inserted" ? (
-              <span className="inline-flex items-center gap-1.5 font-medium text-foreground bg-background border border-border/10 shadow-sm px-2 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 sm:gap-1.5 font-medium text-foreground bg-background border border-border/10 shadow-sm px-1.5 sm:px-2 py-0.5 rounded-md">
                 Implement SSO 
-                <span className="text-muted-foreground text-[11px] bg-secondary px-1.5 py-0.5 rounded font-mono">ENG-88</span>
+                <span className="text-muted-foreground text-[9px] sm:text-[11px] bg-secondary px-1 sm:px-1.5 py-0.5 rounded font-mono">ENG-88</span>
               </span>
             ) : sarahPhase === "menu" ? (
-              <span className="text-muted-foreground/80 font-medium bg-secondary/50 px-1.5 rounded">/task</span>
+              <span className="text-muted-foreground/80 font-medium bg-secondary/50 px-1 sm:px-1.5 rounded">/task</span>
             ) : (
               <span className="text-muted-foreground/30 opacity-0">...</span>
             )}
@@ -181,15 +190,15 @@ export const MultiplayerWalkthrough = () => {
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="absolute top-full left-0 mt-1.5 w-52 bg-card border border-border/10 shadow-elevation4 rounded-xl overflow-hidden z-20"
+                  className="absolute top-full left-0 mt-1 sm:mt-1.5 w-48 sm:w-52 bg-card border border-border/10 shadow-elevation4 rounded-xl overflow-hidden z-20"
                 >
-                  <div className="px-3 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border/5 bg-secondary/10">
+                  <div className="px-2 sm:px-3 py-1.5 sm:py-2 text-[9px] sm:text-[10px] font-bold text-muted-foreground uppercase tracking-wider border-b border-border/5 bg-secondary/10">
                     Link Task
                   </div>
-                  <div className="p-1.5">
-                    <div className="px-2.5 py-2 text-[13px] text-foreground bg-secondary/60 rounded-md cursor-pointer flex flex-col gap-0.5">
+                  <div className="p-1 sm:p-1.5">
+                    <div className="px-2 sm:px-2.5 py-1.5 sm:py-2 text-xs sm:text-[13px] text-foreground bg-secondary/60 rounded-md cursor-pointer flex flex-col gap-0.5">
                       <span className="font-medium">Implement SSO</span>
-                      <span className="text-[10px] text-muted-foreground font-mono">ENG-88</span>
+                      <span className="text-[9px] sm:text-[10px] text-muted-foreground font-mono">ENG-88</span>
                     </div>
                   </div>
                 </motion.div>
@@ -198,7 +207,7 @@ export const MultiplayerWalkthrough = () => {
           </div>
 
           {/* Block active by Mike */}
-          <div className="relative py-1.5 px-3 border-l-[3px] border-task-orange bg-task-orange/5 rounded-r-md mt-4 transition-colors">
+          <div className="relative py-1 sm:py-1.5 px-2 sm:px-3 border-l-[3px] border-task-orange bg-task-orange/5 rounded-r-md mt-2 sm:mt-4 transition-colors">
             <p>Database migrations are scheduled for Friday.</p>
           </div>
         </div>

@@ -88,7 +88,7 @@ const FeaturesSection = () => {
               </p>
             </div>
             
-            <div className="flex-[1.5] w-full flex justify-center lg:justify-end relative z-10">
+            <div className="flex-[1.5] w-full flex justify-center lg:justify-end relative z-10 px-4 sm:px-8">
                <ProjectSetupWalkthrough />
             </div>
           </div>
@@ -106,7 +106,7 @@ const FeaturesSection = () => {
                 Connect repositories and auto-complete tasks when commits are pushed. Your code drives your workflow.
               </p>
               
-              <div className="mt-auto w-full relative z-10 flex justify-center">
+              <div className="mt-auto w-full relative z-10 flex justify-center px-4 sm:px-8">
                  <GithubSyncWalkthrough />
               </div>
           </div>
@@ -116,7 +116,7 @@ const FeaturesSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center py-16 border-t border-border/30">
           <div className="order-2 lg:order-1">
             <div className="relative z-10 flex justify-center lg:justify-start">
-              <div className="w-full max-w-lg flex justify-center relative">
+              <div className="w-full max-w-lg flex justify-center relative px-4 sm:px-8">
                 <MultiplayerWalkthrough />
               </div>
             </div>
@@ -158,7 +158,7 @@ const FeaturesSection = () => {
             </div>
           </div>
           <div className="relative z-10 flex justify-center lg:justify-end">
-            <div className="w-full max-w-sm flex justify-center relative">
+            <div className="w-full max-w-sm flex justify-center relative px-4 sm:px-8">
               <SmartCalendarWalkthrough />
             </div>
           </div>
@@ -168,7 +168,7 @@ const FeaturesSection = () => {
         <div className="grid lg:grid-cols-2 gap-12 items-center py-16 border-t border-border/30">
           <div className="order-2 lg:order-1">
             <div className="relative z-10 flex justify-center lg:justify-start">
-              <div className="w-full max-w-sm flex justify-center relative">
+              <div className="w-full max-w-sm flex justify-center relative px-4 sm:px-8">
                 <BuiltinChatWalkthrough />
               </div>
             </div>
@@ -210,7 +210,7 @@ const FeaturesSection = () => {
             </div>
           </div>
           <div className="relative z-10 flex justify-center lg:justify-end">
-            <div className="w-full max-w-sm flex justify-center relative">
+            <div className="w-full max-w-sm flex justify-center relative px-4 sm:px-8">
               <FocusedNotificationsWalkthrough />
             </div>
           </div>

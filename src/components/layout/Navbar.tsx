@@ -1,9 +1,10 @@
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Github } from "lucide-react";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -25,17 +26,48 @@ const Navbar = () => {
   }, []);
 
   const scrollToSection = (sectionId: string) => {
+    setIsOpen(false);
+    if (window.location.pathname !== '/') {
+      navigate('/');
+      setTimeout(() => {
+        const element = document.getElementById(sectionId);
+        if (element) {
+          let top = element.getBoundingClientRect().top + window.scrollY - 80;
+          
+          if (sectionId === 'mobile' && window.innerWidth >= 1024) {
+            top = element.getBoundingClientRect().top + window.scrollY + element.offsetHeight - window.innerHeight;
+          }
+
+          animate(window.scrollY, top, {
+            duration: 0.8,
+            ease: [0.22, 1, 0.36, 1],
+            onUpdate: (value) => window.scrollTo(0, value)
+          });
+        }
+      }, 100);
+      return;
+    }
+
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      let top = element.getBoundingClientRect().top + window.scrollY - 80;
+      
+      if (sectionId === 'mobile' && window.innerWidth >= 1024) {
+        top = element.getBoundingClientRect().top + window.scrollY + element.offsetHeight - window.innerHeight;
+      }
+
+      animate(window.scrollY, top, {
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1],
+        onUpdate: (value) => window.scrollTo(0, value)
+      });
     }
-    setIsOpen(false);
   };
 
   const navItems = [
-    { name: "Features", action: () => scrollToSection('features') },
-    { name: "Mobile App", action: () => scrollToSection('mobile') },
-    { name: "Contact", action: () => scrollToSection('cta') },
+    { name: "Features", id: 'features' },
+    { name: "Mobile App", id: 'mobile' },
+    { name: "Contact", id: 'cta' },
   ];
 
   const isPill = isScrolled && !isOpen;
@@ -78,9 +110,6 @@ const Navbar = () => {
             <span className="font-serif-elegant font-bold text-xl tracking-tight text-foreground">
               Zync
             </span>
-            <span className="text-[10px] font-medium text-foreground bg-secondary/20 px-1.5 py-0.5 rounded uppercase tracking-wider">
-              Beta
-            </span>
           </Link>
 
           {}
@@ -88,7 +117,7 @@ const Navbar = () => {
             {navItems.map((item) => (
               <button
                 key={item.name}
-                onClick={item.action}
+                onClick={() => scrollToSection(item.id)}
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
                 {item.name}
@@ -98,6 +127,15 @@ const Navbar = () => {
 
           {}
           <div className="hidden lg:flex items-center gap-3">
+            <a href="https://github.com/zync-meet/Zync" target="_blank" rel="noopener noreferrer">
+              <Button variant="outline" size="default" className="gap-2 hidden xl:flex">
+                <Github className="w-4 h-4" />
+                Star on GitHub
+              </Button>
+              <Button variant="outline" size="icon" className="xl:hidden">
+                <Github className="w-4 h-4" />
+              </Button>
+            </a>
             <ThemeToggle />
             <Link to="/login">
               <Button variant="ghost" size="default">
@@ -106,7 +144,7 @@ const Navbar = () => {
             </Link>
             <Link to="/signup">
               <Button variant="hero" size="default">
-                Join Beta
+                Sign Up
               </Button>
             </Link>
           </div>
@@ -130,13 +168,19 @@ const Navbar = () => {
               {navItems.map((item) => (
                 <button
                   key={item.name}
-                  onClick={item.action}
+                  onClick={() => scrollToSection(item.id)}
                   className="text-left text-muted-foreground hover:text-foreground transition-colors font-medium py-2"
                 >
                   {item.name}
                 </button>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/10">
+                <a href="https://github.com/zync-meet/Zync" target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)}>
+                  <Button variant="outline" className="w-full justify-center gap-2">
+                    <Github className="w-4 h-4" />
+                    Star on GitHub
+                  </Button>
+                </a>
                 <Link to="/login" onClick={() => setIsOpen(false)}>
                   <Button variant="ghost" className="w-full justify-center">
                     Log In
@@ -144,7 +188,7 @@ const Navbar = () => {
                 </Link>
                 <Link to="/signup" onClick={() => setIsOpen(false)}>
                   <Button variant="hero" className="w-full justify-center">
-                    Join Beta
+                    Sign Up
                   </Button>
                 </Link>
               </div>

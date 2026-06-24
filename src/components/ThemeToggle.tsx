@@ -25,6 +25,7 @@ export function ThemeToggle() {
 
     document.documentElement.style.setProperty('--theme-x', `${x}px`);
     document.documentElement.style.setProperty('--theme-y', `${y}px`);
+    document.documentElement.classList.add('theme-transitioning');
 
     const transition = document.startViewTransition(() => {
       flushSync(() => {
@@ -47,8 +48,13 @@ export function ThemeToggle() {
           pseudoElement: isDark
             ? "::view-transition-old(root)"
             : "::view-transition-new(root)",
+          fill: "forwards",
         }
       );
+    });
+
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove('theme-transitioning');
     });
   };
 

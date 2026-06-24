@@ -5,6 +5,14 @@ import { Paperclip, Send, Smile, CheckCheck } from 'lucide-react';
 
 export const BuiltinChatWalkthrough = () => {
   const [step, setStep] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -36,7 +44,7 @@ export const BuiltinChatWalkthrough = () => {
   const textToType = "The new design looks amazing! 🚀";
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col">
+    <div className="relative w-full max-w-sm aspect-[4/3] sm:aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-2xl sm:rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col min-h-[300px] sm:min-h-0">
       {/* Header (Mirrors ChatView Avatar & Status) */}
       <div className="flex items-center gap-2 p-3 border-b border-border/10 bg-secondary/30 relative z-10">
         <div className="relative">
@@ -46,8 +54,8 @@ export const BuiltinChatWalkthrough = () => {
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-background bg-task-green" />
         </div>
         <div className="flex flex-col">
-          <span className="text-[10px] font-semibold text-foreground leading-tight">Sarah Chen</span>
-          <span className="text-[8px] text-muted-foreground leading-tight">online</span>
+          <span className="text-[11px] sm:text-[10px] font-semibold text-foreground leading-tight">Sarah Chen</span>
+          <span className="text-[9px] sm:text-[8px] text-muted-foreground leading-tight">online</span>
         </div>
       </div>
 
@@ -58,9 +66,9 @@ export const BuiltinChatWalkthrough = () => {
         {/* Received Message */}
         <div className="flex gap-2 justify-start relative z-10">
           <div className="w-5 h-5 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-[7px] font-bold text-foreground mt-auto">SC</div>
-          <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm px-2.5 py-1.5 max-w-[75%] shadow-sm">
-            <p className="text-[8px] leading-relaxed">Hey! Did you check the mockups for the landing page?</p>
-            <div className="text-[6px] text-muted-foreground mt-0.5 text-right">10:42 AM</div>
+          <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm px-2.5 py-1.5 max-w-[85%] sm:max-w-[75%] shadow-sm">
+            <p className="text-[9px] sm:text-[8px] leading-relaxed">Hey! Did you check the mockups for the landing page?</p>
+            <div className="text-[7px] sm:text-[6px] text-muted-foreground mt-0.5 text-right">10:42 AM</div>
           </div>
         </div>
 
@@ -73,10 +81,10 @@ export const BuiltinChatWalkthrough = () => {
               exit={{ opacity: 0 }}
               className="flex gap-2 justify-end relative z-10"
             >
-              <div className="bg-foreground text-background rounded-2xl rounded-br-sm px-2.5 py-1.5 max-w-[75%] shadow-sm">
-                <p className="text-[8px] font-medium leading-relaxed">{textToType}</p>
-                <div className="text-[6px] text-background/70 mt-0.5 flex justify-end items-center gap-0.5">
-                  10:45 AM <CheckCheck className="w-2 h-2 text-blue-500" />
+              <div className="bg-foreground text-background rounded-2xl rounded-br-sm px-2.5 py-1.5 max-w-[85%] sm:max-w-[75%] shadow-sm">
+                <p className="text-[9px] sm:text-[8px] font-medium leading-relaxed">{textToType}</p>
+                <div className="text-[7px] sm:text-[6px] text-background/70 mt-0.5 flex justify-end items-center gap-0.5">
+                  10:45 AM <CheckCheck className="w-2.5 h-2.5 sm:w-2 sm:h-2 text-blue-500" />
                 </div>
               </div>
             </motion.div>
@@ -96,16 +104,16 @@ export const BuiltinChatWalkthrough = () => {
             </div>
           </div>
           
-          <div className="flex-1 h-6 bg-secondary/30 border border-border/20 rounded-md relative flex items-center px-2 overflow-hidden">
+          <div className="flex-1 h-7 sm:h-6 bg-secondary/30 border border-border/20 rounded-md relative flex items-center px-2 overflow-hidden">
             {step === 0 || step === 1 ? (
-              <span className="text-[8px] text-muted-foreground">Type a message...</span>
+              <span className="text-[9px] sm:text-[8px] text-muted-foreground">Type a message...</span>
             ) : null}
             {step >= 2 && step < 4 && (
               <motion.span 
                 initial={{ clipPath: 'inset(0 100% 0 0)' }}
                 animate={{ clipPath: 'inset(0 0% 0 0)' }}
                 transition={{ duration: 1.8, ease: "linear" }}
-                className="text-[8px] text-foreground font-medium whitespace-nowrap"
+                className="text-[9px] sm:text-[8px] text-foreground font-medium whitespace-nowrap"
               >
                 {textToType}
               </motion.span>
@@ -114,9 +122,9 @@ export const BuiltinChatWalkthrough = () => {
           
           <motion.div 
             animate={{ scale: step === 3 ? 0.9 : 1 }}
-            className={`w-6 h-6 rounded flex items-center justify-center transition-colors ${step >= 2 && step < 4 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-secondary text-muted-foreground'}`}
+            className={`w-7 h-7 sm:w-6 sm:h-6 rounded flex items-center justify-center transition-colors ${step >= 2 && step < 4 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-secondary text-muted-foreground'}`}
           >
-            <Send className="w-3 h-3" />
+            <Send className="w-3.5 h-3.5 sm:w-3 sm:h-3" />
           </motion.div>
         </div>
       </div>
@@ -124,12 +132,12 @@ export const BuiltinChatWalkthrough = () => {
       {/* Simulated Cursor */}
       {(() => {
         const cursorPos = 
-          step === 0 ? { x: "85%", y: "85%" } :
-          step === 1 ? { x: "50%", y: "90%" } : // Click input
-          step === 2 ? { x: "50%", y: "90%" } : // Typing
-          step === 3 ? { x: "92%", y: "90%" } : // Click send
-          step === 4 ? { x: "120%", y: "120%" } : // Leave
-          { x: "85%", y: "85%" };
+          step === 0 ? { x: isMobile ? "90%" : "85%", y: isMobile ? "60%" : "85%" } :
+          step === 1 ? { x: "30%", y: "96%" } : // Click input
+          step === 2 ? { x: "30%", y: "96%" } : // Typing
+          step === 3 ? { x: isMobile ? "94p%" : "92%", y: isMobile ? "92%" : "90%" } : // Click send
+          step === 4 ? { x: isMobile ? "90%" : "120%", y: isMobile ? "60%" : "120%" } : // Leave
+          { x: isMobile ? "90%" : "85%", y: isMobile ? "90%" : "85%" };
         return (
           <SimulatedCursor 
             x={cursorPos.x}

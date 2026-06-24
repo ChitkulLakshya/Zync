@@ -19,7 +19,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 215 20% 10%;
 
-    --primary: 212 99% 48%;
+    --primary: 0 0% 9%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 215 16% 96%;
@@ -28,8 +28,8 @@
     --muted: 215 16% 96%;
     --muted-foreground: 215 16% 45%;
 
-    --accent: 212 99% 95%;
-    --accent-foreground: 212 99% 48%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
@@ -75,7 +75,7 @@
     --sidebar-accent: 0 0% 92%;
     --sidebar-accent-foreground: 215 20% 10%;
     --sidebar-border: 215 16% 90%;
-    --sidebar-ring: 212 99% 48%;
+    --sidebar-ring: 0 0% 9%;
 
 
     --level-0: #ebedf0;
@@ -100,8 +100,8 @@
     --popover: 0 0% 11%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 212 70% 58%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
 
     --secondary: 0 0% 16%;
     --secondary-foreground: 0 0% 98%;
@@ -110,7 +110,7 @@
     --muted-foreground: 0 0% 65%;
 
     --accent: 0 0% 16%;
-    --accent-foreground: 212 70% 65%;
+    --accent-foreground: 0 0% 98%;
 
     --gradient-hero: linear-gradient(180deg, hsl(0 0% 8%) 0%, hsl(0 0% 5%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 11%) 0%, hsl(0 0% 8%) 100%);
@@ -120,7 +120,7 @@
 
     --border: 0 0% 18%;
     --input: 0 0% 18%;
-    --ring: 212 70% 58%;
+    --ring: 0 0% 98%;
 
     --shadow-sm: none;
     --shadow-md: none;
@@ -141,7 +141,7 @@
     --sidebar-accent: 0 0% 10%;
     --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 0 0% 12%;
-    --sidebar-ring: 199 65% 55%;
+    --sidebar-ring: 0 0% 98%;
 
     --task-orange: 25 70% 60%;
     --task-green: 142 50% 55%;
@@ -655,6 +655,10 @@
 }
 
 /* Theme Toggle View Transitions */
+.theme-transitioning * {
+  transition: none !important;
+}
+
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation: none;
@@ -675,5 +679,4 @@
 }
 .dark::view-transition-new(root) {
   z-index: 2;
-  clip-path: circle(0px at var(--theme-x, 50%) var(--theme-y, 50%));
 }
