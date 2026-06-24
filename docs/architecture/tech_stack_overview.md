@@ -47,9 +47,10 @@ The backend is an event-driven Node.js server designed to handle high-frequency 
 - **Validation**: `zod` for rigorous runtime payload validation.
 
 ### Database & Storage Layer
-Zync utilizes a polyglot persistence strategy, combining SQL and NoSQL databases.
-- **PostgreSQL via Prisma** (`pg`, `@prisma/client`): Handles highly relational data like Workspaces, Users, and Team permissions.
-- **MongoDB via Mongoose** (`mongodb`, `mongoose`): Manages unstructured document data, nested canvas objects, and chat histories.
+Zync utilizes a pure NoSQL database architecture, using MongoDB as the single source of truth, but uniquely accesses it via dual ORM/ODM layers.
+- **MongoDB (Primary Database)**: Powers the entire application.
+- **Prisma** (`@prisma/client`): Configured specifically for MongoDB (`provider = "mongodb"`), handling the relational querying of Projects, Teams, and Users with strict type-safety.
+- **Mongoose** (`mongoose`): Operating side-by-side with Prisma, used for complex, unstructured data operations (like deeply nested Chat objects and flexible user states).
 - **Redis** (`redis`): Acts as a high-performance in-memory cache and a Pub/Sub message broker for scaling Socket.IO across multiple Node instances.
 - **Cloudinary** (`cloudinary`): Manages media uploads and image delivery.
 - **Multer** (`multer`): Handles multipart/form-data for file uploads.
