@@ -5,6 +5,14 @@ import { Bell, CheckCircle2, User, FolderKanban } from 'lucide-react';
 
 export const FocusedNotificationsWalkthrough = () => {
   const [step, setStep] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -34,7 +42,7 @@ export const FocusedNotificationsWalkthrough = () => {
   }, []);
 
   return (
-    <div className="relative w-full max-w-sm aspect-[4/3] bg-background/50 backdrop-blur-md rounded-xl border border-border/10 overflow-hidden shadow-elevation3 mx-auto flex flex-col">
+    <div className="relative w-full max-w-sm aspect-[4/3] sm:aspect-[4/3] bg-background/50 backdrop-blur-md rounded-2xl sm:rounded-xl border border-border/10 overflow-hidden shadow-elevation3 mx-auto flex flex-col min-h-[300px] sm:min-h-0">
       {/* Top Navbar Simulation (Mirrors DesktopPreview header) */}
       <div className="h-10 border-b border-border/10 flex items-center justify-between px-3 bg-background/60 backdrop-blur-md relative z-20">
         <div className="w-16 h-2.5 bg-foreground/10 rounded" />
@@ -62,7 +70,7 @@ export const FocusedNotificationsWalkthrough = () => {
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -5, transition: { duration: 0.15 } }}
-              className="absolute top-2 right-2 w-56 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/10 p-1.5 z-20"
+              className="absolute top-2 right-2 w-52 sm:w-56 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/10 p-1.5 z-20"
               style={{ boxShadow: 'var(--glass-bevel), var(--shadow-elevation3)', transformOrigin: 'top right' }}
             >
               <div className="px-2 py-1.5 mb-1 border-b border-border/10">
@@ -105,7 +113,7 @@ export const FocusedNotificationsWalkthrough = () => {
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="absolute inset-y-0 right-0 w-64 bg-background/90 backdrop-blur-xl border-l border-border/10 p-4 z-10 flex flex-col gap-4 shadow-elevation3"
+              className="absolute inset-y-0 right-0 w-[85%] sm:w-64 bg-background/90 backdrop-blur-xl border-l border-border/10 p-3 sm:p-4 z-10 flex flex-col gap-3 sm:gap-4 shadow-elevation3"
             >
               <div className="flex flex-col space-y-3">
                 <div className="flex items-center">
@@ -115,7 +123,7 @@ export const FocusedNotificationsWalkthrough = () => {
                 </div>
 
                 <div className="space-y-1">
-                    <h3 className="text-sm font-bold tracking-tight text-foreground">Update Hero Section</h3>
+                    <h3 className="text-xs sm:text-sm font-bold tracking-tight text-foreground">Update Hero Section</h3>
                     <div className="flex items-center gap-1.5 text-[8px] text-muted-foreground">
                         <FolderKanban className="w-2.5 h-2.5" />
                         <span className="font-medium">Zync Studio</span>
@@ -158,10 +166,10 @@ export const FocusedNotificationsWalkthrough = () => {
       {(() => {
         const cursorPos = 
           step === 0 ? { x: "50%", y: "60%" } :
-          step === 1 ? { x: "93%", y: "15%" } : // Move to bell
-          step === 2 ? { x: "93%", y: "15%" } : // Click bell
-          step === 3 ? { x: "75%", y: "35%" } : // Move to notification
-          step === 4 ? { x: "75%", y: "35%" } : // Click notification
+          step === 1 ? { x: "95%", y: "10%" } : // Move to bell
+          step === 2 ? { x: "95%", y: "10%" } : // Click bell
+          step === 3 ? { x: isMobile ? "80%" : "75%", y: "40%" } : // Move to notification
+          step === 4 ? { x: isMobile ? "80%" : "75%", y: "40%" } : // Click notification
           { x: "50%", y: "60%" };
         return (
           <SimulatedCursor 
