@@ -1,1 +1,0 @@
-# Zync Desktop Native\n\nBuilt with LÖVE2D framework. Package with zip to `.love`.

@@ -1,2 +1,1 @@
--- Zync Desktop Client Main Entrypoint
-print("Starting Zync Desktop Core...")
+function love.load()\n    print("Zync Desktop Lua starting...")\nend

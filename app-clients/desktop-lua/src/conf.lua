@@ -1,0 +1,1 @@
+function love.conf(t)\n    t.window.title = "Zync Native"\nend
