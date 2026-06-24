@@ -1,4 +1,5 @@
-const admin = require('firebase-admin');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 let firestoreInstance = null;
 let attemptedInit = false;
@@ -34,14 +35,14 @@ const getFirestoreAdmin = () => {
       return null;
     }
 
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+    if (!getApps().length) {
+      initializeApp({
+        credential: cert(serviceAccount),
         projectId: serviceAccount.project_id || process.env.VITE_FIREBASE_PROJECT_ID,
       });
     }
 
-    firestoreInstance = admin.firestore();
+    firestoreInstance = getFirestore();
     return firestoreInstance;
   } catch (error) {
     console.error('[FirebaseAdmin] Failed to initialize firebase-admin:', error.message);
@@ -49,4 +50,4 @@ const getFirestoreAdmin = () => {
   }
 };
 
-module.exports = { admin, getFirestoreAdmin };
+module.exports = { getFirestoreAdmin };

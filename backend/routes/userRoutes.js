@@ -625,8 +625,8 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
     console.log(`[DELETE] User ${uid} deleted from database`);
 
     try {
-      const admin = require('firebase-admin');
-      await admin.auth().deleteUser(uid);
+      const { getAuth } = require('firebase-admin/auth');
+      await getAuth().deleteUser(uid);
       console.log(`[DELETE] User ${uid} deleted from Firebase Auth (server-side)`);
     } catch (fbError) {
       console.error(`[DELETE] Failed to delete user from Firebase Auth:`, fbError.message);
