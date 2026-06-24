@@ -33,7 +33,7 @@ cp .env.example .env
 cp backend/.env.example backend/.env
 
 # 4. Start the full application stack (React + Node.js)
-npm run dev:full
+npm run dev
 ```
 
 That's it! 
