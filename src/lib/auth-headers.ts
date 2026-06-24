@@ -5,12 +5,14 @@ export const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const token = user ? await user.getIdToken() : null;
   return {
     'Content-Type': 'application/json',
-    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 };
 
 export const getAuthToken = async (): Promise<string> => {
   const user = auth.currentUser;
-  if (!user) {throw new Error('Not authenticated');}
+  if (!user) {
+    throw new Error('Not authenticated');
+  }
   return user.getIdToken();
 };

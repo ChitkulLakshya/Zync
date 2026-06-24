@@ -1,6 +1,6 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { API_BASE_URL, getFullUrl } from "@/lib/utils";
+import { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { API_BASE_URL, getFullUrl } from '@/lib/utils';
 import {
   Search,
   Bell,
@@ -11,7 +11,6 @@ import {
   Calendar,
   CheckSquare,
   FileText,
-
   Clock,
   Users,
   Settings,
@@ -27,27 +26,27 @@ import {
   Trash2,
   Send,
   ChevronsLeft,
-  ChevronsRight
-} from "lucide-react";
-import { getUserName, getUserInitials, pickUserForDisplay } from "@/lib/utils";
-import { NotesView } from "@/components/notes/NotesView";
-import TasksView from "./TasksView";
-import ActivityLogView from "./ActivityLogView";
-import Workspace from "@/components/workspace/Workspace";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/hooks/use-toast";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { useTheme } from "next-themes";
-import { useNavigate, useLocation } from "react-router-dom";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { signOutAndClearState } from "@/lib/auth-signout";
+  ChevronsRight,
+} from 'lucide-react';
+import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
+import { NotesView } from '@/components/notes/NotesView';
+import TasksView from './TasksView';
+import ActivityLogView from './ActivityLogView';
+import Workspace from '@/components/workspace/Workspace';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { useTheme } from 'next-themes';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { signOutAndClearState } from '@/lib/auth-signout';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,7 +54,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from '@/components/ui/dropdown-menu';
 import {
   Dialog,
   DialogContent,
@@ -64,57 +63,61 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
+} from '@/components/ui/dialog';
 
-import { Switch } from "@/components/ui/switch";
-import { connectChat, disconnectChat } from "@/services/chatSocketService";
-import ChatView from "./ChatView";
-import SettingsView from "./SettingsView";
-import DesignView from "./DesignView";
-import MyProjectsView from "./MyProjectsView";
-import CalendarView from "./CalendarView";
-import DashboardView from "./DashboardView";
-import DashboardHome from "./DashboardHome";
-import PeopleView from "./PeopleView";
-import ChatLayout from "./ChatLayout";
-import MessagesPage from "./MessagesPage";
-import CreateProject from "@/components/dashboard/CreateProject";
-import ProjectDetails from "@/pages/ProjectDetails";
-import TeamGateway from "./TeamGateway";
-import MeetView from "./MeetView";
-import { usePresence } from "@/hooks/usePresence";
+import { Switch } from '@/components/ui/switch';
+import { connectChat, disconnectChat } from '@/services/chatSocketService';
+import ChatView from './ChatView';
+import SettingsView from './SettingsView';
+import DesignView from './DesignView';
+import MyProjectsView from './MyProjectsView';
+import CalendarView from './CalendarView';
+import DashboardView from './DashboardView';
+import DashboardHome from './DashboardHome';
+import PeopleView from './PeopleView';
+import ChatLayout from './ChatLayout';
+import MessagesPage from './MessagesPage';
+import CreateProject from '@/components/dashboard/CreateProject';
+import ProjectDetails from '@/pages/ProjectDetails';
+import TeamGateway from './TeamGateway';
+import MeetView from './MeetView';
+import { usePresence } from '@/hooks/usePresence';
 import {
   PanelResizeHandle,
   Panel,
   PanelGroup,
-  ImperativePanelHandle
-} from "react-resizable-panels";
-import { cn } from "@/lib/utils";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { useSectionTransitionLoader } from "@/loading/useSectionTransitionLoader";
+  ImperativePanelHandle,
+} from 'react-resizable-panels';
+import { cn } from '@/lib/utils';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { useSectionTransitionLoader } from '@/loading/useSectionTransitionLoader';
 
-import { useMe } from "@/hooks/useMe";
-import { useTaskUpdates } from "@/hooks/use-task-updates";
+import { useMe } from '@/hooks/useMe';
+import { useTaskUpdates } from '@/hooks/use-task-updates';
 
 const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isExiting, setIsExiting] = useState(false);
 
-  const { data: userData, isLoading: userLoading, isError: userMeError, refetch: refetchMe } = useMe();
+  const {
+    data: userData,
+    isLoading: userLoading,
+    isError: userMeError,
+    refetch: refetchMe,
+  } = useMe();
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
   const [activeSection, setActiveSection] = useState(() => {
-    if (isPreview) { return "Dashboard"; }
-    return localStorage.getItem("ZYNC-active-section") || "Dashboard";
+    if (isPreview) {
+      return 'Dashboard';
+    }
+    return localStorage.getItem('ZYNC-active-section') || 'Dashboard';
   });
-  const {
-    beginTransition,
-    showCompactSpinner,
-  } = useSectionTransitionLoader("desktop");
+  const { beginTransition, showCompactSpinner } = useSectionTransitionLoader('desktop');
 
   const sidebarRef = useRef<ImperativePanelHandle>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -148,7 +151,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   useEffect(() => {
     if (!isPreview) {
-      localStorage.setItem("ZYNC-active-section", activeSection);
+      localStorage.setItem('ZYNC-active-section', activeSection);
     }
   }, [activeSection, isPreview]);
 
@@ -160,26 +163,25 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   useEffect(() => {
     if (currentUser) {
-      currentUser.getIdToken().then(t => tokenRef.current = t);
+      currentUser.getIdToken().then((t) => (tokenRef.current = t));
     }
   }, [currentUser]);
 
   const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
 
-
   useEffect(() => {
     const handleOpenChat = (e: Event) => {
       const customEvent = e as CustomEvent;
 
-      if (activeSection !== "Chat") {
+      if (activeSection !== 'Chat') {
         beginTransition(`${activeSection}->Chat`);
       }
 
       setIsLanding(false);
-      localStorage.setItem("ZYNC_HAS_SEEN_LANDING", "true");
-      setActiveSection("Chat");
+      localStorage.setItem('ZYNC_HAS_SEEN_LANDING', 'true');
+      setActiveSection('Chat');
 
-      if (location.pathname !== "/dashboard/chat") {
+      if (location.pathname !== '/dashboard/chat') {
         navigate('/dashboard/chat');
       }
 
@@ -188,10 +190,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       }
     };
 
-    window.addEventListener("ZYNC-open-chat", handleOpenChat);
-    return () => window.removeEventListener("ZYNC-open-chat", handleOpenChat);
+    window.addEventListener('ZYNC-open-chat', handleOpenChat);
+    return () => window.removeEventListener('ZYNC-open-chat', handleOpenChat);
   }, [activeSection, beginTransition, location.pathname, navigate]);
-
 
   const pathToSection: Record<string, string> = {
     '/dashboard': 'Dashboard',
@@ -211,24 +212,22 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     '/dashboard/new-project': 'New Project',
   };
 
-
   const sectionToPath: Record<string, string> = {
-    'Dashboard': '/dashboard',
+    Dashboard: '/dashboard',
     'My Workspace': '/dashboard/workspace',
     'My Projects': '/dashboard/projects',
-    'Calendar': '/dashboard/calendar',
-    'Design': '/dashboard/design',
-    'Tasks': '/dashboard/tasks',
-    'Notes': '/dashboard/notes',
+    Calendar: '/dashboard/calendar',
+    Design: '/dashboard/design',
+    Tasks: '/dashboard/tasks',
+    Notes: '/dashboard/notes',
 
     'Activity log': '/dashboard/activity',
-    'People': '/dashboard/people',
-    'Meet': '/dashboard/meet',
-    'Settings': '/dashboard/settings',
-    'Chat': '/dashboard/chat',
+    People: '/dashboard/people',
+    Meet: '/dashboard/meet',
+    Settings: '/dashboard/settings',
+    Chat: '/dashboard/chat',
     'New Project': '/dashboard/new-project',
   };
-
 
   useEffect(() => {
     const section = location.pathname.startsWith('/dashboard/workspace/project/')
@@ -239,9 +238,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   }, [location.pathname]);
 
-
   const [isLanding, setIsLanding] = useState(false);
-
 
   const handleSectionChange = (section: string) => {
     if (section !== activeSection) {
@@ -249,14 +246,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
 
     setIsLanding(false);
-    localStorage.setItem("ZYNC_HAS_SEEN_LANDING", "true");
+    localStorage.setItem('ZYNC_HAS_SEEN_LANDING', 'true');
     setActiveSection(section);
     const path = sectionToPath[section];
     if (path && location.pathname !== path) {
       navigate(path);
     }
   };
-
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -270,9 +266,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ installationId })
+            body: JSON.stringify({ installationId }),
           });
 
           if (!res.ok) {
@@ -280,15 +276,15 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           }
 
           toast({
-            title: "GitHub Connected",
-            description: "App installation verified successfully."
+            title: 'GitHub Connected',
+            description: 'App installation verified successfully.',
           });
         } catch (error) {
-          console.error("Failed to save installation ID", error);
+          console.error('Failed to save installation ID', error);
           toast({
-            title: "Connection Failed",
-            description: "Failed to save GitHub installation.",
-            variant: "destructive"
+            title: 'Connection Failed',
+            description: 'Failed to save GitHub installation.',
+            variant: 'destructive',
           });
         } finally {
           // Redirect the user perfectly back to the "Add Project" popup in the workspace
@@ -302,9 +298,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const userStatuses = usePresence(currentUser?.uid);
   const [activeNoteId, setActiveNoteId] = useState<string | null>(null);
 
-
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
-  const [elapsedTime, setElapsedTime] = useState("00:00:00");
+  const [elapsedTime, setElapsedTime] = useState('00:00:00');
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
   const [leaderTasks, setLeaderTasks] = useState<any[]>([]);
@@ -342,10 +337,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       );
       const hasCommitCode = Boolean(task?.commitCode);
 
-      return hasRepoLink && hasCommitCode && (assignedTo === userId || assignedUserIds.includes(userId));
+      return (
+        hasRepoLink && hasCommitCode && (assignedTo === userId || assignedUserIds.includes(userId))
+      );
     });
   };
-
 
   useEffect(() => {
     if (currentUser && !isPreview) {
@@ -366,35 +362,37 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       if (shouldStartNew && !sessionId) {
         const startSession = async () => {
           if (!currentUser?.uid) {
-            console.error("Cannot start session: User ID is missing");
+            console.error('Cannot start session: User ID is missing');
             return;
           }
           try {
-
             const token = await currentUser.getIdToken();
             const response = await fetch(`${API_BASE_URL}/api/sessions/start`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
               },
-              body: JSON.stringify({ userId: currentUser.uid })
+              body: JSON.stringify({ userId: currentUser.uid }),
             });
 
             if (response.ok) {
               const data = await response.json();
               setSessionId(data._id);
               setSessionStartTime(new Date(data.startTime));
-              localStorage.setItem('currentSession', JSON.stringify({
-                id: data._id,
-                startTime: data.startTime
-              }));
+              localStorage.setItem(
+                'currentSession',
+                JSON.stringify({
+                  id: data._id,
+                  startTime: data.startTime,
+                })
+              );
             } else {
               const errorData = await response.json();
-              console.error("Failed to start session:", response.status, errorData);
+              console.error('Failed to start session:', response.status, errorData);
             }
           } catch (error) {
-            console.error("Failed to start session (network error):", error);
+            console.error('Failed to start session (network error):', error);
           }
         };
         startSession();
@@ -402,16 +400,21 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   }, [currentUser, isPreview]);
 
-
   useEffect(() => {
-    if (!sessionStartTime) { return; }
+    if (!sessionStartTime) {
+      return;
+    }
 
     const timerInterval = setInterval(() => {
       const now = new Date();
       const diff = Math.floor((now.getTime() - sessionStartTime.getTime()) / 1000);
 
-      const hours = Math.floor(diff / 3600).toString().padStart(2, '0');
-      const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, '0');
+      const hours = Math.floor(diff / 3600)
+        .toString()
+        .padStart(2, '0');
+      const minutes = Math.floor((diff % 3600) / 60)
+        .toString()
+        .padStart(2, '0');
       const seconds = (diff % 60).toString().padStart(2, '0');
 
       setElapsedTime(`${hours}:${minutes}:${seconds}`);
@@ -422,9 +425,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     };
   }, [sessionStartTime]);
 
-
   useEffect(() => {
-    if (activeSection !== "Activity log" || !currentUser || isPreview) {
+    if (activeSection !== 'Activity log' || !currentUser || isPreview) {
       return;
     }
 
@@ -433,18 +435,26 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     const fetchData = async () => {
       const now = Date.now();
       // Prevent burst re-fetches when dependent state updates rapidly.
-      if (now - activityFetchLastRunRef.current < 20_000) {return;}
+      if (now - activityFetchLastRunRef.current < 20_000) {
+        return;
+      }
       activityFetchLastRunRef.current = now;
 
       try {
         const token = await currentUser.getIdToken();
-        
+
         // Use batching/parallelism for initial load
         const [sessionsRes, projectsRes, ownedTeamsRes, myTeamsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/projects`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { 'Authorization': `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { 'Authorization': `Bearer ${token}` } })
+          fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE_URL}/api/projects`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/teams/owned`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE_URL}/api/teams/mine`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
         if (cancelled) {
@@ -461,7 +471,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           if (Array.isArray(projects)) {
             const allTasks = buildActivityLogTasks(projects);
             const myTasks = filterCommitCapableTasks(allTasks, currentUser.uid);
-            const receivedTasks = myTasks.filter((t: any) => t.assignedBy !== currentUser.uid && t.createdBy !== currentUser.uid);
+            const receivedTasks = myTasks.filter(
+              (t: any) => t.assignedBy !== currentUser.uid && t.createdBy !== currentUser.uid
+            );
             setLeaderTasks(receivedTasks);
           }
         }
@@ -479,7 +491,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           // Fallback for rate-limited /owned endpoint: derive owner teams from /mine.
           if (!ownedTeamsRes.ok) {
             const ownerTeamsFromMine = normalizedMyTeams.filter((team: any) => {
-              const owner = team?.ownerId || team?.ownerUid || team?.leaderId || team?.createdBy || team?.createdByUid;
+              const owner =
+                team?.ownerId ||
+                team?.ownerUid ||
+                team?.leaderId ||
+                team?.createdBy ||
+                team?.createdByUid;
               return owner === currentUser.uid;
             });
             setOwnedTeams(ownerTeamsFromMine);
@@ -490,18 +507,17 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         if (usersList.length > 0) {
           const teamSessionsRes = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ userIds: usersList.map(u => u.uid) })
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+            body: JSON.stringify({ userIds: usersList.map((u) => u.uid) }),
           });
           if (!cancelled && teamSessionsRes.ok) {
             const sessions = await teamSessionsRes.json();
             setTeamSessions(sessions);
           }
         }
-
       } catch (error) {
         if (!cancelled) {
-          console.error("Initial analytics fetch failed:", error);
+          console.error('Initial analytics fetch failed:', error);
         }
       }
     };
@@ -516,49 +532,54 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   }, [activeSection, currentUser, isPreview, usersList]);
 
   const handleDeleteLog = async (logId: string) => {
-    if (!currentUser) { return; }
+    if (!currentUser) {
+      return;
+    }
     try {
       const token = await currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/sessions/${logId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
-        setActivityLogs(prev => prev.filter(log => log._id !== logId));
-        toast({ title: "Success", description: "Log deleted successfully." });
+        setActivityLogs((prev) => prev.filter((log) => log._id !== logId));
+        toast({ title: 'Success', description: 'Log deleted successfully.' });
       } else {
         throw new Error('Failed to delete');
       }
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Failed to delete log.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to delete log.', variant: 'destructive' });
     }
   };
 
   const handleClearLogs = async () => {
-    if (!currentUser) { return; }
+    if (!currentUser) {
+      return;
+    }
     try {
       const token = await currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/sessions/user/${currentUser.uid}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         setActivityLogs([]);
-        toast({ title: "Success", description: "All logs cleared successfully." });
+        toast({ title: 'Success', description: 'All logs cleared successfully.' });
       } else {
         throw new Error('Failed to clear');
       }
     } catch (error) {
       console.error(error);
-      toast({ title: "Error", description: "Failed to clear logs.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to clear logs.', variant: 'destructive' });
     }
   };
 
-
   // Connect to WebSocket chat when user is authenticated
   useEffect(() => {
-    if (!currentUser || isPreview) { return; }
+    if (!currentUser || isPreview) {
+      return;
+    }
 
     connectChat(currentUser.uid);
 
@@ -572,19 +593,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     userId: currentUser?.uid,
     onTaskChange: (event) => {
       // Refresh activity logs when any task event occurs
-      if (activeSection === "Activity log" && currentUser && !isPreview) {
+      if (activeSection === 'Activity log' && currentUser && !isPreview) {
         const refreshLogs = async () => {
           try {
             const token = await currentUser.getIdToken();
             const response = await fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, {
-              headers: { 'Authorization': `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
               const data = await response.json();
               setActivityLogs(data);
             }
           } catch (error) {
-            console.error("Failed to refresh activity logs", error);
+            console.error('Failed to refresh activity logs', error);
           }
         };
         refreshLogs();
@@ -596,7 +617,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setCurrentUser(user);
 
-      if (user && user.metadata.creationTime === user.metadata.lastSignInTime && !localStorage.getItem("ZYNC_HAS_SEEN_LANDING")) {
+      if (
+        user &&
+        user.metadata.creationTime === user.metadata.lastSignInTime &&
+        !localStorage.getItem('ZYNC_HAS_SEEN_LANDING')
+      ) {
         if (location.pathname === '/dashboard') {
           setIsLanding(true);
         }
@@ -606,120 +631,154 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     return () => unsubscribe();
   }, [isPreview]);
 
-
   const [githubProfile, setGithubProfile] = useState<any>(null);
-
 
   useEffect(() => {
     if (userData?.githubIntegration?.connected && userData?.githubIntegration?.username) {
       const username = userData.githubIntegration.username;
       fetch(`https://api.github.com/users/${username}`)
-        .then(ghRes => ghRes.json())
-        .then(ghData => setGithubProfile(ghData))
-        .catch(err => console.error("Failed to fetch GitHub profile:", err));
+        .then((ghRes) => ghRes.json())
+        .then((ghData) => setGithubProfile(ghData))
+        .catch((err) => console.error('Failed to fetch GitHub profile:', err));
     }
   }, [userData]);
 
-
   useEffect(() => {
-    if ((activeSection === "People" || activeSection === "Notes" || activeSection === "Chat" || activeSection === "Meet" || activeSection === "Tasks" || activeSection === "Activity log") && !isPreview) {
+    if (
+      (activeSection === 'People' ||
+        activeSection === 'Notes' ||
+        activeSection === 'Chat' ||
+        activeSection === 'Meet' ||
+        activeSection === 'Tasks' ||
+        activeSection === 'Activity log') &&
+      !isPreview
+    ) {
       const fetchUsers = async () => {
         try {
-          if (!currentUser) { return; }
+          if (!currentUser) {
+            return;
+          }
           const token = await currentUser.getIdToken();
           const response = await fetch(`${API_BASE_URL}/api/users`, {
             headers: {
-              Authorization: `Bearer ${token}`
-            }
+              Authorization: `Bearer ${token}`,
+            },
           });
           if (response.ok) {
             const data = await response.json();
             setUsersList(Array.isArray(data) ? data : []);
           } else {
             const errData = await response.json().catch(() => ({}));
-            console.error(`Error fetching users: ${response.status} ${response.statusText}`, errData);
+            console.error(
+              `Error fetching users: ${response.status} ${response.statusText}`,
+              errData
+            );
           }
         } catch (error) {
-          console.error("Error fetching users:", error);
+          console.error('Error fetching users:', error);
         }
       };
       fetchUsers();
     }
   }, [activeSection, isPreview, currentUser]);
 
-
   const [isGenerating, setIsGenerating] = useState(false);
 
   const sidebarItems = [
-    { icon: Home, label: "Dashboard", active: activeSection === "Dashboard" },
+    { icon: Home, label: 'Dashboard', active: activeSection === 'Dashboard' },
     {
-      icon: FolderKanban, label: "My Workspace", active: activeSection === "My Workspace", children: [
-        { label: "Roadmap" },
-
-      ]
+      icon: FolderKanban,
+      label: 'My Workspace',
+      active: activeSection === 'My Workspace',
+      children: [{ label: 'Roadmap' }],
     },
-    { icon: Calendar, label: "Calendar", active: activeSection === "Calendar" },
-    { icon: Star, label: "Design", active: activeSection === "Design" },
-    { icon: Github, label: "My Projects", active: activeSection === "My Projects" },
-    { icon: CheckSquare, label: "Tasks", active: activeSection === "Tasks" },
-    { icon: FileText, label: "Notes", active: activeSection === "Notes" },
-    { icon: Clock, label: "Activity log", active: activeSection === "Activity log" },
-    { icon: Users, label: "People", active: activeSection === "People" },
-    { icon: Video, label: "Meet", active: activeSection === "Meet" },
-    { icon: Settings, label: "Settings", active: activeSection === "Settings" },
+    { icon: Calendar, label: 'Calendar', active: activeSection === 'Calendar' },
+    { icon: Star, label: 'Design', active: activeSection === 'Design' },
+    { icon: Github, label: 'My Projects', active: activeSection === 'My Projects' },
+    { icon: CheckSquare, label: 'Tasks', active: activeSection === 'Tasks' },
+    { icon: FileText, label: 'Notes', active: activeSection === 'Notes' },
+    { icon: Clock, label: 'Activity log', active: activeSection === 'Activity log' },
+    { icon: Users, label: 'People', active: activeSection === 'People' },
+    { icon: Video, label: 'Meet', active: activeSection === 'Meet' },
+    { icon: Settings, label: 'Settings', active: activeSection === 'Settings' },
   ];
 
   const tasks: any[] = [];
   const waitingList: any[] = [];
 
-
   const mockUsers = [
-    { _id: 1, displayName: "Oliver Campbell", email: "oliver@zync-meet.vercel.app", status: "online", avatar: "OC" },
-    { _id: 2, displayName: "Sarah Chen", email: "sarah@zync-meet.vercel.app", status: "online", avatar: "SC" },
-    { _id: 3, displayName: "Mike Wilson", email: "mike@zync-meet.vercel.app", status: "offline", avatar: "MW" },
-    { _id: 4, displayName: "Emily Davis", email: "emily@zync-meet.vercel.app", status: "away", avatar: "ED" },
+    {
+      _id: 1,
+      displayName: 'Oliver Campbell',
+      email: 'oliver@zync-meet.vercel.app',
+      status: 'online',
+      avatar: 'OC',
+    },
+    {
+      _id: 2,
+      displayName: 'Sarah Chen',
+      email: 'sarah@zync-meet.vercel.app',
+      status: 'online',
+      avatar: 'SC',
+    },
+    {
+      _id: 3,
+      displayName: 'Mike Wilson',
+      email: 'mike@zync-meet.vercel.app',
+      status: 'offline',
+      avatar: 'MW',
+    },
+    {
+      _id: 4,
+      displayName: 'Emily Davis',
+      email: 'emily@zync-meet.vercel.app',
+      status: 'away',
+      avatar: 'ED',
+    },
   ];
 
   const displayUsers = isPreview
     ? mockUsers
-    : usersList.filter(user => user.uid !== currentUser?.uid);
-
+    : usersList.filter((user) => user.uid !== currentUser?.uid);
 
   const handleChat = (user: any) => {
     setSelectedChatUser(user);
-    handleSectionChange("Chat");
+    handleSectionChange('Chat');
   };
-
 
   const renderActiveView = () => {
     switch (activeSection) {
-      case "Dashboard":
+      case 'Dashboard':
         return <DashboardView currentUser={currentUser} />;
 
-      case "My Workspace":
+      case 'My Workspace':
         if (location.pathname.startsWith('/dashboard/workspace/project/')) {
           return <ProjectDetails />;
         }
         return (
           <Workspace
             onNavigate={handleSectionChange}
-            onSelectProject={(id) => navigate(`/dashboard/workspace/project/${id}`, { state: { from: '/dashboard/workspace' } })}
+            onSelectProject={(id) =>
+              navigate(`/dashboard/workspace/project/${id}`, {
+                state: { from: '/dashboard/workspace' },
+              })
+            }
             onOpenNote={(noteId) => {
               setActiveNoteId(noteId);
-              handleSectionChange("Notes");
+              handleSectionChange('Notes');
             }}
             currentUser={currentUser}
             usersList={usersList}
           />
         );
 
-      case "My Projects":
+      case 'My Projects':
         return <MyProjectsView currentUser={currentUser} />;
 
-      case "Calendar":
+      case 'Calendar':
         return <CalendarView />;
 
-      case "Chat":
+      case 'Chat':
         /*
         if (userData && !userData.teamId) {
           return <TeamGateway title="Team Chat Locked" description="Join a team to start chatting with your colleagues." />;
@@ -736,34 +795,30 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           />
         );
 
-      case "People":
+      case 'People':
         return (
           <PeopleView
-
             userStatuses={userStatuses}
             onChat={handleChat}
-            onMessages={() => handleSectionChange("Messages")}
+            onMessages={() => handleSectionChange('Messages')}
             isPreview={isPreview}
           />
         );
 
+      case 'New Project':
+        return <CreateProject onProjectCreated={(data) => navigate(`/projects/${data.id}`)} />;
 
-      case "New Project":
-        return (
-          <CreateProject onProjectCreated={(data) => navigate(`/projects/${data.id}`)} />
-        );
-
-      case "Messages":
+      case 'Messages':
         return (
           <MessagesPage
             users={displayUsers}
             currentUser={currentUser}
             userStatuses={userStatuses}
-            onNavigateBack={() => handleSectionChange("People")}
+            onNavigateBack={() => handleSectionChange('People')}
           />
         );
 
-      case "Activity log":
+      case 'Activity log':
         return (
           <div className="h-[96%] flex overflow-hidden rounded-3xl m-2 sm:m-4 mt-1 bg-transparent border-none shadow-none relative">
             <div className="relative z-10 w-full h-full overflow-y-auto">
@@ -775,10 +830,24 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 tasks={leaderTasks}
                 users={usersList}
                 teamSessions={teamSessions}
-                currentTeamId={typeof userData?.teamId === 'object' ? (userData?.teamId?.id || userData?.teamId?._id) : userData?.teamId}
-                currentTeamName={typeof userData?.teamId === 'object' ? userData?.teamId?.name : undefined}
-                currentTeamOwnerId={typeof userData?.teamId === 'object' ? (userData?.teamId?.ownerId || userData?.teamId?.ownerUid || userData?.teamId?.leaderId) : undefined}
-                currentTeamLogoId={typeof userData?.teamId === 'object' ? userData?.teamId?.logoId : undefined}
+                currentTeamId={
+                  typeof userData?.teamId === 'object'
+                    ? userData?.teamId?.id || userData?.teamId?._id
+                    : userData?.teamId
+                }
+                currentTeamName={
+                  typeof userData?.teamId === 'object' ? userData?.teamId?.name : undefined
+                }
+                currentTeamOwnerId={
+                  typeof userData?.teamId === 'object'
+                    ? userData?.teamId?.ownerId ||
+                      userData?.teamId?.ownerUid ||
+                      userData?.teamId?.leaderId
+                    : undefined
+                }
+                currentTeamLogoId={
+                  typeof userData?.teamId === 'object' ? userData?.teamId?.logoId : undefined
+                }
                 ownedTeams={ownedTeams}
                 myTeams={myTeams}
                 currentUserId={currentUser?.uid}
@@ -790,31 +859,44 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           </div>
         );
 
-      case "Meet":
+      case 'Meet':
         if (userData && !userData.teamId) {
-          return <TeamGateway title="Video Meetings Restricted" description="You need to be part of a team to start video meetings." />;
+          return (
+            <TeamGateway
+              title="Video Meetings Restricted"
+              description="You need to be part of a team to start video meetings."
+            />
+          );
         }
-        return <MeetView currentUser={currentUser} usersList={usersList} userStatuses={userStatuses} />;
+        return (
+          <MeetView currentUser={currentUser} usersList={usersList} userStatuses={userStatuses} />
+        );
 
-      case "Design":
+      case 'Design':
         return <DesignView />;
 
-      case "Tasks":
+      case 'Tasks':
         return <TasksView currentUser={currentUser} users={usersList} />;
 
-      case "Notes":
-        return <NotesView
-          user={currentUser ? {
-            uid: currentUser.uid,
-            displayName: currentUser.displayName || undefined,
-            email: currentUser.email || undefined,
-            photoURL: currentUser.photoURL || undefined
-          } : null}
-          users={usersList}
-          initialNoteId={activeNoteId}
-        />;
+      case 'Notes':
+        return (
+          <NotesView
+            user={
+              currentUser
+                ? {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName || undefined,
+                    email: currentUser.email || undefined,
+                    photoURL: currentUser.photoURL || undefined,
+                  }
+                : null
+            }
+            users={usersList}
+            initialNoteId={activeNoteId}
+          />
+        );
 
-      case "Settings":
+      case 'Settings':
         return <SettingsView />;
 
       default:
@@ -822,29 +904,38 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   };
   return (
-
     <div className="h-screen w-full flex flex-col overflow-hidden bg-sidebar">
       {/* Top Banner (if any) */}
 
       {/* Full Screen Landing Page Overlay */}
       {isLanding && (
-        <div className={cn(
-          "fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-background flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.2,0.0,0.0,1.0)]",
-          isExiting ? "opacity-0 -translate-y-8 blur-xl scale-[1.02]" : "opacity-100 translate-y-0"
-        )}>
+        <div
+          className={cn(
+            'fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-background flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.2,0.0,0.0,1.0)]',
+            isExiting
+              ? 'opacity-0 -translate-y-8 blur-xl scale-[1.02]'
+              : 'opacity-100 translate-y-0'
+          )}
+        >
           {/* Background Gradients for Landing Page */}
           <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
           <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
           <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
 
-          <DashboardHome onNavigate={(section) => {
-            setIsExiting(true);
-            setTimeout(() => handleSectionChange(section), 400);
-          }} />
+          <DashboardHome
+            onNavigate={(section) => {
+              setIsExiting(true);
+              setTimeout(() => handleSectionChange(section), 400);
+            }}
+          />
         </div>
       )}
 
-      <PanelGroup direction="horizontal" autoSaveId="persistence" className="relative z-[1] h-full w-full bg-sidebar">
+      <PanelGroup
+        direction="horizontal"
+        autoSaveId="persistence"
+        className="relative z-[1] h-full w-full bg-sidebar"
+      >
         {/* Sidebar Panel - The Base Tray */}
         <Panel
           ref={sidebarRef}
@@ -856,10 +947,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onCollapse={() => setIsCollapsed(true)}
           onExpand={() => setIsCollapsed(false)}
           className={cn(
-            "relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none",
-            isCollapsed && "min-w-[70px]",
+            'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none',
+            isCollapsed && 'min-w-[70px]',
             // Animation logic: Hidden during landing, slides in when landing finishes
-            isLanding ? "opacity-0 invisible" : ""
+            isLanding ? 'opacity-0 invisible' : ''
           )}
         >
           {/* Sidebar Content */}
@@ -868,25 +959,47 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
           >
-            <div className={cn("p-4 flex items-center gap-2", isCollapsed ? "justify-center p-2 mb-4" : "mb-2")}>
+            <div
+              className={cn(
+                'p-4 flex items-center gap-2',
+                isCollapsed ? 'justify-center p-2 mb-4' : 'mb-2'
+              )}
+            >
               {mounted ? (
                 <>
-                  <img src="/zync-white.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg block dark:hidden" />
-                  <img src="/zync-dark.webp" alt="Logo" className="h-8 w-8 object-contain rounded-lg hidden dark:block" />
+                  <img
+                    src="/zync-white.webp"
+                    alt="Logo"
+                    className="h-8 w-8 object-contain rounded-lg block dark:hidden"
+                  />
+                  <img
+                    src="/zync-dark.webp"
+                    alt="Logo"
+                    className="h-8 w-8 object-contain rounded-lg hidden dark:block"
+                  />
                 </>
-              ) : <div className="w-8 h-8 bg-foreground rounded-xl" />}
-              {!isCollapsed && <span className="font-bold text-lg text-sidebar-foreground tracking-wide">Zync</span>}
+              ) : (
+                <div className="w-8 h-8 bg-foreground rounded-xl" />
+              )}
+              {!isCollapsed && (
+                <span className="font-bold text-lg text-sidebar-foreground tracking-wide">
+                  Zync
+                </span>
+              )}
             </div>
 
             <div className="flex-1 overflow-y-auto px-2 space-y-1">
               {/* Create New Project Button */}
               <div className="mb-6 px-1">
                 <Button
-                  className={cn("w-full bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium rounded-xl", isCollapsed ? "px-0 justify-center" : "justify-start gap-2")}
-                  onClick={() => handleSectionChange("New Project")}
+                  className={cn(
+                    'w-full bg-foreground text-background hover:bg-foreground/90 transition-colors font-medium rounded-xl',
+                    isCollapsed ? 'px-0 justify-center' : 'justify-start gap-2'
+                  )}
+                  onClick={() => handleSectionChange('New Project')}
                 >
                   <Plus className="w-5 h-5" />
-                  {!isCollapsed && "New Project"}
+                  {!isCollapsed && 'New Project'}
                 </Button>
               </div>
 
@@ -895,13 +1008,20 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   <Button
                     variant="ghost"
                     className={cn(
-                      "w-full rounded-lg transition-all duration-200",
-                      item.active ? "bg-sidebar-accent text-sidebar-foreground" : "text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50",
-                      isCollapsed ? "justify-center px-0 py-3" : "justify-start gap-3 py-2 px-3"
+                      'w-full rounded-lg transition-all duration-200',
+                      item.active
+                        ? 'bg-sidebar-accent text-sidebar-foreground'
+                        : 'text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
+                      isCollapsed ? 'justify-center px-0 py-3' : 'justify-start gap-3 py-2 px-3'
                     )}
                     onClick={() => handleSectionChange(item.label)}
                   >
-                    <item.icon className={cn("w-5 h-5", item.active ? "text-foreground" : "text-muted-foreground")} />
+                    <item.icon
+                      className={cn(
+                        'w-5 h-5',
+                        item.active ? 'text-foreground' : 'text-muted-foreground'
+                      )}
+                    />
                     {!isCollapsed && <span className="text-sm font-medium">{item.label}</span>}
                   </Button>
                 </div>
@@ -912,35 +1032,64 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             <div className="p-4 mt-auto">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <div className={cn("flex items-center gap-3 p-2 rounded-xl hover:bg-foreground/10 cursor-pointer transition-colors", isCollapsed ? "justify-center" : "")}>
+                  <div
+                    className={cn(
+                      'flex items-center gap-3 p-2 rounded-xl hover:bg-foreground/10 cursor-pointer transition-colors',
+                      isCollapsed ? 'justify-center' : ''
+                    )}
+                  >
                     <Avatar className="w-9 h-9 border border-border">
-                      <AvatarImage src={currentUser?.photoURL || undefined} referrerPolicy="no-referrer" />
-                      <AvatarFallback className="bg-muted text-muted-foreground">{isPreview ? "JD" : getUserInitials(pickUserForDisplay(userData, currentUser))}</AvatarFallback>
+                      <AvatarImage
+                        src={currentUser?.photoURL || undefined}
+                        referrerPolicy="no-referrer"
+                      />
+                      <AvatarFallback className="bg-muted text-muted-foreground">
+                        {isPreview
+                          ? 'JD'
+                          : getUserInitials(pickUserForDisplay(userData, currentUser))}
+                      </AvatarFallback>
                     </Avatar>
                     {!isCollapsed && (
                       <div className="flex-1 overflow-hidden">
-                        <p className="text-sm font-medium text-sidebar-foreground truncate">{isPreview ? "John Doe" : getUserName(pickUserForDisplay(userData, currentUser))}</p>
-
+                        <p className="text-sm font-medium text-sidebar-foreground truncate">
+                          {isPreview
+                            ? 'John Doe'
+                            : getUserName(pickUserForDisplay(userData, currentUser))}
+                        </p>
                       </div>
                     )}
                     {!isCollapsed && <MoreHorizontal className="w-4 h-4 text-zinc-500 ml-auto" />}
                   </div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={10} className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-elevation4 rounded-2xl">
-                  <DropdownMenuLabel className="text-muted-foreground font-normal text-xs uppercase tracking-wider">My Account</DropdownMenuLabel>
+                <DropdownMenuContent
+                  align="end"
+                  sideOffset={10}
+                  className="w-56 bg-card/50 backdrop-blur-xl border border-border/10 text-foreground shadow-elevation4 rounded-2xl"
+                >
+                  <DropdownMenuLabel className="text-muted-foreground font-normal text-xs uppercase tracking-wider">
+                    My Account
+                  </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-border/50" />
-                  <DropdownMenuItem onClick={() => handleSectionChange("Settings")} className="focus:bg-foreground/10 focus:text-foreground cursor-pointer py-2">
+                  <DropdownMenuItem
+                    onClick={() => handleSectionChange('Settings')}
+                    className="focus:bg-foreground/10 focus:text-foreground cursor-pointer py-2"
+                  >
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator className="bg-border/50" />
-                  <DropdownMenuItem onClick={async () => {
-                    if (isPreview) { return; }
-                    localStorage.removeItem("ZYNC-active-section");
-                    localStorage.removeItem("ZYNC_HAS_SEEN_LANDING"); // Reset landing page state
-                    await signOutAndClearState(auth);
-                    navigate("/");
-                  }} className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer py-2">
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      if (isPreview) {
+                        return;
+                      }
+                      localStorage.removeItem('ZYNC-active-section');
+                      localStorage.removeItem('ZYNC_HAS_SEEN_LANDING'); // Reset landing page state
+                      await signOutAndClearState(auth);
+                      navigate('/');
+                    }}
+                    className="text-rose-500 focus:text-rose-400 focus:bg-rose-500/10 cursor-pointer py-2"
+                  >
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Sign out</span>
                   </DropdownMenuItem>
@@ -950,7 +1099,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           </div>
         </Panel>
 
-      <PanelResizeHandle className="w-px bg-transparent opacity-0" />
+        <PanelResizeHandle className="w-px bg-transparent opacity-0" />
 
         {/* Main Content Panel - The Floating Canvas */}
         <Panel defaultSize={84} className="min-h-0 bg-transparent py-2 pr-2">
@@ -962,7 +1111,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
                     <span>{activeSection}</span>
                     {showCompactSpinner && (
-                      <RefreshCw className="w-4 h-4 animate-spin text-zinc-400" aria-label="Switching section" />
+                      <RefreshCw
+                        className="w-4 h-4 animate-spin text-zinc-400"
+                        aria-label="Switching section"
+                      />
                     )}
                   </h2>
                 </div>
@@ -970,7 +1122,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   {/* Header Actions */}
                   <div className="flex items-center gap-2 px-3 py-1.5 bg-card/50 rounded-full border border-border/10">
                     <Clock className="w-4 h-4 text-zinc-400" />
-                    <span className="text-xs font-medium text-zinc-300 tracking-wide">{elapsedTime}</span>
+                    <span className="text-xs font-medium text-zinc-300 tracking-wide">
+                      {elapsedTime}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -979,10 +1133,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 <div className="px-4 pt-3 shrink-0 z-30">
                   <Alert className="border-destructive/40 bg-destructive/10 text-foreground">
                     <WifiOff className="h-4 w-4 text-destructive" />
-                    <AlertTitle className="text-destructive">Can&apos;t reach the server</AlertTitle>
+                    <AlertTitle className="text-destructive">
+                      Can&apos;t reach the server
+                    </AlertTitle>
                     <AlertDescription className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between text-muted-foreground">
                       <span>
-                        We couldn&apos;t load your account data. Try again in a moment or refresh the page.
+                        We couldn&apos;t load your account data. Try again in a moment or refresh
+                        the page.
                       </span>
                       <Button
                         type="button"
@@ -1000,11 +1157,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               )}
 
               {/* Content Area */}
-              <div
-                className="flex-1 overflow-y-auto relative z-10 w-full bg-transparent hover:overflow-y-overlay custom-scrollbar"
-              >
+              <div className="flex-1 overflow-y-auto relative z-10 w-full bg-transparent hover:overflow-y-overlay custom-scrollbar">
                 <AnimatePresence mode="wait">
-                  {(userLoading && !isPreview) ? (
+                  {userLoading && !isPreview ? (
                     <motion.div
                       key="skeleton"
                       initial={{ opacity: 0 }}
@@ -1015,27 +1170,42 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     >
                       {/* Bento grid style liquid glass skeleton */}
                       <div className="flex gap-6 h-[30%]">
-                        <motion.div 
+                        <motion.div
                           className="w-2/3 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
                           animate={{ opacity: [0.4, 0.8, 0.4] }}
-                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
                         />
-                        <motion.div 
+                        <motion.div
                           className="w-1/3 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
                           animate={{ opacity: [0.4, 0.8, 0.4] }}
-                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
+                          transition={{
+                            duration: 1.4,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.2,
+                          }}
                         />
                       </div>
                       <div className="flex gap-6 h-[70%]">
-                        <motion.div 
+                        <motion.div
                           className="w-1/4 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
                           animate={{ opacity: [0.4, 0.8, 0.4] }}
-                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.1 }}
+                          transition={{
+                            duration: 1.4,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.1,
+                          }}
                         />
-                        <motion.div 
+                        <motion.div
                           className="w-3/4 h-full rounded-3xl bg-surface-glass-thin backdrop-blur-md border border-border/5"
                           animate={{ opacity: [0.4, 0.8, 0.4] }}
-                          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+                          transition={{
+                            duration: 1.4,
+                            repeat: Infinity,
+                            ease: 'easeInOut',
+                            delay: 0.3,
+                          }}
                         />
                       </div>
                     </motion.div>

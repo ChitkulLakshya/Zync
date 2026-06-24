@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { sendZyncEmail } = require('../services/mailer');
 const { getTaskAssignmentEmailHtml } = require('../utils/emailTemplates');
 const { escapeRegExp } = require('../utils/regexUtils');
@@ -15,22 +15,31 @@ const mongoose = require('mongoose');
 const authMiddleware = require('../middleware/authMiddleware');
 const { normalizeDoc, normalizeDocs } = require('../utils/normalize');
 const { paginateArray, setPaginationHeaders } = require('../utils/pagination');
-const { getProjectWithSteps, getProjectsWithSteps } = require('../utils/projectHelper');
+const {
+  getProjectWithSteps,
+  getProjectsWithSteps,
+} = require('../utils/projectHelper');
 const cache = require('../utils/cache');
 
 async function invalidateProjectCache(project) {
   if (!project) return;
   const uids = [project.ownerUid, ...(project.team || [])];
-  const keys = uids.map(uid => `projects:${uid}`);
+  const keys = uids.map((uid) => `projects:${uid}`);
   await cache.invalidate(...keys);
 }
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY);
-const MODEL_NAME = "gemini-2.5-flash";
+const MODEL_NAME = 'gemini-2.5-flash';
 console.log(`[Config] Using Gemini Model: ${MODEL_NAME}`);
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
-const ARCHITECTURE_CACHE_TTL_MS = Number.parseInt(process.env.ARCHITECTURE_CACHE_TTL_MS || '21600000', 10);
-const ARCHITECTURE_CACHE_MAX_ENTRIES = Number.parseInt(process.env.ARCHITECTURE_CACHE_MAX_ENTRIES || '100', 10);
+const ARCHITECTURE_CACHE_TTL_MS = Number.parseInt(
+  process.env.ARCHITECTURE_CACHE_TTL_MS || '21600000',
+  10
+);
+const ARCHITECTURE_CACHE_MAX_ENTRIES = Number.parseInt(
+  process.env.ARCHITECTURE_CACHE_MAX_ENTRIES || '100',
+  10
+);
 const architectureAnalysisCache = new Map();
 
 const pruneArchitectureMemoryCache = () => {
@@ -49,14 +58,13 @@ const pruneArchitectureMemoryCache = () => {
   }
 };
 
-
 const decryptToken = (ciphertext) => {
   if (!ciphertext) return null;
   try {
     const bytes = CryptoJS.AES.decrypt(ciphertext, ENCRYPTION_KEY);
     return bytes.toString(CryptoJS.enc.Utf8);
   } catch (error) {
-    console.error("Token decryption failed:", error);
+    console.error('Token decryption failed:', error);
     return null;
   }
 };
@@ -77,7 +85,8 @@ const logDebug = (message) => {
   console.log(`[DEBUG] ${message}`);
 };
 
-const makeArchitectureCacheId = (projectId, repoCacheKey) => `${projectId}:${repoCacheKey}`;
+const makeArchitectureCacheId = (projectId, repoCacheKey) =>
+  `${projectId}:${repoCacheKey}`;
 
 const getArchitectureFromMemoryCache = (projectId, repoCacheKey) => {
   pruneArchitectureMemoryCache();
@@ -94,7 +103,11 @@ const getArchitectureFromMemoryCache = (projectId, repoCacheKey) => {
   return cacheEntry.architecture;
 };
 
-const setArchitectureInMemoryCache = (projectId, repoCacheKey, architecture) => {
+const setArchitectureInMemoryCache = (
+  projectId,
+  repoCacheKey,
+  architecture
+) => {
   if (!projectId || !repoCacheKey || !architecture) return;
   pruneArchitectureMemoryCache();
   const cacheId = makeArchitectureCacheId(projectId, repoCacheKey);
@@ -108,17 +121,20 @@ const setArchitectureInMemoryCache = (projectId, repoCacheKey, architecture) => 
 const buildRepoFreshnessKey = async (accessToken, owner, repo) => {
   const headers = {
     Authorization: `Bearer ${accessToken}`,
-    Accept: 'application/vnd.github.v3+json'
+    Accept: 'application/vnd.github.v3+json',
   };
 
-  const repoRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}`, { headers });
+  const repoRes = await axios.get(
+    `https://api.github.com/repos/${owner}/${repo}`,
+    { headers }
+  );
   const repoData = repoRes.data || {};
 
   return [
     repoData.full_name || `${owner}/${repo}`,
     repoData.default_branch || '',
     repoData.pushed_at || '',
-    repoData.updated_at || ''
+    repoData.updated_at || '',
   ].join('|');
 };
 
@@ -143,32 +159,50 @@ const getTeamUidsForUser = async (uid) => {
   return [...new Set(teams.flatMap((team) => team.members || []))];
 };
 
-
 const fetchRepoContext = async (accessToken, owner, repo) => {
   logDebug(`Fetching repo context for ${owner}/${repo}`);
   try {
     const headers = {
       Authorization: `Bearer ${accessToken}`,
-      Accept: 'application/vnd.github.v3+json'
+      Accept: 'application/vnd.github.v3+json',
     };
 
     logDebug(`Requesting file tree...`);
-    const treeResponse = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents`, { headers });
-    const files = treeResponse.data.map(f => f.name);
+    const treeResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/contents`,
+      { headers }
+    );
+    const files = treeResponse.data.map((f) => f.name);
     logDebug(`Found files: ${files.join(', ')}`);
 
     let context = `Repository File Structure (Root):\n${files.join('\n')}\n\n`;
 
-    const interestingFiles = ['package.json', 'requirements.txt', 'go.mod', 'README.md', 'schema.prisma', 'Genre.js', 'App.js', 'server.js', 'index.js'];
+    const interestingFiles = [
+      'package.json',
+      'requirements.txt',
+      'go.mod',
+      'README.md',
+      'schema.prisma',
+      'Genre.js',
+      'App.js',
+      'server.js',
+      'index.js',
+    ];
 
     const filePromises = interestingFiles
-      .filter(file => files.includes(file))
+      .filter((file) => files.includes(file))
       .map(async (file) => {
         try {
           logDebug(`Fetching content of ${file}...`);
-          const contentRes = await axios.get(`https://api.github.com/repos/${owner}/${repo}/contents/${file}`, { headers });
+          const contentRes = await axios.get(
+            `https://api.github.com/repos/${owner}/${repo}/contents/${file}`,
+            { headers }
+          );
           if (contentRes.data.content) {
-            const content = Buffer.from(contentRes.data.content, 'base64').toString('utf-8');
+            const content = Buffer.from(
+              contentRes.data.content,
+              'base64'
+            ).toString('utf-8');
             return `\n--- Content of ${file} ---\n${content.substring(0, 5000)}\n----------------------\n`;
           }
         } catch (e) {
@@ -185,11 +219,11 @@ const fetchRepoContext = async (accessToken, owner, repo) => {
     return context;
   } catch (error) {
     logDebug(`Error fetching repo context: ${error.message}`);
-    if (error.response) logDebug(`Response data: ${JSON.stringify(error.response.data)}`);
-    return "Failed to fetch repository context.";
+    if (error.response)
+      logDebug(`Response data: ${JSON.stringify(error.response.data)}`);
+    return 'Failed to fetch repository context.';
   }
 };
-
 
 const analyzeWithGemini = async (repoContext, projectName) => {
   logDebug(`Sending context to Gemini for analysis...`);
@@ -236,7 +270,10 @@ const analyzeWithGemini = async (repoContext, projectName) => {
     const response = await result.response;
     const text = response.text();
 
-    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonString = text
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
     logDebug(`Gemini response received. Length: ${jsonString.length}`);
 
     const parsed = JSON.parse(jsonString);
@@ -247,7 +284,6 @@ const analyzeWithGemini = async (repoContext, projectName) => {
     throw error;
   }
 };
-
 
 router.post('/', authMiddleware, async (req, res) => {
   try {
@@ -262,11 +298,36 @@ router.post('/', authMiddleware, async (req, res) => {
     if (!owner) return res.status(404).json({ message: 'User not found' });
 
     const defaultSteps = [
-      { title: 'Planning', description: 'Initial requirements and design', type: 'Design', order: 0 },
-      { title: 'Frontend', description: 'Client-side implementation', type: 'Frontend', order: 1 },
-      { title: 'Backend', description: 'Server-side logic and APIs', type: 'Backend', order: 2 },
-      { title: 'Database', description: 'Schema design and data management', type: 'Database', order: 3 },
-      { title: 'Deployment', description: 'CI/CD and hosting setup', type: 'Other', order: 4 }
+      {
+        title: 'Planning',
+        description: 'Initial requirements and design',
+        type: 'Design',
+        order: 0,
+      },
+      {
+        title: 'Frontend',
+        description: 'Client-side implementation',
+        type: 'Frontend',
+        order: 1,
+      },
+      {
+        title: 'Backend',
+        description: 'Server-side logic and APIs',
+        type: 'Backend',
+        order: 2,
+      },
+      {
+        title: 'Database',
+        description: 'Schema design and data management',
+        type: 'Database',
+        order: 3,
+      },
+      {
+        title: 'Deployment',
+        description: 'CI/CD and hosting setup',
+        type: 'Other',
+        order: 4,
+      },
     ];
 
     const newProject = await Project.create({
@@ -280,22 +341,26 @@ router.post('/', authMiddleware, async (req, res) => {
     });
 
     // Create default steps (bulk insert)
-    await Step.insertMany(defaultSteps.map(s => ({ ...s, projectId: newProject._id })));
+    await Step.insertMany(
+      defaultSteps.map((s) => ({ ...s, projectId: newProject._id }))
+    );
 
     const result = await getProjectWithSteps(newProject._id);
     cache.invalidate(`projects:${ownerUid}`);
     res.status(201).json(result);
   } catch (error) {
     console.error('Error creating project:', error);
-    res.status(500).json({ message: 'Failed to create project', error: error.message });
+    res
+      .status(500)
+      .json({ message: 'Failed to create project', error: error.message });
   }
 });
-
 
 router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
-    const forceRefresh = req.query.forceRefresh === 'true' || req.body?.forceRefresh === true;
+    const forceRefresh =
+      req.query.forceRefresh === 'true' || req.body?.forceRefresh === true;
     const project = await Project.findById(id).lean();
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -307,23 +372,33 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
     const { githubRepoName, githubRepoOwner } = project;
 
     if (!githubRepoName || !githubRepoOwner) {
-      return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
+      return res
+        .status(400)
+        .json({ message: 'Project is not linked to a GitHub repository' });
     }
 
     const owner = await User.findById(project.ownerId).lean();
     const github = owner?.githubIntegration;
     if (!github?.accessToken) {
-      return res.status(400).json({ message: 'Owner is not connected to GitHub' });
+      return res
+        .status(400)
+        .json({ message: 'Owner is not connected to GitHub' });
     }
 
     const accessToken = decryptToken(github.accessToken);
     if (!accessToken) {
-      return res.status(500).json({ message: 'Failed to decrypt GitHub token' });
+      return res
+        .status(500)
+        .json({ message: 'Failed to decrypt GitHub token' });
     }
 
     let repoCacheKey = null;
     try {
-      repoCacheKey = await buildRepoFreshnessKey(accessToken, githubRepoOwner, githubRepoName);
+      repoCacheKey = await buildRepoFreshnessKey(
+        accessToken,
+        githubRepoOwner,
+        githubRepoName
+      );
     } catch (cacheKeyError) {
       logDebug(`Failed to build repo freshness key: ${cacheKeyError.message}`);
     }
@@ -333,24 +408,38 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
       if (memoryCachedArch) {
         await Project.updateOne(
           { _id: id },
-          { $set: { architecture: memoryCachedArch, architectureCacheKey: repoCacheKey } }
+          {
+            $set: {
+              architecture: memoryCachedArch,
+              architectureCacheKey: repoCacheKey,
+            },
+          }
         );
         const cachedProject = await getProjectWithSteps(id);
         return res.json(cachedProject);
       }
 
-      if (project.architecture && project.architectureCacheKey === repoCacheKey) {
+      if (
+        project.architecture &&
+        project.architectureCacheKey === repoCacheKey
+      ) {
         setArchitectureInMemoryCache(id, repoCacheKey, project.architecture);
         const cachedProject = await getProjectWithSteps(id);
         return res.json(cachedProject);
       }
     }
 
-    console.log(`Analyzing GitHub Repo: ${githubRepoOwner}/${githubRepoName}...`);
-    const context = await fetchRepoContext(accessToken, githubRepoOwner, githubRepoName);
+    console.log(
+      `Analyzing GitHub Repo: ${githubRepoOwner}/${githubRepoName}...`
+    );
+    const context = await fetchRepoContext(
+      accessToken,
+      githubRepoOwner,
+      githubRepoName
+    );
     const analyzedArch = await analyzeWithGemini(context, project.name);
 
-    console.log("Analysis Result:", JSON.stringify(analyzedArch, null, 2));
+    console.log('Analysis Result:', JSON.stringify(analyzedArch, null, 2));
 
     if (analyzedArch && Object.keys(analyzedArch).length > 0) {
       const updates = {
@@ -363,19 +452,24 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
       }
 
       await Project.updateOne({ _id: id }, { $set: updates });
-      console.log("Project architecture saved successfully.");
+      console.log('Project architecture saved successfully.');
       const updatedProject = await getProjectWithSteps(id);
       invalidateProjectCache(project);
       return res.json(updatedProject);
     }
 
-    console.warn("Analysis returned empty or null.");
+    console.warn('Analysis returned empty or null.');
     const full = await getProjectWithSteps(id);
     invalidateProjectCache(project);
     res.json(full);
   } catch (error) {
-    console.error("Architecture analysis failed:", error);
-    res.status(500).json({ message: 'Failed to analyze architecture', error: error.message });
+    console.error('Architecture analysis failed:', error);
+    res
+      .status(500)
+      .json({
+        message: 'Failed to analyze architecture',
+        error: error.message,
+      });
   }
 });
 
@@ -385,7 +479,9 @@ router.post('/generate', authMiddleware, async (req, res) => {
     const ownerUid = req.user.uid;
 
     if (!name || !description) {
-      return res.status(400).json({ message: 'Name and description are required' });
+      return res
+        .status(400)
+        .json({ message: 'Name and description are required' });
     }
 
     const owner = await User.findOne({ uid: ownerUid }).lean();
@@ -447,14 +543,22 @@ router.post('/generate', authMiddleware, async (req, res) => {
     const response = await result.response;
     const text = response.text();
 
-    const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+    const jsonString = text
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
 
     let generatedData;
     try {
       generatedData = JSON.parse(jsonString);
     } catch (e) {
-      console.error("Failed to parse Gemini response:", jsonString);
-      return res.status(500).json({ message: 'Failed to generate valid project structure', error: e.message });
+      console.error('Failed to parse Gemini response:', jsonString);
+      return res
+        .status(500)
+        .json({
+          message: 'Failed to generate valid project structure',
+          error: e.message,
+        });
     }
 
     const newProject = await Project.create({
@@ -482,7 +586,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
     );
 
     const allTasks = createdSteps.flatMap((step, i) =>
-      stepsData[i].tasks.map(task => ({
+      stepsData[i].tasks.map((task) => ({
         title: task.title,
         description: task.description || '',
         status: 'Pending',
@@ -497,13 +601,13 @@ router.post('/generate', authMiddleware, async (req, res) => {
     const fullProject = await getProjectWithSteps(newProject._id);
     cache.invalidate(`projects:${ownerUid}`);
     res.status(201).json(fullProject);
-
   } catch (error) {
     console.error('Error generating project:', error);
-    res.status(500).json({ message: 'Failed to generate project', error: error.message });
+    res
+      .status(500)
+      .json({ message: 'Failed to generate project', error: error.message });
   }
 });
-
 
 router.get('/', authMiddleware, async (req, res) => {
   try {
@@ -516,30 +620,33 @@ router.get('/', authMiddleware, async (req, res) => {
     // Fetch owned/team projects and assigned tasks in parallel
     const [projects, assignedTasks] = await Promise.all([
       getProjectsWithSteps({
-        $or: [
-          { ownerUid },
-          { team: ownerUid }
-        ]
+        $or: [{ ownerUid }, { team: ownerUid }],
       }),
-      ProjectTask.find({ assignedTo: ownerUid }).select('stepId').lean()
+      ProjectTask.find({ assignedTo: ownerUid }).select('stepId').lean(),
     ]);
-    const assignedStepIds = [...new Set(assignedTasks.map(t => t.stepId.toString()))];
+    const assignedStepIds = [
+      ...new Set(assignedTasks.map((t) => t.stepId.toString())),
+    ];
 
     let assignedProjects = [];
     if (assignedStepIds.length > 0) {
-      const assignedSteps = await Step.find({ _id: { $in: assignedStepIds } }).select('projectId').lean();
-      const assignedProjectIds = [...new Set(assignedSteps.map(s => s.projectId.toString()))];
+      const assignedSteps = await Step.find({ _id: { $in: assignedStepIds } })
+        .select('projectId')
+        .lean();
+      const assignedProjectIds = [
+        ...new Set(assignedSteps.map((s) => s.projectId.toString())),
+      ];
 
       if (assignedProjectIds.length > 0) {
         assignedProjects = await getProjectsWithSteps({
-          _id: { $in: assignedProjectIds }
+          _id: { $in: assignedProjectIds },
         });
       }
     }
 
     // Merge and deduplicate
     const projectMap = new Map();
-    [...projects, ...assignedProjects].forEach(p => projectMap.set(p.id, p));
+    [...projects, ...assignedProjects].forEach((p) => projectMap.set(p.id, p));
     const allProjects = Array.from(projectMap.values());
     const { items, pagination } = paginateArray(allProjects, req.query);
     setPaginationHeaders(res, pagination);
@@ -550,7 +657,6 @@ router.get('/', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-
 
 router.post('/:id/team', authMiddleware, async (req, res) => {
   try {
@@ -565,35 +671,73 @@ router.post('/:id/team', authMiddleware, async (req, res) => {
 
     if (!project.team.includes(userId) && project.ownerUid !== userId) {
       const newTeam = [...project.team, userId];
-      await Project.updateOne({ _id: req.params.id }, { $set: { team: newTeam } });
+      await Project.updateOne(
+        { _id: req.params.id },
+        { $set: { team: newTeam } }
+      );
     }
 
     const full = await getProjectWithSteps(req.params.id);
-    invalidateProjectCache({ ownerUid: project.ownerUid, team: [...project.team, userId] });
+    invalidateProjectCache({
+      ownerUid: project.ownerUid,
+      team: [...project.team, userId],
+    });
     res.json(full);
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
-
 router.get('/:id', authMiddleware, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id).lean();
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
+    if (
+      project.ownerUid !== req.user.uid &&
+      !project.team.includes(req.user.uid)
+    ) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
     const stepCount = await Step.countDocuments({ projectId: project._id });
     if (stepCount === 0) {
       const defaultSteps = [
-        { title: 'Planning', description: 'Initial requirements and design', type: 'Design', order: 0, projectId: project._id },
-        { title: 'Frontend', description: 'Client-side implementation', type: 'Frontend', order: 1, projectId: project._id },
-        { title: 'Backend', description: 'Server-side logic and APIs', type: 'Backend', order: 2, projectId: project._id },
-        { title: 'Database', description: 'Schema design and data management', type: 'Database', order: 3, projectId: project._id },
-        { title: 'Deployment', description: 'CI/CD and hosting setup', type: 'Other', order: 4, projectId: project._id }
+        {
+          title: 'Planning',
+          description: 'Initial requirements and design',
+          type: 'Design',
+          order: 0,
+          projectId: project._id,
+        },
+        {
+          title: 'Frontend',
+          description: 'Client-side implementation',
+          type: 'Frontend',
+          order: 1,
+          projectId: project._id,
+        },
+        {
+          title: 'Backend',
+          description: 'Server-side logic and APIs',
+          type: 'Backend',
+          order: 2,
+          projectId: project._id,
+        },
+        {
+          title: 'Database',
+          description: 'Schema design and data management',
+          type: 'Database',
+          order: 3,
+          projectId: project._id,
+        },
+        {
+          title: 'Deployment',
+          description: 'CI/CD and hosting setup',
+          type: 'Other',
+          order: 4,
+          projectId: project._id,
+        },
       ];
       await Step.insertMany(defaultSteps);
     }
@@ -605,7 +749,6 @@ router.get('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const project = await Project.findById(req.params.id).lean();
@@ -616,8 +759,10 @@ router.delete('/:id', authMiddleware, async (req, res) => {
     }
 
     // Delete tasks, steps, then project
-    const steps = await Step.find({ projectId: project._id }).select('_id').lean();
-    const stepIds = steps.map(s => s._id);
+    const steps = await Step.find({ projectId: project._id })
+      .select('_id')
+      .lean();
+    const stepIds = steps.map((s) => s._id);
     if (stepIds.length > 0) {
       await ProjectTask.deleteMany({ stepId: { $in: stepIds } });
     }
@@ -631,22 +776,30 @@ router.delete('/:id', authMiddleware, async (req, res) => {
   }
 });
 
-
 router.patch('/:id', authMiddleware, async (req, res) => {
   try {
     const { id } = req.params;
     const project = await Project.findById(id).lean();
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
+    if (
+      project.ownerUid !== req.user.uid &&
+      !project.team.includes(req.user.uid)
+    ) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
     const updates = req.body;
-    const allowedUpdates = ['name', 'description', 'githubRepoName', 'githubRepoOwner', 'isTrackingActive'];
+    const allowedUpdates = [
+      'name',
+      'description',
+      'githubRepoName',
+      'githubRepoOwner',
+      'isTrackingActive',
+    ];
     const filteredUpdates = {};
 
-    Object.keys(updates).forEach(key => {
+    Object.keys(updates).forEach((key) => {
       if (allowedUpdates.includes(key)) {
         filteredUpdates[key] = updates[key];
       }
@@ -663,174 +816,208 @@ router.patch('/:id', authMiddleware, async (req, res) => {
   }
 });
 
+router.post(
+  '/:projectId/steps/:stepId/tasks',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { projectId, stepId } = req.params;
+      const { title, description, assignedTo, assignedToName, assignedBy } =
+        req.body;
 
-router.post('/:projectId/steps/:stepId/tasks', authMiddleware, async (req, res) => {
-  try {
-    const { projectId, stepId } = req.params;
-    const { title, description, assignedTo, assignedToName, assignedBy } = req.body;
-
-    if (!title) {
-      return res.status(400).json({ message: 'Task title is required' });
-    }
-
-    const project = await Project.findById(projectId).lean();
-    if (!project) return res.status(404).json({ message: 'Project not found' });
-
-    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    const step = await Step.findOne({ _id: stepId, projectId: project._id }).lean();
-    if (!step) return res.status(404).json({ message: 'Step not found' });
-
-    // Send assignment email
-    if (assignedTo) {
-      const assigneeUser = await User.findOne({ uid: assignedTo }).lean();
-      if (assigneeUser && assigneeUser.email) {
-        const subject = `New Task Assigned: ${title}`;
-        const text = `You have been assigned a new task in project "${project.name}".\n\nTask: ${title}\nDescription: ${description || 'No description'}\nAssigned By: ${assignedBy || 'Admin'}`;
-        const html = getTaskAssignmentEmailHtml({
-          projectName: project.name,
-          lines: [
-            { label: 'Step', value: step.title },
-            { label: 'Task', value: title },
-            { label: 'Description', value: description || 'No description' },
-            { label: 'Assigned By', value: assignedBy || 'Admin' },
-          ],
-        });
-        try {
-          await sendZyncEmail(assigneeUser.email, subject, html, text);
-        } catch (emailError) {
-          console.error("Failed to send assignment email:", emailError);
-        }
+      if (!title) {
+        return res.status(400).json({ message: 'Task title is required' });
       }
-    }
 
-    await ProjectTask.create({
-      title,
-      description: description || null,
-      status: 'Pending',
-      assignedTo,
-      assignedToName,
-      assignedBy: assignedBy || 'Admin',
-      createdBy: req.user ? req.user.uid : (assignedBy || 'Admin'),
-      stepId
-    });
+      const project = await Project.findById(projectId).lean();
+      if (!project)
+        return res.status(404).json({ message: 'Project not found' });
 
-    const updatedProject = await getProjectWithSteps(projectId);
-    invalidateProjectCache(project);
-    res.status(201).json(updatedProject);
-  } catch (error) {
-    console.error('Error creating task:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
+      if (
+        project.ownerUid !== req.user.uid &&
+        !project.team.includes(req.user.uid)
+      ) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
 
+      const step = await Step.findOne({
+        _id: stepId,
+        projectId: project._id,
+      }).lean();
+      if (!step) return res.status(404).json({ message: 'Step not found' });
 
-router.put('/:projectId/steps/:stepId/tasks/:taskId', authMiddleware, async (req, res) => {
-  try {
-    const { projectId, stepId, taskId } = req.params;
-    const { status, assignedTo, assignedToName, assignedBy } = req.body;
-
-    const project = await Project.findById(projectId).lean();
-    if (!project) return res.status(404).json({ message: 'Project not found' });
-
-    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
-      return res.status(403).json({ message: 'Unauthorized' });
-    }
-
-    const step = await Step.findOne({ _id: stepId, projectId: project._id }).lean();
-    if (!step) return res.status(404).json({ message: 'Step not found' });
-
-    const task = await ProjectTask.findOne({ _id: taskId, stepId }).lean();
-    if (!task) return res.status(404).json({ message: 'Task not found' });
-
-    const taskUpdate = {};
-    if (status) taskUpdate.status = status;
-
-    if (assignedTo !== undefined) {
-      const oldAssignee = task.assignedTo;
-      taskUpdate.assignedTo = assignedTo;
-      taskUpdate.assignedToName = assignedToName;
-
-      if (assignedTo && assignedTo !== oldAssignee) {
+      // Send assignment email
+      if (assignedTo) {
         const assigneeUser = await User.findOne({ uid: assignedTo }).lean();
-
         if (assigneeUser && assigneeUser.email) {
-          const subject = `New Task Assigned: ${task.title}`;
-          const text = `You have been assigned a new task in project "${project.name}".\n\nStep: ${step.title}\nTask: ${task.title}\nAssigned By: ${assignedBy || 'Admin'}`;
+          const subject = `New Task Assigned: ${title}`;
+          const text = `You have been assigned a new task in project "${project.name}".\n\nTask: ${title}\nDescription: ${description || 'No description'}\nAssigned By: ${assignedBy || 'Admin'}`;
           const html = getTaskAssignmentEmailHtml({
             projectName: project.name,
             lines: [
-              { label: 'Task', value: task.title },
               { label: 'Step', value: step.title },
+              { label: 'Task', value: title },
+              { label: 'Description', value: description || 'No description' },
               { label: 'Assigned By', value: assignedBy || 'Admin' },
             ],
           });
-
           try {
             await sendZyncEmail(assigneeUser.email, subject, html, text);
           } catch (emailError) {
-            console.error("Failed to send assignment email:", emailError);
+            console.error('Failed to send assignment email:', emailError);
           }
         }
       }
+
+      await ProjectTask.create({
+        title,
+        description: description || null,
+        status: 'Pending',
+        assignedTo,
+        assignedToName,
+        assignedBy: assignedBy || 'Admin',
+        createdBy: req.user ? req.user.uid : assignedBy || 'Admin',
+        stepId,
+      });
+
+      const updatedProject = await getProjectWithSteps(projectId);
+      invalidateProjectCache(project);
+      res.status(201).json(updatedProject);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
-
-    await ProjectTask.updateOne({ _id: taskId }, { $set: taskUpdate });
-
-    const updatedProject = await getProjectWithSteps(projectId);
-
-    req.app.get('io').emit('projectUpdate', {
-      projectId: updatedProject.id,
-      project: updatedProject
-    });
-
-    invalidateProjectCache(project);
-    res.json(updatedProject);
-  } catch (error) {
-    console.error('Error updating task:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
   }
-});
+);
 
+router.put(
+  '/:projectId/steps/:stepId/tasks/:taskId',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { projectId, stepId, taskId } = req.params;
+      const { status, assignedTo, assignedToName, assignedBy } = req.body;
 
-router.delete('/:projectId/steps/:stepId/tasks/:taskId', authMiddleware, async (req, res) => {
-  try {
-    const { projectId, stepId, taskId } = req.params;
-    const userId = req.user ? req.user.uid : null;
+      const project = await Project.findById(projectId).lean();
+      if (!project)
+        return res.status(404).json({ message: 'Project not found' });
 
-    if (!userId) {
-      return res.status(401).json({ message: 'Unauthorized' });
+      if (
+        project.ownerUid !== req.user.uid &&
+        !project.team.includes(req.user.uid)
+      ) {
+        return res.status(403).json({ message: 'Unauthorized' });
+      }
+
+      const step = await Step.findOne({
+        _id: stepId,
+        projectId: project._id,
+      }).lean();
+      if (!step) return res.status(404).json({ message: 'Step not found' });
+
+      const task = await ProjectTask.findOne({ _id: taskId, stepId }).lean();
+      if (!task) return res.status(404).json({ message: 'Task not found' });
+
+      const taskUpdate = {};
+      if (status) taskUpdate.status = status;
+
+      if (assignedTo !== undefined) {
+        const oldAssignee = task.assignedTo;
+        taskUpdate.assignedTo = assignedTo;
+        taskUpdate.assignedToName = assignedToName;
+
+        if (assignedTo && assignedTo !== oldAssignee) {
+          const assigneeUser = await User.findOne({ uid: assignedTo }).lean();
+
+          if (assigneeUser && assigneeUser.email) {
+            const subject = `New Task Assigned: ${task.title}`;
+            const text = `You have been assigned a new task in project "${project.name}".\n\nStep: ${step.title}\nTask: ${task.title}\nAssigned By: ${assignedBy || 'Admin'}`;
+            const html = getTaskAssignmentEmailHtml({
+              projectName: project.name,
+              lines: [
+                { label: 'Task', value: task.title },
+                { label: 'Step', value: step.title },
+                { label: 'Assigned By', value: assignedBy || 'Admin' },
+              ],
+            });
+
+            try {
+              await sendZyncEmail(assigneeUser.email, subject, html, text);
+            } catch (emailError) {
+              console.error('Failed to send assignment email:', emailError);
+            }
+          }
+        }
+      }
+
+      await ProjectTask.updateOne({ _id: taskId }, { $set: taskUpdate });
+
+      const updatedProject = await getProjectWithSteps(projectId);
+
+      req.app.get('io').emit('projectUpdate', {
+        projectId: updatedProject.id,
+        project: updatedProject,
+      });
+
+      invalidateProjectCache(project);
+      res.json(updatedProject);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).json({ message: 'Server error', error: error.message });
     }
-
-    const project = await Project.findById(projectId).lean();
-    if (!project) return res.status(404).json({ message: 'Project not found' });
-
-    if (project.ownerUid !== userId) {
-      return res.status(403).json({ message: 'Permission denied. Only the project owner can delete tasks.' });
-    }
-
-    const task = await ProjectTask.findOne({ _id: taskId, stepId }).lean();
-    if (!task) return res.status(404).json({ message: 'Task not found' });
-
-    await ProjectTask.findByIdAndDelete(taskId);
-
-    const updatedProject = await getProjectWithSteps(projectId);
-
-    req.app.get('io').emit('projectUpdate', {
-      projectId: updatedProject.id,
-      project: updatedProject
-    });
-
-    res.json({ message: 'Task deleted successfully', projectId, stepId, taskId });
-    invalidateProjectCache(project);
-  } catch (error) {
-    console.error('Error deleting task:', error);
-    res.status(500).json({ message: 'Server error' });
   }
-});
+);
 
+router.delete(
+  '/:projectId/steps/:stepId/tasks/:taskId',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { projectId, stepId, taskId } = req.params;
+      const userId = req.user ? req.user.uid : null;
+
+      if (!userId) {
+        return res.status(401).json({ message: 'Unauthorized' });
+      }
+
+      const project = await Project.findById(projectId).lean();
+      if (!project)
+        return res.status(404).json({ message: 'Project not found' });
+
+      if (project.ownerUid !== userId) {
+        return res
+          .status(403)
+          .json({
+            message:
+              'Permission denied. Only the project owner can delete tasks.',
+          });
+      }
+
+      const task = await ProjectTask.findOne({ _id: taskId, stepId }).lean();
+      if (!task) return res.status(404).json({ message: 'Task not found' });
+
+      await ProjectTask.findByIdAndDelete(taskId);
+
+      const updatedProject = await getProjectWithSteps(projectId);
+
+      req.app.get('io').emit('projectUpdate', {
+        projectId: updatedProject.id,
+        project: updatedProject,
+      });
+
+      res.json({
+        message: 'Task deleted successfully',
+        projectId,
+        stepId,
+        taskId,
+      });
+      invalidateProjectCache(project);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  }
+);
 
 router.get('/tasks/search', authMiddleware, async (req, res) => {
   try {
@@ -840,23 +1027,38 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
     if (!query) return res.json([]);
 
     // Get all projects user has access to
-    const ownedProjects = await Project.find({ ownerUid: userId }).select('_id name').lean();
-    const teamProjects = await Project.find({ team: userId }).select('_id name').lean();
+    const ownedProjects = await Project.find({ ownerUid: userId })
+      .select('_id name')
+      .lean();
+    const teamProjects = await Project.find({ team: userId })
+      .select('_id name')
+      .lean();
 
     // Get projects via task assignment
-    const assignedTasks = await ProjectTask.find({ assignedTo: userId }).select('stepId').lean();
-    const assignedStepIds = [...new Set(assignedTasks.map(t => t.stepId.toString()))];
+    const assignedTasks = await ProjectTask.find({ assignedTo: userId })
+      .select('stepId')
+      .lean();
+    const assignedStepIds = [
+      ...new Set(assignedTasks.map((t) => t.stepId.toString())),
+    ];
     let assignedProjectIds = [];
     if (assignedStepIds.length > 0) {
-      const assignedSteps = await Step.find({ _id: { $in: assignedStepIds } }).select('projectId').lean();
-      assignedProjectIds = assignedSteps.map(s => s.projectId.toString());
+      const assignedSteps = await Step.find({ _id: { $in: assignedStepIds } })
+        .select('projectId')
+        .lean();
+      assignedProjectIds = assignedSteps.map((s) => s.projectId.toString());
     }
-    const assignedProjectDocs = assignedProjectIds.length > 0
-      ? await Project.find({ _id: { $in: assignedProjectIds } }).select('_id name').lean()
-      : [];
+    const assignedProjectDocs =
+      assignedProjectIds.length > 0
+        ? await Project.find({ _id: { $in: assignedProjectIds } })
+            .select('_id name')
+            .lean()
+        : [];
 
     const projectMap = new Map();
-    [...ownedProjects, ...teamProjects, ...assignedProjectDocs].forEach(p => projectMap.set(p._id.toString(), p));
+    [...ownedProjects, ...teamProjects, ...assignedProjectDocs].forEach((p) =>
+      projectMap.set(p._id.toString(), p)
+    );
     const projectIds = Array.from(projectMap.keys());
 
     if (projectIds.length === 0) return res.json([]);
@@ -864,17 +1066,19 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
     // Get steps for these projects
     const steps = await Step.find({ projectId: { $in: projectIds } }).lean();
     const stepMap = new Map();
-    steps.forEach(s => stepMap.set(s._id.toString(), s));
+    steps.forEach((s) => stepMap.set(s._id.toString(), s));
 
-    const stepIds = steps.map(s => s._id);
+    const stepIds = steps.map((s) => s._id);
 
     // Search tasks using MongoDB $regex instead of in-memory filtering
     const matchedTasks = await ProjectTask.find({
       stepId: { $in: stepIds },
-      title: { $regex: query, $options: 'i' }
-    }).limit(10).lean();
+      title: { $regex: query, $options: 'i' },
+    })
+      .limit(10)
+      .lean();
 
-    const results = matchedTasks.map(task => {
+    const results = matchedTasks.map((task) => {
       const step = stepMap.get(task.stepId.toString());
       const proj = step ? projectMap.get(step.projectId.toString()) : null;
       return {
@@ -883,11 +1087,14 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
         projectId: proj?._id?.toString() || '',
         projectName: proj?.name || '',
         status: task.status,
-        stepName: step?.title || ''
+        stepName: step?.title || '',
       };
     });
 
-    const { items, pagination } = paginateArray(results, req.query, { defaultLimit: 10, maxLimit: 50 });
+    const { items, pagination } = paginateArray(results, req.query, {
+      defaultLimit: 10,
+      maxLimit: 50,
+    });
     setPaginationHeaders(res, pagination);
 
     res.json(items);
@@ -897,7 +1104,6 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
   }
 });
 
-
 router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -906,16 +1112,22 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
     const project = await Project.findById(projectId).lean();
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
+    if (
+      project.ownerUid !== req.user.uid &&
+      !project.team.includes(req.user.uid)
+    ) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    const steps = await Step.find({ projectId: project._id }).sort({ order: 1 }).lean();
+    const steps = await Step.find({ projectId: project._id })
+      .sort({ order: 1 })
+      .lean();
 
-    let step = steps.find(s =>
-      s.title.toLowerCase().includes('backlog') ||
-      s.title.toLowerCase().includes('planning') ||
-      s.title.toLowerCase().includes('general')
+    let step = steps.find(
+      (s) =>
+        s.title.toLowerCase().includes('backlog') ||
+        s.title.toLowerCase().includes('planning') ||
+        s.title.toLowerCase().includes('general')
     );
 
     if (!step && steps.length > 0) {
@@ -928,7 +1140,7 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
         description: 'Auto-generated backlog',
         type: 'Other',
         order: 0,
-        projectId: project._id
+        projectId: project._id,
       });
       step = created.toObject();
     }
@@ -941,7 +1153,7 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
       assignedToName,
       assignedBy: req.user?.name || 'Admin',
       createdBy: req.user ? req.user.uid : 'Admin',
-      stepId: step._id
+      stepId: step._id,
     });
 
     if (assignedTo) {
@@ -953,14 +1165,17 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
           projectName: project.name,
           lines: [
             { label: 'Task', value: newTask.title },
-            { label: 'Description', value: newTask.description || 'No description' },
+            {
+              label: 'Description',
+              value: newTask.description || 'No description',
+            },
             { label: 'Assigned By', value: 'Admin' },
           ],
         });
         try {
           await sendZyncEmail(assigneeUser.email, subject, html, text);
         } catch (emailError) {
-          console.error("Failed to send assignment email:", emailError);
+          console.error('Failed to send assignment email:', emailError);
         }
       }
     }
@@ -969,210 +1184,284 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
     const taskObj = normalizeDoc(newTask.toObject());
 
     invalidateProjectCache(project);
-    res.json({ message: 'Task created', task: taskObj, stepId: step._id?.toString() || step.id, project: updatedProject });
+    res.json({
+      message: 'Task created',
+      task: taskObj,
+      stepId: step._id?.toString() || step.id,
+      project: updatedProject,
+    });
   } catch (error) {
     console.error('Error creating quick task:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-router.get('/:projectId/collaborator-assignees', authMiddleware, async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const requesterUid = req.user.uid;
-
-    if (!mongoose.isValidObjectId(projectId)) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
-
-    const cacheKey = `collaborator-assignees:${projectId}:${requesterUid}`;
-
+router.get(
+  '/:projectId/collaborator-assignees',
+  authMiddleware,
+  async (req, res) => {
     try {
-      const cached = await cache.getJson(cacheKey);
-      if (cached) {
-        return res.json(cached);
+      const { projectId } = req.params;
+      const requesterUid = req.user.uid;
+
+      if (!mongoose.isValidObjectId(projectId)) {
+        return res.status(404).json({ message: 'Project not found' });
       }
-    } catch (cacheReadError) {
-      console.warn(`[Cache] collaborator-assignees read failed for ${cacheKey}:`, cacheReadError.message);
-    }
 
-    const project = await Project.findById(projectId).lean();
-    if (!project) return res.status(404).json({ message: 'Project not found' });
+      const cacheKey = `collaborator-assignees:${projectId}:${requesterUid}`;
 
-    if (project.ownerUid !== requesterUid) {
-      return res.status(403).json({ message: 'Only the repository owner can manage collaborators' });
-    }
+      try {
+        const cached = await cache.getJson(cacheKey);
+        if (cached) {
+          return res.json(cached);
+        }
+      } catch (cacheReadError) {
+        console.warn(
+          `[Cache] collaborator-assignees read failed for ${cacheKey}:`,
+          cacheReadError.message
+        );
+      }
 
-    if (!project.githubRepoOwner || !project.githubRepoName) {
-      return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
-    }
+      const project = await Project.findById(projectId).lean();
+      if (!project)
+        return res.status(404).json({ message: 'Project not found' });
 
-    const requester = await User.findOne({ uid: requesterUid }).select('connections').lean();
-    const connectionsUids = requester?.connections || [];
-    const projectTeamUids = project.team || [];
-    const teamUids = await getTeamUidsForUser(requesterUid);
+      if (project.ownerUid !== requesterUid) {
+        return res
+          .status(403)
+          .json({
+            message: 'Only the repository owner can manage collaborators',
+          });
+      }
 
-    const allAssignableUids = [...new Set([
-      ...teamUids,
-      ...connectionsUids,
-      ...projectTeamUids
-    ])].filter(uid => uid !== requesterUid);
+      if (!project.githubRepoOwner || !project.githubRepoName) {
+        return res
+          .status(400)
+          .json({ message: 'Project is not linked to a GitHub repository' });
+      }
 
-    const assignableUsers = await User.find({ uid: { $in: allAssignableUids } })
-      .select('uid displayName email photoURL githubIntegration.username')
-      .lean();
+      const requester = await User.findOne({ uid: requesterUid })
+        .select('connections')
+        .lean();
+      const connectionsUids = requester?.connections || [];
+      const projectTeamUids = project.team || [];
+      const teamUids = await getTeamUidsForUser(requesterUid);
 
-    const connectedTeamUsers = assignableUsers.filter((u) => u?.githubIntegration?.username);
+      const allAssignableUids = [
+        ...new Set([...teamUids, ...connectionsUids, ...projectTeamUids]),
+      ].filter((uid) => uid !== requesterUid);
 
-    const octokit = await buildInstallationOctokitFromOwner(requesterUid);
-    const collaboratorsResponse = await octokit.request('GET /repos/{owner}/{repo}/collaborators', {
-      owner: project.githubRepoOwner,
-      repo: project.githubRepoName,
-      affiliation: 'all',
-      per_page: 100,
-    });
-
-    const collaboratorLogins = new Set(
-      (collaboratorsResponse.data || []).map((c) => String(c.login || '').toLowerCase())
-    );
-
-    const activeCollaborators = connectedTeamUsers
-      .filter((u) => collaboratorLogins.has(String(u.githubIntegration.username).toLowerCase()))
-      .map((u) => ({
-        uid: u.uid,
-        displayName: u.displayName,
-        email: u.email,
-        photoURL: u.photoURL,
-        githubUsername: u.githubIntegration.username,
-      }));
-
-    const availableTeamMembers = assignableUsers
-      .filter((u) => {
-        const gh = String(u?.githubIntegration?.username || '').toLowerCase();
-        return !gh || !collaboratorLogins.has(gh);
+      const assignableUsers = await User.find({
+        uid: { $in: allAssignableUids },
       })
-      .map((u) => ({
-        uid: u.uid,
-        displayName: u.displayName,
-        email: u.email,
-        photoURL: u.photoURL,
-        githubUsername: u.githubIntegration?.username || null,
-        canInvite: Boolean(u.githubIntegration?.username),
-        inviteDisabledReason: u.githubIntegration?.username
-          ? null
-          : 'User has not connected GitHub yet',
-      }));
+        .select('uid displayName email photoURL githubIntegration.username')
+        .lean();
 
-    const responsePayload = {
-      activeCollaborators,
-      availableTeamMembers,
-    };
+      const connectedTeamUsers = assignableUsers.filter(
+        (u) => u?.githubIntegration?.username
+      );
 
-    try {
-      await cache.setJson(cacheKey, responsePayload, 60);
-    } catch (cacheWriteError) {
-      console.warn(`[Cache] collaborator-assignees write failed for ${cacheKey}:`, cacheWriteError.message);
-    }
+      const octokit = await buildInstallationOctokitFromOwner(requesterUid);
+      const collaboratorsResponse = await octokit.request(
+        'GET /repos/{owner}/{repo}/collaborators',
+        {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          affiliation: 'all',
+          per_page: 100,
+        }
+      );
 
-    return res.json(responsePayload);
-  } catch (error) {
-    console.error('Error fetching collaborator assignees:', error);
-    return res.status(500).json({ message: 'Failed to fetch collaborator assignees', error: error.message });
-  }
-});
+      const collaboratorLogins = new Set(
+        (collaboratorsResponse.data || []).map((c) =>
+          String(c.login || '').toLowerCase()
+        )
+      );
 
-router.post('/:projectId/invite-collaborator', authMiddleware, async (req, res) => {
-  try {
-    const { projectId } = req.params;
-    const { userId } = req.body || {};
-    const requesterUid = req.user.uid;
+      const activeCollaborators = connectedTeamUsers
+        .filter((u) =>
+          collaboratorLogins.has(
+            String(u.githubIntegration.username).toLowerCase()
+          )
+        )
+        .map((u) => ({
+          uid: u.uid,
+          displayName: u.displayName,
+          email: u.email,
+          photoURL: u.photoURL,
+          githubUsername: u.githubIntegration.username,
+        }));
 
-    if (!mongoose.isValidObjectId(projectId)) {
-      return res.status(404).json({ message: 'Project not found' });
-    }
+      const availableTeamMembers = assignableUsers
+        .filter((u) => {
+          const gh = String(u?.githubIntegration?.username || '').toLowerCase();
+          return !gh || !collaboratorLogins.has(gh);
+        })
+        .map((u) => ({
+          uid: u.uid,
+          displayName: u.displayName,
+          email: u.email,
+          photoURL: u.photoURL,
+          githubUsername: u.githubIntegration?.username || null,
+          canInvite: Boolean(u.githubIntegration?.username),
+          inviteDisabledReason: u.githubIntegration?.username
+            ? null
+            : 'User has not connected GitHub yet',
+        }));
 
-    if (!userId) {
-      return res.status(400).json({ message: 'userId is required' });
-    }
+      const responsePayload = {
+        activeCollaborators,
+        availableTeamMembers,
+      };
 
-    if (userId === requesterUid) {
-      return res.status(400).json({ message: 'You cannot invite yourself' });
-    }
-
-    const project = await Project.findById(projectId).lean();
-    if (!project) return res.status(404).json({ message: 'Project not found' });
-
-    if (project.ownerUid !== requesterUid) {
-      return res.status(403).json({ message: 'Only the repository owner can invite collaborators' });
-    }
-
-    if (!project.githubRepoOwner || !project.githubRepoName) {
-      return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
-    }
-
-    const requester = await User.findOne({ uid: requesterUid }).select('connections').lean();
-    const connectionsUids = requester?.connections || [];
-    const projectTeamUids = project.team || [];
-    const teamUids = await getTeamUidsForUser(requesterUid);
-
-    const allAssignableUids = [...new Set([
-      ...teamUids,
-      ...connectionsUids,
-      ...projectTeamUids
-    ])];
-
-    if (!allAssignableUids.includes(userId)) {
-      return res.status(400).json({ message: 'Selected user is not in your team, connections, or project team' });
-    }
-
-    const assignee = await User.findOne({ uid: userId }).select('uid displayName email photoURL githubIntegration.username').lean();
-    if (!assignee?.githubIntegration?.username) {
-      return res.status(400).json({ message: 'Selected user is not connected to GitHub' });
-    }
-
-    const octokit = await buildInstallationOctokitFromOwner(requesterUid);
-
-    let alreadyCollaborator = false;
-    try {
-      await octokit.request('PUT /repos/{owner}/{repo}/collaborators/{username}', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName,
-        username: assignee.githubIntegration.username,
-        permission: 'push',
-      });
-    } catch (inviteError) {
-      const status = inviteError?.status || inviteError?.response?.status;
-      const message = inviteError?.response?.data?.message || inviteError?.message || '';
-      if (status === 422 && /already.*collaborator/i.test(message)) {
-        alreadyCollaborator = true;
-      } else {
-        throw inviteError;
+      try {
+        await cache.setJson(cacheKey, responsePayload, 60);
+      } catch (cacheWriteError) {
+        console.warn(
+          `[Cache] collaborator-assignees write failed for ${cacheKey}:`,
+          cacheWriteError.message
+        );
       }
-    }
 
-    try {
-      await cache.invalidate(`collaborator-assignees:${projectId}:${requesterUid}`);
-    } catch (cacheInvalidateError) {
-      console.warn(`[Cache] collaborator-assignees invalidate failed for ${projectId}:${requesterUid}:`, cacheInvalidateError.message);
+      return res.json(responsePayload);
+    } catch (error) {
+      console.error('Error fetching collaborator assignees:', error);
+      return res
+        .status(500)
+        .json({
+          message: 'Failed to fetch collaborator assignees',
+          error: error.message,
+        });
     }
-
-    return res.status(200).json({
-      message: alreadyCollaborator
-        ? 'User is already a collaborator on this repository.'
-        : 'Repository invite sent successfully.',
-      alreadyCollaborator,
-      user: {
-        uid: assignee.uid,
-        displayName: assignee.displayName,
-        email: assignee.email,
-        photoURL: assignee.photoURL,
-        githubUsername: assignee.githubIntegration.username,
-      },
-    });
-  } catch (error) {
-    console.error('Error inviting repository collaborator:', error);
-    return res.status(500).json({ message: 'Failed to invite collaborator', error: error.message });
   }
-});
+);
+
+router.post(
+  '/:projectId/invite-collaborator',
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { projectId } = req.params;
+      const { userId } = req.body || {};
+      const requesterUid = req.user.uid;
+
+      if (!mongoose.isValidObjectId(projectId)) {
+        return res.status(404).json({ message: 'Project not found' });
+      }
+
+      if (!userId) {
+        return res.status(400).json({ message: 'userId is required' });
+      }
+
+      if (userId === requesterUid) {
+        return res.status(400).json({ message: 'You cannot invite yourself' });
+      }
+
+      const project = await Project.findById(projectId).lean();
+      if (!project)
+        return res.status(404).json({ message: 'Project not found' });
+
+      if (project.ownerUid !== requesterUid) {
+        return res
+          .status(403)
+          .json({
+            message: 'Only the repository owner can invite collaborators',
+          });
+      }
+
+      if (!project.githubRepoOwner || !project.githubRepoName) {
+        return res
+          .status(400)
+          .json({ message: 'Project is not linked to a GitHub repository' });
+      }
+
+      const requester = await User.findOne({ uid: requesterUid })
+        .select('connections')
+        .lean();
+      const connectionsUids = requester?.connections || [];
+      const projectTeamUids = project.team || [];
+      const teamUids = await getTeamUidsForUser(requesterUid);
+
+      const allAssignableUids = [
+        ...new Set([...teamUids, ...connectionsUids, ...projectTeamUids]),
+      ];
+
+      if (!allAssignableUids.includes(userId)) {
+        return res
+          .status(400)
+          .json({
+            message:
+              'Selected user is not in your team, connections, or project team',
+          });
+      }
+
+      const assignee = await User.findOne({ uid: userId })
+        .select('uid displayName email photoURL githubIntegration.username')
+        .lean();
+      if (!assignee?.githubIntegration?.username) {
+        return res
+          .status(400)
+          .json({ message: 'Selected user is not connected to GitHub' });
+      }
+
+      const octokit = await buildInstallationOctokitFromOwner(requesterUid);
+
+      let alreadyCollaborator = false;
+      try {
+        await octokit.request(
+          'PUT /repos/{owner}/{repo}/collaborators/{username}',
+          {
+            owner: project.githubRepoOwner,
+            repo: project.githubRepoName,
+            username: assignee.githubIntegration.username,
+            permission: 'push',
+          }
+        );
+      } catch (inviteError) {
+        const status = inviteError?.status || inviteError?.response?.status;
+        const message =
+          inviteError?.response?.data?.message || inviteError?.message || '';
+        if (status === 422 && /already.*collaborator/i.test(message)) {
+          alreadyCollaborator = true;
+        } else {
+          throw inviteError;
+        }
+      }
+
+      try {
+        await cache.invalidate(
+          `collaborator-assignees:${projectId}:${requesterUid}`
+        );
+      } catch (cacheInvalidateError) {
+        console.warn(
+          `[Cache] collaborator-assignees invalidate failed for ${projectId}:${requesterUid}:`,
+          cacheInvalidateError.message
+        );
+      }
+
+      return res.status(200).json({
+        message: alreadyCollaborator
+          ? 'User is already a collaborator on this repository.'
+          : 'Repository invite sent successfully.',
+        alreadyCollaborator,
+        user: {
+          uid: assignee.uid,
+          displayName: assignee.displayName,
+          email: assignee.email,
+          photoURL: assignee.photoURL,
+          githubUsername: assignee.githubIntegration.username,
+        },
+      });
+    } catch (error) {
+      console.error('Error inviting repository collaborator:', error);
+      return res
+        .status(500)
+        .json({
+          message: 'Failed to invite collaborator',
+          error: error.message,
+        });
+    }
+  }
+);
 
 module.exports = router;

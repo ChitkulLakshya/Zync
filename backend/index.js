@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 const http = require('http');
 const helmet = require('helmet');
-const { Server } = require("socket.io");
+const { Server } = require('socket.io');
 const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 const { loadSheddingMiddleware } = require('./middleware/loadShedding');
@@ -16,7 +16,6 @@ const app = express();
 // Render/Reverse proxy support: required for correct client IP detection with express-rate-limit.
 app.set('trust proxy', 1);
 
-
 app.get('/favicon.ico', (req, res) => res.status(204).end());
 
 const allowedOrigins = [
@@ -25,14 +24,18 @@ const allowedOrigins = [
   'http://localhost:8081', // Vite dev server (see vite.config.ts; Electron loads this URL)
   'http://127.0.0.1:8081',
   'http://localhost:3000',
-  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : []),
-  process.env.FRONTEND_URL
+  ...(process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : []),
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 const corsOptions = {
   origin: (origin, callback) => {
     // allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) {return callback(null, true);}
+    if (!origin) {
+      return callback(null, true);
+    }
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -41,20 +44,18 @@ const corsOptions = {
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
 };
 
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: allowedOrigins,
-    methods: ["GET", "POST"]
-  }
+    methods: ['GET', 'POST'],
+  },
 });
 
-
 app.set('io', io);
-
 
 require('./sockets/noteSocketHandler')(io);
 require('./sockets/presenceSocketHandler')(io);
@@ -63,9 +64,7 @@ const taskIO = require('./sockets/taskSocketHandler')(io);
 
 app.set('taskIO', taskIO);
 
-
 const PORT = process.env.PORT || 5000;
-
 
 const projectRoutes = require('./routes/projectRoutes');
 const userRoutes = require('./routes/userRoutes');
@@ -86,25 +85,63 @@ const supportRoutes = require('./routes/supportRoutes');
 const internalMetricsRoutes = require('./routes/internalMetrics');
 const collaboratorRoutes = require('./routes/collaboratorRoutes');
 
-
-
 app.use(
   helmet({
     contentSecurityPolicy: {
       useDefaults: true,
       directives: {
-        "default-src": ["'self'"],
-        "script-src": ["'self'", "'unsafe-inline'", "'unsafe-eval'", "blob:", "https://apis.google.com", "https://www.googleapis.com", "https://www.gstatic.com", "https://www.google.com"],
-        "connect-src": ["'self'", "https://github.com", "https://api.github.com", "http://localhost:*", "ws://localhost:*", "wss://*.glitch.me", "https://*.googleapis.com", "https://www.google.com", "https://www.gstatic.com", "https://*.firebaseio.com", "https://*.firebase.google.com"],
-        "img-src": ["'self'", "data:", "https://avatars.githubusercontent.com", "https://*.githubusercontent.com", "https://*.googleusercontent.com", "https://*.google.com", "blob:", "https://ui-avatars.com", "https://res.cloudinary.com"],
-        "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        "worker-src": ["'self'", "blob:"],
-        "frame-src": ["'self'", "https://github.com", "https://*.firebaseapp.com", "https://*.google.com"],
-        "font-src": ["'self'", "data:", "https://fonts.gstatic.com"],
+        'default-src': ["'self'"],
+        'script-src': [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          'blob:',
+          'https://apis.google.com',
+          'https://www.googleapis.com',
+          'https://www.gstatic.com',
+          'https://www.google.com',
+        ],
+        'connect-src': [
+          "'self'",
+          'https://github.com',
+          'https://api.github.com',
+          'http://localhost:*',
+          'ws://localhost:*',
+          'wss://*.glitch.me',
+          'https://*.googleapis.com',
+          'https://www.google.com',
+          'https://www.gstatic.com',
+          'https://*.firebaseio.com',
+          'https://*.firebase.google.com',
+        ],
+        'img-src': [
+          "'self'",
+          'data:',
+          'https://avatars.githubusercontent.com',
+          'https://*.githubusercontent.com',
+          'https://*.googleusercontent.com',
+          'https://*.google.com',
+          'blob:',
+          'https://ui-avatars.com',
+          'https://res.cloudinary.com',
+        ],
+        'style-src': [
+          "'self'",
+          "'unsafe-inline'",
+          'https://fonts.googleapis.com',
+        ],
+        'worker-src': ["'self'", 'blob:'],
+        'frame-src': [
+          "'self'",
+          'https://github.com',
+          'https://*.firebaseapp.com',
+          'https://*.google.com',
+        ],
+        'font-src': ["'self'", 'data:', 'https://fonts.gstatic.com'],
       },
     },
     crossOriginEmbedderPolicy: false,
-    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   })
 );
 
@@ -117,9 +154,10 @@ const limiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: {
-    message: 'Too many requests from this IP, please try again after 15 minutes',
-    status: 429
-  }
+    message:
+      'Too many requests from this IP, please try again after 15 minutes',
+    status: 429,
+  },
 });
 
 // Apply rate limiting to all requests
@@ -130,7 +168,7 @@ app.use('/api/', loadSheddingMiddleware);
 const webhookJsonParser = express.json({
   verify: (req, res, buf) => {
     req.rawBody = buf;
-  }
+  },
 });
 app.use('/api/webhooks', webhookJsonParser);
 app.use('/api/github-app', webhookJsonParser);
@@ -138,9 +176,7 @@ app.use('/api/github-app', webhookJsonParser);
 // Use plain JSON parser for all other routes to avoid buffering raw payloads globally.
 app.use(express.json());
 
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 app.use('/api/projects', projectRoutes);
 app.use('/api/generate-project', generationRoutes);
@@ -189,8 +225,8 @@ if (fs.existsSync(distIndexHtml)) {
 
 // ── Database connection with automatic retry ──────────────────────────
 const MONGO_OPTIONS = {
-  dbName: 'ZYNC_USER',            // Oracle schema name = database name
-  retryWrites: false,              // Oracle does not support retryable writes
+  dbName: 'ZYNC_USER', // Oracle schema name = database name
+  retryWrites: false, // Oracle does not support retryable writes
   tls: true,
   tlsAllowInvalidCertificates: true, // Oracle ADB uses certs not in default CA bundle
   serverSelectionTimeoutMS: 30000,
@@ -204,9 +240,12 @@ const MAX_RETRIES = 5;
 const RETRY_DELAY_MS = 5000;
 
 async function connectWithRetry(attempt = 1) {
-  const mongoUri = process.env.MONGO_URI && String(process.env.MONGO_URI).trim();
+  const mongoUri =
+    process.env.MONGO_URI && String(process.env.MONGO_URI).trim();
   if (!mongoUri) {
-    console.warn('⚠️  MONGO_URI not set — skipping database connection (API will run without MongoDB).');
+    console.warn(
+      '⚠️  MONGO_URI not set — skipping database connection (API will run without MongoDB).'
+    );
     return;
   }
   try {
@@ -214,13 +253,17 @@ async function connectWithRetry(attempt = 1) {
     console.log(`✅ Oracle ADB Connected: ${conn.connection.host}`);
     console.log(`   Database Name: ${conn.connection.name}`);
   } catch (err) {
-    console.error(`❌ Oracle ADB Connection Error (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`);
+    console.error(
+      `❌ Oracle ADB Connection Error (attempt ${attempt}/${MAX_RETRIES}): ${err.message}`
+    );
     if (attempt < MAX_RETRIES) {
       console.log(`   Retrying in ${RETRY_DELAY_MS / 1000}s...`);
       await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
       return connectWithRetry(attempt + 1);
     }
-    console.error('⚠️  All DB connection attempts failed — server continues without DB.');
+    console.error(
+      '⚠️  All DB connection attempts failed — server continues without DB.'
+    );
   }
 }
 
@@ -243,14 +286,21 @@ const startServer = (port, retriesLeft = 10) => {
       return;
     }
 
-    console.error('Failed to start HTTP server:', error && error.code, error && error.message, error);
+    console.error(
+      'Failed to start HTTP server:',
+      error && error.code,
+      error && error.message,
+      error
+    );
     process.exit(1);
   };
 
   server.once('error', onError);
 
   const listenPort = Number(port) || 5000;
-  console.log(`Binding HTTP server on 0.0.0.0:${listenPort} (PORT=${process.env.PORT || '(unset)'})`);
+  console.log(
+    `Binding HTTP server on 0.0.0.0:${listenPort} (PORT=${process.env.PORT || '(unset)'})`
+  );
 
   server.listen(listenPort, '0.0.0.0', () => {
     server.off('error', onError);
@@ -260,11 +310,10 @@ const startServer = (port, retriesLeft = 10) => {
 
 startServer(PORT);
 
-
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(500).json({
     message: 'Internal Server Error',
-    error: process.env.NODE_ENV === 'development' ? err.message : undefined
+    error: process.env.NODE_ENV === 'development' ? err.message : undefined,
   });
 });

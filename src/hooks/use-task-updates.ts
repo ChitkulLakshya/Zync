@@ -27,7 +27,9 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
 
   // Connect socket when user is available
   useEffect(() => {
-    if (!userId) {return;}
+    if (!userId) {
+      return;
+    }
 
     connectTaskSocket(userId);
 
@@ -40,7 +42,9 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
   const prevProjectIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
-    if (!userId || !projectIds) {return;}
+    if (!userId || !projectIds) {
+      return;
+    }
 
     const currentIds = new Set(projectIds);
     const prevIds = prevProjectIdsRef.current;
@@ -70,7 +74,9 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
 
   // Subscribe to task events
   useEffect(() => {
-    if (!userId) {return;}
+    if (!userId) {
+      return;
+    }
 
     const unsubCreated = onTaskCreated((data) => {
       onTaskChangeRef.current?.('created', data);

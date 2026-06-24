@@ -1,467 +1,593 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Welcome to Zync</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Zync</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
 
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-    body {
-      background-color: #060b14;
-      font-family: 'DM Sans', -apple-system, sans-serif;
-      color: #e2e8f0;
-      padding: 40px 16px;
-    }
+      body {
+        background-color: #060b14;
+        font-family:
+          'DM Sans',
+          -apple-system,
+          sans-serif;
+        color: #e2e8f0;
+        padding: 40px 16px;
+      }
 
-    .email-wrapper {
-      max-width: 620px;
-      margin: 0 auto;
-    }
+      .email-wrapper {
+        max-width: 620px;
+        margin: 0 auto;
+      }
 
-    /* ── Top brand bar ── */
-    .brand-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 28px;
-      padding: 0 4px;
-    }
+      /* ── Top brand bar ── */
+      .brand-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+        padding: 0 4px;
+      }
 
-    .brand-logo {
-      width: 34px;
-      height: 34px;
-      background: #1a8fd1;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      .brand-logo {
+        width: 34px;
+        height: 34px;
+        background: #1a8fd1;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .brand-name {
-      font-size: 17px;
-      font-weight: 700;
-      color: #f0f4f8;
-      letter-spacing: 0.3px;
-    }
+      .brand-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #f0f4f8;
+        letter-spacing: 0.3px;
+      }
 
-    .beta-pill {
-      font-size: 10px;
-      font-weight: 600;
-      color: #1a8fd1;
-      background: rgba(26, 143, 209, 0.12);
-      border: 1px solid rgba(26, 143, 209, 0.3);
-      padding: 3px 9px;
-      border-radius: 999px;
-      letter-spacing: 0.8px;
-    }
+      .beta-pill {
+        font-size: 10px;
+        font-weight: 600;
+        color: #1a8fd1;
+        background: rgba(26, 143, 209, 0.12);
+        border: 1px solid rgba(26, 143, 209, 0.3);
+        padding: 3px 9px;
+        border-radius: 999px;
+        letter-spacing: 0.8px;
+      }
 
-    /* ── Main card ── */
-    .card {
-      background: #0d1421;
-      border: 1px solid #1c2a3f;
-      border-radius: 18px;
-      overflow: hidden;
-    }
+      /* ── Main card ── */
+      .card {
+        background: #0d1421;
+        border: 1px solid #1c2a3f;
+        border-radius: 18px;
+        overflow: hidden;
+      }
 
-    /* ── Hero section ── */
-    .hero {
-      position: relative;
-      padding: 52px 48px 44px;
-      text-align: center;
-      border-bottom: 1px solid #1c2a3f;
-      overflow: hidden;
-    }
+      /* ── Hero section ── */
+      .hero {
+        position: relative;
+        padding: 52px 48px 44px;
+        text-align: center;
+        border-bottom: 1px solid #1c2a3f;
+        overflow: hidden;
+      }
 
-    .hero::before {
-      content: '';
-      position: absolute;
-      top: -80px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 340px;
-      height: 220px;
-      background: radial-gradient(ellipse, rgba(26, 143, 209, 0.14) 0%, transparent 70%);
-      pointer-events: none;
-    }
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 340px;
+        height: 220px;
+        background: radial-gradient(
+          ellipse,
+          rgba(26, 143, 209, 0.14) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+      }
 
-    .hero-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      background: rgba(26, 143, 209, 0.1);
-      border: 1px solid rgba(26, 143, 209, 0.25);
-      border-radius: 999px;
-      padding: 5px 14px;
-      font-size: 12px;
-      font-weight: 500;
-      color: #5bb8f5;
-      margin-bottom: 24px;
-      letter-spacing: 0.3px;
-    }
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(26, 143, 209, 0.1);
+        border: 1px solid rgba(26, 143, 209, 0.25);
+        border-radius: 999px;
+        padding: 5px 14px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #5bb8f5;
+        margin-bottom: 24px;
+        letter-spacing: 0.3px;
+      }
 
-    .hero-badge svg {
-      width: 13px;
-      height: 13px;
-    }
+      .hero-badge svg {
+        width: 13px;
+        height: 13px;
+      }
 
-    .hero h1 {
-      font-size: 32px;
-      font-weight: 700;
-      color: #f0f6ff;
-      line-height: 1.25;
-      margin-bottom: 12px;
-      letter-spacing: -0.5px;
-    }
+      .hero h1 {
+        font-size: 32px;
+        font-weight: 700;
+        color: #f0f6ff;
+        line-height: 1.25;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+      }
 
-    .hero h1 span {
-      color: #1a8fd1;
-    }
+      .hero h1 span {
+        color: #1a8fd1;
+      }
 
-    .hero p {
-      font-size: 15px;
-      color: #6e8ca8;
-      line-height: 1.7;
-      max-width: 380px;
-      margin: 0 auto;
-    }
+      .hero p {
+        font-size: 15px;
+        color: #6e8ca8;
+        line-height: 1.7;
+        max-width: 380px;
+        margin: 0 auto;
+      }
 
-    /* ── Body ── */
-    .body {
-      padding: 40px 48px;
-    }
+      /* ── Body ── */
+      .body {
+        padding: 40px 48px;
+      }
 
-    .greeting {
-      font-size: 15px;
-      color: #cbd5e1;
-      line-height: 1.75;
-      margin-bottom: 16px;
-    }
+      .greeting {
+        font-size: 15px;
+        color: #cbd5e1;
+        line-height: 1.75;
+        margin-bottom: 16px;
+      }
 
-    .greeting strong {
-      color: #f0f4f8;
-      font-weight: 600;
-    }
+      .greeting strong {
+        color: #f0f4f8;
+        font-weight: 600;
+      }
 
-    .intro-text {
-      font-size: 15px;
-      color: #8da2b8;
-      line-height: 1.75;
-      margin-bottom: 36px;
-    }
+      .intro-text {
+        font-size: 15px;
+        color: #8da2b8;
+        line-height: 1.75;
+        margin-bottom: 36px;
+      }
 
-    /* ── CTA Button ── */
-    .cta-wrap {
-      text-align: center;
-      margin-bottom: 40px;
-    }
+      /* ── CTA Button ── */
+      .cta-wrap {
+        text-align: center;
+        margin-bottom: 40px;
+      }
 
-    .cta-btn {
-      display: inline-block;
-      background: #1a8fd1;
-      color: #ffffff;
-      text-decoration: none;
-      font-size: 15px;
-      font-weight: 600;
-      padding: 14px 36px;
-      border-radius: 10px;
-      letter-spacing: 0.2px;
-    }
+      .cta-btn {
+        display: inline-block;
+        background: #1a8fd1;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 14px 36px;
+        border-radius: 10px;
+        letter-spacing: 0.2px;
+      }
 
-    /* ── Section label ── */
-    .section-label {
-      font-family: 'DM Mono', monospace;
-      font-size: 11px;
-      font-weight: 500;
-      color: #3a5a78;
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      margin-bottom: 18px;
-    }
+      /* ── Section label ── */
+      .section-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        font-weight: 500;
+        color: #3a5a78;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 18px;
+      }
 
-    /* ── Feature cards ── */
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      margin-bottom: 40px;
-    }
+      /* ── Feature cards ── */
+      .features {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 40px;
+      }
 
-    .feature-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-      padding: 16px 18px;
-      background: #101b2e;
-      border: 1px solid #1c2a3f;
-      border-radius: 12px;
-    }
+      .feature-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        padding: 16px 18px;
+        background: #101b2e;
+        border: 1px solid #1c2a3f;
+        border-radius: 12px;
+      }
 
-    .feature-icon {
-      width: 36px;
-      height: 36px;
-      min-width: 36px;
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+      .feature-icon {
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
 
-    .icon-purple { background: rgba(139, 92, 246, 0.15); }
-    .icon-green  { background: rgba(16, 185, 129, 0.13); }
-    .icon-blue   { background: rgba(26, 143, 209, 0.13); }
-    .icon-orange { background: rgba(251, 146, 60, 0.13); }
-    .icon-pink   { background: rgba(236, 72, 153, 0.13); }
+      .icon-purple {
+        background: rgba(139, 92, 246, 0.15);
+      }
+      .icon-green {
+        background: rgba(16, 185, 129, 0.13);
+      }
+      .icon-blue {
+        background: rgba(26, 143, 209, 0.13);
+      }
+      .icon-orange {
+        background: rgba(251, 146, 60, 0.13);
+      }
+      .icon-pink {
+        background: rgba(236, 72, 153, 0.13);
+      }
 
-    .feature-text h3 {
-      font-size: 14px;
-      font-weight: 600;
-      color: #dde8f4;
-      margin-bottom: 3px;
-    }
+      .feature-text h3 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #dde8f4;
+        margin-bottom: 3px;
+      }
 
-    .feature-text p {
-      font-size: 13px;
-      color: #5a7a96;
-      line-height: 1.55;
-    }
+      .feature-text p {
+        font-size: 13px;
+        color: #5a7a96;
+        line-height: 1.55;
+      }
 
-    /* ── Divider ── */
-    .divider {
-      border: none;
-      border-top: 1px solid #1c2a3f;
-      margin: 0 0 36px;
-    }
+      /* ── Divider ── */
+      .divider {
+        border: none;
+        border-top: 1px solid #1c2a3f;
+        margin: 0 0 36px;
+      }
 
-    /* ── Quick starts ── */
-    .quick-starts {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 36px;
-      flex-wrap: wrap;
-    }
+      /* ── Quick starts ── */
+      .quick-starts {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 36px;
+        flex-wrap: wrap;
+      }
 
-    .qs-item {
-      flex: 1;
-      min-width: 140px;
-      padding: 16px 14px;
-      background: #0a1525;
-      border: 1px solid #1c2a3f;
-      border-radius: 12px;
-      text-align: center;
-    }
+      .qs-item {
+        flex: 1;
+        min-width: 140px;
+        padding: 16px 14px;
+        background: #0a1525;
+        border: 1px solid #1c2a3f;
+        border-radius: 12px;
+        text-align: center;
+      }
 
-    .qs-step {
-      display: inline-block;
-      font-family: 'DM Mono', monospace;
-      font-size: 10px;
-      font-weight: 500;
-      color: #1a8fd1;
-      background: rgba(26, 143, 209, 0.1);
-      border: 1px solid rgba(26, 143, 209, 0.2);
-      padding: 2px 8px;
-      border-radius: 999px;
-      margin-bottom: 8px;
-      letter-spacing: 0.5px;
-    }
+      .qs-step {
+        display: inline-block;
+        font-family: 'DM Mono', monospace;
+        font-size: 10px;
+        font-weight: 500;
+        color: #1a8fd1;
+        background: rgba(26, 143, 209, 0.1);
+        border: 1px solid rgba(26, 143, 209, 0.2);
+        padding: 2px 8px;
+        border-radius: 999px;
+        margin-bottom: 8px;
+        letter-spacing: 0.5px;
+      }
 
-    .qs-item p {
-      font-size: 13px;
-      font-weight: 500;
-      color: #c4d4e4;
-      line-height: 1.4;
-    }
+      .qs-item p {
+        font-size: 13px;
+        font-weight: 500;
+        color: #c4d4e4;
+        line-height: 1.4;
+      }
 
-    /* ── Sign off ── */
-    .signoff {
-      font-size: 15px;
-      color: #8da2b8;
-      line-height: 1.75;
-    }
+      /* ── Sign off ── */
+      .signoff {
+        font-size: 15px;
+        color: #8da2b8;
+        line-height: 1.75;
+      }
 
-    .signoff strong {
-      color: #dde8f4;
-      font-weight: 600;
-    }
+      .signoff strong {
+        color: #dde8f4;
+        font-weight: 600;
+      }
 
-    /* ── Footer ── */
-    .footer {
-      padding: 24px 48px;
-      border-top: 1px solid #1c2a3f;
-      background: #090f1c;
-    }
+      /* ── Footer ── */
+      .footer {
+        padding: 24px 48px;
+        border-top: 1px solid #1c2a3f;
+        background: #090f1c;
+      }
 
-    .footer-links {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-bottom: 14px;
-    }
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 14px;
+      }
 
-    .footer-links a {
-      font-size: 12px;
-      color: #3a5a78;
-      text-decoration: none;
-    }
+      .footer-links a {
+        font-size: 12px;
+        color: #3a5a78;
+        text-decoration: none;
+      }
 
-    .footer-links a:hover {
-      color: #1a8fd1;
-    }
+      .footer-links a:hover {
+        color: #1a8fd1;
+      }
 
-    .footer p {
-      font-size: 12px;
-      color: #2d4560;
-      text-align: center;
-      line-height: 1.6;
-    }
+      .footer p {
+        font-size: 12px;
+        color: #2d4560;
+        text-align: center;
+        line-height: 1.6;
+      }
 
-    .footer a {
-      color: #3a6f96;
-      text-decoration: none;
-    }
-  </style>
-</head>
-<body>
-  <div class="email-wrapper">
-
-    <!-- Brand bar -->
-    <div class="brand-bar">
-      <div class="brand-logo">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="13 17 18 12 13 7"></polyline>
-          <polyline points="6 17 11 12 6 7"></polyline>
-        </svg>
+      .footer a {
+        color: #3a6f96;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-wrapper">
+      <!-- Brand bar -->
+      <div class="brand-bar">
+        <div class="brand-logo">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </div>
+        <span class="brand-name">Zync</span>
+        <span class="beta-pill">BETA</span>
       </div>
-      <span class="brand-name">Zync</span>
-      <span class="beta-pill">BETA</span>
+
+      <!-- Card -->
+      <div class="card">
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-badge">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polygon
+                points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"
+              ></polygon>
+            </svg>
+            PUBLIC BETA 1.0
+          </div>
+          <h1>Welcome to <span>Zync.</span></h1>
+          <p>
+            Your workspace is live. Build software, together — all in one
+            focused place.
+          </p>
+        </div>
+
+        <!-- Body -->
+        <div class="body">
+          <p class="greeting">Hey <strong>[First Name]</strong> 👋</p>
+          <p class="intro-text">
+            You've just joined Zync — a unified workspace built for development
+            teams who want to plan, collaborate, and ship without the noise.
+            We're glad you're here.
+          </p>
+
+          <!-- CTA -->
+          <div class="cta-wrap">
+            <a href="https://zync-meet.vercel.app" class="cta-btn"
+              >Open My Workspace →</a
+            >
+          </div>
+
+          <!-- Features -->
+          <p class="section-label">What's inside</p>
+          <div class="features">
+            <div class="feature-item">
+              <div class="feature-icon icon-purple">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#a78bfa"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <circle cx="12" cy="12" r="3"></circle>
+                  <path
+                    d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"
+                  ></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <h3>AI Project Setup</h3>
+                <p>
+                  Describe your idea — get a full project structure, workflows,
+                  and task breakdown in seconds.
+                </p>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <div class="feature-icon icon-green">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#34d399"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"
+                  ></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <h3>GitHub Sync</h3>
+                <p>
+                  Connect your repos and auto-complete tasks when commits are
+                  pushed. Your code drives your workflow.
+                </p>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <div class="feature-icon icon-blue">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#5bb8f5"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path
+                    d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"
+                  ></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <h3>Team Workspaces</h3>
+                <p>
+                  Invite your team, assign roles, and track progress in
+                  real-time. Everyone stays in sync.
+                </p>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <div class="feature-icon icon-orange">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#fb923c"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <h3>Smart Calendar</h3>
+                <p>
+                  View your team's schedule at a glance. Plan sprints, set
+                  deadlines, and balance workloads.
+                </p>
+              </div>
+            </div>
+
+            <div class="feature-item">
+              <div class="feature-icon icon-pink">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="#f472b6"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"
+                  ></path>
+                </svg>
+              </div>
+              <div class="feature-text">
+                <h3>Built-in Chat</h3>
+                <p>
+                  Discuss tasks, share files, and schedule calls — all without
+                  leaving the project context.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <!-- Quick starts -->
+          <p class="section-label">Get started in 3 steps</p>
+          <div class="quick-starts">
+            <div class="qs-item">
+              <span class="qs-step">Step 01</span>
+              <p>Create your first project</p>
+            </div>
+            <div class="qs-item">
+              <span class="qs-step">Step 02</span>
+              <p>Connect your GitHub repo</p>
+            </div>
+            <div class="qs-item">
+              <span class="qs-step">Step 03</span>
+              <p>Invite your teammates</p>
+            </div>
+          </div>
+
+          <hr class="divider" />
+
+          <!-- Sign off -->
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+          <div class="footer-links">
+            <a href="#">Features</a>
+            <a href="#">Mobile App</a>
+            <a href="#">Contact</a>
+            <a href="#">Unsubscribe</a>
+            <a href="#">Privacy Policy</a>
+          </div>
+          <p>
+            You received this because you signed up at
+            <a href="https://zync-meet.vercel.app">zync-meet.vercel.app</a
+            ><br />
+            © 2026 Zync. All rights reserved.
+          </p>
+        </div>
+      </div>
     </div>
-
-    <!-- Card -->
-    <div class="card">
-
-      <!-- Hero -->
-      <div class="hero">
-        <div class="hero-badge">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-          PUBLIC BETA 1.0
-        </div>
-        <h1>Welcome to <span>Zync.</span></h1>
-        <p>Your workspace is live. Build software, together — all in one focused place.</p>
-      </div>
-
-      <!-- Body -->
-      <div class="body">
-
-        <p class="greeting">Hey <strong>[First Name]</strong> 👋</p>
-        <p class="intro-text">
-          You've just joined Zync — a unified workspace built for development teams who want to plan, collaborate, and ship without the noise. We're glad you're here.
-        </p>
-
-        <!-- CTA -->
-        <div class="cta-wrap">
-          <a href="https://zync-meet.vercel.app" class="cta-btn">Open My Workspace →</a>
-        </div>
-
-        <!-- Features -->
-        <p class="section-label">What's inside</p>
-        <div class="features">
-
-          <div class="feature-item">
-            <div class="feature-icon icon-purple">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"></path></svg>
-            </div>
-            <div class="feature-text">
-              <h3>AI Project Setup</h3>
-              <p>Describe your idea — get a full project structure, workflows, and task breakdown in seconds.</p>
-            </div>
-          </div>
-
-          <div class="feature-item">
-            <div class="feature-icon icon-green">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path></svg>
-            </div>
-            <div class="feature-text">
-              <h3>GitHub Sync</h3>
-              <p>Connect your repos and auto-complete tasks when commits are pushed. Your code drives your workflow.</p>
-            </div>
-          </div>
-
-          <div class="feature-item">
-            <div class="feature-icon icon-blue">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5bb8f5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-            </div>
-            <div class="feature-text">
-              <h3>Team Workspaces</h3>
-              <p>Invite your team, assign roles, and track progress in real-time. Everyone stays in sync.</p>
-            </div>
-          </div>
-
-          <div class="feature-item">
-            <div class="feature-icon icon-orange">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            </div>
-            <div class="feature-text">
-              <h3>Smart Calendar</h3>
-              <p>View your team's schedule at a glance. Plan sprints, set deadlines, and balance workloads.</p>
-            </div>
-          </div>
-
-          <div class="feature-item">
-            <div class="feature-icon icon-pink">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-            </div>
-            <div class="feature-text">
-              <h3>Built-in Chat</h3>
-              <p>Discuss tasks, share files, and schedule calls — all without leaving the project context.</p>
-            </div>
-          </div>
-
-        </div>
-
-        <hr class="divider" />
-
-        <!-- Quick starts -->
-        <p class="section-label">Get started in 3 steps</p>
-        <div class="quick-starts">
-          <div class="qs-item">
-            <span class="qs-step">Step 01</span>
-            <p>Create your first project</p>
-          </div>
-          <div class="qs-item">
-            <span class="qs-step">Step 02</span>
-            <p>Connect your GitHub repo</p>
-          </div>
-          <div class="qs-item">
-            <span class="qs-step">Step 03</span>
-            <p>Invite your teammates</p>
-          </div>
-        </div>
-
-        <hr class="divider" />
-
-        <!-- Sign off -->
-        
-      </div>
-
-      <!-- Footer -->
-      <div class="footer">
-        <div class="footer-links">
-          <a href="#">Features</a>
-          <a href="#">Mobile App</a>
-          <a href="#">Contact</a>
-          <a href="#">Unsubscribe</a>
-          <a href="#">Privacy Policy</a>
-        </div>
-        <p>
-          You received this because you signed up at <a href="https://zync-meet.vercel.app">zync-meet.vercel.app</a><br>
-          © 2026 Zync. All rights reserved.
-        </p>
-      </div>
-
-    </div>
-
-  </div>
-</body>
+  </body>
 </html>

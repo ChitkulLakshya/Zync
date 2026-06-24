@@ -13,7 +13,9 @@ const ONE_HOUR_SEC = 60 * 60;
 
 function redisAvailable(res) {
   if (!process.env.REDIS_URL) {
-    res.status(503).json({ message: 'Redis not configured (REDIS_URL missing)' });
+    res
+      .status(503)
+      .json({ message: 'Redis not configured (REDIS_URL missing)' });
     return false;
   }
   if (!isAvailable()) {

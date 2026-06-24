@@ -2,28 +2,32 @@ const mongoose = require('mongoose');
 
 const projectTaskSchema = new mongoose.Schema(
   {
-    displayId:   { type: String, default: null },
-    title:       { type: String, required: true },
+    displayId: { type: String, default: null },
+    title: { type: String, required: true },
     description: { type: String, default: null },
-    status:      { type: String, default: 'Backlog' },
+    status: { type: String, default: 'Backlog' },
 
-    assignedTo:     { type: String, default: null },
-    assignedUserIds:{ type: [String], default: [] },
+    assignedTo: { type: String, default: null },
+    assignedUserIds: { type: [String], default: [] },
     assignedToName: { type: String, default: null },
-    createdBy:      { type: String, default: null },
-    assignedBy:     { type: String, default: null },
+    createdBy: { type: String, default: null },
+    assignedBy: { type: String, default: null },
 
     // GitHub commit linkage
-    commitCode:      { type: String, default: null },
-    commitMessage:   { type: String, default: null },
-    commitUrl:       { type: String, default: null },
-    commitAuthor:    { type: String, default: null },
+    commitCode: { type: String, default: null },
+    commitMessage: { type: String, default: null },
+    commitUrl: { type: String, default: null },
+    commitAuthor: { type: String, default: null },
     commitTimestamp: { type: Date, default: null },
 
     // GitHub repo link
     repoIds: { type: [String], default: [] },
 
-    stepId: { type: mongoose.Schema.Types.ObjectId, ref: 'Step', required: true },
+    stepId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Step',
+      required: true,
+    },
   },
   {
     timestamps: true,

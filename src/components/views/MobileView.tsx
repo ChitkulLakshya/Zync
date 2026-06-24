@@ -1,7 +1,7 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { auth } from "@/lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { auth } from '@/lib/firebase';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import {
   LayoutDashboard,
   Folder,
@@ -11,29 +11,29 @@ import {
   FileText,
   Video,
   Settings,
-  Bell
-} from "lucide-react";
-import { MobileLayout } from "@/components/layout/MobileLayout";
-import Workspace from "@/components/workspace/Workspace";
-import TasksView from "./TasksView";
-import CalendarView from "./CalendarView";
-import { NotesView } from "@/components/notes/NotesView";
-import MeetView from "./MeetView";
-import SettingsView from "./SettingsView";
-import { API_BASE_URL, getFullUrl } from "@/lib/utils";
-import { useMe } from "@/hooks/useMe";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { WifiOff, RefreshCw } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import MobileActivityLogView from "@/components/views/mobile/MobileActivityLogView";
-import MobileDashboardView from "@/components/views/mobile/MobileDashboardView";
-import MobileTeamView from "@/components/views/mobile/MobileTeamView";
-import MessagesPage from "./MessagesPage";
+  Bell,
+} from 'lucide-react';
+import { MobileLayout } from '@/components/layout/MobileLayout';
+import Workspace from '@/components/workspace/Workspace';
+import TasksView from './TasksView';
+import CalendarView from './CalendarView';
+import { NotesView } from '@/components/notes/NotesView';
+import MeetView from './MeetView';
+import SettingsView from './SettingsView';
+import { API_BASE_URL, getFullUrl } from '@/lib/utils';
+import { useMe } from '@/hooks/useMe';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { WifiOff, RefreshCw } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import MobileActivityLogView from '@/components/views/mobile/MobileActivityLogView';
+import MobileDashboardView from '@/components/views/mobile/MobileDashboardView';
+import MobileTeamView from '@/components/views/mobile/MobileTeamView';
+import MessagesPage from './MessagesPage';
 
 const MobileView = () => {
-  const [activeTab, setActiveTab] = useState("Home");
+  const [activeTab, setActiveTab] = useState('Home');
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const { isError: userMeError, refetch: refetchMe } = useMe();
   const [usersList, setUsersList] = useState<any[]>([]);
@@ -44,7 +44,7 @@ const MobileView = () => {
   const [teamSessions, setTeamSessions] = useState<any[]>([]);
   const [ownedTeams, setOwnedTeams] = useState<any[]>([]);
   const [myTeams, setMyTeams] = useState<any[]>([]);
-  const [elapsedTime, setElapsedTime] = useState("00:00:00");
+  const [elapsedTime, setElapsedTime] = useState('00:00:00');
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -56,21 +56,20 @@ const MobileView = () => {
     return () => unsubscribe();
   }, []);
 
-
   useEffect(() => {
     if (currentUser) {
       const fetchUsers = async () => {
         try {
           const token = await currentUser.getIdToken();
           const response = await fetch(`${API_BASE_URL}/api/users`, {
-            headers: { Authorization: `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (response.ok) {
             const data = await response.json();
             setUsersList(data);
           }
         } catch (error) {
-          console.error("Error fetching users:", error);
+          console.error('Error fetching users:', error);
         }
       };
       fetchUsers();
@@ -78,10 +77,10 @@ const MobileView = () => {
   }, [currentUser]);
 
   const handleNavigate = (path: string) => {
-    if (path === "New Project") {
-      navigate("/new-project");
-    } else if (path === "Projects") {
-      setActiveTab("Projects");
+    if (path === 'New Project') {
+      navigate('/new-project');
+    } else if (path === 'Projects') {
+      setActiveTab('Projects');
     }
   };
 
@@ -112,19 +111,23 @@ const MobileView = () => {
       const assignedUserIds = Array.isArray(task?.assignedUserIds) ? task.assignedUserIds : [];
       const hasRepoLink = Boolean(
         task?.githubRepoOwner ||
-          task?.githubRepoName ||
-          task?.githubRepo ||
-          (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
+        task?.githubRepoName ||
+        task?.githubRepo ||
+        (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
       );
       const hasCommitCode = Boolean(task?.commitCode);
 
-      return hasRepoLink && hasCommitCode && (assignedTo === userId || assignedUserIds.includes(userId));
+      return (
+        hasRepoLink && hasCommitCode && (assignedTo === userId || assignedUserIds.includes(userId))
+      );
     });
   };
 
   useEffect(() => {
-    const storedSession = localStorage.getItem("currentSession");
-    if (!storedSession) { return; }
+    const storedSession = localStorage.getItem('currentSession');
+    if (!storedSession) {
+      return;
+    }
     try {
       const parsed = JSON.parse(storedSession);
       if (parsed?.startTime) {
@@ -136,13 +139,19 @@ const MobileView = () => {
   }, []);
 
   useEffect(() => {
-    if (!sessionStartTime) { return; }
+    if (!sessionStartTime) {
+      return;
+    }
     const timer = setInterval(() => {
       const now = new Date();
       const diff = Math.max(0, Math.floor((now.getTime() - sessionStartTime.getTime()) / 1000));
-      const hours = Math.floor(diff / 3600).toString().padStart(2, "0");
-      const minutes = Math.floor((diff % 3600) / 60).toString().padStart(2, "0");
-      const seconds = (diff % 60).toString().padStart(2, "0");
+      const hours = Math.floor(diff / 3600)
+        .toString()
+        .padStart(2, '0');
+      const minutes = Math.floor((diff % 3600) / 60)
+        .toString()
+        .padStart(2, '0');
+      const seconds = (diff % 60).toString().padStart(2, '0');
       setElapsedTime(`${hours}:${minutes}:${seconds}`);
     }, 1000);
 
@@ -150,20 +159,30 @@ const MobileView = () => {
   }, [sessionStartTime]);
 
   useEffect(() => {
-    if (activeTab !== "Activity" || !currentUser) { return; }
+    if (activeTab !== 'Activity' || !currentUser) {
+      return;
+    }
 
     let cancelled = false;
     const fetchActivityData = async () => {
       try {
         const token = await currentUser.getIdToken();
         const [sessionsRes, projectsRes, ownedTeamsRes, myTeamsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
           fetch(`${API_BASE_URL}/api/projects`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/teams/owned`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${API_BASE_URL}/api/teams/mine`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
-        if (cancelled) { return; }
+        if (cancelled) {
+          return;
+        }
 
         if (sessionsRes.ok) {
           const logsData = await sessionsRes.json();
@@ -177,7 +196,8 @@ const MobileView = () => {
             setTeamTasks(allTasks);
             const myTasks = filterCommitCapableTasks(allTasks, currentUser.uid);
             const receivedTasks = myTasks.filter(
-              (task: any) => task.assignedBy !== currentUser.uid && task.createdBy !== currentUser.uid
+              (task: any) =>
+                task.assignedBy !== currentUser.uid && task.createdBy !== currentUser.uid
             );
             setLeaderTasks(receivedTasks);
           }
@@ -195,8 +215,8 @@ const MobileView = () => {
 
         if (usersList.length > 0) {
           const teamSessionsRes = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
             body: JSON.stringify({ userIds: usersList.map((user) => user.uid) }),
           });
           if (!cancelled && teamSessionsRes.ok) {
@@ -206,7 +226,7 @@ const MobileView = () => {
         }
       } catch (error) {
         if (!cancelled) {
-          console.error("Failed to load mobile activity data:", error);
+          console.error('Failed to load mobile activity data:', error);
         }
       }
     };
@@ -220,41 +240,44 @@ const MobileView = () => {
   }, [activeTab, currentUser, usersList]);
 
   const handleDeleteLog = async (logId: string) => {
-    if (!currentUser) { return; }
+    if (!currentUser) {
+      return;
+    }
     try {
       const token = await currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/sessions/${logId}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         setActivityLogs((prev) => prev.filter((log) => log._id !== logId));
       } else {
-        throw new Error("Failed to delete log");
+        throw new Error('Failed to delete log');
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete log.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to delete log.', variant: 'destructive' });
     }
   };
 
   const handleClearLogs = async () => {
-    if (!currentUser) { return; }
+    if (!currentUser) {
+      return;
+    }
     try {
       const token = await currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/sessions/user/${currentUser.uid}`, {
-        method: "DELETE",
+        method: 'DELETE',
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         setActivityLogs([]);
       } else {
-        throw new Error("Failed to clear logs");
+        throw new Error('Failed to clear logs');
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to clear logs.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to clear logs.', variant: 'destructive' });
     }
   };
-
 
   const drawerItems = [
     { id: 'Home', label: 'Dashboard', icon: LayoutDashboard },
@@ -270,9 +293,9 @@ const MobileView = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "Home":
+      case 'Home':
         return currentUser ? <MobileDashboardView currentUser={currentUser} /> : null;
-      case "Projects":
+      case 'Projects':
         return currentUser ? (
           <div className="p-4">
             <Workspace
@@ -282,9 +305,9 @@ const MobileView = () => {
             />
           </div>
         ) : null;
-      case "Tasks":
+      case 'Tasks':
         return currentUser ? <TasksView currentUser={currentUser} users={usersList} /> : null;
-      case "Activity":
+      case 'Activity':
         return (
           <MobileActivityLogView
             activityLogs={activityLogs}
@@ -309,33 +332,47 @@ const MobileView = () => {
             onDeleteLog={handleDeleteLog}
           />
         );
-      case "People":
+      case 'People':
         return (
           <MobileTeamView
             currentUser={currentUser}
             onChat={(user) => {
               setSelectedChatUser(user);
-              setActiveTab("Messages");
+              setActiveTab('Messages');
             }}
           />
         );
-      case "Messages":
+      case 'Messages':
         return (
           <MessagesPage
             users={usersList}
             currentUser={currentUser}
             userStatuses={{}}
             initialSelectedUser={selectedChatUser}
-            onNavigateBack={() => setActiveTab("People")}
+            onNavigateBack={() => setActiveTab('People')}
           />
         );
-      case "Calendar":
+      case 'Calendar':
         return <CalendarView />;
-      case "Notes":
-        return <NotesView user={currentUser ? { uid: currentUser.uid, displayName: currentUser.displayName || undefined, email: currentUser.email || undefined, photoURL: currentUser.photoURL || undefined } : null} users={usersList} />;
-      case "Meet":
+      case 'Notes':
+        return (
+          <NotesView
+            user={
+              currentUser
+                ? {
+                    uid: currentUser.uid,
+                    displayName: currentUser.displayName || undefined,
+                    email: currentUser.email || undefined,
+                    photoURL: currentUser.photoURL || undefined,
+                  }
+                : null
+            }
+            users={usersList}
+          />
+        );
+      case 'Meet':
         return <MeetView currentUser={currentUser} usersList={usersList} userStatuses={{}} />;
-      case "Settings":
+      case 'Settings':
         return <SettingsView />;
       default:
         return null;
@@ -352,7 +389,7 @@ const MobileView = () => {
           <Button
             key={item.id}
             variant="ghost"
-            className={`w-full justify-start gap-3 h-11 font-medium ${activeTab === item.id ? "bg-card/50 backdrop-blur-sm border border-border/10 text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            className={`w-full justify-start gap-3 h-11 font-medium ${activeTab === item.id ? 'bg-card/50 backdrop-blur-sm border border-border/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
             onClick={() => setActiveTab(item.id)}
           >
             <item.icon className="h-5 w-5" />
@@ -367,11 +404,15 @@ const MobileView = () => {
     <MobileLayout
       activeTab={activeTab}
       onTabChange={setActiveTab}
-      user={currentUser ? {
-        displayName: currentUser.displayName || undefined,
-        email: currentUser.email || undefined,
-        photoURL: currentUser.photoURL ? getFullUrl(currentUser.photoURL) : undefined
-      } : null}
+      user={
+        currentUser
+          ? {
+              displayName: currentUser.displayName || undefined,
+              email: currentUser.email || undefined,
+              photoURL: currentUser.photoURL ? getFullUrl(currentUser.photoURL) : undefined,
+            }
+          : null
+      }
       drawerContent={DrawerContent}
       headerTitle={activeTab === 'Home' ? 'Dashboard' : activeTab}
     >
@@ -379,9 +420,13 @@ const MobileView = () => {
         <div className="p-3 border-b border-border/10 bg-transparent shrink-0">
           <Alert className="border border-destructive/20 bg-card/50 backdrop-blur-md text-foreground rounded-xl">
             <WifiOff className="h-4 w-4 text-destructive" />
-            <AlertTitle className="text-destructive text-sm">Can&apos;t reach the server</AlertTitle>
+            <AlertTitle className="text-destructive text-sm">
+              Can&apos;t reach the server
+            </AlertTitle>
             <AlertDescription className="flex flex-col gap-2 text-xs text-muted-foreground">
-              <span>We couldn&apos;t load your account data. Try again later or refresh the page.</span>
+              <span>
+                We couldn&apos;t load your account data. Try again later or refresh the page.
+              </span>
               <Button
                 type="button"
                 variant="outline"

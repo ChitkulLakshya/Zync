@@ -1,21 +1,21 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 
-import { useCreateBlockNote } from "@blocknote/react";
-import { BlockNoteView } from "@blocknote/mantine";
-import "@blocknote/mantine/style.css";
+import { useCreateBlockNote } from '@blocknote/react';
+import { BlockNoteView } from '@blocknote/mantine';
+import '@blocknote/mantine/style.css';
 import { updateNote, Note } from '../../services/notesService';
 import { fetchProjects, createQuickTask, Project, TaskSearchResult } from '../../api/projects';
-import { cn } from "@/lib/utils";
+import { cn } from '@/lib/utils';
 
 import { useNotePresence } from '@/hooks/useNotePresence';
 import FixedToolbar from './FixedToolbar';
-import { toast } from "sonner";
+import { toast } from 'sonner';
 import { EditorHeader } from './editor/EditorHeader';
 import { TaskDialogs } from './editor/TaskDialogs';
 import { ShareDialog } from './editor/ShareDialog';
 
-import * as Y from "yjs";
-import { IndexeddbPersistence } from "y-indexeddb";
+import * as Y from 'yjs';
+import { IndexeddbPersistence } from 'y-indexeddb';
 import { SocketIOProvider } from '../../lib/SocketIOProvider';
 
 interface NoteEditorProps {
@@ -27,7 +27,16 @@ interface NoteEditorProps {
 }
 
 const COLLABORATOR_COLORS = [
-  '#ef4444', '#f97316', '#eab308', '#22c55e', '#14b8a6', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4', '#a855f7'
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#14b8a6',
+  '#3b82f6',
+  '#8b5cf6',
+  '#ec4899',
+  '#06b6d4',
+  '#a855f7',
 ];
 
 export const getColorForUser = (userId: string): string => {
@@ -41,28 +50,28 @@ export const getColorForUser = (userId: string): string => {
 // ---------------------------------------------------------------------------
 // INNER EDITOR COMPONENT (Only renders when Y.Doc is fully ready)
 // ---------------------------------------------------------------------------
-const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, isEditable: boolean }> = ({ 
-  note, user, onUpdate, className, doc, provider, isEditable 
-}) => {
+const NoteEditorInner: React.FC<
+  NoteEditorProps & { doc: Y.Doc; provider: any; isEditable: boolean }
+> = ({ note, user, onUpdate, className, doc, provider, isEditable }) => {
   const [title, setTitle] = useState(note.title || '');
   const titleTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [status, setStatus] = useState<'Saved' | 'Saving...'>('Saved');
-  
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [taskDialogOpen, setTaskDialogOpen] = useState(false);
   const [taskLinkDialogOpen, setTaskLinkDialogOpen] = useState(false);
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
-  const [selectedTaskText, setSelectedTaskText] = useState("");
+  const [selectedTaskText, setSelectedTaskText] = useState('');
 
   const { activeUsers, updateCursorPosition, remoteCursors } = useNotePresence(note.id, user);
 
   useEffect(() => {
     const handleOpenLinkTask = () => setTaskLinkDialogOpen(true);
     const handleOpenShare = () => setShareDialogOpen(true);
-    
+
     window.addEventListener('open-link-task-dialog', handleOpenLinkTask);
     window.addEventListener('open-share-note-dialog', handleOpenShare);
-    
+
     return () => {
       window.removeEventListener('open-link-task-dialog', handleOpenLinkTask);
       window.removeEventListener('open-share-note-dialog', handleOpenShare);
@@ -75,48 +84,59 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
 
   useEffect(() => {
     if (user.uid) {
-      fetchProjects().then(setProjects).catch(e => console.error(e));
+      fetchProjects()
+        .then(setProjects)
+        .catch((e) => console.error(e));
     }
   }, [user.uid]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isEditable) {return;}
+    if (!isEditable) {
+      return;
+    }
     const newTitle = e.target.value;
     setTitle(newTitle);
     setStatus('Saving...');
-    
-    if (titleTimerRef.current) {clearTimeout(titleTimerRef.current);}
-    
+
+    if (titleTimerRef.current) {
+      clearTimeout(titleTimerRef.current);
+    }
+
     titleTimerRef.current = setTimeout(async () => {
       try {
         await updateNote(note.id, { title: newTitle });
         setStatus('Saved');
         onUpdate({ ...note, title: newTitle });
       } catch (error) {
-        console.error("Failed to save title", error);
+        console.error('Failed to save title', error);
         setStatus('Saved'); // Reset to saved even on error so it doesn't spin forever
       }
     }, 1000);
   };
 
-  const editorOptions = useMemo(() => ({
-    collaboration: {
-      provider,
-      fragment: doc.getXmlFragment("document"),
-      user: {
-        name: user.displayName || 'Anonymous',
-        color: getColorForUser(user.uid)
-      }
-    }
-  }), [provider, doc, user.uid, user.displayName]);
+  const editorOptions = useMemo(
+    () => ({
+      collaboration: {
+        provider,
+        fragment: doc.getXmlFragment('document'),
+        user: {
+          name: user.displayName || 'Anonymous',
+          color: getColorForUser(user.uid),
+        },
+      },
+    }),
+    [provider, doc, user.uid, user.displayName]
+  );
 
   const editor = useCreateBlockNote(editorOptions);
 
   // Helper to strip IDs from blocks so BlockNote generates new unique ones
   // This prevents ProseMirror crashes if two clients hydrate the same JSON concurrently
   const stripBlockIds = (blocks: any[]): any[] => {
-    if (!Array.isArray(blocks)) {return blocks;}
-    return blocks.map(b => {
+    if (!Array.isArray(blocks)) {
+      return blocks;
+    }
+    return blocks.map((b) => {
       const { id, ...rest } = b;
       if (rest.children) {
         rest.children = stripBlockIds(rest.children);
@@ -133,7 +153,8 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
         if (Array.isArray(note.content) && note.content.length > 0) {
           // If we are not the owner, we might be hydrating concurrently with the owner.
           // Stripping IDs ensures we don't cause a RangeError collision in y-prosemirror.
-          const safeContent = user.uid === note.ownerId ? note.content : stripBlockIds(note.content);
+          const safeContent =
+            user.uid === note.ownerId ? note.content : stripBlockIds(note.content);
           editor.replaceBlocks(editor.document, safeContent);
         }
       }
@@ -144,7 +165,9 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handleContentChange = useCallback(() => {
-    if (!isEditable) {return;}
+    if (!isEditable) {
+      return;
+    }
     setStatus('Saving...');
 
     try {
@@ -155,10 +178,12 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
         }
       }
     } catch (e) {
-      console.warn("Could not get cursor position:", e);
+      console.warn('Could not get cursor position:', e);
     }
 
-    if (saveTimeoutRef.current) {clearTimeout(saveTimeoutRef.current);}
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
@@ -166,14 +191,16 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
         await updateNote(note.id, { content: blocks });
         setStatus('Saved');
       } catch (error) {
-        toast.error("Failed to save changes");
+        toast.error('Failed to save changes');
       }
     }, 2000);
   }, [editor, note.id, isEditable]);
 
   useEffect(() => {
     return () => {
-      if (saveTimeoutRef.current) {clearTimeout(saveTimeoutRef.current);}
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
     };
   }, []);
 
@@ -191,11 +218,13 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   }, [editor, updateCursorPosition]);
 
   useEffect(() => {
-    if (!editor) {return;}
+    if (!editor) {
+      return;
+    }
 
     // Clear previous highlights
     const previousHighlights = document.querySelectorAll('[data-collab-user]');
-    previousHighlights.forEach(el => {
+    previousHighlights.forEach((el) => {
       el.removeAttribute('data-collab-user');
       el.removeAttribute('data-collab-color');
       el.removeAttribute('data-collab-name');
@@ -217,10 +246,12 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
     // Keep track of processed IDs to avoid nested highlighting
     const processedIds = new Set<string>();
 
-    blockEls.forEach(blockEl => {
+    blockEls.forEach((blockEl) => {
       const blockId = blockEl.getAttribute('data-id');
-      if (!blockId || processedIds.has(blockId)) {return;}
-      
+      if (!blockId || processedIds.has(blockId)) {
+        return;
+      }
+
       const activeCollaborator = remoteCursors[blockId];
       if (activeCollaborator) {
         processedIds.add(blockId);
@@ -235,17 +266,19 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   }, [editor, activeUsers, remoteCursors]);
 
   const openTaskCreation = () => {
-    if (!editor) {return;}
+    if (!editor) {
+      return;
+    }
     const selection = editor.getTextCursorPosition();
     const block = selection.block;
-    let text = "";
+    let text = '';
 
     if (block && 'content' in block && Array.isArray(block.content)) {
-      text = block.content.map((c: any) => c.text || "").join("");
+      text = block.content.map((c: any) => c.text || '').join('');
     }
 
     if (!text) {
-      toast.error("Please put cursor on a line with text");
+      toast.error('Please put cursor on a line with text');
       return;
     }
 
@@ -256,16 +289,18 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
   const handleCreateTask = async (projectId: string) => {
     try {
       await createQuickTask(projectId, selectedTaskText);
-      toast.success("Task created in project!");
+      toast.success('Task created in project!');
       setTaskDialogOpen(false);
     } catch (e) {
-      toast.error("Failed to create task");
+      toast.error('Failed to create task');
     }
   };
 
   const handleInsertTaskLink = async (task: TaskSearchResult) => {
-    if (!editor) {return;}
-    
+    if (!editor) {
+      return;
+    }
+
     let targetBlock;
     try {
       const pos = editor.getTextCursorPosition();
@@ -275,26 +310,36 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
     }
 
     const blockToInsert = {
-      type: "paragraph" as const,
+      type: 'paragraph' as const,
       content: [
-        { type: "text" as const, text: task.title + " ", styles: { bold: true } },
-        { type: "link" as const, href: `/projects/${task.projectId}?task=${task.id}`, content: [{ type: "text" as const, text: "🔗", styles: {} }] }
-      ]
+        { type: 'text' as const, text: task.title + ' ', styles: { bold: true } },
+        {
+          type: 'link' as const,
+          href: `/projects/${task.projectId}?task=${task.id}`,
+          content: [{ type: 'text' as const, text: '🔗', styles: {} }],
+        },
+      ],
     };
 
     if (targetBlock) {
-      editor.insertBlocks([blockToInsert], targetBlock, "after");
+      editor.insertBlocks([blockToInsert], targetBlock, 'after');
     } else {
       // Append at the end if no focus
-      editor.insertBlocks([blockToInsert], editor.document[editor.document.length - 1], "after");
+      editor.insertBlocks([blockToInsert], editor.document[editor.document.length - 1], 'after');
     }
     setTaskLinkDialogOpen(false);
   };
 
-  if (!editor) {return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading editor…</div>;}
+  if (!editor) {
+    return (
+      <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">
+        Loading editor…
+      </div>
+    );
+  }
 
   return (
-    <div className={cn("flex flex-col h-full", className)}>
+    <div className={cn('flex flex-col h-full', className)}>
       {isEditable && (
         <FixedToolbar
           editor={editor}
@@ -316,7 +361,7 @@ const NoteEditorInner: React.FC<NoteEditorProps & { doc: Y.Doc, provider: any, i
               onTitleChange={handleTitleChange}
             />
 
-            <div 
+            <div
               className="prose dark:prose-invert prose-neutral max-w-none prose-headings:text-foreground prose-p:text-muted-foreground prose-a:text-foreground prose-lg ZYNC-editor-overrides"
               onClick={handleBlockFocus}
               onKeyUp={handleBlockFocus}
@@ -387,7 +432,7 @@ const NoteEditor: React.FC<NoteEditorProps> = (props) => {
         wsProvider = new SocketIOProvider(note.id, ydoc, {
           name: user.displayName || 'Anonymous',
           color: getColorForUser(user.uid),
-          uid: user.uid
+          uid: user.uid,
         });
         setProvider(wsProvider);
       } else {
@@ -408,17 +453,14 @@ const NoteEditor: React.FC<NoteEditorProps> = (props) => {
   }, [note.id, isShared, user]);
 
   if (!isReady || !doc || !provider) {
-    return <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Initializing offline storage…</div>;
+    return (
+      <div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">
+        Initializing offline storage…
+      </div>
+    );
   }
 
-  return (
-    <NoteEditorInner 
-      {...props} 
-      doc={doc} 
-      provider={provider} 
-      isEditable={isEditable} 
-    />
-  );
+  return <NoteEditorInner {...props} doc={doc} provider={provider} isEditable={isEditable} />;
 };
 
 export default React.memo(NoteEditor, (prev, next) => {

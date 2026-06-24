@@ -4,7 +4,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
-const { deleteCloudinaryAsset, uploadProfilePhoto } = require('../services/cloudinaryService');
+const {
+  deleteCloudinaryAsset,
+  uploadProfilePhoto,
+} = require('../services/cloudinaryService');
 const authMiddleware = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const { normalizeDoc } = require('../utils/normalize');
@@ -47,9 +50,10 @@ const storage = multer.diskStorage({
     const uniqueSuffix = crypto.randomBytes(16).toString('hex');
     // Derive extension from content type for safety instead of original filename
     const contentType = file.mimetype;
-    const safeExt = SAFE_EXTENSIONS[contentType] || mime.extension(contentType)
-      ? '.' + mime.extension(contentType)
-      : path.extname(file.originalname);
+    const safeExt =
+      SAFE_EXTENSIONS[contentType] || mime.extension(contentType)
+        ? '.' + mime.extension(contentType)
+        : path.extname(file.originalname);
     cb(null, `${uniqueSuffix}${safeExt}`);
   },
 });
@@ -85,51 +89,63 @@ router.post('/', upload.single('file'), async (req, res) => {
 });
 
 // POST /api/upload/profile-photo — upload profile photo to Cloudinary
-router.post('/profile-photo', authMiddleware, upload.single('file'), async (req, res) => {
-  try {
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    const uid = req.user.uid;
-
-    // Fetch existing user to check for old photo
-    const currentUser = await User.findOne({ uid }).lean();
-    if (currentUser?.photoURL) {
-      try {
-        await deleteCloudinaryAsset(currentUser.photoURL);
-        console.log(`Deleted old profile photo for user: ${uid}`);
-      } catch (deleteError) {
-        console.warn('Failed to delete old photo from Cloudinary:', deleteError.message);
-        // We continue anyway even if deletion fails
-      }
-    }
-
-    // Upload to Cloudinary with unique ID via service
-    const result = await uploadProfilePhoto(req.file.path, uid);
-
-    // Remove local temp file
+router.post(
+  '/profile-photo',
+  authMiddleware,
+  upload.single('file'),
+  async (req, res) => {
     try {
-      fs.unlinkSync(req.file.path);
-    } catch (e) {
-      console.warn('Failed to remove temp file:', e.message);
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const uid = req.user.uid;
+
+      // Fetch existing user to check for old photo
+      const currentUser = await User.findOne({ uid }).lean();
+      if (currentUser?.photoURL) {
+        try {
+          await deleteCloudinaryAsset(currentUser.photoURL);
+          console.log(`Deleted old profile photo for user: ${uid}`);
+        } catch (deleteError) {
+          console.warn(
+            'Failed to delete old photo from Cloudinary:',
+            deleteError.message
+          );
+          // We continue anyway even if deletion fails
+        }
+      }
+
+      // Upload to Cloudinary with unique ID via service
+      const result = await uploadProfilePhoto(req.file.path, uid);
+
+      // Remove local temp file
+      try {
+        fs.unlinkSync(req.file.path);
+      } catch (e) {
+        console.warn('Failed to remove temp file:', e.message);
+      }
+
+      const photoURL = result.secure_url;
+
+      // Update user record
+      await User.updateOne({ uid }, { $set: { photoURL } });
+
+      res.json({ photoURL });
+    } catch (error) {
+      console.error('Error uploading profile photo:', error);
+      // Clean up temp file on error
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {
+          /* ignore */
+        }
+      }
+      res.status(500).json({ message: 'Upload failed', error: error.message });
     }
-
-    const photoURL = result.secure_url;
-
-    // Update user record
-    await User.updateOne({ uid }, { $set: { photoURL } });
-
-    res.json({ photoURL });
-  } catch (error) {
-    console.error('Error uploading profile photo:', error);
-    // Clean up temp file on error
-    if (req.file?.path) {
-      try { fs.unlinkSync(req.file.path); } catch (e) { /* ignore */ }
-    }
-    res.status(500).json({ message: 'Upload failed', error: error.message });
   }
-});
+);
 
 // Error handler for multer errors
 router.use((err, req, res, next) => {

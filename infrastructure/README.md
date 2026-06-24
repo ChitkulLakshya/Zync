@@ -4,17 +4,17 @@ This directory contains Terraform scripts to provision the Zync backend infrastr
 
 ## Resources Provisioned
 
-*   **Compute Instance**: VM.Standard.A1.Flex (ARM)
-    *   4 OCPUs, 24GB RAM (Free Tier max)
-    *   Ubuntu 22.04
-*   **Networking**: VCN, Public Subnet, Internet Gateway
-*   **Security**: Firewall rules opening ports 22 (SSH), 80 (HTTP), 443 (HTTPS), and 5000 (Backend API).
-*   **Software (via Cloud-Init)**:
-    *   Node.js 20
-    *   Redis Server (bound to localhost)
-    *   PM2 (Process Manager)
-    *   Bun (JavaScript Runtime)
-    *   UFW Firewall configured
+- **Compute Instance**: VM.Standard.A1.Flex (ARM)
+  - 4 OCPUs, 24GB RAM (Free Tier max)
+  - Ubuntu 22.04
+- **Networking**: VCN, Public Subnet, Internet Gateway
+- **Security**: Firewall rules opening ports 22 (SSH), 80 (HTTP), 443 (HTTPS), and 5000 (Backend API).
+- **Software (via Cloud-Init)**:
+  - Node.js 20
+  - Redis Server (bound to localhost)
+  - PM2 (Process Manager)
+  - Bun (JavaScript Runtime)
+  - UFW Firewall configured
 
 ## Prerequisites
 
@@ -25,12 +25,14 @@ This directory contains Terraform scripts to provision the Zync backend infrastr
 ## Usage
 
 1.  Initialize Terraform:
+
     ```bash
     cd terraform
     terraform init
     ```
 
 2.  Create a `terraform.tfvars` file with your specific values:
+
     ```hcl
     compartment_id = "ocid1.compartment.oc1..aaaa..."
     region         = "us-ashburn-1"
@@ -38,11 +40,13 @@ This directory contains Terraform scripts to provision the Zync backend infrastr
     ```
 
 3.  Preview the changes:
+
     ```bash
     terraform plan
     ```
 
 4.  Apply the changes to create infrastructure:
+
     ```bash
     terraform apply
     ```
@@ -56,6 +60,7 @@ This directory contains Terraform scripts to provision the Zync backend infrastr
 ## Post-Provisioning
 
 Once the server is up:
+
 1.  Clone the Zync repository.
 2.  Copy your `.env` file.
 3.  Install dependencies (`npm install`).

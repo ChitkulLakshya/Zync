@@ -1,9 +1,9 @@
-import { useMemo, useState } from "react";
-import { formatDistanceToNow } from "date-fns";
-import { Activity, Clock3, Trash2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useMemo, useState } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Activity, Clock3, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface MobileActivityLogViewProps {
   activityLogs: any[];
@@ -24,23 +24,32 @@ interface MobileActivityLogViewProps {
   onDeleteLog: (id: string) => void;
 }
 
-const normalizeStatus = (value: unknown) => String(value ?? "").toLowerCase().trim();
+const normalizeStatus = (value: unknown) =>
+  String(value ?? '')
+    .toLowerCase()
+    .trim();
 
 const isCompleted = (task: any) => {
   const status = normalizeStatus(task?.status);
-  return status.includes("complete") || status === "done";
+  return status.includes('complete') || status === 'done';
 };
 
 const isInProgress = (task: any) => {
-  if (isCompleted(task)) {return false;}
+  if (isCompleted(task)) {
+    return false;
+  }
   const status = normalizeStatus(task?.status);
-  return status.includes("progress") || status === "active" || status === "in review";
+  return status.includes('progress') || status === 'active' || status === 'in review';
 };
 
 const isOverdue = (task: any) => {
-  if (isCompleted(task)) {return false;}
+  if (isCompleted(task)) {
+    return false;
+  }
   const due = task?.dueDate || task?.deadline;
-  if (!due) {return false;}
+  if (!due) {
+    return false;
+  }
   return new Date(due).getTime() < Date.now();
 };
 
@@ -64,23 +73,25 @@ const MobileActivityLogView = ({
   const overdue = tasks.filter(isOverdue).length;
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const elapsedSeconds = (() => {
-    const [h, m, s] = elapsedTime.split(":").map((part) => Number(part) || 0);
+    const [h, m, s] = elapsedTime.split(':').map((part) => Number(part) || 0);
     return h * 3600 + m * 60 + s;
   })();
 
   const ownedTeamIds = new Set(
     (Array.isArray(ownedTeams) ? ownedTeams : [])
-      .map((team: any) => String(team?.id || team?._id || team?.teamId || ""))
+      .map((team: any) => String(team?.id || team?._id || team?.teamId || ''))
       .filter(Boolean)
   );
 
   const fallbackOwnedFromMyTeams = (Array.isArray(myTeams) ? myTeams : []).filter((team: any) => {
-    const owner = String(team?.ownerId || team?.ownerUid || team?.leaderId || team?.createdBy || "");
+    const owner = String(
+      team?.ownerId || team?.ownerUid || team?.leaderId || team?.createdBy || ''
+    );
     return Boolean(owner) && owner === currentUserId;
   });
 
   fallbackOwnedFromMyTeams.forEach((team: any) => {
-    const id = String(team?.id || team?._id || team?.teamId || "");
+    const id = String(team?.id || team?._id || team?.teamId || '');
     if (id) {
       ownedTeamIds.add(id);
     }
@@ -93,12 +104,17 @@ const MobileActivityLogView = ({
       return [];
     }
 
-    const members = new Map<string, { uid: string; displayName: string; email?: string; photoURL?: string }>();
+    const members = new Map<
+      string,
+      { uid: string; displayName: string; email?: string; photoURL?: string }
+    >();
     const teamList = [...(ownedTeams || []), ...fallbackOwnedFromMyTeams];
 
     teamList.forEach((team: any) => {
       (team?.members || []).forEach((member: any) => {
-        const uid = String(typeof member === "string" ? member : member?.uid || member?.id || member?._id || "");
+        const uid = String(
+          typeof member === 'string' ? member : member?.uid || member?.id || member?._id || ''
+        );
         if (!uid) {
           return;
         }
@@ -107,20 +123,25 @@ const MobileActivityLogView = ({
           uid,
           displayName:
             profileFromUsers?.displayName ||
-            (typeof member === "object" ? member?.displayName || member?.name : "") ||
+            (typeof member === 'object' ? member?.displayName || member?.name : '') ||
             uid,
-          email: profileFromUsers?.email || (typeof member === "object" ? member?.email : undefined),
-          photoURL: profileFromUsers?.photoURL || (typeof member === "object" ? member?.photoURL : undefined),
+          email:
+            profileFromUsers?.email || (typeof member === 'object' ? member?.email : undefined),
+          photoURL:
+            profileFromUsers?.photoURL ||
+            (typeof member === 'object' ? member?.photoURL : undefined),
         });
       });
     });
 
     users.forEach((user: any) => {
-      const memberships = Array.isArray(user?.teamMemberships) ? user.teamMemberships.map(String) : [];
+      const memberships = Array.isArray(user?.teamMemberships)
+        ? user.teamMemberships.map(String)
+        : [];
       if (memberships.some((teamId: string) => ownedTeamIds.has(teamId))) {
         members.set(user.uid, {
           uid: user.uid,
-          displayName: user.displayName || user.email?.split("@")[0] || user.uid,
+          displayName: user.displayName || user.email?.split('@')[0] || user.uid,
           email: user.email,
           photoURL: user.photoURL,
         });
@@ -129,7 +150,7 @@ const MobileActivityLogView = ({
 
     const totals = new Map<string, number>();
     (teamSessions || []).forEach((session: any) => {
-      const uid = String(session?.userId || "");
+      const uid = String(session?.userId || '');
       if (!uid || !members.has(uid)) {
         return;
       }
@@ -157,7 +178,10 @@ const MobileActivityLogView = ({
   };
 
   const memberTaskStats = useMemo(() => {
-    const statsMap = new Map<string, { total: number; completed: number; inProgress: number; overdue: number }>();
+    const statsMap = new Map<
+      string,
+      { total: number; completed: number; inProgress: number; overdue: number }
+    >();
 
     (Array.isArray(teamTasks) ? teamTasks : []).forEach((task: any) => {
       const assignees = new Set<string>();
@@ -202,15 +226,15 @@ const MobileActivityLogView = ({
             <Avatar className="h-9 w-9">
               <AvatarImage src={currentUserProfile?.photoURL} />
               <AvatarFallback>
-                {currentUserProfile?.displayName?.charAt(0)?.toUpperCase() || "U"}
+                {currentUserProfile?.displayName?.charAt(0)?.toUpperCase() || 'U'}
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium truncate">
-                {currentUserProfile?.displayName || "Your Profile"}
+                {currentUserProfile?.displayName || 'Your Profile'}
               </p>
               <p className="text-[11px] text-muted-foreground truncate">
-                {currentUserProfile?.email || currentUserId || ""}
+                {currentUserProfile?.email || currentUserId || ''}
               </p>
             </div>
           </div>
@@ -248,7 +272,7 @@ const MobileActivityLogView = ({
               </p>
             ) : (
               teamMemberStats.slice(0, 12).map((member) => {
-                const memberLabel = member.uid === currentUserId ? "You" : member.displayName;
+                const memberLabel = member.uid === currentUserId ? 'You' : member.displayName;
                 const stats = memberTaskStats.get(member.uid) || {
                   total: 0,
                   completed: 0,
@@ -262,11 +286,15 @@ const MobileActivityLogView = ({
                     <button
                       type="button"
                       className="w-full rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 text-left shadow-sm active:scale-[0.98] transition-transform"
-                      onClick={() => setExpandedMemberId((prev) => (prev === member.uid ? null : member.uid))}
+                      onClick={() =>
+                        setExpandedMemberId((prev) => (prev === member.uid ? null : member.uid))
+                      }
                     >
                       <Avatar className="h-8 w-8">
                         <AvatarImage src={member.photoURL} />
-                        <AvatarFallback>{member.displayName?.charAt(0)?.toUpperCase() || "U"}</AvatarFallback>
+                        <AvatarFallback>
+                          {member.displayName?.charAt(0)?.toUpperCase() || 'U'}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium truncate">{memberLabel}</p>
@@ -320,12 +348,15 @@ const MobileActivityLogView = ({
           ) : (
             activityLogs.slice(0, 20).map((log, index) => {
               const start = new Date(log.startTime);
-              const title = log.title || log.eventType || "Activity session";
+              const title = log.title || log.eventType || 'Activity session';
               const logKey =
                 log._id ||
-                `${log.startTime || "no-start"}-${log.eventType || title}-${log.userId || "no-user"}-${index}`;
+                `${log.startTime || 'no-start'}-${log.eventType || title}-${log.userId || 'no-user'}-${index}`;
               return (
-                <div key={logKey} className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-3 flex items-start gap-2 shadow-sm">
+                <div
+                  key={logKey}
+                  className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-3 flex items-start gap-2 shadow-sm"
+                >
                   <Clock3 className="h-4 w-4 text-foreground mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{title}</p>

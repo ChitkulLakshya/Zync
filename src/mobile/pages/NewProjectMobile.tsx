@@ -1,4 +1,4 @@
-import NewProject from "@/pages/NewProject";
+import NewProject from '@/pages/NewProject';
 
 const NewProjectMobile = () => <NewProject />;
 

@@ -1,10 +1,10 @@
-import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { animate } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X, Github } from "lucide-react";
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { animate } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Menu, X, Github } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -16,13 +16,13 @@ const Navbar = () => {
 
   useEffect(() => {
     setMounted(true);
-    
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
     };
-    
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const scrollToSection = (sectionId: string) => {
@@ -33,15 +33,19 @@ const Navbar = () => {
         const element = document.getElementById(sectionId);
         if (element) {
           let top = element.getBoundingClientRect().top + window.scrollY - 80;
-          
+
           if (sectionId === 'mobile' && window.innerWidth >= 1024) {
-            top = element.getBoundingClientRect().top + window.scrollY + element.offsetHeight - window.innerHeight;
+            top =
+              element.getBoundingClientRect().top +
+              window.scrollY +
+              element.offsetHeight -
+              window.innerHeight;
           }
 
           animate(window.scrollY, top, {
             duration: 0.8,
             ease: [0.22, 1, 0.36, 1],
-            onUpdate: (value) => window.scrollTo(0, value)
+            onUpdate: (value) => window.scrollTo(0, value),
           });
         }
       }, 100);
@@ -51,55 +55,63 @@ const Navbar = () => {
     const element = document.getElementById(sectionId);
     if (element) {
       let top = element.getBoundingClientRect().top + window.scrollY - 80;
-      
+
       if (sectionId === 'mobile' && window.innerWidth >= 1024) {
-        top = element.getBoundingClientRect().top + window.scrollY + element.offsetHeight - window.innerHeight;
+        top =
+          element.getBoundingClientRect().top +
+          window.scrollY +
+          element.offsetHeight -
+          window.innerHeight;
       }
 
       animate(window.scrollY, top, {
         duration: 0.8,
         ease: [0.22, 1, 0.36, 1],
-        onUpdate: (value) => window.scrollTo(0, value)
+        onUpdate: (value) => window.scrollTo(0, value),
       });
     }
   };
 
   const navItems = [
-    { name: "Features", id: 'features' },
-    { name: "Mobile App", id: 'mobile' },
-    { name: "Contact", id: 'cta' },
+    { name: 'Features', id: 'features' },
+    { name: 'Mobile App', id: 'mobile' },
+    { name: 'Contact', id: 'cta' },
   ];
 
   const isPill = isScrolled && !isOpen;
 
   return (
-    <nav 
+    <nav
       className={`fixed left-1/2 -translate-x-1/2 z-50 box-border transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] border ${
-        isPill 
-          ? "top-6 w-[90%] max-w-[896px] rounded-full bg-surface-glass-regular backdrop-blur-thick border-border/50"
-          : "top-0 w-[100%] max-w-[3000px] rounded-none bg-background/70 backdrop-blur-md border-transparent border-b-border/30"
+        isPill
+          ? 'top-6 w-[90%] max-w-[896px] rounded-full bg-surface-glass-regular backdrop-blur-thick border-border/50'
+          : 'top-0 w-[100%] max-w-[3000px] rounded-none bg-background/70 backdrop-blur-md border-transparent border-b-border/30'
       }`}
       style={{
-        boxShadow: isPill ? '0 16px 40px -8px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)' : 'none'
+        boxShadow: isPill
+          ? '0 16px 40px -8px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)'
+          : 'none',
       }}
     >
-      <div className={`mx-auto w-full transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-        isPill ? "max-w-4xl px-6 lg:px-8" : "max-w-7xl px-4 lg:px-8"
-      }`}>
+      <div
+        className={`mx-auto w-full transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isPill ? 'max-w-4xl px-6 lg:px-8' : 'max-w-7xl px-4 lg:px-8'
+        }`}
+      >
         <div className="flex items-center justify-between h-16 lg:h-20 w-full">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             {mounted ? (
               <>
-                <img 
-                  src="/zync-white.webp" 
-                  alt="Zync Logo" 
-                  className="w-8 h-8 rounded-lg relative z-10 block dark:hidden" 
+                <img
+                  src="/zync-white.webp"
+                  alt="Zync Logo"
+                  className="w-8 h-8 rounded-lg relative z-10 block dark:hidden"
                 />
-                <img 
-                  src="/zync-dark.webp" 
-                  alt="Zync Logo" 
-                  className="w-8 h-8 rounded-lg relative z-10 hidden dark:block" 
+                <img
+                  src="/zync-dark.webp"
+                  alt="Zync Logo"
+                  className="w-8 h-8 rounded-lg relative z-10 hidden dark:block"
                 />
               </>
             ) : (
@@ -152,10 +164,7 @@ const Navbar = () => {
           {}
           <div className="flex lg:hidden items-center gap-2">
             <ThemeToggle />
-            <button
-              className="p-2 text-foreground"
-              onClick={() => setIsOpen(!isOpen)}
-            >
+            <button className="p-2 text-foreground" onClick={() => setIsOpen(!isOpen)}>
               {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
@@ -175,7 +184,12 @@ const Navbar = () => {
                 </button>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/10">
-                <a href="https://github.com/zync-meet/Zync" target="_blank" rel="noopener noreferrer" onClick={() => setIsOpen(false)}>
+                <a
+                  href="https://github.com/zync-meet/Zync"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setIsOpen(false)}
+                >
                   <Button variant="outline" className="w-full justify-center gap-2">
                     <Github className="w-4 h-4" />
                     Star on GitHub

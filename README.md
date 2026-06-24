@@ -4,10 +4,12 @@
   <p>The open-source, AI-powered collaboration platform for modern engineering teams.</p>
 
   <!-- Badges -->
-  <a href="https://github.com/zync-meet/Zync/stargazers"><img src="https://img.shields.io/github/stars/zync-meet/Zync?style=flat-square&color=black&labelColor=black&logo=github&logoColor=white" alt="Stars" /></a>
-  <a href="https://github.com/zync-meet/Zync/blob/main/LICENSE"><img src="https://img.shields.io/github/license/zync-meet/Zync?style=flat-square&color=black&labelColor=black" alt="License" /></a>
-  <a href="https://github.com/zync-meet/Zync/actions"><img src="https://img.shields.io/github/actions/workflow/status/zync-meet/Zync/ci.yml?style=flat-square&color=black&labelColor=black&logo=github-actions&logoColor=white" alt="Build Status" /></a>
-  <a href="https://github.com/zync-meet/Zync/commits/main"><img src="https://img.shields.io/github/last-commit/zync-meet/Zync?style=flat-square&color=black&labelColor=black&logo=github&logoColor=white" alt="Last Commit" /></a>
+
+<a href="https://github.com/zync-meet/Zync/stargazers"><img src="https://img.shields.io/github/stars/zync-meet/Zync?style=flat-square&color=black&labelColor=black&logo=github&logoColor=white" alt="Stars" /></a>
+<a href="https://github.com/zync-meet/Zync/blob/main/LICENSE"><img src="https://img.shields.io/github/license/zync-meet/Zync?style=flat-square&color=black&labelColor=black" alt="License" /></a>
+<a href="https://github.com/zync-meet/Zync/actions"><img src="https://img.shields.io/github/actions/workflow/status/zync-meet/Zync/ci.yml?style=flat-square&color=black&labelColor=black&logo=github-actions&logoColor=white" alt="Build Status" /></a>
+<a href="https://github.com/zync-meet/Zync/commits/main"><img src="https://img.shields.io/github/last-commit/zync-meet/Zync?style=flat-square&color=black&labelColor=black&logo=github&logoColor=white" alt="Last Commit" /></a>
+
 </div>
 
 <div align="center">
@@ -36,23 +38,25 @@ cp backend/.env.example backend/.env
 npm run dev
 ```
 
-That's it! 
+That's it!
+
 - The Frontend will be running at `http://localhost:5173`
 - The Backend API will be running at `http://localhost:8081`
 
 ## Features
 
-| Feature | Description |
-|:--------|:------------|
-| **AI Project Architect** | Generate architecture, tech stack, and roadmaps via Google Gemini |
-| **Real-Time Notes** | Conflict-free CRDT block editing (Yjs) with live cursors |
-| **Kanban + Git Sync** | Drag-and-drop tasks that automatically sync with GitHub commits & PRs |
-| **Instant Chat** | Socket.IO messaging with read receipts and file sharing |
-| **Design Inspiration** | Search Dribbble/Behance designs with live scraping and Redis caching |
+| Feature                  | Description                                                           |
+| :----------------------- | :-------------------------------------------------------------------- |
+| **AI Project Architect** | Generate architecture, tech stack, and roadmaps via Google Gemini     |
+| **Real-Time Notes**      | Conflict-free CRDT block editing (Yjs) with live cursors              |
+| **Kanban + Git Sync**    | Drag-and-drop tasks that automatically sync with GitHub commits & PRs |
+| **Instant Chat**         | Socket.IO messaging with read receipts and file sharing               |
+| **Design Inspiration**   | Search Dribbble/Behance designs with live scraping and Redis caching  |
 
 ## Why Zync?
 
 Existing tools for engineering teams are either:
+
 - Fragmented across multiple disjointed platforms (Jira, Slack, Google Docs, GitHub)
 - Too expensive for indie developers and small startups
 - Not fully open source or lacking built-in AI architecture planning
@@ -64,15 +68,15 @@ We built Zync because we wanted a unified, developer-first workspace. A single p
 Zync is proudly built and maintained by:
 
 | [<img src="https://github.com/chitkullakshya.png" width="100" style="border-radius:50%" />](https://github.com/chitkullakshya) | [<img src="https://github.com/prem22k.png" width="100" style="border-radius:50%" />](https://github.com/prem22k) | [<img src="https://github.com/eesha264.png" width="100" style="border-radius:50%" />](https://github.com/eesha264) |
-|:---:|:---:|:---:|
-| **Lakshya Chitkul** | **Prem Sai Kota** | **Eeshitha Gone** |
+| :----------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------: | :----------------------------------------------------------------------------------------------------------------: |
+|                                                      **Lakshya Chitkul**                                                       |                                                **Prem Sai Kota**                                                 |                                                 **Eeshitha Gone**                                                  |
 
 ## Documentation
 
 - [Contributing Guide](docs/CONTRIBUTING.md)
 - [Live Demo](https://zync-meet.vercel.app/)
 
-*(For deep architecture, API references, and backend documentation, please explore the `docs` folder or the codebase.)*
+_(For deep architecture, API references, and backend documentation, please explore the `docs` folder or the codebase.)_
 
 ## Community & Support
 

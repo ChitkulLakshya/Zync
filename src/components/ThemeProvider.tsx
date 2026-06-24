@@ -1,5 +1,5 @@
-import { ThemeProvider as NextThemesProvider } from "next-themes";
-import { ReactNode } from "react";
+import { ThemeProvider as NextThemesProvider } from 'next-themes';
+import { ReactNode } from 'react';
 
 interface ThemeProviderProps {
   children: ReactNode;

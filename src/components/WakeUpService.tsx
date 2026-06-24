@@ -1,29 +1,26 @@
 import { useEffect } from 'react';
-import { API_BASE_URL } from "@/lib/utils";
-
+import { API_BASE_URL } from '@/lib/utils';
 
 export const WakeUpService = () => {
-    useEffect(() => {
-        const pingBackend = async () => {
-            try {
+  useEffect(() => {
+    const pingBackend = async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+        await fetch(`${API_BASE_URL}/`, {
+          method: 'GET',
+          signal: controller.signal,
+        });
 
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 10000);
+        clearTimeout(timeoutId);
+      } catch (error) {
+        // Ignore wake-up ping errors
+      }
+    };
 
-                await fetch(`${API_BASE_URL}/`, {
-                    method: 'GET',
-                    signal: controller.signal
-                });
+    pingBackend();
+  }, []);
 
-                clearTimeout(timeoutId);
-            } catch (error) {
-                // Ignore wake-up ping errors
-            }
-        };
-
-        pingBackend();
-    }, []);
-
-    return null;
+  return null;
 };

@@ -1,6 +1,6 @@
 /**
  * migrate-to-oracle.js
- * 
+ *
  * Migrates all collections from MongoDB Atlas → Oracle ADB 26ai (MongoDB API)
  * Uses the native mongodb driver — no mongodump/mongorestore needed.
  *
@@ -79,7 +79,9 @@ async function migrate() {
           } catch (err) {
             // Duplicate key errors are OK (re-running the script)
             if (err.code !== 11000) {
-              console.error(`   ⚠️  Batch insert error in "${name}": ${err.message}`);
+              console.error(
+                `   ⚠️  Batch insert error in "${name}": ${err.message}`
+              );
             }
           }
           migrated += batch.length;
@@ -94,7 +96,9 @@ async function migrate() {
           await targetCol.insertMany(batch, { ordered: false });
         } catch (err) {
           if (err.code !== 11000) {
-            console.error(`   ⚠️  Batch insert error in "${name}": ${err.message}`);
+            console.error(
+              `   ⚠️  Batch insert error in "${name}": ${err.message}`
+            );
           }
         }
         migrated += batch.length;
@@ -115,7 +119,6 @@ async function migrate() {
       console.log(`  ${r.collection}: ${r.count} docs (${r.status})`);
     }
     console.log('══════════════════════════════════════════════\n');
-
   } catch (err) {
     console.error('❌ Migration failed:', err);
   } finally {

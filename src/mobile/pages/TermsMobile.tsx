@@ -1,4 +1,4 @@
-import Terms from "@/pages/Terms";
+import Terms from '@/pages/Terms';
 
 const TermsMobile = () => <Terms />;
 

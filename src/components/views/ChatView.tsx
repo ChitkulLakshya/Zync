@@ -1,15 +1,15 @@
-import { useState, useEffect, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   sendMessage as socketSendMessage,
   markSeen,
   clearChat as socketClearChat,
-} from "@/services/chatSocketService";
-import { auth } from "@/lib/firebase";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
+} from '@/services/chatSocketService';
+import { auth } from '@/lib/firebase';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 import {
   Send,
   Check,
@@ -22,14 +22,20 @@ import {
   Trash2,
   FolderKanban,
   Plus,
-  Star
-} from "lucide-react";
-import { format } from "date-fns";
+  Star,
+} from 'lucide-react';
+import { format } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
-import { API_BASE_URL, getFullUrl, getUserName, getUserInitials } from "@/lib/utils";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useChatHistory } from "@/hooks/useChatHistory";
+import { API_BASE_URL, getFullUrl, getUserName, getUserInitials } from '@/lib/utils';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { useChatHistory } from '@/hooks/useChatHistory';
 
 interface ChatViewProps {
   selectedUser: any;
@@ -41,16 +47,13 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const currentUser = auth.currentUser;
-  
-  const chatId = currentUser && selectedUser 
-    ? [currentUser.uid, selectedUser.uid].sort().join("_") 
-    : null;
 
-  const { 
-    data: messages = [], 
-  } = useChatHistory(chatId);
+  const chatId =
+    currentUser && selectedUser ? [currentUser.uid, selectedUser.uid].sort().join('_') : null;
 
-  const [newMessage, setNewMessage] = useState("");
+  const { data: messages = [] } = useChatHistory(chatId);
+
+  const [newMessage, setNewMessage] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,14 +63,18 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
   useEffect(() => {
     if (messages.length > 0 && currentUser) {
       const unseenIds = messages
-        .filter(m => m.receiverId === currentUser.uid && !m.seen)
-        .map(m => m.id);
-      
+        .filter((m) => m.receiverId === currentUser.uid && !m.seen)
+        .map((m) => m.id);
+
       if (unseenIds.length > 0) {
         // Simple grouped approach
-        const senderIds = [...new Set(messages.filter(m => unseenIds.includes(m.id)).map(m => m.senderId))];
-        senderIds.forEach(sid => {
-          const idsForSender = messages.filter(m => unseenIds.includes(m.id) && m.senderId === sid).map(m => m.id);
+        const senderIds = [
+          ...new Set(messages.filter((m) => unseenIds.includes(m.id)).map((m) => m.senderId)),
+        ];
+        senderIds.forEach((sid) => {
+          const idsForSender = messages
+            .filter((m) => unseenIds.includes(m.id) && m.senderId === sid)
+            .map((m) => m.id);
           markSeen(idsForSender, sid);
         });
       }
@@ -78,9 +85,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
   const isNearBottomRef = useRef(true);
 
   useEffect(() => {
-
     const isNewMessage = messages.length > prevMessagesLengthRef.current;
-
 
     const lastMessage = messages[messages.length - 1];
     const isMyMessage = lastMessage?.senderId === currentUser?.uid;
@@ -90,7 +95,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
         if (containerRef.current) {
           containerRef.current.scrollTo({
             top: containerRef.current.scrollHeight,
-            behavior: "smooth"
+            behavior: 'smooth',
           });
         }
       }
@@ -118,7 +123,9 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((!newMessage.trim() && !file) || !currentUser || isUploading) {return;}
+    if ((!newMessage.trim() && !file) || !currentUser || isUploading) {
+      return;
+    }
 
     setIsUploading(true);
     let fileUrl = null;
@@ -133,7 +140,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
       try {
         const response = await fetch(`${API_BASE_URL}/api/upload`, {
           method: 'POST',
-          body: formData
+          body: formData,
         });
 
         if (!response.ok) {
@@ -151,19 +158,19 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
           messageType = 'file';
         }
       } catch (error) {
-        console.error("Upload error", error);
+        console.error('Upload error', error);
         setIsUploading(false);
         return;
       }
     }
 
-    const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+    const chatId = [currentUser.uid, selectedUser.uid].sort().join('_');
 
     socketSendMessage({
       chatId,
       text: newMessage,
       receiverId: selectedUser.uid,
-      senderName: currentUser.displayName || "Unknown User",
+      senderName: currentUser.displayName || 'Unknown User',
       senderPhotoURL: currentUser.photoURL || undefined,
       type: messageType,
       fileUrl: fileUrl || undefined,
@@ -171,23 +178,27 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
       fileSize: fileSize ? parseInt(String(fileSize), 10) : undefined,
     });
 
-    setNewMessage("");
+    setNewMessage('');
     setFile(null);
-    if (fileInputRef.current) {fileInputRef.current.value = "";}
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     setIsUploading(false);
   };
 
   const handleClearChat = async () => {
-    if (!currentUser || !selectedUser) {return;}
+    if (!currentUser || !selectedUser) {
+      return;
+    }
 
-    if (confirm("Are you sure you want to clear this chat history? This cannot be undone.")) {
+    if (confirm('Are you sure you want to clear this chat history? This cannot be undone.')) {
       try {
-        const chatId = [currentUser.uid, selectedUser.uid].sort().join("_");
+        const chatId = [currentUser.uid, selectedUser.uid].sort().join('_');
         socketClearChat(chatId, selectedUser.uid);
-        toast({ title: "Success", description: "Chat history cleared." });
+        toast({ title: 'Success', description: 'Chat history cleared.' });
       } catch (error) {
-        console.error("Error clearing chat:", error);
-        alert("Failed to clear chat");
+        console.error('Error clearing chat:', error);
+        alert('Failed to clear chat');
       }
     }
   };
@@ -196,35 +207,34 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
   useEffect(() => {
     if (currentUserData && currentUserData.closeFriends && selectedUser) {
-        setIsCloseFriend(currentUserData.closeFriends.includes(selectedUser.uid));
+      setIsCloseFriend(currentUserData.closeFriends.includes(selectedUser.uid));
     }
   }, [currentUserData, selectedUser]);
 
   const handleToggleCloseFriend = async () => {
-      try {
-          const token = await currentUser?.getIdToken();
-          const response = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-              },
-              body: JSON.stringify({ friendId: selectedUser.uid })
-          });
+    try {
+      const token = await currentUser?.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/users/close-friends/toggle`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ friendId: selectedUser.uid }),
+      });
 
-          if (response.ok) {
-              const data = await response.json();
-              setIsCloseFriend(data.isCloseFriend);
-              toast({ title: "Success", description: data.message });
-          } else {
-              throw new Error("Failed to update close friend status");
-          }
-      } catch (error) {
-          console.error("Error toggling close friend:", error);
-          toast({ title: "Error", description: "Failed to update status", variant: "destructive" });
+      if (response.ok) {
+        const data = await response.json();
+        setIsCloseFriend(data.isCloseFriend);
+        toast({ title: 'Success', description: data.message });
+      } else {
+        throw new Error('Failed to update close friend status');
       }
+    } catch (error) {
+      console.error('Error toggling close friend:', error);
+      toast({ title: 'Error', description: 'Failed to update status', variant: 'destructive' });
+    }
   };
-
 
   return (
     <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl relative">
@@ -236,48 +246,60 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
           </Button>
         )}
         <Dialog>
-            <DialogTrigger asChild>
-                <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-                    <div className="relative">
-                        <Avatar>
-                            <AvatarImage src={getFullUrl(selectedUser.photoURL)} referrerPolicy="no-referrer" />
-                            <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
-                        </Avatar >
-                        <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${selectedUser.status === "online" ? "bg-green-500" : "bg-gray-400"
-                            }`} />
-                    </div >
-                    <div>
-                        <div className="font-semibold flex items-center gap-2">
-                            {getUserName(selectedUser)}
-                            {isCloseFriend && <Star className="w-3 h-3 fill-yellow-400 text-yellow-500" strokeWidth={0} />}
-                        </div>
-                        <div className="text-xs text-muted-foreground capitalize">{selectedUser.status}</div>
-                    </div>
+          <DialogTrigger asChild>
+            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+              <div className="relative">
+                <Avatar>
+                  <AvatarImage
+                    src={getFullUrl(selectedUser.photoURL)}
+                    referrerPolicy="no-referrer"
+                  />
+                  <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
+                </Avatar>
+                <span
+                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
+                    selectedUser.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                  }`}
+                />
+              </div>
+              <div>
+                <div className="font-semibold flex items-center gap-2">
+                  {getUserName(selectedUser)}
+                  {isCloseFriend && (
+                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-500" strokeWidth={0} />
+                  )}
                 </div>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle>User Profile</DialogTitle>
-                </DialogHeader>
-                <div className="flex flex-col items-center justify-center p-6 space-y-4">
-                     <Avatar className="w-32 h-32 ring-4 ring-background shadow-elevation4">
-                        <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
-                        <AvatarFallback className="text-4xl">{getUserInitials(selectedUser)}</AvatarFallback>
-                    </Avatar>
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold">{getUserName(selectedUser)}</h2>
-                        <p className="text-muted-foreground">{selectedUser.email}</p>
-                    </div>
-                    <Button
-                        onClick={handleToggleCloseFriend}
-                        variant={isCloseFriend ? "secondary" : "default"}
-                        className="gap-2 w-full max-w-xs"
-                    >
-                        <Star className={`w-4 h-4 ${isCloseFriend ? "fill-current" : ""}`} />
-                        {isCloseFriend ? "Remove from Close Friends" : "Add to Close Friends"}
-                    </Button>
+                <div className="text-xs text-muted-foreground capitalize">
+                  {selectedUser.status}
                 </div>
-            </DialogContent>
+              </div>
+            </div>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>User Profile</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center p-6 space-y-4">
+              <Avatar className="w-32 h-32 ring-4 ring-background shadow-elevation4">
+                <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
+                <AvatarFallback className="text-4xl">
+                  {getUserInitials(selectedUser)}
+                </AvatarFallback>
+              </Avatar>
+              <div className="text-center">
+                <h2 className="text-2xl font-bold">{getUserName(selectedUser)}</h2>
+                <p className="text-muted-foreground">{selectedUser.email}</p>
+              </div>
+              <Button
+                onClick={handleToggleCloseFriend}
+                variant={isCloseFriend ? 'secondary' : 'default'}
+                className="gap-2 w-full max-w-xs"
+              >
+                <Star className={`w-4 h-4 ${isCloseFriend ? 'fill-current' : ''}`} />
+                {isCloseFriend ? 'Remove from Close Friends' : 'Add to Close Friends'}
+              </Button>
+            </div>
+          </DialogContent>
         </Dialog>
         <div className="ml-auto">
           <Button
@@ -290,10 +312,14 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
             <Trash2 className="w-4 h-4" />
           </Button>
         </div>
-      </div >
+      </div>
 
       {}
-      <div className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-secondary" onScroll={handleScroll} ref={containerRef}>
+      <div
+        className="flex-1 p-4 overflow-y-auto scrollbar-thin scrollbar-thumb-secondary"
+        onScroll={handleScroll}
+        ref={containerRef}
+      >
         <div className="space-y-4 pb-4">
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid;
@@ -302,16 +328,24 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
             const isProjectInvite = msg.type === 'project-invite';
 
             return (
-              <div key={msg.id} className={`flex ${isMe ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMe ? "bg-foreground text-background" : "bg-secondary text-secondary-foreground"
-                  }`}>
-
+              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                <div
+                  className={`max-w-[70%] rounded-2xl px-4 py-2 ${
+                    isMe
+                      ? 'bg-foreground text-background'
+                      : 'bg-secondary text-secondary-foreground'
+                  }`}
+                >
                   {isProjectInvite && (
-                    <div className={`mb-2 p-3 rounded-2xl border flex flex-col gap-2 ${isMe ? "bg-background/10 border-background/20 backdrop-blur-md" : "bg-card/50 backdrop-blur-md border-border/10"}`}>
+                    <div
+                      className={`mb-2 p-3 rounded-2xl border flex flex-col gap-2 ${isMe ? 'bg-background/10 border-background/20 backdrop-blur-md' : 'bg-card/50 backdrop-blur-md border-border/10'}`}
+                    >
                       <div className="flex items-center gap-2">
                         <FolderKanban className="w-5 h-5 opacity-70" />
                         <div>
-                          <p className="text-sm font-semibold">{msg.projectName || 'Project Invite'}</p>
+                          <p className="text-sm font-semibold">
+                            {msg.projectName || 'Project Invite'}
+                          </p>
                           <p className="text-[10px] opacity-70">Collaborate on this project</p>
                         </div>
                       </div>
@@ -323,21 +357,33 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
                           onClick={async () => {
                             try {
                               const token = await auth.currentUser?.getIdToken();
-                              const res = await fetch(`${API_BASE_URL}/api/projects/${msg.projectId}/team`, {
-                                method: 'POST',
-                                headers: {
-                                  'Content-Type': 'application/json',
-                                  ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-                                },
-                                body: JSON.stringify({ userId: currentUser?.uid })
-                              });
+                              const res = await fetch(
+                                `${API_BASE_URL}/api/projects/${msg.projectId}/team`,
+                                {
+                                  method: 'POST',
+                                  headers: {
+                                    'Content-Type': 'application/json',
+                                    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+                                  },
+                                  body: JSON.stringify({ userId: currentUser?.uid }),
+                                }
+                              );
                               if (res.ok) {
                                 queryClient.invalidateQueries({ queryKey: ['projects'] });
-                                toast({ title: "Joined Project", description: `You have been added to ${msg.projectName}` });
+                                toast({
+                                  title: 'Joined Project',
+                                  description: `You have been added to ${msg.projectName}`,
+                                });
                               } else {
-                                toast({ title: "Error", description: "Failed to join project", variant: "destructive" });
+                                toast({
+                                  title: 'Error',
+                                  description: 'Failed to join project',
+                                  variant: 'destructive',
+                                });
                               }
-                            } catch (e) { console.error(e); }
+                            } catch (e) {
+                              console.error(e);
+                            }
                           }}
                         >
                           <Plus className="w-3 h-3" /> Add to Workspace
@@ -363,20 +409,30 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
                         href={getFullUrl(msg.fileUrl)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-2 p-2 rounded-md ${isMe ? "bg-background/10 hover:bg-background/20" : "bg-background/50 hover:bg-background/80"
-                          } transition-colors`}
+                        className={`flex items-center gap-2 p-2 rounded-md ${
+                          isMe
+                            ? 'bg-background/10 hover:bg-background/20'
+                            : 'bg-background/50 hover:bg-background/80'
+                        } transition-colors`}
                       >
                         <FileIcon className="w-4 h-4" />
-                        <span className="text-sm underline break-all">{msg.fileName || 'Download File'}</span>
+                        <span className="text-sm underline break-all">
+                          {msg.fileName || 'Download File'}
+                        </span>
                       </a>
                     </div>
                   )}
 
-                  {msg.text && <p className="text-sm break-words whitespace-pre-wrap">{msg.text}</p>}
+                  {msg.text && (
+                    <p className="text-sm break-words whitespace-pre-wrap">{msg.text}</p>
+                  )}
 
-                  <div className={`text-[10px] mt-1 flex items-center gap-1 ${isMe ? "text-background/70" : "text-muted-foreground"
-                    }`}>
-                    {msg.createdAt ? format(new Date(msg.createdAt), "hh:mm a") : "Sending..."}
+                  <div
+                    className={`text-[10px] mt-1 flex items-center gap-1 ${
+                      isMe ? 'text-background/70' : 'text-muted-foreground'
+                    }`}
+                  >
+                    {msg.createdAt ? format(new Date(msg.createdAt), 'hh:mm a') : 'Sending...'}
                     {isMe && (
                       <span>
                         {msg.seen ? (
@@ -404,43 +460,38 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
       {}
       <div className="p-4 border-t border-border/10 bg-transparent">
-
         {}
-        {
-          file && (
-            <div className="mb-2 p-2 bg-secondary/30 rounded-lg flex items-center justify-between">
-              <div className="flex items-center gap-2 overflow-hidden">
-                {file.type.startsWith('image/') ? (
-                  <ImageIcon className="w-4 h-4 text-purple-500" />
-                ) : (
-                  <FileIcon className="w-4 h-4 text-blue-500" />
-                )}
-                <span className="text-sm truncate max-w-[200px]">{file.name}</span>
-                <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6"
-                onClick={() => {
-                  setFile(null);
-                  if (fileInputRef.current) {fileInputRef.current.value = "";}
-                }}
-              >
-                <X className="w-3 h-3" />
-              </Button>
+        {file && (
+          <div className="mb-2 p-2 bg-secondary/30 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2 overflow-hidden">
+              {file.type.startsWith('image/') ? (
+                <ImageIcon className="w-4 h-4 text-purple-500" />
+              ) : (
+                <FileIcon className="w-4 h-4 text-blue-500" />
+              )}
+              <span className="text-sm truncate max-w-[200px]">{file.name}</span>
+              <span className="text-xs text-muted-foreground">
+                ({(file.size / 1024).toFixed(1)} KB)
+              </span>
             </div>
-          )
-        }
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => {
+                setFile(null);
+                if (fileInputRef.current) {
+                  fileInputRef.current.value = '';
+                }
+              }}
+            >
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
 
         <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
-          <input
-            type="file"
-            ref={fileInputRef}
-            className="hidden"
-            onChange={handleFileSelect}
-
-          />
+          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileSelect} />
 
           <Button
             type="button"
@@ -455,7 +506,13 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button type="button" variant="ghost" size="icon" className="mb-0.5" title="Add emoji">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="mb-0.5"
+                title="Add emoji"
+              >
                 <Smile className="w-4 h-4 text-muted-foreground" />
               </Button>
             </PopoverTrigger>
@@ -472,11 +529,11 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
             disabled={isUploading}
           />
           <Button type="submit" size="icon" disabled={(!newMessage.trim() && !file) || isUploading}>
-            <Send className={`w-4 h-4 ${isUploading ? "opacity-50" : ""}`} />
+            <Send className={`w-4 h-4 ${isUploading ? 'opacity-50' : ''}`} />
           </Button>
         </form>
-      </div >
-    </div >
+      </div>
+    </div>
   );
 };
 

@@ -1,11 +1,6 @@
 import React from 'react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { getFullUrl } from '@/lib/utils';
 import { ActiveUser } from '@/hooks/useNotePresence';
 
@@ -103,7 +98,10 @@ export const CollaboratorAvatars: React.FC<CollaboratorAvatarsProps> = ({
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={8}>
                 <div className="text-xs">
-                  {activeUsers.slice(maxVisible).map(u => u.name).join(', ')}
+                  {activeUsers
+                    .slice(maxVisible)
+                    .map((u) => u.name)
+                    .join(', ')}
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -112,10 +110,7 @@ export const CollaboratorAvatars: React.FC<CollaboratorAvatarsProps> = ({
 
         {}
         <span className="text-xs text-muted-foreground whitespace-nowrap">
-          {activeUsers.length === 1
-            ? '1 person editing'
-            : `${activeUsers.length} people editing`
-          }
+          {activeUsers.length === 1 ? '1 person editing' : `${activeUsers.length} people editing`}
         </span>
       </div>
     </TooltipProvider>

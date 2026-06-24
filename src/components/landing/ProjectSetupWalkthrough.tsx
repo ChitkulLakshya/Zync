@@ -1,27 +1,34 @@
-import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { SimulatedCursor } from "./SimulatedCursor";
-import { Sparkles, ArrowRight, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { SimulatedCursor } from './SimulatedCursor';
+import { Sparkles, ArrowRight, CheckCircle2 } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
-type WalkthroughState = "idle" | "typing" | "clicking" | "generating" | "success";
+type WalkthroughState = 'idle' | 'typing' | 'clicking' | 'generating' | 'success';
 
 export const ProjectSetupWalkthrough = () => {
-  const [phase, setPhase] = useState<WalkthroughState>("idle");
-  const [text, setText] = useState("");
-  const fullText = "A real-time dashboard for remote teams with live chat and task tracking.";
-  const [cursorPos, setCursorPos] = useState({ x: "60%", y: "95%" });
+  const [phase, setPhase] = useState<WalkthroughState>('idle');
+  const [text, setText] = useState('');
+  const fullText = 'A real-time dashboard for remote teams with live chat and task tracking.';
+  const [cursorPos, setCursorPos] = useState({ x: '60%', y: '95%' });
   const [isClicking, setIsClicking] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
@@ -29,59 +36,75 @@ export const ProjectSetupWalkthrough = () => {
 
     const runSequence = async () => {
       // 1. Initial State
-      if (!isActive) {return;}
-      setPhase("idle");
-      setText("");
-      setCursorPos({ x: "40%", y: "37%" });
-      setIsClicking(false);
-      
-      await new Promise(r => setTimeout(r, 800));
-      
-      // 2. Move to text area
-      if (!isActive) {return;}
-      setCursorPos({ x: "30%", y: "58%" });
-      await new Promise(r => setTimeout(r, 800));
-      setIsClicking(true);
-      await new Promise(r => setTimeout(r, 150));
-      setIsClicking(false);
-      
-      // 3. Type
-      if (!isActive) {return;}
-      setPhase("typing");
-      for (let i = 0; i <= fullText.length; i++) {
-        if (!isActive) {break;}
-        setText(fullText.slice(0, i));
-        const typingDelay = 20 + Math.random() * 40 + (fullText[i] === " " ? 40 : 0);
-        await new Promise(r => setTimeout(r, typingDelay));
+      if (!isActive) {
+        return;
       }
-      
-      await new Promise(r => setTimeout(r, 600));
-      
-      // 4. Move to Generate button
-      if (!isActive) {return;}
-      // Slightly different target based on screen size so it perfectly hits the button
-      setCursorPos({ x: isMobile ? "50%" : "77%", y: isMobile ? "85%" : "89%" });
-      setPhase("clicking");
-      await new Promise(r => setTimeout(r, 700));
-      setIsClicking(true);
-      await new Promise(r => setTimeout(r, 150));
+      setPhase('idle');
+      setText('');
+      setCursorPos({ x: '40%', y: '37%' });
       setIsClicking(false);
-      
+
+      await new Promise((r) => setTimeout(r, 800));
+
+      // 2. Move to text area
+      if (!isActive) {
+        return;
+      }
+      setCursorPos({ x: '30%', y: '58%' });
+      await new Promise((r) => setTimeout(r, 800));
+      setIsClicking(true);
+      await new Promise((r) => setTimeout(r, 150));
+      setIsClicking(false);
+
+      // 3. Type
+      if (!isActive) {
+        return;
+      }
+      setPhase('typing');
+      for (let i = 0; i <= fullText.length; i++) {
+        if (!isActive) {
+          break;
+        }
+        setText(fullText.slice(0, i));
+        const typingDelay = 20 + Math.random() * 40 + (fullText[i] === ' ' ? 40 : 0);
+        await new Promise((r) => setTimeout(r, typingDelay));
+      }
+
+      await new Promise((r) => setTimeout(r, 600));
+
+      // 4. Move to Generate button
+      if (!isActive) {
+        return;
+      }
+      // Slightly different target based on screen size so it perfectly hits the button
+      setCursorPos({ x: isMobile ? '50%' : '77%', y: isMobile ? '85%' : '89%' });
+      setPhase('clicking');
+      await new Promise((r) => setTimeout(r, 700));
+      setIsClicking(true);
+      await new Promise((r) => setTimeout(r, 150));
+      setIsClicking(false);
+
       // 5. Generating state
-      if (!isActive) {return;}
-      setPhase("generating");
+      if (!isActive) {
+        return;
+      }
+      setPhase('generating');
       // Prevent cursor from overlapping the section below by keeping it inside the card
-      setCursorPos({ x: isMobile ? "60%" : "85%", y: isMobile ? "92%" : "95%" });
-      await new Promise(r => setTimeout(r, 2000));
-      
+      setCursorPos({ x: isMobile ? '60%' : '85%', y: isMobile ? '92%' : '95%' });
+      await new Promise((r) => setTimeout(r, 2000));
+
       // 6. Success state
-      if (!isActive) {return;}
-      setPhase("success");
-      await new Promise(r => setTimeout(r, 3500));
-      
-      if (isActive) {runSequence();}
+      if (!isActive) {
+        return;
+      }
+      setPhase('success');
+      await new Promise((r) => setTimeout(r, 3500));
+
+      if (isActive) {
+        runSequence();
+      }
     };
-    
+
     runSequence();
 
     return () => {
@@ -92,7 +115,7 @@ export const ProjectSetupWalkthrough = () => {
   return (
     <div className="relative w-full max-w-[420px] mx-auto font-sans">
       <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={isClicking} />
-      
+
       {/* Exact replica using real components */}
       <Card className="bg-secondary/5 border-border/10 shadow-elevation5 rounded-3xl sm:rounded-[2rem] overflow-hidden pointer-events-none">
         <CardHeader className="p-5 sm:p-6">
@@ -126,7 +149,7 @@ export const ProjectSetupWalkthrough = () => {
                 readOnly
               />
               {/* Fake typing caret */}
-              {phase === "typing" && (
+              {phase === 'typing' && (
                 <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 pointer-events-none w-[calc(100%-24px)] h-[calc(100%-24px)]">
                   <span className="invisible whitespace-pre-wrap font-sans text-sm">{text}</span>
                   <span className="inline-block w-1 h-4 bg-foreground animate-pulse translate-y-0.5" />
@@ -136,18 +159,21 @@ export const ProjectSetupWalkthrough = () => {
           </div>
         </CardContent>
         <CardFooter className="flex justify-end p-5 sm:p-6 pt-0 sm:pt-0">
-          <motion.div className="w-full sm:w-auto" animate={isClicking && phase === "clicking" ? { scale: 0.95 } : { scale: 1 }}>
+          <motion.div
+            className="w-full sm:w-auto"
+            animate={isClicking && phase === 'clicking' ? { scale: 0.95 } : { scale: 1 }}
+          >
             <Button
-              size={isMobile ? "default" : "lg"}
+              size={isMobile ? 'default' : 'lg'}
               className="w-full sm:w-auto rounded-xl transition-all"
-              disabled={phase === "generating"}
+              disabled={phase === 'generating'}
             >
-              {phase === "generating" ? (
+              {phase === 'generating' ? (
                 <>
                   <Sparkles className="mr-2 h-4 w-4 animate-pulse" />
                   <span className="text-sm sm:text-base">Generating...</span>
                 </>
-              ) : phase === "success" ? (
+              ) : phase === 'success' ? (
                 <span className="flex items-center text-task-green gap-2 text-sm sm:text-base">
                   <CheckCircle2 className="h-4 w-4" />
                   Project Generated
@@ -166,7 +192,7 @@ export const ProjectSetupWalkthrough = () => {
 
       {/* Success Toast Overlay */}
       <AnimatePresence>
-        {phase === "success" && (
+        {phase === 'success' && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -178,7 +204,9 @@ export const ProjectSetupWalkthrough = () => {
             </div>
             <div>
               <h4 className="text-sm font-semibold text-foreground">Project Generated!</h4>
-              <p className="text-xs text-muted-foreground mt-0.5">Your architecture and tasks are ready.</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Your architecture and tasks are ready.
+              </p>
             </div>
           </motion.div>
         )}
@@ -186,5 +214,3 @@ export const ProjectSetupWalkthrough = () => {
     </div>
   );
 };
-
-

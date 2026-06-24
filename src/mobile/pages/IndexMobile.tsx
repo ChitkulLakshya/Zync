@@ -1,27 +1,27 @@
-import { Link } from "react-router-dom";
-import { ArrowRight, CheckSquare, MessageSquare, CalendarDays, FolderKanban } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Link } from 'react-router-dom';
+import { ArrowRight, CheckSquare, MessageSquare, CalendarDays, FolderKanban } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 const features = [
   {
-    title: "Workspace",
-    description: "Track projects and architecture in one place.",
+    title: 'Workspace',
+    description: 'Track projects and architecture in one place.',
     icon: FolderKanban,
   },
   {
-    title: "Tasks",
-    description: "Assign and monitor task progress quickly.",
+    title: 'Tasks',
+    description: 'Assign and monitor task progress quickly.',
     icon: CheckSquare,
   },
   {
-    title: "Chat & Meet",
-    description: "Collaborate with your team in real time.",
+    title: 'Chat & Meet',
+    description: 'Collaborate with your team in real time.',
     icon: MessageSquare,
   },
   {
-    title: "Calendar",
-    description: "Stay aligned with deadlines and meetings.",
+    title: 'Calendar',
+    description: 'Stay aligned with deadlines and meetings.',
     icon: CalendarDays,
   },
 ];
@@ -33,8 +33,16 @@ const IndexMobile = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <>
-                <img src="/zync-white.webp" alt="Zync" className="h-9 w-9 rounded-lg object-contain block dark:hidden" />
-                <img src="/zync-dark.webp" alt="Zync" className="h-9 w-9 rounded-lg object-contain hidden dark:block" />
+              <img
+                src="/zync-white.webp"
+                alt="Zync"
+                className="h-9 w-9 rounded-lg object-contain block dark:hidden"
+              />
+              <img
+                src="/zync-dark.webp"
+                alt="Zync"
+                className="h-9 w-9 rounded-lg object-contain hidden dark:block"
+              />
             </>
             <span className="text-lg font-semibold text-foreground">Zync</span>
           </div>
@@ -67,7 +75,10 @@ const IndexMobile = () => {
           {features.map((feature) => {
             const Icon = feature.icon;
             return (
-              <Card key={feature.title} className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
+              <Card
+                key={feature.title}
+                className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none"
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Icon className="h-4 w-4 text-foreground" />

@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLiveQuery } from "dexie-react-hooks";
-import { db } from "../lib/db";
-import { auth } from "@/lib/firebase";
-import { API_BASE_URL } from "@/lib/utils";
-import { onAuthStateChanged } from "firebase/auth";
-import { fetchProjects } from "@/api/projects";
+import { useEffect, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useLiveQuery } from 'dexie-react-hooks';
+import { db } from '../lib/db';
+import { auth } from '@/lib/firebase';
+import { API_BASE_URL } from '@/lib/utils';
+import { onAuthStateChanged } from 'firebase/auth';
+import { fetchProjects } from '@/api/projects';
 
 // --- API helpers ---
 async function fetchSyncData(token: string) {
@@ -25,14 +25,16 @@ async function saveDataToApi(payload: any, token: string) {
   if (payload.projects && payload.projects.length > 0) {
     const proj = payload.projects[0];
     const res = await fetch(`${API_BASE_URL}/api/projects`, {
-      method: "POST",
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(proj), // e.g. creating/updating a project
     });
-    if (!res.ok) {throw new Error("Failed to save data");}
+    if (!res.ok) {
+      throw new Error('Failed to save data');
+    }
     return res.json();
   }
 }
@@ -71,9 +73,11 @@ export function useSyncData() {
 
   // 2) Background fetch
   const syncQuery = useQuery({
-    queryKey: ["syncData", userId],
+    queryKey: ['syncData', userId],
     queryFn: async () => {
-      if (!currentUser || !userId) {return null;}
+      if (!currentUser || !userId) {
+        return null;
+      }
       const token = await currentUser.getIdToken();
       const result = await fetchSyncData(token);
       return result;
@@ -85,11 +89,13 @@ export function useSyncData() {
 
   // 3) When fresh API data arrives, write to IndexedDB
   useEffect(() => {
-    if (!syncQuery.data || !userId) {return;}
+    if (!syncQuery.data || !userId) {
+      return;
+    }
 
     const { user, projects } = syncQuery.data;
 
-    db.transaction("rw", db.userData, db.projectData, async () => {
+    db.transaction('rw', db.userData, db.projectData, async () => {
       // OVERWRITE the user data
       if (user && user.uid) {
         await db.userData.put({
@@ -112,29 +118,31 @@ export function useSyncData() {
         );
       }
     }).catch((e) => {
-      console.error("[Sync] Error! Failed writing API data to IndexedDB:", e);
+      console.error('[Sync] Error! Failed writing API data to IndexedDB:', e);
     });
   }, [syncQuery.data, userId]);
 
   // 4) Optimistic mutation
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
-      if (!currentUser) {throw new Error("Not authenticated");}
+      if (!currentUser) {
+        throw new Error('Not authenticated');
+      }
       const token = await currentUser.getIdToken();
       const res = await saveDataToApi(payload, token);
       return res;
     },
 
     onMutate: async (payload: any) => {
-      if (!userId) {return;}
-      await queryClient.cancelQueries({ queryKey: ["syncData", userId] });
+      if (!userId) {
+        return;
+      }
+      await queryClient.cancelQueries({ queryKey: ['syncData', userId] });
 
       const previousUser = await db.userData.get(userId);
-      const previousProjects = await db.projectData
-        .where({ userId })
-        .toArray();
+      const previousProjects = await db.projectData.where({ userId }).toArray();
 
-      await db.transaction("rw", db.userData, db.projectData, async () => {
+      await db.transaction('rw', db.userData, db.projectData, async () => {
         if (payload.user) {
           await db.userData.put({
             ...previousUser,
@@ -160,8 +168,10 @@ export function useSyncData() {
     },
 
     onError: async (_error, _payload, context) => {
-      if (!context || !userId) {return;}
-      await db.transaction("rw", db.userData, db.projectData, async () => {
+      if (!context || !userId) {
+        return;
+      }
+      await db.transaction('rw', db.userData, db.projectData, async () => {
         if (context.previousUser) {
           await db.userData.put(context.previousUser);
         }
@@ -173,7 +183,7 @@ export function useSyncData() {
     },
 
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["syncData", userId] });
+      queryClient.invalidateQueries({ queryKey: ['syncData', userId] });
     },
   });
 

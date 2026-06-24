@@ -7,7 +7,8 @@ const { paginateArray, setPaginationHeaders } = require('../utils/pagination');
 
 // Middleware: reject early if DB not connected
 const requireDb = (req, res, next) => {
-  if (mongoose.connection.readyState !== 1) return res.status(503).json({ error: 'Database not available' });
+  if (mongoose.connection.readyState !== 1)
+    return res.status(503).json({ error: 'Database not available' });
   next();
 };
 
@@ -38,7 +39,7 @@ router.get('/history/:chatId', verifyToken, requireDb, async (req, res) => {
       .lean();
 
     // Normalize _id → id for frontend
-    const result = messages.map(m => ({ ...m, id: String(m._id) }));
+    const result = messages.map((m) => ({ ...m, id: String(m._id) }));
     res.json(result);
   } catch (error) {
     console.error('[ChatRoutes] history error:', error);
@@ -58,16 +59,21 @@ router.get('/conversations', verifyToken, requireDb, async (req, res) => {
     const conversations = await Message.aggregate([
       { $match: { $or: [{ senderId: uid }, { receiverId: uid }] } },
       { $sort: { createdAt: -1 } },
-      { $group: {
-        _id: '$chatId',
-        doc: { $first: '$$ROOT' }
-      }},
+      {
+        $group: {
+          _id: '$chatId',
+          doc: { $first: '$$ROOT' },
+        },
+      },
       { $replaceRoot: { newRoot: '$doc' } },
-      { $sort: { createdAt: -1 } }
+      { $sort: { createdAt: -1 } },
     ]);
 
-    const normalized = conversations.map(m => ({ ...m, id: String(m._id) }));
-    const { items, pagination } = paginateArray(normalized, req.query, { defaultLimit: 100, maxLimit: 200 });
+    const normalized = conversations.map((m) => ({ ...m, id: String(m._id) }));
+    const { items, pagination } = paginateArray(normalized, req.query, {
+      defaultLimit: 100,
+      maxLimit: 200,
+    });
     setPaginationHeaders(res, pagination);
 
     res.json(items);
@@ -85,7 +91,7 @@ router.get('/unread-count', verifyToken, requireDb, async (req, res) => {
   try {
     const count = await Message.countDocuments({
       receiverId: req.user.uid,
-      seen: false
+      seen: false,
     });
     res.json({ count });
   } catch (error) {

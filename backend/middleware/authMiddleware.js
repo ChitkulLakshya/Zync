@@ -17,7 +17,6 @@ if (!getApps().length) {
   }
 }
 
-
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 

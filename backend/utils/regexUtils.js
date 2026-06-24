@@ -3,5 +3,5 @@ function escapeRegExp(string) {
 }
 
 module.exports = {
-  escapeRegExp
+  escapeRegExp,
 };

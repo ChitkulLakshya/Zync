@@ -1,4 +1,4 @@
-import Privacy from "@/pages/Privacy";
+import Privacy from '@/pages/Privacy';
 
 const PrivacyMobile = () => <Privacy />;
 

@@ -120,9 +120,10 @@ function main() {
   }
 
   // eslint-disable-next-line no-console
-  console.log(`[Email template demos] Wrote ${written.length} file(s) to: ${OUT_DIR}`);
+  console.log(
+    `[Email template demos] Wrote ${written.length} file(s) to: ${OUT_DIR}`
+  );
   console.log(written.map((f) => `- ${f}`).join('\n'));
 }
 
 main();
-

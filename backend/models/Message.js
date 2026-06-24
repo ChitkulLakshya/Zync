@@ -2,9 +2,9 @@ const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema(
   {
-    chatId:    { type: String, required: true, index: true },
-    text:      { type: String, default: null },
-    senderId:  { type: String, required: true },
+    chatId: { type: String, required: true, index: true },
+    text: { type: String, default: null },
+    senderId: { type: String, required: true },
     senderName: { type: String, default: 'User' },
     senderPhotoURL: { type: String, default: null },
     receiverId: { type: String, required: true, index: true },
@@ -14,18 +14,18 @@ const messageSchema = new mongoose.Schema(
       enum: ['text', 'image', 'file', 'project-invite', 'request'],
       default: 'text',
     },
-    fileUrl:  { type: String, default: null },
+    fileUrl: { type: String, default: null },
     fileName: { type: String, default: null },
     fileSize: { type: Number, default: null },
 
     // project-invite specific
-    projectId:      { type: String, default: null },
-    projectName:    { type: String, default: null },
+    projectId: { type: String, default: null },
+    projectName: { type: String, default: null },
     projectOwnerId: { type: String, default: null },
 
-    seen:        { type: Boolean, default: false },
-    seenAt:      { type: Date, default: null },
-    delivered:   { type: Boolean, default: false },
+    seen: { type: Boolean, default: false },
+    seenAt: { type: Date, default: null },
+    delivered: { type: Boolean, default: false },
     deliveredAt: { type: Date, default: null },
   },
   {
