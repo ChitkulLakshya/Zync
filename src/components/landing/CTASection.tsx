@@ -39,9 +39,9 @@ const CTASection = () => {
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
         {/* Massive Typography */}
         <div className="mb-16 text-center">
-          <h2 className="text-5xl md:text-7xl font-bold tracking-tighter text-foreground mb-6 uppercase">
-            The Codebase <br className="hidden md:block" />
-            <span className="text-foreground/50">is open.</span>
+          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-foreground mb-6 uppercase">
+            The Codebase <br />
+            is <span className="text-foreground/50">open.</span>
           </h2>
         </div>
 
