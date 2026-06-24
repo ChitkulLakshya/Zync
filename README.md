@@ -12,29 +12,33 @@
 
 <div align="center">
   <br />
-  <!-- Replace this placeholder with a real demo.gif of Zync in action! -->
-  <img src="https://via.placeholder.com/800x450/000000/FFFFFF/?text=Zync+Platform+Demo+(Add+demo.gif+here)" width="800" alt="Zync Demo" />
+  <!-- We recommend adding a high-quality demo.gif showing real-time collaboration here -->
+  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=800&auto=format&fit=crop" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" alt="Zync Collaboration Platform" />
 </div>
 
 ## Quick Start
 
+Setting up Zync locally is completely frictionless. Our `postinstall` hooks handle the backend dependencies automatically.
+
 ```bash
-# 1. Clone & install
+# 1. Clone the repository
 git clone https://github.com/zync-meet/Zync.git
 cd Zync
-npm install
-cd backend && npm install && cd ..
 
-# 2. Setup environment variables
+# 2. Install ALL dependencies (frontend & backend)
+npm install
+
+# 3. Setup environment variables
 cp .env.example .env
 cp backend/.env.example backend/.env
 
-# 3. Start development servers
-cd backend && npm run dev &
-npm run dev
+# 4. Start the full application stack (React + Node.js)
+npm run dev:full
 ```
 
-That's it! Open `http://localhost:8081` to see it running.
+That's it! 
+- The Frontend will be running at `http://localhost:5173`
+- The Backend API will be running at `http://localhost:8081`
 
 ## Features
 
@@ -70,13 +74,14 @@ Zync is proudly built and maintained by:
 
 *(For deep architecture, API references, and backend documentation, please explore the `docs` folder or the codebase.)*
 
-## Contributing
+## Community & Support
 
-We love contributions! See our [Contributing Guide](docs/CONTRIBUTING.md) to get started.
+We are building an active, open-source community around Zync. We'd love for you to join us!
 
-Not sure where to start? Check issues labeled `good first issue` on our [Issues Board](https://github.com/zync-meet/Zync/issues).
-
-For any support, media inquiries, or questions, please contact us at `consolemaster.app@gmail.com`.
+- 💬 **Discord**: [Join our Community Server](https://discord.gg/your-invite-link) (Come say hi!)
+- 🐛 **Issues**: Have a bug or a feature request? Open an issue on our [Issues Board](https://github.com/zync-meet/Zync/issues).
+- 🛠️ **Contribute**: Read our [Contributing Guide](docs/CONTRIBUTING.md) to get started. Look for issues labeled `good first issue`!
+- 📧 **Email**: `consolemaster.app@gmail.com`
 
 ## License
 
