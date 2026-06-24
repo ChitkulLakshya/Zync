@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, useScroll, useTransform, animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
 import DesktopPreview from "@/components/landing/DesktopPreview";
@@ -70,8 +70,8 @@ const HeroSection = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-task-green opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-task-green"></span>
               </span>
-              <span className="text-xs font-medium tracking-wide text-foreground/80">
-                Public Beta 1.0
+              <span className="text-[11px] sm:text-xs font-medium tracking-wide text-foreground/80">
+                Zync v1.0 is now live
               </span>
             </div>
 
@@ -79,42 +79,50 @@ const HeroSection = () => {
             <div className="relative inline-block">
               {/* Feature 1 - Emerald/Green */}
               <motion.div
-                className="absolute hidden md:block z-50 pointer-events-none"
-                style={{ left: "-140px", top: "-30px" }}
+                className="absolute z-50 pointer-events-none"
+                style={isMobile ? { left: "-20px", top: "-45px" } : { left: "-140px", top: "-30px" }}
                 animate={{ y: [0, -12, 0], x: [0, 6, 0] }}
                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror" }}
               >
-                <SimulatedCursor x={0} y={0} name="Live Collaboration" color="hsl(var(--task-green))" />
+                <div style={{ transform: isMobile ? "scale(0.55)" : "scale(1)", transformOrigin: "top left" }}>
+                  <SimulatedCursor x={0} y={0} name="Live Collaboration" color="hsl(var(--task-green))" />
+                </div>
               </motion.div>
 
               {/* Feature 2 - Red */}
               <motion.div
-                className="absolute hidden sm:block z-50 pointer-events-none"
-                style={{ right: "-80px", top: "60px" }}
+                className="absolute z-50 pointer-events-none"
+                style={isMobile ? { right: "10px", top: "-20px" } : { right: "-80px", top: "60px" }}
                 animate={{ y: [0, 18, 0], x: [0, -12, 0] }}
                 transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 1 }}
               >
-                <SimulatedCursor x={0} y={0} name="AI Planning" color="hsl(var(--task-orange))" />
+                <div style={{ transform: isMobile ? "scale(0.55)" : "scale(1)", transformOrigin: "top left" }}>
+                  <SimulatedCursor x={0} y={0} name="AI Planning" color="hsl(var(--task-orange))" />
+                </div>
               </motion.div>
 
               {/* Feature 3 - Violet */}
               <motion.div
-                className="absolute hidden md:block z-50 pointer-events-none"
-                style={{ right: "-20px", bottom: "-20px" }}
+                className="absolute z-50 pointer-events-none"
+                style={isMobile ? { right: "0px", bottom: "-30px" } : { right: "-20px", bottom: "-20px" }}
                 animate={{ y: [0, -8, 0], x: [0, 15, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 0.5 }}
               >
-                <SimulatedCursor x={0} y={0} name="GitHub Sync" color="hsl(var(--task-purple))" />
+                <div style={{ transform: isMobile ? "scale(0.55)" : "scale(1)", transformOrigin: "top left" }}>
+                  <SimulatedCursor x={0} y={0} name="GitHub Sync" color="hsl(var(--task-purple))" />
+                </div>
               </motion.div>
 
               {/* Feature 4 - Blue */}
               <motion.div
-                className="absolute hidden lg:block z-50 pointer-events-none"
-                style={{ left: "-200px", bottom: "30px" }}
+                className="absolute z-50 pointer-events-none"
+                style={isMobile ? { left: "-20px", bottom: "0px" } : { left: "-200px", bottom: "30px" }}
                 animate={{ y: [0, 14, 0], x: [0, -8, 0] }}
                 transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut", repeatType: "mirror", delay: 2 }}
               >
-                <SimulatedCursor x={0} y={0} name="Team Chat" color="hsl(var(--primary))" />
+                <div style={{ transform: isMobile ? "scale(0.55)" : "scale(1)", transformOrigin: "top left" }}>
+                  <SimulatedCursor x={0} y={0} name="Team Chat" color="hsl(var(--primary))" />
+                </div>
               </motion.div>
 
               <h1 className="text-[clamp(2.5rem,8vw,5rem)] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter mb-4 text-foreground leading-[1.05]">
@@ -143,7 +151,17 @@ const HeroSection = () => {
               <Button 
                 variant="outline"
                 size="lg"
-                onClick={() => document.getElementById('features')?.scrollIntoView({ behavior: 'smooth' })}
+                onClick={() => {
+                  const el = document.getElementById('features');
+                  if (el) {
+                    const top = el.getBoundingClientRect().top + window.scrollY - 80;
+                    animate(window.scrollY, top, {
+                      duration: 0.8,
+                      ease: [0.22, 1, 0.36, 1],
+                      onUpdate: (value) => window.scrollTo(0, value)
+                    });
+                  }
+                }}
                 className="h-12 px-8 w-full sm:w-auto rounded-full text-base font-medium bg-surface-glass-regular backdrop-blur-md border border-border/10 hover:bg-surface-glass-thick group active:scale-95 transition-all"
               >
                 Explore How It Works
@@ -174,7 +192,7 @@ const HeroSection = () => {
                 width: '1200px',
                 transformOrigin: 'top left',
                 transform: 'scale(0.55) translateX(1%)',
-                marginBottom: '-40%' // Compensate for the scaled height so the next section doesn't have a massive gap
+                marginBottom: '-340px' // Compensate for the scaled height so the next section doesn't have a massive gap
               } : { 
                 backgroundImage: 'linear-gradient(to bottom, #3a3b3c, #1c1d1e)',
                 aspectRatio: '16/10',
