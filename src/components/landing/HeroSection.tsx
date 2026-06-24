@@ -176,7 +176,7 @@ const HeroSection = () => {
 
                 {/* The Screen / Preview */}
                 <div 
-                  className="relative rounded-[0.5rem] sm:rounded-[1rem] lg:rounded-[1.2rem] bg-background border border-border/50 w-full flex-1 overflow-hidden"
+                  className="relative rounded-[0.5rem] sm:rounded-[1rem] lg:rounded-[1.2rem] bg-sidebar border border-border/50 w-full flex-1 overflow-hidden"
                   style={{
                     boxShadow: 'inset 0 0 0 1px hsl(var(--foreground) / 0.05)'
                   }}

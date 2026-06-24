@@ -528,7 +528,7 @@ const DesktopPreview = () => {
             onMouseMoveCapture={(e) => handleInteraction(e)}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
-            className="w-full h-full bg-background rounded-2xl border-0 overflow-hidden flex relative" 
+            className="w-full h-full bg-sidebar rounded-2xl border-0 overflow-hidden flex relative" 
             style={{ boxShadow: 'var(--shadow-xl), var(--glass-bevel)' }}
         >
             {/* VisionOS Pill */}
@@ -591,8 +591,8 @@ const DesktopPreview = () => {
                 )}
             </AnimatePresence>
 
-            <aside className="w-48 bg-secondary/20 backdrop-blur-md border-r border-border/10 flex flex-col hidden md:flex shrink-0">
-                <div className="p-3 border-b border-border h-12 flex items-center">
+            <aside className="w-48 bg-transparent flex flex-col hidden md:flex shrink-0">
+                <div className="p-3 h-12 flex items-center">
                     <>
                       <img src="/zync-white.webp" alt="Zync" className="h-9 w-auto rounded-lg block dark:hidden" />
                       <img src="/zync-dark.webp" alt="Zync" className="h-9 w-auto rounded-lg hidden dark:block" />
@@ -605,7 +605,7 @@ const DesktopPreview = () => {
                         </button>
                     ))}
                 </nav>
-                <div className="p-2 border-t border-border/10">
+                <div className="p-2">
                     <div className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-secondary/40 cursor-pointer transition-colors">
                         <Avatar className="w-6 h-6 border-0">
                             <AvatarImage src={mockAvatar} /><AvatarFallback>{mockName.substring(0, 2).toUpperCase()}</AvatarFallback>
@@ -618,7 +618,7 @@ const DesktopPreview = () => {
                     </div>
                 </div>
             </aside>
-            <main className="flex-1 min-h-0 flex flex-col overflow-hidden bg-background">
+            <main className="flex-1 min-h-0 flex flex-col overflow-hidden bg-background border border-sidebar-border/40 shadow-elevation4 rounded-2xl my-2 mr-2">
                 <header className="h-10 border-b border-border/10 flex items-center justify-end px-4 bg-background/60 backdrop-blur-md">
                     <div className="flex items-center gap-2">
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground"><Bell className="w-3.5 h-3.5" /></Button>
