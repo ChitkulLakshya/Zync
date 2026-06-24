@@ -47,7 +47,7 @@ const DesignCard = ({ item }: { item: any }) => {
     }, []);
 
     return (
-        <a href="#" className="group relative block break-inside-avoid mb-6">
+        <a href="#demo" onClick={(e) => e.preventDefault()} className="group relative block break-inside-avoid mb-6 cursor-default">
             <div className="relative overflow-hidden bg-card/50 backdrop-blur-md border border-border/10 rounded-2xl">
                 <div className={cn("absolute inset-0 bg-secondary/10 flex items-center justify-center z-10 transition-opacity duration-500", loaded ? "opacity-0 pointer-events-none" : "opacity-100")}>
                     <div className="flex gap-1">
