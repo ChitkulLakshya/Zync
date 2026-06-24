@@ -26,6 +26,10 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  const [otp, setOtp] = useState("");
+  const [showOtp, setShowOtp] = useState(false);
+  const [otpError, setOtpError] = useState("");
+
   // --- 3D Physics State ---
   const ref = useRef<HTMLDivElement>(null);
   
@@ -98,33 +102,66 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!githubUser || !email) return;
 
     setIsSubmitting(true);
+    setOtpError("");
     try {
-      const response = await fetch("http://localhost:5000/api/collaborator", {
+      const response = await fetch("http://localhost:5000/api/collaborator/request-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
           githubUsername: githubUser.login,
-          githubProfileUrl: `https://github.com/${githubUser.login}`,
           email,
         }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        throw new Error("Failed to submit");
+        throw new Error(data.error || "Failed to request OTP");
+      }
+
+      setShowOtp(true);
+    } catch (error: any) {
+      console.error("Submission error:", error);
+      setOtpError(error.message || "Failed to send OTP. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!otp) return;
+
+    setIsSubmitting(true);
+    setOtpError("");
+    try {
+      const response = await fetch("http://localhost:5000/api/collaborator/verify-otp", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          githubUsername: githubUser?.login,
+          email,
+          otp
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to verify OTP");
       }
 
       setIsSuccess(true);
-    } catch (error) {
-      console.error("Submission error:", error);
-      // Fallback for demo purposes if backend isn't up
-      setIsSuccess(true);
+    } catch (error: any) {
+      console.error("Verification error:", error);
+      setOtpError(error.message || "Invalid OTP code.");
     } finally {
       setIsSubmitting(false);
     }
@@ -230,7 +267,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6 relative z-20 pointer-events-auto">
+          <form onSubmit={showOtp ? handleVerifyOtp : handleRequestOtp} className="space-y-6 relative z-20 pointer-events-auto">
             
             {/* The Minted Avatar / Github Data Drop */}
             <AnimatePresence mode="wait">
@@ -298,42 +335,96 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
               )}
             </AnimatePresence>
 
-            {/* Email Finalization Step */}
-            <AnimatePresence>
+            {/* Email / OTP Finalization Step */}
+            <AnimatePresence mode="wait">
               {githubUser && isApproved && (
                 <motion.div 
+                  key={showOtp ? "otp-step" : "email-step"}
                   initial={{ opacity: 0, y: 10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: "auto" }}
+                  exit={{ opacity: 0, y: -10, height: 0 }}
                   className="pt-4 border-t border-black/5 dark:border-white/5 space-y-4 overflow-hidden"
                 >
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                    </div>
-                    <Input
-                      type="email"
-                      placeholder="Email address for invite"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="pl-10 h-11 bg-surface-glass-thin border-border/10 focus-visible:ring-1 focus-visible:ring-foreground/20 text-sm"
-                      required
-                    />
-                  </div>
+                  {!showOtp ? (
+                    <>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <Mail className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                        <Input
+                          type="email"
+                          placeholder="Email address for invite"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="pl-10 h-11 bg-surface-glass-thin border-border/10 focus-visible:ring-1 focus-visible:ring-foreground/20 text-sm"
+                          required
+                        />
+                      </div>
 
-                  <Button 
-                    type="submit" 
-                    className="w-full h-11 font-medium bg-foreground text-background hover:opacity-90 group"
-                    disabled={isSubmitting || !email}
-                  >
-                    {isSubmitting ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        Accept Invitation
-                        <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </Button>
+                      {otpError && (
+                        <p className="text-xs text-red-400 text-center">{otpError}</p>
+                      )}
+
+                      <Button 
+                        type="submit" 
+                        className="w-full h-11 font-medium bg-foreground text-background hover:opacity-90 group"
+                        disabled={isSubmitting || !email}
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            Send Verification Code
+                            <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xs text-muted-foreground mb-2 text-center">
+                        We sent a 6-digit code to <strong className="text-foreground">{email}</strong>
+                      </p>
+                      <Input
+                        type="text"
+                        placeholder="Enter 6-digit OTP"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        className="h-11 text-center tracking-widest bg-surface-glass-thin border-border/10 focus-visible:ring-1 focus-visible:ring-foreground/20 text-sm"
+                        required
+                      />
+                      
+                      {otpError && (
+                        <p className="text-xs text-red-400 text-center">{otpError}</p>
+                      )}
+
+                      <Button 
+                        type="submit" 
+                        className="w-full h-11 font-medium bg-foreground text-background hover:opacity-90 group"
+                        disabled={isSubmitting || otp.length < 6}
+                      >
+                        {isSubmitting ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <>
+                            Verify & Accept
+                            <Check className="w-4 h-4 ml-2 group-hover:scale-110 transition-transform" />
+                          </>
+                        )}
+                      </Button>
+                      <button 
+                        type="button" 
+                        onClick={() => {
+                          setShowOtp(false);
+                          setOtp("");
+                          setOtpError("");
+                        }}
+                        className="w-full text-xs text-muted-foreground hover:text-foreground transition-colors mt-2"
+                      >
+                        Change email address
+                      </button>
+                    </>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
