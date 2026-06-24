@@ -227,7 +227,7 @@ git checkout -b feature/my-new-feature
 
 ```bash
 # Run both the frontend and backend concurrently
-npm run dev:full
+npm run dev
 
 # Or run them separately:
 # Terminal 1: Run the frontend
