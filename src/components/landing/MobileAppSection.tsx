@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import { Smartphone, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -8,6 +8,14 @@ import MobilePreview from "@/components/landing/MobilePreview";
 const MobileAppSection = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLElement>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 1024); // lg breakpoint
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -25,12 +33,12 @@ const MobileAppSection = () => {
   };
 
   return (
-    <section id="mobile" ref={containerRef} className="relative h-[200vh] scroll-mt-20">
-      <div className="sticky top-0 h-screen overflow-hidden flex items-center">
+    <section id="mobile" ref={containerRef} className="relative lg:h-[200vh] scroll-mt-20">
+      <div className="lg:sticky top-0 lg:h-screen flex items-center py-16 lg:py-0 overflow-visible lg:overflow-hidden">
         <div className="container mx-auto px-4">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
-          {}
-          <div>
+          <div className="grid lg:grid-cols-2 gap-12 lg:gap-12 items-center">
+          
+          <div className="order-1 lg:order-1 text-center lg:text-left">
             <div 
               className="inline-flex items-center gap-2.5 px-4 py-1.5 bg-surface-glass-thin backdrop-blur-md rounded-full mb-6 border border-black/5 dark:border-white/5"
               style={{ boxShadow: 'var(--shadow-sm)' }}
@@ -41,16 +49,16 @@ const MobileAppSection = () => {
               </span>
             </div>
 
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground mb-4 ">
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
               Your workspace, in your pocket
             </h2>
 
-            <p className="text-muted-foreground mb-8 leading-relaxed">
+            <p className="text-muted-foreground mb-8 leading-relaxed max-w-xl mx-auto lg:mx-0">
               The Zync mobile app is in development. Check task progress, respond to messages,
               and stay connected with your team—wherever you are.
             </p>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap justify-center lg:justify-start gap-3">
               <Button 
                 variant="outline" 
                 size="lg" 
@@ -63,16 +71,21 @@ const MobileAppSection = () => {
             </div>
           </div>
           {/* Right Side: Mobile App Preview */}
-          <div className="relative flex justify-center [perspective:1500px] py-12 lg:py-16">
+          <div className="relative flex justify-center [perspective:1500px] py-8 lg:py-16 order-2 lg:order-2">
             <motion.div 
               className="relative"
               style={{ 
-                rotateX, 
-                rotateZ, 
-                scale, 
-                opacity,
+                rotateX: isMobile ? 0 : rotateX, 
+                rotateZ: isMobile ? 0 : rotateZ, 
+                scale: isMobile ? 0.95 : scale, 
+                opacity: isMobile ? 1 : opacity,
+                x: isMobile ? 0 : x,
                 transformOrigin: "bottom center"
               }}
+              initial={isMobile ? { opacity: 0, y: 40 } : false}
+              whileInView={isMobile ? { opacity: 1, y: 0 } : {}}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
             >
               <MobilePreview />
             </motion.div>
