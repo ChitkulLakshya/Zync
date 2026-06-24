@@ -141,7 +141,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
           style={{ rotateX, rotateY, transformStyle: "preserve-3d" }}
-          className="relative w-full rounded-[32px] bg-surface-glass-thin backdrop-blur-thick border border-border/10 shadow-[inset_0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center p-12 min-h-[400px] overflow-hidden"
+          className="relative w-full rounded-[32px] bg-surface-glass-thin backdrop-blur-thick border border-border/10 shadow-[inset_0_1px_0_rgba(0,0,0,0.05)] dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] flex flex-col items-center justify-center px-6 py-10 sm:p-12 min-h-[350px] sm:min-h-[400px] overflow-hidden"
         >
           {/* Holographic Glare */}
           <motion.div
@@ -183,10 +183,10 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
             transition={{ type: "spring", stiffness: 200, damping: 20, delay: 0.2 }}
             className="flex flex-col items-center text-center space-y-3 relative z-10"
           >
-            <h3 className="text-[28px] font-medium tracking-tight text-foreground leading-none">
+            <h3 className="text-2xl sm:text-[28px] font-medium tracking-tight text-foreground leading-none">
               Welcome, {githubUser?.name?.split(' ')[0] || githubUser?.login}.
             </h3>
-            <p className="text-[16px] text-muted-foreground/80 max-w-[260px] leading-relaxed">
+            <p className="text-sm sm:text-base text-muted-foreground/80 max-w-[260px] leading-relaxed mt-1">
               Contributor access has been authorized for <span className="text-foreground">{email}</span>.
             </p>
           </motion.div>
@@ -206,7 +206,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           rotateY,
           transformStyle: "preserve-3d"
         }}
-        className="relative w-full rounded-2xl bg-card/80 backdrop-blur-xl border border-black/10 dark:border-white/10 p-8 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05),inset_0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
+        className="relative w-full rounded-2xl bg-card/80 backdrop-blur-xl border border-black/10 dark:border-white/10 p-5 sm:p-8 shadow-[inset_0_0_0_1px_rgba(0,0,0,0.05),inset_0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.05),inset_0_2px_10px_rgba(255,255,255,0.1)]"
       >
         {/* Holographic Glare */}
         <motion.div 
@@ -273,7 +273,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                       value={githubUsername}
                       onChange={(e) => setGithubUsername(e.target.value)}
                       onKeyDown={handleUsernameKeyDown}
-                      className="w-full h-12 bg-transparent border-b border-black/10 dark:border-white/10 focus:border-black/40 dark:focus:border-white/40 outline-none text-foreground placeholder:text-muted-foreground/30 text-lg transition-colors pb-2"
+                      className="w-full h-12 bg-transparent border-b border-black/10 dark:border-white/10 focus:border-black/40 dark:focus:border-white/40 outline-none text-foreground placeholder:text-muted-foreground/30 text-base sm:text-lg transition-colors pb-2"
                       spellCheck={false}
                       required
                     />
