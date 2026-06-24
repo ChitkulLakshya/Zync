@@ -17,22 +17,22 @@ export const BuiltinChatWalkthrough = () => {
   useEffect(() => {
     let active = true;
     const sequence = async () => {
-      if (!active) return;
+      if (!active) {return;}
       setStep(0);
       await new Promise(r => setTimeout(r, 1000));
-      if (!active) return;
+      if (!active) {return;}
       setStep(1); // Cursor moves to input
       await new Promise(r => setTimeout(r, 800));
-      if (!active) return;
+      if (!active) {return;}
       setStep(2); // Typing starts
       await new Promise(r => setTimeout(r, 2000));
-      if (!active) return;
+      if (!active) {return;}
       setStep(3); // Clicks send
       await new Promise(r => setTimeout(r, 600));
-      if (!active) return;
+      if (!active) {return;}
       setStep(4); // Message sent
       await new Promise(r => setTimeout(r, 3000));
-      if (!active) return;
+      if (!active) {return;}
       sequence(); // Loop
     };
     sequence();

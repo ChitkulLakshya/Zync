@@ -22,7 +22,7 @@ export const SmartCalendarWalkthrough = () => {
     let isActive = true;
 
     const runSequence = async () => {
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("idle");
       setCursorPos({ x: isMobile ? "90%" : "85%", y: isMobile ? "90%" : "85%" });
       setIsClicking(false);
@@ -30,38 +30,38 @@ export const SmartCalendarWalkthrough = () => {
       await new Promise(r => setTimeout(r, 1000));
       
       // Move to event (on Wednesday, col 3, row 2)
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("moving");
       setCursorPos({ x: "50%", y: "52%" });
       await new Promise(r => setTimeout(r, 600));
       
       // Grab event
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("grabbing");
       setIsClicking(true);
       await new Promise(r => setTimeout(r, 300));
       
       // Drag event to Friday (col 5)
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("dragging");
       // We animate both the cursor and the event's x offset
       setCursorPos({ x: "78.5%", y: "52%" });
       await new Promise(r => setTimeout(r, 600));
       
       // Drop
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("dropping");
       setIsClicking(false);
       await new Promise(r => setTimeout(r, 200));
       
       // Done - cursor leaves
-      if (!isActive) return;
+      if (!isActive) {return;}
       setPhase("done");
       // Prevent cursor from overlapping surrounding content outside the component on mobile
       setCursorPos({ x: isMobile ? "90%" : "120%", y: isMobile ? "95%" : "120%" });
       await new Promise(r => setTimeout(r, 3000));
       
-      if (isActive) runSequence();
+      if (isActive) {runSequence();}
     };
     
     runSequence();
