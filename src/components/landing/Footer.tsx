@@ -1,11 +1,27 @@
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
+import { animate } from "framer-motion";
 
 const Footer = () => {
   const scrollToSection = (sectionId: string) => {
+    if (window.location.pathname !== '/') {
+      window.location.href = `/#${sectionId}`;
+      return;
+    }
     const element = document.getElementById(sectionId);
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      let top = element.getBoundingClientRect().top + window.scrollY;
+      if (sectionId !== 'home') {
+        top -= 80; // account for navbar
+      }
+      if (sectionId === 'mobile' && window.innerWidth >= 1024) {
+        top = element.getBoundingClientRect().top + window.scrollY + element.offsetHeight - window.innerHeight;
+      }
+      animate(window.scrollY, top, {
+        duration: 0.8,
+        ease: [0.22, 1, 0.36, 1],
+        onUpdate: (value) => window.scrollTo(0, value)
+      });
     }
   };
 
@@ -44,9 +60,6 @@ const Footer = () => {
               <li>
                 <Link to="/terms" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Terms of Service</Link>
               </li>
-              <li>
-                <Link to="/cookies" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Cookie Policy</Link>
-              </li>
             </ul>
           </div>
 
@@ -58,33 +71,26 @@ const Footer = () => {
                 <a href="mailto:support@zync.meet" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Support</a>
               </li>
               <li>
-                <a href="#" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Help Center</a>
+                <a href="https://github.com/zync-meet/Zync/discussions" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Discussions</a>
               </li>
               <li>
-                <a href="#" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">FAQ</a>
+                <a href="https://github.com/zync-meet/Zync/issues/new?labels=bug&title=%5BBUG%5D+" target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">Report Issue</a>
               </li>
             </ul>
           </div>
 
-          {/* CTA / NEWSLETTER */}
+          {/* CTA / GET STARTED */}
           <div className="col-span-2 md:col-span-4 lg:col-span-4 lg:col-start-9">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">Join the Beta</h4>
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">Get Started</h4>
             <p className="text-lg font-medium text-foreground mb-6 leading-snug">
               You read this far. Might as well see what Zync can do for your team.
             </p>
-            <form className="flex items-end gap-4 border-b border-border/30 pb-2 focus-within:border-foreground/50 transition-colors" onSubmit={(e) => e.preventDefault()}>
-              <div className="flex-1">
-                <input 
-                  type="email" 
-                  placeholder="name@company.com" 
-                  className="w-full bg-transparent border-none focus:outline-none focus:ring-0 text-sm placeholder:text-muted-foreground/50 text-foreground px-0"
-                  required
-                />
-              </div>
-              <button type="submit" className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-task-green transition-colors flex items-center gap-1.5 shrink-0 pb-1">
-                Join <ArrowRight className="w-3 h-3" />
-              </button>
-            </form>
+            <Link to="/signup" className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors flex items-center gap-1.5 pb-1 border-b border-foreground/30 hover:border-primary w-max mb-6">
+              Create an account <ArrowRight className="w-3 h-3" />
+            </Link>
+            <p className="text-[10px] text-muted-foreground/60 leading-relaxed uppercase tracking-wider font-mono">
+              Open source project by 3 students. <br/> Currently under heavy development.
+            </p>
           </div>
         </div>
 
@@ -98,7 +104,7 @@ const Footer = () => {
             <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">LINKEDIN</a>
           </div>
           
-          <p>PUBLIC BETA 1.0</p>
+          <p>UNDER HEAVY DEVELOPMENT</p>
         </div>
       </div>
 
