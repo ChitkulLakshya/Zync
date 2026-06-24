@@ -1,88 +1,92 @@
 <div align="center">
-  <img src="public/zync-dark.webp" width="120" />
+  <!-- Replace this placeholder with your actual logo -->
+  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=150&auto=format&fit=crop" width="150" style="border-radius: 20%; margin-bottom: 20px;" alt="Zync Logo" />
+  
   <h1>Zync</h1>
-  <p>The open-source, AI-powered collaboration platform for modern engineering teams.</p>
+  <p><b>An open-source, AI-native collaborative workspace. Plan, design, and write together in real-time.</b></p>
+  
+  <p>
+    <a href="https://zync.app">Home Page</a> •
+    <a href="https://discord.gg/yourlink">Discord</a> •
+    <a href="https://demo.zync.app">Live Demo</a> •
+    <a href="docs/architecture/tech_stack_overview.md">Documentation</a>
+  </p>
 
-  <!-- Badges -->
-  <a href="https://github.com/zync-meet/Zync/stargazers"><img src="https://img.shields.io/github/stars/zync-meet/Zync?style=flat-square&color=black&labelColor=black&logo=github&logoColor=white" alt="Stars" /></a>
-  <a href="https://github.com/zync-meet/Zync/blob/main/LICENSE"><img src="https://img.shields.io/github/license/zync-meet/Zync?style=flat-square&color=black&labelColor=black" alt="License" /></a>
-  <a href="https://github.com/zync-meet/Zync/actions"><img src="https://img.shields.io/github/actions/workflow/status/zync-meet/Zync/ci.yml?style=flat-square&color=black&labelColor=black&logo=github-actions&logoColor=white" alt="Build Status" /></a>
-  <a href="https://github.com/zync-meet/Zync/commits/main"><img src="https://img.shields.io/github/last-commit/zync-meet/Zync?style=flat-square&color=black&labelColor=black&logo=github&logoColor=white" alt="Last Commit" /></a>
-</div>
+  <p>
+    <a href="https://github.com/zync-meet/Zync/stargazers"><img src="https://img.shields.io/github/stars/zync-meet/Zync?style=for-the-badge&color=000000" alt="Stars" /></a>
+    <a href="https://github.com/zync-meet/Zync/blob/main/LICENSE"><img src="https://img.shields.io/github/license/zync-meet/Zync?style=for-the-badge&color=000000" alt="License" /></a>
+    <a href="https://github.com/zync-meet/Zync/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22"><img src="https://img.shields.io/github/issues/zync-meet/Zync/good%20first%20issue?style=for-the-badge&color=000000" alt="Good First Issues" /></a>
+  </p>
 
-<div align="center">
   <br />
-  <!-- We recommend adding a high-quality demo.gif showing real-time collaboration here -->
-  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=800&auto=format&fit=crop" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" alt="Zync Collaboration Platform" />
+  <!-- A high quality 15-second GIF of Zync's AI or real-time typing goes here -->
+  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=800&auto=format&fit=crop" width="800" style="border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" alt="Zync UI Demo" />
 </div>
 
-## Quick Start
+<br/>
 
-Setting up Zync locally is completely frictionless. Our `postinstall` hooks handle the backend dependencies automatically.
+## What is Zync?
 
-```bash
-# 1. Clone the repository
-git clone https://github.com/zync-meet/Zync.git
-cd Zync
+Modern teams are forced to fragment their workflows across five different apps: one for whiteboarding, one for docs, one for tasks, and another for AI. 
 
-# 2. Install ALL dependencies (frontend & backend)
-npm install
-
-# 3. Setup environment variables
-cp .env.example .env
-cp backend/.env.example backend/.env
-
-# 4. Start the full application stack (React + Node.js)
-npm run dev
-```
-
-That's it! 
-- The Frontend will be running at `http://localhost:5173`
-- The Backend API will be running at `http://localhost:8081`
+**Zync is an open-source, all-in-one workspace.** We merge real-time document editing, visual canvasing, and project management into a single, local-first platform—supercharged by multi-modal AI to automate the busywork. Your data, your servers, your workflow.
 
 ## Features
 
 | Feature | Description |
-|:--------|:------------|
-| **AI Project Architect** | Generate architecture, tech stack, and roadmaps via Google Gemini |
-| **Real-Time Notes** | Conflict-free CRDT block editing (Yjs) with live cursors |
-| **Kanban + Git Sync** | Drag-and-drop tasks that automatically sync with GitHub commits & PRs |
-| **Instant Chat** | Socket.IO messaging with read receipts and file sharing |
-| **Design Inspiration** | Search Dribbble/Behance designs with live scraping and Redis caching |
+|:---|:---|
+| 📝 **Hyper-fused Editor** | Docs and whiteboards fully merged using a flexible, block-based architecture. |
+| 🤖 **Multimodal AI Partner** | Deep integration with Gemini & Groq. Generate project plans, code, or outlines instantly. |
+| ⚡️ **Zero-Latency Sync** | Conflict-free real-time collaboration powered by Yjs (CRDTs) and WebSockets. |
+| 🔄 **Kanban GitHub Sync** | Bidirectional synchronization between Zync project boards and GitHub Issues. |
+| 🏗️ **Self-Hostable** | Own your data. Deploy Zync on your own infrastructure with Docker & Terraform. |
 
-## Why Zync?
+## Quick Start
 
-Existing tools for engineering teams are either:
-- Fragmented across multiple disjointed platforms (Jira, Slack, Google Docs, GitHub)
-- Too expensive for indie developers and small startups
-- Not fully open source or lacking built-in AI architecture planning
+Setting up Zync locally is frictionless. Our workspace automation handles the rest.
 
-We built Zync because we wanted a unified, developer-first workspace. A single place where project management, real-time codebase discussion, collaborative documentation, and AI-assisted planning happen seamlessly.
+```bash
+git clone https://github.com/zync-meet/Zync.git
+cd Zync
 
-## Meet the Founders
+# Install dependencies for both frontend and backend
+npm install
 
-Zync is proudly built and maintained by:
+# Configure environments
+cp .env.example .env
+cp backend/.env.example backend/.env
 
-| [<img src="https://github.com/chitkullakshya.png" width="100" style="border-radius:50%" />](https://github.com/chitkullakshya) | [<img src="https://github.com/prem22k.png" width="100" style="border-radius:50%" />](https://github.com/prem22k) | [<img src="https://github.com/eesha264.png" width="100" style="border-radius:50%" />](https://github.com/eesha264) |
-|:---:|:---:|:---:|
-| **Lakshya Chitkul** | **Prem Sai Kota** | **Eeshitha Gone** |
+# Boot the full application stack
+npm run dev
+```
+
+*The Frontend will be running at `http://localhost:5173` | The Backend API will be running at `http://localhost:8081`*
+
+## Ecosystem & Upstreams
+
+Zync stands on the shoulders of open-source giants. We want to thank the following projects that make Zync possible:
+
+* **[Yjs](https://yjs.dev/)**: The fundamental CRDT engine powering our real-time state management.
+* **[React](https://react.dev/) & [Vite](https://vitejs.dev/)**: For a blazing fast, component-driven frontend.
+* **[Socket.IO](https://socket.io/)**: Enabling low-latency, bidirectional communication.
+* **[Prisma](https://www.prisma.io/) & [MongoDB](https://www.mongodb.com/)**: Our robust database ORM and storage layer.
 
 ## Documentation
 
-- [Contributing Guide](docs/CONTRIBUTING.md)
-- [Live Demo](https://zync-meet.vercel.app/)
+Dive deeper into Zync's internals in our `docs/` folder:
 
-*(For deep architecture, API references, and backend documentation, please explore the `docs` folder or the codebase.)*
+- 🏗️ [Architecture & Tech Stack](docs/architecture/tech_stack_overview.md)
+- 🔒 [Security & Auth Architecture](docs/architecture/security_and_auth_architecture.md)
+- 🚀 [Performance Strategy & Audit](docs/audit/PERFORMANCE_AUDIT.md)
 
-## Community & Support
+## Contributing
 
-We are building an active, open-source community around Zync. We'd love for you to join us!
+We are building a vibrant, open-source community and we'd love for you to join us!
 
-- 💬 **Discord**: [Join our Community Server](https://discord.gg/your-invite-link) (Come say hi!)
-- 🐛 **Issues**: Have a bug or a feature request? Open an issue on our [Issues Board](https://github.com/zync-meet/Zync/issues).
-- 🛠️ **Contribute**: Read our [Contributing Guide](docs/CONTRIBUTING.md) to get started. Look for issues labeled `good first issue`!
-- 📧 **Email**: `consolemaster.app@gmail.com`
+1. Read our [Contributing Guide](docs/CONTRIBUTING.md) to understand our workflow.
+2. Check out our [Issues Board](https://github.com/zync-meet/Zync/issues) and look for issues labeled `good first issue`.
+3. Join our [Discord](#) to chat with the core team.
 
 ## License
 
-[MIT](LICENSE)
+Zync is open-source software licensed under the MIT License.
