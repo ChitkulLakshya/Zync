@@ -1,7 +1,7 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import CreateProject from "@/components/dashboard/CreateProject";
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import CreateProject from '@/components/dashboard/CreateProject';
 
 const NewProject = () => {
   const navigate = useNavigate();

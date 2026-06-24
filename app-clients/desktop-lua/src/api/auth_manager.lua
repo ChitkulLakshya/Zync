@@ -1,0 +1,1 @@
+local auth = {}\nfunction auth.login(user, pass) print("Logging in") end\nreturn auth

@@ -1,0 +1,1 @@
+local FileManager = {}\nfunction FileManager.saveToken(token) print("Saving token " .. token) end\nreturn FileManager

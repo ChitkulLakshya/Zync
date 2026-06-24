@@ -2,19 +2,23 @@ const mongoose = require('mongoose');
 
 const projectSchema = new mongoose.Schema(
   {
-    name:        { type: String, required: true },
+    name: { type: String, required: true },
     description: { type: String, default: '' },
 
-    ownerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    ownerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
     ownerUid: { type: String, required: true }, // Denormalized Firebase UID for auth checks
 
     team: { type: [String], default: [] }, // Firebase UIDs
 
     // GitHub link
-    githubRepo:      { type: String, default: null },
-    githubRepoName:  { type: String, default: null },
+    githubRepo: { type: String, default: null },
+    githubRepoName: { type: String, default: null },
     githubRepoOwner: { type: String, default: null },
-    githubRepoIds:   { type: [String], default: [] },
+    githubRepoIds: { type: [String], default: [] },
 
     // AI-generated architecture
     architecture: { type: mongoose.Schema.Types.Mixed, default: null },

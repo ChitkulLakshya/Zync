@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
-import { Download, Share2, Smartphone, CheckCircle2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { useEffect, useMemo, useState } from 'react';
+import { Download, Share2, Smartphone, CheckCircle2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
   prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
 }
 
 interface InstallPromptViewProps {
@@ -16,7 +16,7 @@ interface InstallPromptViewProps {
   appName?: string;
 }
 
-const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPromptViewProps) => {
+const InstallPromptView = ({ isIOS, isAndroid, appName = 'ZYNC' }: InstallPromptViewProps) => {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalling, setIsInstalling] = useState(false);
 
@@ -26,11 +26,14 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
       setDeferredPrompt(event as BeforeInstallPromptEvent);
     };
 
-    window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
   }, []);
 
-  const canAutoInstall = useMemo(() => isAndroid && Boolean(deferredPrompt), [isAndroid, deferredPrompt]);
+  const canAutoInstall = useMemo(
+    () => isAndroid && Boolean(deferredPrompt),
+    [isAndroid, deferredPrompt]
+  );
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) {
@@ -61,7 +64,8 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
               </Badge>
               <CardTitle className="text-xl md:text-2xl">Install {appName} to Continue</CardTitle>
               <CardDescription className="text-sm md:text-base">
-                For the best real-time collaboration experience on mobile, {appName} must run as an installed app.
+                For the best real-time collaboration experience on mobile, {appName} must run as an
+                installed app.
               </CardDescription>
             </div>
           </CardHeader>
@@ -81,7 +85,9 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
                     <span className="mt-0.5 text-foreground">
                       <Download className="h-4 w-4" />
                     </span>
-                    <span>Select <strong>Add to Home Screen</strong>.</span>
+                    <span>
+                      Select <strong>Add to Home Screen</strong>.
+                    </span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="mt-0.5 text-foreground">
@@ -110,13 +116,14 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
                 disabled={!canAutoInstall || isInstalling}
               >
                 <Download className="mr-2 h-4 w-4" />
-                {isInstalling ? "Opening install prompt..." : "Install App"}
+                {isInstalling ? 'Opening install prompt...' : 'Install App'}
               </Button>
             )}
 
             {isAndroid && !deferredPrompt && (
               <p className="text-center text-xs text-muted-foreground">
-                If install button is disabled, open browser menu and tap <strong>Install app</strong>.
+                If install button is disabled, open browser menu and tap{' '}
+                <strong>Install app</strong>.
               </p>
             )}
           </CardContent>
@@ -127,4 +134,3 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
 };
 
 export default InstallPromptView;
-

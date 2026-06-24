@@ -5,9 +5,7 @@ const verifyToken = require('../middleware/authMiddleware');
 const { normalizeDoc, normalizeDocs } = require('../utils/normalize');
 const { paginateArray, setPaginationHeaders } = require('../utils/pagination');
 
-
 router.use(verifyToken);
-
 
 router.post('/start', async (req, res) => {
   try {
@@ -24,7 +22,7 @@ router.post('/start', async (req, res) => {
       userId,
       startTime: new Date(),
       endTime: new Date(),
-      date: today
+      date: today,
     });
 
     res.status(201).json(normalizeDoc(session.toObject()));
@@ -36,7 +34,6 @@ router.post('/start', async (req, res) => {
   }
 });
 
-
 router.post('/batch', async (req, res) => {
   try {
     const { userIds } = req.body;
@@ -46,7 +43,10 @@ router.post('/batch', async (req, res) => {
     const sessions = await Session.find({ userId: { $in: userIds } })
       .sort({ startTime: -1 })
       .lean();
-    const { items, pagination } = paginateArray(normalizeDocs(sessions), req.query);
+    const { items, pagination } = paginateArray(
+      normalizeDocs(sessions),
+      req.query
+    );
     setPaginationHeaders(res, pagination);
 
     res.json(items);
@@ -56,14 +56,15 @@ router.post('/batch', async (req, res) => {
   }
 });
 
-
 const updateSession = async (req, res) => {
   try {
     const session = await Session.findById(req.params.id).lean();
     if (!session) return res.status(404).json({ message: 'Session not found' });
 
     if (session.userId !== req.user.uid) {
-      return res.status(403).json({ message: 'Unauthorized access to session' });
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized access to session' });
     }
 
     const updateData = { endTime: new Date() };
@@ -72,7 +73,8 @@ const updateSession = async (req, res) => {
       updateData.lastAction = req.body.lastAction;
     }
     if (req.body && req.body.activeIncrement) {
-      updateData.activeDuration = (session.activeDuration || 0) + req.body.activeIncrement;
+      updateData.activeDuration =
+        (session.activeDuration || 0) + req.body.activeIncrement;
     }
 
     const startTime = session.startTime;
@@ -94,17 +96,21 @@ const updateSession = async (req, res) => {
 router.put('/:id', updateSession);
 router.post('/:id', updateSession);
 
-
 router.get('/:userId', async (req, res) => {
   try {
     if (req.params.userId !== req.user.uid) {
-      return res.status(403).json({ message: 'Unauthorized access to user sessions' });
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized access to user sessions' });
     }
 
     const sessions = await Session.find({ userId: req.params.userId })
       .sort({ startTime: -1 })
       .lean();
-    const { items, pagination } = paginateArray(normalizeDocs(sessions), req.query);
+    const { items, pagination } = paginateArray(
+      normalizeDocs(sessions),
+      req.query
+    );
     setPaginationHeaders(res, pagination);
 
     res.json(items);
@@ -113,7 +119,6 @@ router.get('/:userId', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.delete('/:id', async (req, res) => {
   try {
@@ -124,7 +129,9 @@ router.delete('/:id', async (req, res) => {
     }
 
     if (session.userId !== req.user.uid) {
-      return res.status(403).json({ message: 'Unauthorized to delete this session' });
+      return res
+        .status(403)
+        .json({ message: 'Unauthorized to delete this session' });
     }
 
     await Session.findByIdAndDelete(req.params.id);
@@ -134,7 +141,6 @@ router.delete('/:id', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.delete('/user/:userId', async (req, res) => {
   try {

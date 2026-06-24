@@ -1,4 +1,5 @@
-const admin = require('firebase-admin');
+const { initializeApp, cert, getApps } = require('firebase-admin/app');
+const { getFirestore } = require('firebase-admin/firestore');
 
 let firestoreInstance = null;
 let attemptedInit = false;
@@ -30,23 +31,29 @@ const getFirestoreAdmin = () => {
   try {
     const serviceAccount = parseServiceAccount();
     if (!serviceAccount) {
-      console.warn('[FirebaseAdmin] GCP_SERVICE_ACCOUNT_KEY not set; Firestore sync disabled.');
+      console.warn(
+        '[FirebaseAdmin] GCP_SERVICE_ACCOUNT_KEY not set; Firestore sync disabled.'
+      );
       return null;
     }
 
-    if (!admin.apps.length) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
-        projectId: serviceAccount.project_id || process.env.VITE_FIREBASE_PROJECT_ID,
+    if (!getApps().length) {
+      initializeApp({
+        credential: cert(serviceAccount),
+        projectId:
+          serviceAccount.project_id || process.env.VITE_FIREBASE_PROJECT_ID,
       });
     }
 
-    firestoreInstance = admin.firestore();
+    firestoreInstance = getFirestore();
     return firestoreInstance;
   } catch (error) {
-    console.error('[FirebaseAdmin] Failed to initialize firebase-admin:', error.message);
+    console.error(
+      '[FirebaseAdmin] Failed to initialize firebase-admin:',
+      error.message
+    );
     return null;
   }
 };
 
-module.exports = { admin, getFirestoreAdmin };
+module.exports = { getFirestoreAdmin };

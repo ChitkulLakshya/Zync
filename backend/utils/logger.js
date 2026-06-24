@@ -15,10 +15,13 @@ const logger = {
     }
   },
   debug: (...args) => {
-    if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
+    if (
+      process.env.NODE_ENV !== 'production' &&
+      process.env.NODE_ENV !== 'test'
+    ) {
       console.log(...args);
     }
-  }
+  },
 };
 
 module.exports = logger;

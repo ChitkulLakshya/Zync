@@ -1,16 +1,16 @@
-import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Users, Crown, Copy, CheckCircle2, MessageSquare, Plus } from "lucide-react";
-import { User } from "firebase/auth";
-import { auth } from "@/lib/firebase";
-import { API_BASE_URL, getFullUrl } from "@/lib/utils";
-import { useMe } from "@/hooks/useMe";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useToast } from "@/hooks/use-toast";
-import { CreateTeamDialog } from "@/components/views/CreateTeamDialog";
-import { JoinTeamDialog } from "@/components/views/JoinTeamDialog";
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Users, Crown, Copy, CheckCircle2, MessageSquare, Plus } from 'lucide-react';
+import { User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { API_BASE_URL, getFullUrl } from '@/lib/utils';
+import { useMe } from '@/hooks/useMe';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
+import { CreateTeamDialog } from '@/components/views/CreateTeamDialog';
+import { JoinTeamDialog } from '@/components/views/JoinTeamDialog';
 
 interface MobileTeamViewProps {
   currentUser: User | null;
@@ -25,56 +25,74 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
   const [joinTeamOpen, setJoinTeamOpen] = useState(false);
 
   const { data: myTeams = [], isLoading: loadingTeams } = useQuery({
-    queryKey: ["mobileMyTeams", currentUser?.uid],
+    queryKey: ['mobileMyTeams', currentUser?.uid],
     queryFn: async () => {
-      if (!currentUser) { return []; }
+      if (!currentUser) {
+        return [];
+      }
       const token = await currentUser.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/teams/mine`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) { return []; }
+      if (!res.ok) {
+        return [];
+      }
       return res.json();
     },
     enabled: !!currentUser,
   });
 
   const activeTeamId = useMemo(() => {
-    if (selectedTeamId) { return selectedTeamId; }
-    const teamIdFromMe = typeof me?.teamId === "object" ? me?.teamId?.id || me?.teamId?._id : me?.teamId;
+    if (selectedTeamId) {
+      return selectedTeamId;
+    }
+    const teamIdFromMe =
+      typeof me?.teamId === 'object' ? me?.teamId?.id || me?.teamId?._id : me?.teamId;
     return (teamIdFromMe as string) || myTeams?.[0]?.id || myTeams?.[0]?._id || null;
   }, [selectedTeamId, me?.teamId, myTeams]);
 
   const activeTeam = useMemo(
     () => myTeams.find((team: any) => (team.id || team._id) === activeTeamId) || null,
-    [myTeams, activeTeamId],
+    [myTeams, activeTeamId]
   );
 
   const { data: teamUsers = [], isLoading: loadingUsers } = useQuery({
-    queryKey: ["mobileTeamUsers", activeTeamId],
+    queryKey: ['mobileTeamUsers', activeTeamId],
     queryFn: async () => {
-      if (!currentUser || !activeTeamId) { return []; }
+      if (!currentUser || !activeTeamId) {
+        return [];
+      }
       const token = await currentUser.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/users?teamId=${activeTeamId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) { return []; }
+      if (!res.ok) {
+        return [];
+      }
       return res.json();
     },
     enabled: !!currentUser && !!activeTeamId,
   });
 
   const ownerUser = useMemo(() => {
-    if (!activeTeam) { return null; }
-    return teamUsers.find((u: any) => u.uid === activeTeam.ownerId || u.uid === activeTeam.ownerUid) || null;
+    if (!activeTeam) {
+      return null;
+    }
+    return (
+      teamUsers.find((u: any) => u.uid === activeTeam.ownerId || u.uid === activeTeam.ownerUid) ||
+      null
+    );
   }, [activeTeam, teamUsers]);
 
   const handleCopyInviteCode = async () => {
-    if (!activeTeam?.inviteCode) { return; }
+    if (!activeTeam?.inviteCode) {
+      return;
+    }
     try {
       await navigator.clipboard.writeText(activeTeam.inviteCode);
-      toast({ title: "Copied", description: "Invite code copied." });
+      toast({ title: 'Copied', description: 'Invite code copied.' });
     } catch {
-      toast({ title: "Error", description: "Could not copy invite code.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Could not copy invite code.', variant: 'destructive' });
     }
   };
 
@@ -119,7 +137,7 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
             return (
               <Button
                 key={id}
-                variant={isActive ? "default" : "outline"}
+                variant={isActive ? 'default' : 'outline'}
                 className="w-full justify-start"
                 onClick={() => setSelectedTeamId(id)}
               >
@@ -143,11 +161,15 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
             <div className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 shadow-sm">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={getFullUrl(ownerUser?.photoURL)} />
-                <AvatarFallback>{(ownerUser?.displayName || "U").charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarFallback>
+                  {(ownerUser?.displayName || 'U').charAt(0).toUpperCase()}
+                </AvatarFallback>
               </Avatar>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium truncate">{ownerUser?.displayName || "Owner"}</p>
-                <p className="text-[11px] text-muted-foreground truncate">{ownerUser?.email || activeTeam.ownerId}</p>
+                <p className="text-sm font-medium truncate">{ownerUser?.displayName || 'Owner'}</p>
+                <p className="text-[11px] text-muted-foreground truncate">
+                  {ownerUser?.email || activeTeam.ownerId}
+                </p>
               </div>
             </div>
 
@@ -177,13 +199,20 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
             <p className="text-sm text-muted-foreground">No members found.</p>
           ) : (
             teamUsers.map((member: any) => (
-              <div key={member.uid} className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 shadow-sm">
+              <div
+                key={member.uid}
+                className="rounded-xl border border-border/10 bg-background/50 backdrop-blur-md p-2.5 flex items-center gap-2.5 shadow-sm"
+              >
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={getFullUrl(member.photoURL)} />
-                  <AvatarFallback>{(member.displayName || "U").charAt(0).toUpperCase()}</AvatarFallback>
+                  <AvatarFallback>
+                    {(member.displayName || 'U').charAt(0).toUpperCase()}
+                  </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate">{member.displayName || member.email}</p>
+                  <p className="text-sm font-medium truncate">
+                    {member.displayName || member.email}
+                  </p>
                   <p className="text-[11px] text-muted-foreground truncate">{member.email}</p>
                 </div>
                 {member.uid !== currentUser?.uid && (
@@ -196,7 +225,9 @@ const MobileTeamView = ({ currentUser, onChat }: MobileTeamViewProps) => {
                     <MessageSquare className="h-4 w-4 text-foreground" />
                   </Button>
                 )}
-                {member.uid === currentUser?.uid && <CheckCircle2 className="h-4 w-4 text-foreground" />}
+                {member.uid === currentUser?.uid && (
+                  <CheckCircle2 className="h-4 w-4 text-foreground" />
+                )}
               </div>
             ))
           )}

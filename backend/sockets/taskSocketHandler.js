@@ -76,7 +76,10 @@ module.exports = (io) => {
   // ── connection ────────────────────────────────────────────────────
   taskNamespace.on('connection', (socket) => {
     const userId = socket.handshake.query.userId;
-    if (!userId) { socket.disconnect(); return; }
+    if (!userId) {
+      socket.disconnect();
+      return;
+    }
 
     addSocket(userId, socket.id);
     logger.log(`[TaskSocket] ✅ ${userId} connected (${socket.id})`);

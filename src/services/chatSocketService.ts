@@ -41,7 +41,9 @@ const typingListeners = new Set<TypingCallback>();
  * only one connection per userId will be maintained.
  */
 export function connectChat(userId: string): Socket {
-  if (socket?.connected) {return socket;}
+  if (socket?.connected) {
+    return socket;
+  }
 
   const socketUrl = SOCKET_BASE_URL;
 
@@ -120,25 +122,35 @@ export function clearChat(chatId: string, otherUserId: string) {
 
 export function onMessage(cb: MessageCallback) {
   messageListeners.add(cb);
-  return () => { messageListeners.delete(cb); };
+  return () => {
+    messageListeners.delete(cb);
+  };
 }
 
 export function onDelivered(cb: DeliveredCallback) {
   deliveredListeners.add(cb);
-  return () => { deliveredListeners.delete(cb); };
+  return () => {
+    deliveredListeners.delete(cb);
+  };
 }
 
 export function onSeen(cb: SeenCallback) {
   seenListeners.add(cb);
-  return () => { seenListeners.delete(cb); };
+  return () => {
+    seenListeners.delete(cb);
+  };
 }
 
 export function onCleared(cb: ClearedCallback) {
   clearedListeners.add(cb);
-  return () => { clearedListeners.delete(cb); };
+  return () => {
+    clearedListeners.delete(cb);
+  };
 }
 
 export function onTyping(cb: TypingCallback) {
   typingListeners.add(cb);
-  return () => { typingListeners.delete(cb); };
+  return () => {
+    typingListeners.delete(cb);
+  };
 }

@@ -20,10 +20,13 @@ const { resolveIp } = require('../services/geoService');
 const cache = require('../utils/cache');
 
 const getNewUserAlertRecipients = () => {
-  const recipients = process.env.NEW_USER_ALERT_RECIPIENTS || process.env.SUPPORT_RECIPIENTS || '';
+  const recipients =
+    process.env.NEW_USER_ALERT_RECIPIENTS ||
+    process.env.SUPPORT_RECIPIENTS ||
+    '';
   return recipients
     .split(',')
-    .map(r => r.trim())
+    .map((r) => r.trim())
     .filter(Boolean);
 };
 
@@ -35,7 +38,9 @@ const wasUserInsertedFromUpsertResult = (result) => {
     return Boolean(lastErrorObject.upserted);
   }
 
-  if (Object.prototype.hasOwnProperty.call(lastErrorObject, 'updatedExisting')) {
+  if (
+    Object.prototype.hasOwnProperty.call(lastErrorObject, 'updatedExisting')
+  ) {
     return lastErrorObject.updatedExisting === false;
   }
 
@@ -46,7 +51,9 @@ const dispatchNewUserNotifications = ({ displayName, email, uid }) => {
   const recipients = getNewUserAlertRecipients();
 
   if (recipients.length === 0) {
-    console.warn('[SYNC] NEW_USER_ALERT_RECIPIENTS/SUPPORT_RECIPIENTS not configured; skipping admin email notification');
+    console.warn(
+      '[SYNC] NEW_USER_ALERT_RECIPIENTS/SUPPORT_RECIPIENTS not configured; skipping admin email notification'
+    );
   } else {
     sendZyncEmail(
       recipients.join(','),
@@ -54,19 +61,16 @@ const dispatchNewUserNotifications = ({ displayName, email, uid }) => {
       getNewUserRegistrationTemplate({
         name: displayName || 'N/A',
         email,
-        uid
+        uid,
       }),
       `New User Alert! Name: ${displayName || 'N/A'}, Email: ${email}`
-    ).catch(err => console.error('Failed to send admin notification:', err));
+    ).catch((err) => console.error('Failed to send admin notification:', err));
   }
 
-  appendRow(
-    displayName || 'N/A',
-    email,
-    new Date().toISOString()
-  ).catch(err => console.error('Failed to log user to Google Sheets:', err));
+  appendRow(displayName || 'N/A', email, new Date().toISOString()).catch(
+    (err) => console.error('Failed to log user to Google Sheets:', err)
+  );
 };
-
 
 const sendVerificationEmail = async (email, code) => {
   return sendZyncEmail(
@@ -76,7 +80,6 @@ const sendVerificationEmail = async (email, code) => {
     `Your verification code is: ${code}`
   );
 };
-
 
 router.post('/check-breached-password', async (req, res) => {
   const { password } = req.body;
@@ -93,7 +96,6 @@ router.post('/check-breached-password', async (req, res) => {
   }
 });
 
-
 router.get('/me', verifyToken, async (req, res) => {
   try {
     const cacheKey = `user:me:${req.user.uid}`;
@@ -102,7 +104,9 @@ router.get('/me', verifyToken, async (req, res) => {
     if (cached) return res.json(cached);
 
     const user = await User.findOne({ uid: req.user.uid })
-      .select('-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires')
+      .select(
+        '-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires'
+      )
       .lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
 
@@ -119,9 +123,17 @@ router.get('/me', verifyToken, async (req, res) => {
   }
 });
 
-
 router.post('/sync', verifyToken, async (req, res) => {
-  const { uid: bodyUid, email, displayName, photoURL, phoneNumber, firstName, lastName, timezone } = req.body;
+  const {
+    uid: bodyUid,
+    email,
+    displayName,
+    photoURL,
+    phoneNumber,
+    firstName,
+    lastName,
+    timezone,
+  } = req.body;
   const uid = req.user.uid;
 
   if (bodyUid && bodyUid !== uid) {
@@ -132,7 +144,9 @@ router.post('/sync', verifyToken, async (req, res) => {
     const existingUser = await User.findOne({ uid }).lean();
     const safeEmail = email || existingUser?.email;
     if (!safeEmail) {
-      return res.status(400).json({ message: 'Email is required to sync user profile' });
+      return res
+        .status(400)
+        .json({ message: 'Email is required to sync user profile' });
     }
 
     let finalDisplayName = displayName;
@@ -143,7 +157,7 @@ router.post('/sync', verifyToken, async (req, res) => {
     const updateData = {
       email: safeEmail,
       status: 'online',
-      lastSeen: new Date()
+      lastSeen: new Date(),
     };
     if (finalDisplayName) updateData.displayName = finalDisplayName;
     if (photoURL) updateData.photoURL = photoURL;
@@ -166,40 +180,51 @@ router.post('/sync', verifyToken, async (req, res) => {
           status: 'online',
           lastSeen: new Date(),
           createdAt: new Date(),
-          welcomeNotificationSent: true
-        }
+          welcomeNotificationSent: true,
+        },
       },
       {
         upsert: true,
         new: true,
         lean: true,
-        setDefaultsOnInsert: true
+        setDefaultsOnInsert: true,
       }
     );
 
     const isNewUserInsert = !existingUser;
 
     if (isNewUserInsert) {
-      console.log(`[SYNC] Sending welcome notifications for newly inserted user: ${uid} (${email})`);
+      console.log(
+        `[SYNC] Sending welcome notifications for newly inserted user: ${uid} (${email})`
+      );
       // Fire-and-forget: don't block response on external notifications
       dispatchNewUserNotifications({
         displayName: finalDisplayName,
         email: safeEmail,
-        uid
+        uid,
       });
     }
 
     // Fire-and-forget: enrich location from IP if country is missing
     if (!user.country) {
-      const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
-      resolveIp(clientIp).then((geo) => {
-        if (geo) {
-          User.updateOne(
-            { uid },
-            { $set: { country: geo.country, countryCode: geo.countryCode, city: geo.city } }
-          ).catch(() => {});
-        }
-      }).catch(() => {});
+      const clientIp =
+        req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+      resolveIp(clientIp)
+        .then((geo) => {
+          if (geo) {
+            User.updateOne(
+              { uid },
+              {
+                $set: {
+                  country: geo.country,
+                  countryCode: geo.countryCode,
+                  city: geo.city,
+                },
+              }
+            ).catch(() => {});
+          }
+        })
+        .catch(() => {});
     }
 
     const teams = await Team.find({ members: user.uid }).lean();
@@ -212,7 +237,6 @@ router.post('/sync', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/sync-github', verifyToken, async (req, res) => {
   const { accessToken, username, firebaseUid } = req.body;
@@ -233,41 +257,64 @@ router.post('/sync-github', verifyToken, async (req, res) => {
             connected: true,
             accessToken: encryptedToken,
             username: username,
-            connectedAt: new Date().toISOString()
-          }
-        }
+            connectedAt: new Date().toISOString(),
+          },
+        },
       },
-      { returnDocument: 'after', lean: true, select: '-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires' }
+      {
+        returnDocument: 'after',
+        lean: true,
+        select:
+          '-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires',
+      }
     );
 
     if (!user) {
-      return res.status(404).json({ message: 'User not found in database. Please refresh.' });
+      return res
+        .status(404)
+        .json({ message: 'User not found in database. Please refresh.' });
     }
 
     cache.invalidate(`user:me:${uid}`);
-    res.json({ message: 'GitHub account linked successfully', user: normalizeDoc(user) });
+    res.json({
+      message: 'GitHub account linked successfully',
+      user: normalizeDoc(user),
+    });
   } catch (error) {
     console.error('Error syncing GitHub data:', error);
-    res.status(500).json({ message: 'Server error updating GitHub integration' });
+    res
+      .status(500)
+      .json({ message: 'Server error updating GitHub integration' });
   }
 });
-
 
 // Detect location from client IP via GeoJS
 router.get('/detect-location', verifyToken, async (req, res) => {
   try {
-    const clientIp = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+    const clientIp =
+      req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
     const geo = await resolveIp(clientIp);
 
     if (!geo) {
-      return res.json({ timezone: null, country: null, countryCode: null, city: null });
+      return res.json({
+        timezone: null,
+        country: null,
+        countryCode: null,
+        city: null,
+      });
     }
 
     // Persist to user profile
     const uid = req.user.uid;
     await User.updateOne(
       { uid },
-      { $set: { country: geo.country, countryCode: geo.countryCode, city: geo.city } }
+      {
+        $set: {
+          country: geo.country,
+          countryCode: geo.countryCode,
+          city: geo.city,
+        },
+      }
     );
     cache.invalidate(`user:me:${uid}`);
 
@@ -277,7 +324,6 @@ router.get('/detect-location', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.get('/search', verifyToken, async (req, res) => {
   const { query } = req.query;
@@ -293,13 +339,17 @@ router.get('/search', verifyToken, async (req, res) => {
         { displayName: { $regex: searchLower, $options: 'i' } },
         { email: { $regex: searchLower, $options: 'i' } },
         { firstName: { $regex: searchLower, $options: 'i' } },
-        { lastName: { $regex: searchLower, $options: 'i' } }
-      ]
+        { lastName: { $regex: searchLower, $options: 'i' } },
+      ],
     })
       .select('uid displayName email photoURL status lastSeen teamMemberships')
       .lean();
 
-    const { items, pagination } = paginateArray(normalizeDocs(users), req.query, { defaultLimit: 20, maxLimit: 100 });
+    const { items, pagination } = paginateArray(
+      normalizeDocs(users),
+      req.query,
+      { defaultLimit: 20, maxLimit: 100 }
+    );
     setPaginationHeaders(res, pagination);
 
     res.json(items);
@@ -309,7 +359,6 @@ router.get('/search', verifyToken, async (req, res) => {
   }
 });
 
-
 router.post('/chat-request', verifyToken, async (req, res) => {
   const { recipientId, message } = req.body;
   const senderUid = req.user.uid;
@@ -318,10 +367,15 @@ router.post('/chat-request', verifyToken, async (req, res) => {
     const sender = await User.findOne({ uid: senderUid }).lean();
     const recipient = await User.findOne({ uid: recipientId }).lean();
 
-    if (!recipient) return res.status(404).json({ message: 'Recipient not found' });
+    if (!recipient)
+      return res.status(404).json({ message: 'Recipient not found' });
 
-    const existingRequests = Array.isArray(recipient.chatRequests) ? recipient.chatRequests : [];
-    const existingRequest = existingRequests.find(r => r.senderId === senderUid && r.status === 'pending');
+    const existingRequests = Array.isArray(recipient.chatRequests)
+      ? recipient.chatRequests
+      : [];
+    const existingRequest = existingRequests.find(
+      (r) => r.senderId === senderUid && r.status === 'pending'
+    );
     if (existingRequest) {
       return res.status(400).json({ message: 'Request already sent' });
     }
@@ -333,7 +387,7 @@ router.post('/chat-request', verifyToken, async (req, res) => {
       senderPhoto: sender.photoURL,
       message: message,
       status: 'pending',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
     };
 
     await User.updateOne(
@@ -359,7 +413,6 @@ router.post('/chat-request', verifyToken, async (req, res) => {
   }
 });
 
-
 router.post('/chat-request/respond', verifyToken, async (req, res) => {
   const { senderId, status } = req.body;
   const recipientUid = req.user.uid;
@@ -371,13 +424,18 @@ router.post('/chat-request/respond', verifyToken, async (req, res) => {
   try {
     const [recipient, sender] = await Promise.all([
       User.findOne({ uid: recipientUid }).lean(),
-      User.findOne({ uid: senderId }).lean()
+      User.findOne({ uid: senderId }).lean(),
     ]);
 
-    if (!recipient || !sender) return res.status(404).json({ message: 'User not found' });
+    if (!recipient || !sender)
+      return res.status(404).json({ message: 'User not found' });
 
-    const chatRequests = Array.isArray(recipient.chatRequests) ? [...recipient.chatRequests] : [];
-    const requestIndex = chatRequests.findIndex(r => r.senderId === senderId && r.status === 'pending');
+    const chatRequests = Array.isArray(recipient.chatRequests)
+      ? [...recipient.chatRequests]
+      : [];
+    const requestIndex = chatRequests.findIndex(
+      (r) => r.senderId === senderId && r.status === 'pending'
+    );
     if (requestIndex === -1) {
       return res.status(404).json({ message: 'Pending request not found' });
     }
@@ -388,8 +446,10 @@ router.post('/chat-request/respond', verifyToken, async (req, res) => {
       const recipientConnections = [...(recipient.connections || [])];
       const senderConnections = [...(sender.connections || [])];
 
-      if (!recipientConnections.includes(senderId)) recipientConnections.push(senderId);
-      if (!senderConnections.includes(recipientUid)) senderConnections.push(recipientUid);
+      if (!recipientConnections.includes(senderId))
+        recipientConnections.push(senderId);
+      if (!senderConnections.includes(recipientUid))
+        senderConnections.push(recipientUid);
 
       await Promise.all([
         User.updateOne(
@@ -399,13 +459,10 @@ router.post('/chat-request/respond', verifyToken, async (req, res) => {
         User.updateOne(
           { uid: recipientUid },
           { $set: { chatRequests, connections: recipientConnections } }
-        )
+        ),
       ]);
     } else {
-      await User.updateOne(
-        { uid: recipientUid },
-        { $set: { chatRequests } }
-      );
+      await User.updateOne({ uid: recipientUid }, { $set: { chatRequests } });
     }
 
     res.json({ message: `Request ${status}` });
@@ -415,7 +472,6 @@ router.post('/chat-request/respond', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/close-friends/toggle', verifyToken, async (req, res) => {
   const { friendId } = req.body;
@@ -432,12 +488,18 @@ router.post('/close-friends/toggle', verifyToken, async (req, res) => {
       closeFriends.splice(index, 1);
       await User.updateOne({ uid }, { $set: { closeFriends } });
       cache.invalidate(`user:me:${uid}`);
-      return res.json({ message: 'Removed from Close Friends', isCloseFriend: false });
+      return res.json({
+        message: 'Removed from Close Friends',
+        isCloseFriend: false,
+      });
     } else {
       closeFriends.push(friendId);
       await User.updateOne({ uid }, { $set: { closeFriends } });
       cache.invalidate(`user:me:${uid}`);
-      return res.json({ message: 'Added to Close Friends', isCloseFriend: true });
+      return res.json({
+        message: 'Added to Close Friends',
+        isCloseFriend: true,
+      });
     }
   } catch (error) {
     console.error('Error toggling close friend:', error);
@@ -445,21 +507,26 @@ router.post('/close-friends/toggle', verifyToken, async (req, res) => {
   }
 });
 
-
 router.get('/', verifyToken, async (req, res) => {
   try {
     const { teamId } = req.query;
     const currentUser = await User.findOne({ uid: req.user.uid }).lean();
-    if (!currentUser) return res.status(404).json({ message: 'User not found' });
+    if (!currentUser)
+      return res.status(404).json({ message: 'User not found' });
 
     if (teamId) {
       const team = await Team.findById(teamId).lean();
       if (!team) return res.status(404).json({ message: 'Team not found' });
       const users = await User.find({ uid: { $in: team.members } })
         .sort({ lastSeen: -1 })
-        .select('-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires')
+        .select(
+          '-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires'
+        )
         .lean();
-      const { items, pagination } = paginateArray(normalizeDocs(users), req.query);
+      const { items, pagination } = paginateArray(
+        normalizeDocs(users),
+        req.query
+      );
       setPaginationHeaders(res, pagination);
       return res.status(200).json(items);
     }
@@ -468,35 +535,40 @@ router.get('/', verifyToken, async (req, res) => {
 
     const [allMyTeams, ownedTeams] = await Promise.all([
       Team.find({ members: req.user.uid }).lean(),
-      Team.find({ ownerId: req.user.uid }).lean()
+      Team.find({ ownerId: req.user.uid }).lean(),
     ]);
 
     const uniqueTeams = [...allMyTeams, ...ownedTeams];
-    uniqueTeams.forEach(t => {
-      if (t.members) t.members.forEach(m => relatedUids.add(m));
+    uniqueTeams.forEach((t) => {
+      if (t.members) t.members.forEach((m) => relatedUids.add(m));
     });
 
     relatedUids.add(req.user.uid);
 
     const users = await User.find({ uid: { $in: Array.from(relatedUids) } })
-      .select('-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires')
+      .select(
+        '-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires'
+      )
       .sort({ lastSeen: -1 })
       .lean();
-    const { items, pagination } = paginateArray(normalizeDocs(users), req.query);
+    const { items, pagination } = paginateArray(
+      normalizeDocs(users),
+      req.query
+    );
     setPaginationHeaders(res, pagination);
     res.status(200).json(items);
-
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-
 router.get('/:uid', async (req, res) => {
   try {
     const user = await User.findOne({ uid: req.params.uid })
-      .select('-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires')
+      .select(
+        '-githubIntegration.accessToken -deleteConfirmationCode -deleteConfirmationExpires -phoneVerificationCode -phoneVerificationCodeExpires'
+      )
       .lean();
     if (!user) return res.status(404).json({ message: 'User not found' });
     res.status(200).json(normalizeDoc(user));
@@ -504,7 +576,6 @@ router.get('/:uid', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.put('/:uid', async (req, res) => {
   try {
@@ -536,7 +607,6 @@ router.put('/:uid', async (req, res) => {
   }
 });
 
-
 router.post('/delete/request', verifyToken, async (req, res) => {
   const { uid } = req.body;
 
@@ -555,8 +625,8 @@ router.post('/delete/request', verifyToken, async (req, res) => {
       {
         $set: {
           deleteConfirmationCode: code,
-          deleteConfirmationExpires: new Date(Date.now() + 10 * 60 * 1000)
-        }
+          deleteConfirmationExpires: new Date(Date.now() + 10 * 60 * 1000),
+        },
       }
     );
 
@@ -574,13 +644,14 @@ router.post('/delete/request', verifyToken, async (req, res) => {
   }
 });
 
-
 router.post('/delete/confirm', verifyToken, async (req, res) => {
   const { uid, code } = req.body;
   console.log(`[DELETE] Request to delete user: ${uid} with code: ${code}`);
 
   if (req.user.uid !== uid) {
-    console.warn(`[DELETE] Unauthorized attempt by ${req.user.uid} to delete ${uid}`);
+    console.warn(
+      `[DELETE] Unauthorized attempt by ${req.user.uid} to delete ${uid}`
+    );
     return res.status(403).json({ message: 'Unauthorized' });
   }
 
@@ -605,7 +676,7 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
     for (const team of teamsWithUser) {
       await Team.updateOne(
         { _id: team._id },
-        { $set: { members: team.members.filter(m => m !== uid) } }
+        { $set: { members: team.members.filter((m) => m !== uid) } }
       );
     }
     console.log(`[DELETE] Removed user ${uid} from teams`);
@@ -616,7 +687,10 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
         await deleteCloudinaryAsset(user.photoURL);
         console.log(`[DELETE] Deleted profile photo for user: ${uid}`);
       } catch (deleteError) {
-        console.warn(`[DELETE] Failed to delete profile photo for user ${uid}:`, deleteError.message);
+        console.warn(
+          `[DELETE] Failed to delete profile photo for user ${uid}:`,
+          deleteError.message
+        );
       }
     }
 
@@ -625,11 +699,16 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
     console.log(`[DELETE] User ${uid} deleted from database`);
 
     try {
-      const admin = require('firebase-admin');
-      await admin.auth().deleteUser(uid);
-      console.log(`[DELETE] User ${uid} deleted from Firebase Auth (server-side)`);
+      const { getAuth } = require('firebase-admin/auth');
+      await getAuth().deleteUser(uid);
+      console.log(
+        `[DELETE] User ${uid} deleted from Firebase Auth (server-side)`
+      );
     } catch (fbError) {
-      console.error(`[DELETE] Failed to delete user from Firebase Auth:`, fbError.message);
+      console.error(
+        `[DELETE] Failed to delete user from Firebase Auth:`,
+        fbError.message
+      );
     }
 
     res.status(200).json({ message: 'User deleted successfully' });
@@ -638,7 +717,6 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/verify-phone/request', async (req, res) => {
   const { uid, phoneNumber } = req.body;
@@ -655,8 +733,8 @@ router.post('/verify-phone/request', async (req, res) => {
           phoneVerificationCode: code,
           phoneVerificationCodeExpires: new Date(Date.now() + 10 * 60 * 1000),
           phoneNumber: phoneNumber,
-          isPhoneVerified: false
-        }
+          isPhoneVerified: false,
+        },
       }
     );
 
@@ -669,7 +747,6 @@ router.post('/verify-phone/request', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 router.post('/verify-phone/confirm', async (req, res) => {
   const { uid, code } = req.body;
@@ -691,8 +768,8 @@ router.post('/verify-phone/confirm', async (req, res) => {
         $set: {
           isPhoneVerified: true,
           phoneVerificationCode: null,
-          phoneVerificationCodeExpires: null
-        }
+          phoneVerificationCodeExpires: null,
+        },
       }
     );
 

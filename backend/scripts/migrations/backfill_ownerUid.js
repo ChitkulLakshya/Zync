@@ -7,7 +7,9 @@
  * Usage: node scripts/backfill_ownerUid.js
  */
 
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+require('dotenv').config({
+  path: require('path').join(__dirname, '..', '.env'),
+});
 
 const mongoose = require('mongoose');
 const Project = require('../models/Project');
@@ -32,9 +34,11 @@ async function backfill() {
   }
 
   // Build a map of ownerId -> uid
-  const ownerIds = [...new Set(projects.map(p => p.ownerId.toString()))];
-  const owners = await User.find({ _id: { $in: ownerIds } }).select('_id uid').lean();
-  const ownerMap = new Map(owners.map(o => [o._id.toString(), o.uid]));
+  const ownerIds = [...new Set(projects.map((p) => p.ownerId.toString()))];
+  const owners = await User.find({ _id: { $in: ownerIds } })
+    .select('_id uid')
+    .lean();
+  const ownerMap = new Map(owners.map((o) => [o._id.toString(), o.uid]));
 
   let updated = 0;
   let skipped = 0;
@@ -42,7 +46,9 @@ async function backfill() {
   for (const project of projects) {
     const uid = ownerMap.get(project.ownerId.toString());
     if (!uid) {
-      console.warn(`Skipping project ${project._id}: no User found for ownerId ${project.ownerId}`);
+      console.warn(
+        `Skipping project ${project._id}: no User found for ownerId ${project.ownerId}`
+      );
       skipped++;
       continue;
     }
@@ -54,7 +60,7 @@ async function backfill() {
   await mongoose.disconnect();
 }
 
-backfill().catch(err => {
+backfill().catch((err) => {
   console.error('Migration failed:', err);
   process.exit(1);
 });

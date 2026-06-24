@@ -1,12 +1,19 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Sparkles, ArrowRight } from "lucide-react";
-import { API_BASE_URL } from "@/lib/utils";
-import { auth } from "@/lib/firebase";
-import { useToast } from "@/hooks/use-toast";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Sparkles, ArrowRight } from 'lucide-react';
+import { API_BASE_URL } from '@/lib/utils';
+import { auth } from '@/lib/firebase';
+import { useToast } from '@/hooks/use-toast';
 
 interface CreateProjectProps {
   onProjectCreated: (projectData: any) => void;
@@ -14,26 +21,28 @@ interface CreateProjectProps {
 
 const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
   const [step, setStep] = useState(1);
-  const [projectName, setProjectName] = useState("");
-  const [projectDescription, setProjectDescription] = useState("");
+  const [projectName, setProjectName] = useState('');
+  const [projectDescription, setProjectDescription] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
   const handleGenerate = async () => {
-    if (!projectName || !projectDescription) {return;}
+    if (!projectName || !projectDescription) {
+      return;
+    }
 
     setIsGenerating(true);
 
     try {
       const user = auth.currentUser;
-      const ownerId = user ? user.uid : "anonymous";
-      const token = user ? await user.getIdToken() : "";
+      const ownerId = user ? user.uid : 'anonymous';
+      const token = user ? await user.getIdToken() : '';
 
       const response = await fetch(`${API_BASE_URL}/api/generate-project`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: projectName,
@@ -44,24 +53,23 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to generate project");
+        throw new Error(errorData.message || 'Failed to generate project');
       }
 
       const data = await response.json();
 
       toast({
-        title: "Project Generated!",
-        description: "Your architecture and tasks are ready.",
+        title: 'Project Generated!',
+        description: 'Your architecture and tasks are ready.',
       });
 
       onProjectCreated(data);
-
     } catch (error: any) {
-      console.error("Generation error:", error);
+      console.error('Generation error:', error);
       toast({
-        title: "Generation Failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive"
+        title: 'Generation Failed',
+        description: error.message || 'Something went wrong. Please try again.',
+        variant: 'destructive',
       });
     } finally {
       setIsGenerating(false);
@@ -117,7 +125,9 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
               disabled={!projectName || !projectDescription || isGenerating}
               className="w-full sm:w-auto rounded-xl"
             >
-              {isGenerating ? "Generating..." : (
+              {isGenerating ? (
+                'Generating...'
+              ) : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
                   Generate Project Plan

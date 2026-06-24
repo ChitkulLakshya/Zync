@@ -92,6 +92,8 @@ Zync is built using enterprise-grade, modern open-source tools:
 
 Getting Zync running locally takes less than 30 seconds thanks to our automated workspace hooks.
 
+Setting up Zync locally is completely frictionless. Our `postinstall` hooks handle the backend dependencies automatically.
+
 ```bash
 # 1. Clone the repository
 git clone https://github.com/zync-meet/Zync.git

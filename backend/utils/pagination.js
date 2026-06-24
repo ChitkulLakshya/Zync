@@ -13,7 +13,8 @@ function getPagination(query = {}, options = {}) {
     maxLimit
   );
 
-  const hasPaginationQuery = toPositiveInt(query.page) !== null || toPositiveInt(query.limit) !== null;
+  const hasPaginationQuery =
+    toPositiveInt(query.page) !== null || toPositiveInt(query.limit) !== null;
   const shouldPaginate = hasPaginationQuery || defaultLimit !== null;
 
   if (!shouldPaginate) {

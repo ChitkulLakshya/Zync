@@ -15,7 +15,9 @@ const {
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 
 if (!ENCRYPTION_KEY) {
-  console.warn("WARNING: ENCRYPTION_KEY is not defined in environment variables.");
+  console.warn(
+    'WARNING: ENCRYPTION_KEY is not defined in environment variables.'
+  );
 }
 
 const encryptToken = (token) => {
@@ -63,7 +65,7 @@ const fetchWithEtag = async (url, config, cacheKey) => {
   if (cached && cached.etag) {
     headers['If-None-Match'] = cached.etag;
   }
-  
+
   try {
     const res = await axios.get(url, { ...config, headers });
     if (res.headers?.etag) {
@@ -92,8 +94,8 @@ router.post('/connect', verifyToken, async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
+          Accept: 'application/vnd.github.v3+json',
+        },
       },
       `connect_user_${uid}`
     );
@@ -109,9 +111,9 @@ router.post('/connect', verifyToken, async (req, res) => {
             connected: true,
             accessToken: encryptedToken,
             username: githubUsername,
-            connectedAt: new Date().toISOString()
-          }
-        }
+            connectedAt: new Date().toISOString(),
+          },
+        },
       },
       { returnDocument: 'after', lean: true }
     );
@@ -124,9 +126,8 @@ router.post('/connect', verifyToken, async (req, res) => {
 
     res.json({
       message: 'GitHub connected successfully',
-      username: githubUsername
+      username: githubUsername,
     });
-
   } catch (error) {
     console.error('Error connecting GitHub:', error.message);
     if (error.response && error.response.status === 401) {
@@ -135,7 +136,6 @@ router.post('/connect', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Internal Server Error' });
   }
 });
-
 
 router.delete('/disconnect', verifyToken, async (req, res) => {
   const uid = req.user.uid;
@@ -149,9 +149,9 @@ router.delete('/disconnect', verifyToken, async (req, res) => {
             connected: false,
             accessToken: null,
             username: null,
-            installationId: null
-          }
-        }
+            installationId: null,
+          },
+        },
       },
       { returnDocument: 'after' }
     );
@@ -167,7 +167,6 @@ router.delete('/disconnect', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to disconnect GitHub' });
   }
 });
-
 
 router.post('/callback', verifyToken, async (req, res) => {
   const { code } = req.body;
@@ -186,19 +185,27 @@ router.post('/callback', verifyToken, async (req, res) => {
   }
 
   try {
-    const tokenResponse = await axios.post('https://github.com/login/oauth/access_token', {
-      client_id: clientId,
-      client_secret: clientSecret,
-      code: code
-    }, {
-      headers: { Accept: 'application/json' }
-    });
+    const tokenResponse = await axios.post(
+      'https://github.com/login/oauth/access_token',
+      {
+        client_id: clientId,
+        client_secret: clientSecret,
+        code: code,
+      },
+      {
+        headers: { Accept: 'application/json' },
+      }
+    );
 
     const { access_token, error, error_description } = tokenResponse.data;
 
     if (error || !access_token) {
       console.error('GitHub OAuth error:', error, error_description);
-      return res.status(400).json({ message: error_description || 'Failed to exchange code for token' });
+      return res
+        .status(400)
+        .json({
+          message: error_description || 'Failed to exchange code for token',
+        });
     }
 
     const userResponse = await fetchWithEtag(
@@ -206,8 +213,8 @@ router.post('/callback', verifyToken, async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${access_token}`,
-          Accept: 'application/vnd.github.v3+json'
-        }
+          Accept: 'application/vnd.github.v3+json',
+        },
       },
       `callback_user_${uid}`
     );
@@ -223,9 +230,9 @@ router.post('/callback', verifyToken, async (req, res) => {
             connected: true,
             accessToken: encryptedToken,
             username: githubUser.login,
-            connectedAt: new Date().toISOString()
-          }
-        }
+            connectedAt: new Date().toISOString(),
+          },
+        },
       }
     );
 
@@ -233,15 +240,15 @@ router.post('/callback', verifyToken, async (req, res) => {
 
     res.json({
       message: 'GitHub connected successfully',
-      username: githubUser.login
+      username: githubUser.login,
     });
-
   } catch (error) {
     console.error('Error in GitHub OAuth callback:', error.message);
-    res.status(500).json({ message: 'Failed to complete GitHub authentication' });
+    res
+      .status(500)
+      .json({ message: 'Failed to complete GitHub authentication' });
   }
 });
-
 
 router.get('/repos', verifyToken, async (req, res) => {
   const uid = req.user.uid;
@@ -261,8 +268,10 @@ router.get('/repos', verifyToken, async (req, res) => {
     try {
       accessToken = decryptToken(github.accessToken);
     } catch (err) {
-      console.error("Decryption failed:", err);
-      return res.status(500).json({ message: 'Failed to decrypt access token' });
+      console.error('Decryption failed:', err);
+      return res
+        .status(500)
+        .json({ message: 'Failed to decrypt access token' });
     }
 
     if (!accessToken) {
@@ -273,18 +282,22 @@ router.get('/repos', verifyToken, async (req, res) => {
     const per_page = parseInt(req.query.per_page) || 30;
 
     const cacheKey = `repos_${uid}_${page}_${per_page}`;
-    const githubResponse = await fetchWithEtag('https://api.github.com/user/repos', {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github.v3+json'
+    const githubResponse = await fetchWithEtag(
+      'https://api.github.com/user/repos',
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+        params: {
+          sort: 'updated',
+          visibility: 'all',
+          per_page,
+          page,
+        },
       },
-      params: {
-        sort: 'updated',
-        visibility: 'all',
-        per_page,
-        page
-      }
-    }, cacheKey);
+      cacheKey
+    );
 
     const linkHeader = githubResponse.headers.link;
     const hasNextPage = !!(linkHeader && linkHeader.includes('rel="next"'));
@@ -292,7 +305,6 @@ router.get('/repos', verifyToken, async (req, res) => {
 
     cache.setJson(`gh:repos:${uid}:${page}`, result, 300);
     res.json(result);
-
   } catch (error) {
     console.error('Error fetching GitHub repos:', error.message);
 
@@ -302,17 +314,18 @@ router.get('/repos', verifyToken, async (req, res) => {
         { uid },
         {
           $set: {
-            githubIntegration: { ...user?.githubIntegration, connected: false }
-          }
+            githubIntegration: { ...user?.githubIntegration, connected: false },
+          },
         }
       );
-      return res.status(401).json({ message: 'GitHub token expired. Please reconnect.' });
+      return res
+        .status(401)
+        .json({ message: 'GitHub token expired. Please reconnect.' });
     }
 
     res.status(500).json({ message: 'Failed to fetch repositories' });
   }
 });
-
 
 router.post('/install', verifyToken, async (req, res) => {
   const { installationId } = req.body;
@@ -334,21 +347,23 @@ router.post('/install', verifyToken, async (req, res) => {
             ...existingGithub,
             installationId: installationId.toString(),
             connected: true,
-            connectedAt: new Date().toISOString()
-          }
-        }
+            connectedAt: new Date().toISOString(),
+          },
+        },
       },
       { returnDocument: 'after', lean: true }
     );
 
-    res.json({ message: 'GitHub App Installation Connected', user: normalizeDoc(updatedUser) });
+    res.json({
+      message: 'GitHub App Installation Connected',
+      user: normalizeDoc(updatedUser),
+    });
     cache.delByPattern(`gh:*:${uid}*`).catch(() => {});
   } catch (error) {
     console.error('Error saving installation ID:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 const disconnectGithub = async (uid, extra = {}) => {
   try {
@@ -361,16 +376,15 @@ const disconnectGithub = async (uid, extra = {}) => {
           githubIntegration: {
             ...existing,
             connected: false,
-            ...extra
-          }
-        }
+            ...extra,
+          },
+        },
       }
     );
   } catch (e) {
     console.error('Failed to disconnect github:', e);
   }
 };
-
 
 router.get('/user-repos', verifyToken, async (req, res) => {
   const uid = req.user.uid;
@@ -385,7 +399,7 @@ router.get('/user-repos', verifyToken, async (req, res) => {
     if (!user || !github?.installationId) {
       return res.status(400).json({
         message: 'GitHub App not installed',
-        notInstalled: true
+        notInstalled: true,
       });
     }
 
@@ -395,14 +409,26 @@ router.get('/user-repos', verifyToken, async (req, res) => {
 
     if (!appId || !privateKey) {
       console.error('Missing GITHUB_APP_ID or GITHUB_PRIVATE_KEY');
-      return res.status(500).json({ message: 'Server configuration error: Missing GitHub credentials' });
+      return res
+        .status(500)
+        .json({
+          message: 'Server configuration error: Missing GitHub credentials',
+        });
     }
 
     privateKey = privateKey.replace(/\\n/g, '\n');
 
-    if (!privateKey.includes('BEGIN RSA PRIVATE KEY') || privateKey.length < 50) {
+    if (
+      !privateKey.includes('BEGIN RSA PRIVATE KEY') ||
+      privateKey.length < 50
+    ) {
       console.error('Invalid GITHUB_PRIVATE_KEY format.');
-      return res.status(500).json({ message: 'Server configuration error: Invalid GitHub Private Key format' });
+      return res
+        .status(500)
+        .json({
+          message:
+            'Server configuration error: Invalid GitHub Private Key format',
+        });
     }
 
     const { App } = await import('octokit');
@@ -410,8 +436,12 @@ router.get('/user-repos', verifyToken, async (req, res) => {
     try {
       app = new App({ appId, privateKey });
     } catch (err) {
-      console.error("Failed to initialize Octokit App:", err.message);
-      return res.status(500).json({ message: 'Internal Server Error: Failed to initialize GitHub App' });
+      console.error('Failed to initialize Octokit App:', err.message);
+      return res
+        .status(500)
+        .json({
+          message: 'Internal Server Error: Failed to initialize GitHub App',
+        });
     }
 
     let octokit;
@@ -419,16 +449,29 @@ router.get('/user-repos', verifyToken, async (req, res) => {
     if (isNaN(numericInstallationId)) {
       console.error(`Invalid installationId format: ${installationId}`);
       await disconnectGithub(uid);
-      return res.status(400).json({ message: 'Invalid GitHub installation ID. Please reinstall the app.', notInstalled: true });
+      return res
+        .status(400)
+        .json({
+          message: 'Invalid GitHub installation ID. Please reinstall the app.',
+          notInstalled: true,
+        });
     }
 
     try {
       octokit = await app.getInstallationOctokit(numericInstallationId);
     } catch (err) {
-      console.error(`Failed to get installation octokit for ID ${installationId}:`, err.message);
+      console.error(
+        `Failed to get installation octokit for ID ${installationId}:`,
+        err.message
+      );
       if (err.status === 404 || err.status === 401) {
         await disconnectGithub(uid);
-        return res.status(404).json({ message: 'GitHub App installation not found. Please reinstall.', notInstalled: true });
+        return res
+          .status(404)
+          .json({
+            message: 'GitHub App installation not found. Please reinstall.',
+            notInstalled: true,
+          });
       }
       throw err;
     }
@@ -436,20 +479,31 @@ router.get('/user-repos', verifyToken, async (req, res) => {
     try {
       const page = parseInt(req.query.page) || 1;
       const per_page = parseInt(req.query.per_page) || 30;
-      
+
       const cacheKey = `user_repos_${uid}_${page}_${per_page}`;
       const cached = githubCache.get(cacheKey);
-      const headers = cached && cached.etag ? { 'If-None-Match': cached.etag } : {};
+      const headers =
+        cached && cached.etag ? { 'If-None-Match': cached.etag } : {};
 
       let response;
       try {
-        response = await octokit.request('GET /installation/repositories', { per_page, page, headers });
+        response = await octokit.request('GET /installation/repositories', {
+          per_page,
+          page,
+          headers,
+        });
         if (response.headers?.etag) {
-          githubCacheSet(cacheKey, { etag: response.headers.etag, data: response.data });
+          githubCacheSet(cacheKey, {
+            etag: response.headers.etag,
+            data: response.data,
+          });
         }
       } catch (err) {
         if (err.status === 304 && cached) {
-          response = { headers: err.response?.headers || {}, data: cached.data };
+          response = {
+            headers: err.response?.headers || {},
+            data: cached.data,
+          };
         } else {
           throw err;
         }
@@ -458,31 +512,48 @@ router.get('/user-repos', verifyToken, async (req, res) => {
       const linkHeader = response.headers?.link;
       const hasNextPage = !!(linkHeader && linkHeader.includes('rel="next"'));
 
-      const repos = response.data.repositories.map(repo => ({
+      const repos = response.data.repositories.map((repo) => ({
         id: repo.id,
         name: repo.name,
         full_name: repo.full_name,
         private: repo.private,
         owner: repo.owner.login,
-        html_url: repo.html_url
+        html_url: repo.html_url,
       }));
 
       const userReposResult = { repos, hasNextPage, page };
       cache.setJson(`gh:user-repos:${uid}:${page}`, userReposResult, 300);
       res.json(userReposResult);
     } catch (requestErr) {
-      console.error("Error fetching repositories from GitHub:", requestErr.message);
+      console.error(
+        'Error fetching repositories from GitHub:',
+        requestErr.message
+      );
       await disconnectGithub(uid, { installationId: null });
       const status = requestErr.status || requestErr.response?.status;
       if (status === 404) {
-        return res.status(400).json({ message: 'GitHub App installation not found. Please reinstall.', notInstalled: true });
+        return res
+          .status(400)
+          .json({
+            message: 'GitHub App installation not found. Please reinstall.',
+            notInstalled: true,
+          });
       }
       if (status === 401 || status === 403) {
-        return res.status(401).json({ message: 'GitHub App authentication failed.', notInstalled: true });
+        return res
+          .status(401)
+          .json({
+            message: 'GitHub App authentication failed.',
+            notInstalled: true,
+          });
       }
-      return res.status(500).json({ message: 'Failed to fetch repositories. Please reinstall.', notInstalled: true });
+      return res
+        .status(500)
+        .json({
+          message: 'Failed to fetch repositories. Please reinstall.',
+          notInstalled: true,
+        });
     }
-
   } catch (error) {
     console.error('Error fetching installation repos:', error);
     if (req.user?.uid) {
@@ -491,11 +562,10 @@ router.get('/user-repos', verifyToken, async (req, res) => {
     res.status(500).json({
       message: 'Failed to fetch repositories. Please reinstall.',
       notInstalled: true,
-      error: error.message
+      error: error.message,
     });
   }
 });
-
 
 router.get('/stats', verifyToken, async (req, res) => {
   const uid = req.user.uid;
@@ -508,19 +578,26 @@ router.get('/stats', verifyToken, async (req, res) => {
     const github = user?.githubIntegration;
 
     if (!user || !github?.connected || !github?.accessToken) {
-      return res.json({ connected: false, message: 'GitHub account not connected' });
+      return res.json({
+        connected: false,
+        message: 'GitHub account not connected',
+      });
     }
 
     const accessToken = decryptToken(github.accessToken);
     const username = github.username;
 
     const cacheKey = `stats_${username}`;
-    const userResponse = await fetchWithEtag(`https://api.github.com/users/${username}`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github.v3+json'
-      }
-    }, cacheKey);
+    const userResponse = await fetchWithEtag(
+      `https://api.github.com/users/${username}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      },
+      cacheKey
+    );
 
     const stats = {
       login: userResponse.data.login,
@@ -531,7 +608,7 @@ router.get('/stats', verifyToken, async (req, res) => {
       followers: userResponse.data.followers,
       following: userResponse.data.following,
       created_at: userResponse.data.created_at,
-      html_url: userResponse.data.html_url
+      html_url: userResponse.data.html_url,
     };
 
     cache.setJson(`gh:stats:${uid}`, stats, 600);
@@ -541,7 +618,6 @@ router.get('/stats', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch GitHub stats' });
   }
 });
-
 
 router.get('/events', verifyToken, async (req, res) => {
   const uid = req.user.uid;
@@ -554,38 +630,47 @@ router.get('/events', verifyToken, async (req, res) => {
     const github = user?.githubIntegration;
 
     if (!user || !github?.connected || !github?.accessToken) {
-      return res.json({ connected: false, message: 'GitHub account not connected' });
+      return res.json({
+        connected: false,
+        message: 'GitHub account not connected',
+      });
     }
 
     const accessToken = decryptToken(github.accessToken);
     const username = github.username;
 
     const cacheKey = `events_${username}`;
-    const eventsResponse = await fetchWithEtag(`https://api.github.com/users/${username}/events?per_page=30`, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: 'application/vnd.github.v3+json'
-      }
-    }, cacheKey);
+    const eventsResponse = await fetchWithEtag(
+      `https://api.github.com/users/${username}/events?per_page=30`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      },
+      cacheKey
+    );
 
-    const events = eventsResponse.data.map(event => ({
+    const events = eventsResponse.data.map((event) => ({
       id: event.id,
       type: event.type,
       repo: event.repo.name,
       created_at: event.created_at,
-      actor: event.actor ? {
-        login: event.actor.login,
-        avatar_url: event.actor.avatar_url,
-        html_url: event.actor.html_url,
-      } : null,
+      actor: event.actor
+        ? {
+            login: event.actor.login,
+            avatar_url: event.actor.avatar_url,
+            html_url: event.actor.html_url,
+          }
+        : null,
       payload: {
         action: event.payload?.action,
         ref: event.payload?.ref,
-        commits: event.payload?.commits?.slice(0, 3)?.map(c => ({
+        commits: event.payload?.commits?.slice(0, 3)?.map((c) => ({
           sha: c.sha?.substring(0, 7),
-          message: c.message?.substring(0, 80)
-        }))
-      }
+          message: c.message?.substring(0, 80),
+        })),
+      },
     }));
 
     cache.setJson(`gh:events:${uid}`, events, 60);
@@ -595,7 +680,6 @@ router.get('/events', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch GitHub events' });
   }
 });
-
 
 router.get('/contributions', verifyToken, async (req, res) => {
   const uid = req.user.uid;
@@ -611,7 +695,10 @@ router.get('/contributions', verifyToken, async (req, res) => {
     const github = user?.githubIntegration;
 
     if (!user || !github?.connected || !github?.accessToken) {
-      return res.json({ connected: false, message: 'GitHub account not connected' });
+      return res.json({
+        connected: false,
+        message: 'GitHub account not connected',
+      });
     }
 
     const accessToken = decryptToken(github.accessToken);
@@ -645,8 +732,8 @@ router.get('/contributions', verifyToken, async (req, res) => {
       {
         headers: {
           Authorization: `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        }
+          'Content-Type': 'application/json',
+        },
       }
     );
 
@@ -655,15 +742,17 @@ router.get('/contributions', verifyToken, async (req, res) => {
       throw new Error('GraphQL Error');
     }
 
-    const calendar = graphqlResponse.data.data.user.contributionsCollection.contributionCalendar;
+    const calendar =
+      graphqlResponse.data.data.user.contributionsCollection
+        .contributionCalendar;
 
     const contributions = [];
-    calendar.weeks.forEach(week => {
-      week.contributionDays.forEach(day => {
+    calendar.weeks.forEach((week) => {
+      week.contributionDays.forEach((day) => {
         contributions.push({
           date: day.date,
           count: day.contributionCount,
-          level: 0
+          level: 0,
         });
       });
     });
@@ -675,7 +764,6 @@ router.get('/contributions', verifyToken, async (req, res) => {
     res.status(500).json({ message: 'Failed to fetch contribution data' });
   }
 });
-
 
 router.get('/readme', verifyToken, async (req, res) => {
   const { owner, repo } = req.query;
@@ -707,8 +795,8 @@ router.get('/readme', verifyToken, async (req, res) => {
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            Accept: 'application/vnd.github.raw+json'
-          }
+            Accept: 'application/vnd.github.raw+json',
+          },
         },
         readmeCacheKey
       );
@@ -717,11 +805,10 @@ router.get('/readme', verifyToken, async (req, res) => {
     } catch (err) {
       if (err.response && err.response.status === 404) {
         cache.setJson(cacheKey, '# No README found', 1800);
-        return res.send("# No README found");
+        return res.send('# No README found');
       }
       throw err;
     }
-
   } catch (error) {
     console.error('Error fetching README:', error);
     res.status(500).json({ message: 'Failed to fetch README' });

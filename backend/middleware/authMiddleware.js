@@ -1,20 +1,21 @@
-const { admin, getFirestoreAdmin } = require('../services/firebaseAdmin');
+const { getFirestoreAdmin } = require('../services/firebaseAdmin');
+const { getApps, initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 
-if (!admin.apps.length) {
+if (!getApps().length) {
   // Prefer service-account init from shared helper.
   getFirestoreAdmin();
 
   // Fallback for environments that only provide ADC.
-  if (!admin.apps.length) {
+  if (!getApps().length) {
     try {
-      admin.initializeApp();
+      initializeApp();
       console.log('Initializing Firebase Admin with default credentials');
     } catch (error) {
       console.warn('Firebase Admin failed to initialize:', error.message);
     }
   }
 }
-
 
 const verifyToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -27,7 +28,7 @@ const verifyToken = async (req, res, next) => {
   const token = authHeader.split('Bearer ')[1];
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    const decodedToken = await getAuth().verifyIdToken(token);
     req.user = {
       uid: decodedToken.uid,
       email: decodedToken.email,

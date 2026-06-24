@@ -1,124 +1,130 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>New Zync Meet user</title>
-<style>
-  body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f3f4f6;
-    margin: 0;
-    padding: 0;
-  }
-  .email-container {
-    max-width: 600px;
-    margin: 40px auto;
-    background-color: #ffffff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    border: 1px solid #e5e7eb;
-  }
-  .header {
-    background-color: #1a1e24;
-    color: #ffffff;
-    padding: 24px;
-    text-align: center;
-    border-top: 5px solid #0056D2;
-  }
-  .header h1 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-  .content {
-    padding: 32px 28px;
-    color: #374151;
-  }
-  .content p {
-    font-size: 16px;
-    line-height: 1.6;
-    margin-top: 0;
-    margin-bottom: 24px;
-  }
-  .details-card {
-    background-color: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 24px;
-  }
-  .detail-row {
-    margin-bottom: 16px;
-  }
-  .detail-row:last-child {
-    margin-bottom: 0;
-  }
-  .detail-label {
-    font-weight: 600;
-    color: #6b7280;
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    display: block;
-    margin-bottom: 4px;
-  }
-  .detail-value {
-    font-size: 16px;
-    color: #111827;
-    font-weight: 500;
-  }
-  .detail-value a {
-    color: #0056D2;
-    text-decoration: none;
-  }
-  .uid-box {
-    font-family: 'Courier New', Courier, monospace;
-    background: #e5e7eb;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #374151;
-    word-break: break-all;
-  }
-  .footer {
-    background-color: #f9fafb;
-    padding: 20px 28px;
-    text-align: center;
-    color: #9ca3af;
-    font-size: 13px;
-    border-top: 1px solid #f3f4f6;
-  }
-</style>
-</head>
-<body>
-  <div class="email-container">
-    <div class="header">
-      <h1>New user — Zync Meet</h1>
-    </div>
-    <div class="content">
-      <p>Hello Team,</p>
-      <p>A new user has just signed up for <strong>Zync Meet</strong>. Here are their registration details:</p>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Zync Meet user</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f3f4f6;
+        margin: 0;
+        padding: 0;
+      }
+      .email-container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e5e7eb;
+      }
+      .header {
+        background-color: #1a1e24;
+        color: #ffffff;
+        padding: 24px;
+        text-align: center;
+        border-top: 5px solid #0056d2;
+      }
+      .header h1 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+      }
+      .content {
+        padding: 32px 28px;
+        color: #374151;
+      }
+      .content p {
+        font-size: 16px;
+        line-height: 1.6;
+        margin-top: 0;
+        margin-bottom: 24px;
+      }
+      .details-card {
+        background-color: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 24px;
+      }
+      .detail-row {
+        margin-bottom: 16px;
+      }
+      .detail-row:last-child {
+        margin-bottom: 0;
+      }
+      .detail-label {
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        display: block;
+        margin-bottom: 4px;
+      }
+      .detail-value {
+        font-size: 16px;
+        color: #111827;
+        font-weight: 500;
+      }
+      .detail-value a {
+        color: #0056d2;
+        text-decoration: none;
+      }
+      .uid-box {
+        font-family: 'Courier New', Courier, monospace;
+        background: #e5e7eb;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 14px;
+        color: #374151;
+        word-break: break-all;
+      }
+      .footer {
+        background-color: #f9fafb;
+        padding: 20px 28px;
+        text-align: center;
+        color: #9ca3af;
+        font-size: 13px;
+        border-top: 1px solid #f3f4f6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>New user — Zync Meet</h1>
+      </div>
+      <div class="content">
+        <p>Hello Team,</p>
+        <p>
+          A new user has just signed up for <strong>Zync Meet</strong>. Here are
+          their registration details:
+        </p>
 
-      <div class="details-card">
-        <div class="detail-row">
-          <span class="detail-label">Full Name</span>
-          <span class="detail-value">{{name}}</span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">Email Address</span>
-          <span class="detail-value"><a href="mailto:{{email}}">{{email}}</a></span>
-        </div>
-        <div class="detail-row">
-          <span class="detail-label">User ID (UID)</span>
-          <span class="detail-value uid-box">{{uid}}</span>
+        <div class="details-card">
+          <div class="detail-row">
+            <span class="detail-label">Full Name</span>
+            <span class="detail-value">{{name}}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Email Address</span>
+            <span class="detail-value"
+              ><a href="mailto:{{email}}">{{email}}</a></span
+            >
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">User ID (UID)</span>
+            <span class="detail-value uid-box">{{uid}}</span>
+          </div>
         </div>
       </div>
+      <div class="footer">
+        This is an automated notification from your Zync application.
+        <br />Please do not reply directly to this email.
+      </div>
     </div>
-    <div class="footer">
-      This is an automated notification from your Zync application. <br>Please do not reply directly to this email.
-    </div>
-  </div>
-</body>
+  </body>
 </html>

@@ -1,30 +1,34 @@
-import { describe, it, expect, mock, beforeEach } from "bun:test";
+import { describe, it, expect, mock, beforeEach } from 'bun:test';
 
-
-const mockProjectFindMany = mock(() => Promise.resolve([
-  {
-    id: "p1",
-    name: "Project 1",
-    ownerId: "user1",
-    team: [],
-    steps: [
-      {
-        title: "Step 1",
-        tasks: [
-          { id: "t1", title: "Fix bug", status: "Pending", assignedTo: "user1" }
-        ]
-      }
-    ]
-  }
-]));
-
+const mockProjectFindMany = mock(() =>
+  Promise.resolve([
+    {
+      id: 'p1',
+      name: 'Project 1',
+      ownerId: 'user1',
+      team: [],
+      steps: [
+        {
+          title: 'Step 1',
+          tasks: [
+            {
+              id: 't1',
+              title: 'Fix bug',
+              status: 'Pending',
+              assignedTo: 'user1',
+            },
+          ],
+        },
+      ],
+    },
+  ])
+);
 
 const prisma = {
   project: {
-    findMany: mockProjectFindMany
-  }
+    findMany: mockProjectFindMany,
+  },
 };
-
 
 const secureSearchHandler = async (req, res) => {
   try {
@@ -38,30 +42,29 @@ const secureSearchHandler = async (req, res) => {
 
     if (!query) return res.json([]);
 
-
     const projects = await prisma.project.findMany({
       where: {
         OR: [
           { ownerId: userId },
           { team: { has: userId } },
-          { steps: { some: { tasks: { some: { assignedTo: userId } } } } }
-        ]
+          { steps: { some: { tasks: { some: { assignedTo: userId } } } } },
+        ],
       },
       include: {
         steps: {
           include: {
-            tasks: true
-          }
-        }
-      }
+            tasks: true,
+          },
+        },
+      },
     });
 
     const results = [];
     const searchLower = query.toLowerCase();
 
-    projects.forEach(project => {
-      project.steps.forEach(step => {
-        step.tasks.forEach(task => {
+    projects.forEach((project) => {
+      project.steps.forEach((step) => {
+        step.tasks.forEach((task) => {
           if (task.title.toLowerCase().includes(searchLower)) {
             results.push({
               id: task.id,
@@ -69,13 +72,12 @@ const secureSearchHandler = async (req, res) => {
               projectId: project.id,
               projectName: project.name,
               status: task.status,
-              stepName: step.title
+              stepName: step.title,
             });
           }
         });
       });
     });
-
 
     res.json(results.slice(0, 10));
   } catch (error) {
@@ -84,42 +86,40 @@ const secureSearchHandler = async (req, res) => {
   }
 };
 
-describe("Project Search Logic", () => {
+describe('Project Search Logic', () => {
   beforeEach(() => {
     mockProjectFindMany.mockClear();
   });
 
-  it("should query projects for the authenticated user", async () => {
+  it('should query projects for the authenticated user', async () => {
     const req = {
-      query: { query: "bug" },
-      user: { uid: "user123" }
+      query: { query: 'bug' },
+      user: { uid: 'user123' },
     };
     const res = {
       json: mock(),
-      status: mock(() => res)
+      status: mock(() => res),
     };
 
     await secureSearchHandler(req, res);
-
 
     expect(mockProjectFindMany).toHaveBeenCalled();
 
     const callArgs = mockProjectFindMany.mock.calls[0][0];
 
-
     expect(callArgs.where.OR).toBeDefined();
-    expect(callArgs.where.OR).toContainEqual({ ownerId: "user123" });
-    expect(callArgs.where.OR).toContainEqual({ team: { has: "user123" } });
+    expect(callArgs.where.OR).toContainEqual({ ownerId: 'user123' });
+    expect(callArgs.where.OR).toContainEqual({ team: { has: 'user123' } });
   });
 
-  it("should return 401 if no user is authenticated (though middleware should handle this)", async () => {
+  it('should return 401 if no user is authenticated (though middleware should handle this)', async () => {
     const req = {
-      query: { query: "bug" },
-      user: null
+      query: { query: 'bug' },
+      user: null,
     };
     const res = {
       json: mock(),
-      status: mock(() => res)
+      status: mock(() => res),
     };
 
     await secureSearchHandler(req, res);

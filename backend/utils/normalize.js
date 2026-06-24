@@ -9,14 +9,14 @@ function normalizeDoc(doc) {
     delete obj._id;
   }
   delete obj.__v;
-  
+
   // Security: Remove sensitive fields before sending to client
   if (obj.githubIntegration) delete obj.githubIntegration.accessToken;
   delete obj.deleteConfirmationCode;
   delete obj.deleteConfirmationExpires;
   delete obj.phoneVerificationCode;
   delete obj.phoneVerificationCodeExpires;
-  
+
   return obj;
 }
 

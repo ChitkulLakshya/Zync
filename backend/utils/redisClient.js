@@ -6,8 +6,14 @@ let ready = false;
 function getRedisClient() {
   if (!client) {
     const rawRedisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    const tlsEnv = String(process.env.REDIS_TLS || '').trim().toLowerCase();
-    const rejectUnauthorizedEnv = String(process.env.REDIS_TLS_REJECT_UNAUTHORIZED || '').trim().toLowerCase();
+    const tlsEnv = String(process.env.REDIS_TLS || '')
+      .trim()
+      .toLowerCase();
+    const rejectUnauthorizedEnv = String(
+      process.env.REDIS_TLS_REJECT_UNAUTHORIZED || ''
+    )
+      .trim()
+      .toLowerCase();
     const useTls = tlsEnv
       ? ['1', 'true', 'yes', 'on'].includes(tlsEnv)
       : rawRedisUrl.startsWith('rediss://');
@@ -34,7 +40,9 @@ function getRedisClient() {
           }
           // Exponential backoff capped at 3 seconds
           const delay = Math.min(retries * 100, 3000);
-          console.warn(`[Redis] Reconnecting in ${delay}ms (attempt ${retries})`);
+          console.warn(
+            `[Redis] Reconnecting in ${delay}ms (attempt ${retries})`
+          );
           return delay;
         },
       },
@@ -69,7 +77,9 @@ async function connectRedis() {
     await c.connect();
     console.log('[Redis] Connected successfully');
   } catch (err) {
-    console.warn(`[Redis] Connection failed — server continues without cache: ${err.message}`);
+    console.warn(
+      `[Redis] Connection failed — server continues without cache: ${err.message}`
+    );
   }
 }
 

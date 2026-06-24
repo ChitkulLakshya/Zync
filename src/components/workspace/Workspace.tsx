@@ -1,28 +1,48 @@
-import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/firebase";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { API_BASE_URL, getFullUrl } from "@/lib/utils";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { FolderGit2, Plus, ArrowRight, Calendar, User, Trash2, Pin, FileText, Search, Github, CheckSquare, Loader2 } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { useToast } from "@/hooks/use-toast";
+import { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { auth } from '@/lib/firebase';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  CardFooter,
+} from '@/components/ui/card';
+import { API_BASE_URL, getFullUrl } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  FolderGit2,
+  Plus,
+  ArrowRight,
+  Calendar,
+  User,
+  Trash2,
+  Pin,
+  FileText,
+  Search,
+  Github,
+  CheckSquare,
+  Loader2,
+} from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useProjects, useProjectMutations } from "@/hooks/useProjects";
-import { usePinnedNotes } from "@/hooks/useNotes";
-import TaskAssignmentDrawer from "@/components/workspace/TaskAssignmentDrawer";
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useProjects, useProjectMutations } from '@/hooks/useProjects';
+import { usePinnedNotes } from '@/hooks/useNotes';
+import TaskAssignmentDrawer from '@/components/workspace/TaskAssignmentDrawer';
 
 interface Project {
   _id?: string;
@@ -51,9 +71,14 @@ interface WorkspaceProps {
   usersList?: any[];
 }
 
-const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }: WorkspaceProps) => {
+const Workspace = ({
+  onSelectProject,
+  onOpenNote,
+  currentUser,
+  usersList = [],
+}: WorkspaceProps) => {
   const { toast } = useToast();
-  
+
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const { data: pinnedNotes = [], isLoading: notesLoading } = usePinnedNotes();
   const {
@@ -70,14 +95,14 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const [selectedProjectForLink, setSelectedProjectForLink] = useState<any>(null);
   const [repos, setRepos] = useState<any[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedRepos, setSelectedRepos] = useState<any[]>([]);
   const [creatingProjects, setCreatingProjects] = useState(false);
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
   const [selectedProjectForTask, setSelectedProjectForTask] = useState<Project | null>(null);
-  const [taskName, setTaskName] = useState("");
-  const [taskDescription, setTaskDescription] = useState("");
+  const [taskName, setTaskName] = useState('');
+  const [taskDescription, setTaskDescription] = useState('');
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [activeCollaborators, setActiveCollaborators] = useState<any[]>([]);
   const [availableTeamMembers, setAvailableTeamMembers] = useState<any[]>([]);
@@ -89,33 +114,49 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const navigate = useNavigate();
 
   const normalizeRepoList = (payload: any) => {
-    if (Array.isArray(payload)) {return payload;}
-    if (Array.isArray(payload?.repos)) {return payload.repos;}
-    if (Array.isArray(payload?.repositories)) {return payload.repositories;}
+    if (Array.isArray(payload)) {
+      return payload;
+    }
+    if (Array.isArray(payload?.repos)) {
+      return payload.repos;
+    }
+    if (Array.isArray(payload?.repositories)) {
+      return payload.repositories;
+    }
     return [];
   };
 
   const getRepoOwnerLogin = (repo: any) => {
-    if (!repo) { return ""; }
-    if (typeof repo.owner === "string") { return repo.owner; }
-    if (repo.owner?.login) { return repo.owner.login; }
-    if (repo.full_name && typeof repo.full_name === "string" && repo.full_name.includes("/")) {
-      return repo.full_name.split("/")[0];
+    if (!repo) {
+      return '';
     }
-    return "";
+    if (typeof repo.owner === 'string') {
+      return repo.owner;
+    }
+    if (repo.owner?.login) {
+      return repo.owner.login;
+    }
+    if (repo.full_name && typeof repo.full_name === 'string' && repo.full_name.includes('/')) {
+      return repo.full_name.split('/')[0];
+    }
+    return '';
   };
 
   const makeRepoKey = (owner?: string | null, name?: string | null) =>
-    `${String(owner || "").trim().toLowerCase()}/${String(name || "").trim().toLowerCase()}`;
+    `${String(owner || '')
+      .trim()
+      .toLowerCase()}/${String(name || '')
+      .trim()
+      .toLowerCase()}`;
 
-  const getProjectId = (project: Project | null | undefined) => project?._id || project?.id || "";
+  const getProjectId = (project: Project | null | undefined) => project?._id || project?.id || '';
 
   const handleOpenLinkModal = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
     setSelectedProjectForLink(project);
     setRepoModalOpen(true);
-    setSearchTerm("");
-    
+    setSearchTerm('');
+
     if (repos.length === 0) {
       setLoadingRepos(true);
       try {
@@ -123,7 +164,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         const token = user ? await user.getIdToken() : null;
         if (token) {
           const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (response.ok) {
             const data = await response.json();
@@ -139,26 +180,28 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   };
 
   const handleLinkRepo = async (repo: any) => {
-    if (!selectedProjectForLink) {return;}
+    if (!selectedProjectForLink) {
+      return;
+    }
     try {
       const ownerLogin = getRepoOwnerLogin(repo);
       await linkGitHub({
         projectId: getProjectId(selectedProjectForLink),
         repoData: {
           githubRepoName: repo.name,
-          githubRepoOwner: ownerLogin
-        }
+          githubRepoOwner: ownerLogin,
+        },
       });
       setRepoModalOpen(false);
-      toast({ title: "Success", description: `Linked ${repo.full_name} to project.` });
+      toast({ title: 'Success', description: `Linked ${repo.full_name} to project.` });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to link repository.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to link repository.', variant: 'destructive' });
     }
   };
 
   const handleOpenCreateModal = async () => {
     setCreateModalOpen(true);
-    setSearchTerm("");
+    setSearchTerm('');
     setSelectedRepos([]);
     if (repos.length === 0) {
       setLoadingRepos(true);
@@ -167,7 +210,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         const token = user ? await user.getIdToken() : null;
         if (token) {
           const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+            headers: { Authorization: `Bearer ${token}` },
           });
           if (response.ok) {
             const data = await response.json();
@@ -190,17 +233,19 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         description: repo.description,
         ownerId: currentUser?.uid,
         githubRepoName: repo.name,
-        githubRepoOwner: ownerLogin
+        githubRepoOwner: ownerLogin,
       });
       setCreateModalOpen(false);
-      toast({ title: "Success", description: `Project ${repo.name} created successfully.` });
+      toast({ title: 'Success', description: `Project ${repo.name} created successfully.` });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to create project.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to create project.', variant: 'destructive' });
     }
   };
 
   const handleCreateMultipleProjects = async () => {
-    if (selectedRepos.length === 0) {return;}
+    if (selectedRepos.length === 0) {
+      return;
+    }
     setCreatingProjects(true);
     try {
       for (const repo of selectedRepos) {
@@ -210,23 +255,26 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
           description: repo.description,
           ownerId: currentUser?.uid,
           githubRepoName: repo.name,
-          githubRepoOwner: ownerLogin
+          githubRepoOwner: ownerLogin,
         });
       }
       setCreateModalOpen(false);
-      toast({ title: "Success", description: `${selectedRepos.length} project(s) created successfully.` });
+      toast({
+        title: 'Success',
+        description: `${selectedRepos.length} project(s) created successfully.`,
+      });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to create projects.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to create projects.', variant: 'destructive' });
     } finally {
       setCreatingProjects(false);
     }
   };
 
   const toggleRepoSelection = (repo: any) => {
-    setSelectedRepos(prev => {
-      const isSelected = prev.some(r => r.id === repo.id);
+    setSelectedRepos((prev) => {
+      const isSelected = prev.some((r) => r.id === repo.id);
       if (isSelected) {
-        return prev.filter(r => r.id !== repo.id);
+        return prev.filter((r) => r.id !== repo.id);
       } else {
         return [...prev, repo];
       }
@@ -243,20 +291,27 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
   const handleDeleteProject = async (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) { return; }
+    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+      return;
+    }
 
     try {
       await deleteProject(projectId);
-      toast({ title: "Project deleted", description: "The project has been successfully removed." });
+      toast({
+        title: 'Project deleted',
+        description: 'The project has been successfully removed.',
+      });
     } catch (error) {
-      toast({ title: "Error", description: "Failed to delete project.", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to delete project.', variant: 'destructive' });
     }
   };
 
   const handleOpenArchitecture = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
     const projectId = getProjectId(project);
-    if (!projectId) { return; }
+    if (!projectId) {
+      return;
+    }
     onSelectProject(projectId);
   };
 
@@ -266,23 +321,34 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       const user = auth.currentUser;
       const token = user ? await user.getIdToken() : null;
 
-      const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/collaborator-assignees`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/projects/${projectId}/collaborator-assignees`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
-        throw new Error(errBody?.message || "Failed to fetch collaborator assignees");
+        throw new Error(errBody?.message || 'Failed to fetch collaborator assignees');
       }
 
       const data = await response.json();
-      setActiveCollaborators(Array.isArray(data?.activeCollaborators) ? data.activeCollaborators : []);
-      setAvailableTeamMembers(Array.isArray(data?.availableTeamMembers) ? data.availableTeamMembers : []);
+      setActiveCollaborators(
+        Array.isArray(data?.activeCollaborators) ? data.activeCollaborators : []
+      );
+      setAvailableTeamMembers(
+        Array.isArray(data?.availableTeamMembers) ? data.availableTeamMembers : []
+      );
     } catch (error) {
-      console.error("Failed to load users for task assignment", error);
-      toast({ title: "Error", description: "Failed to load collaborator data.", variant: "destructive" });
+      console.error('Failed to load users for task assignment', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load collaborator data.',
+        variant: 'destructive',
+      });
     } finally {
       setLoadingAssignableUsers(false);
     }
@@ -291,8 +357,8 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const handleOpenTaskDrawer = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
     setSelectedProjectForTask(project);
-    setTaskName("");
-    setTaskDescription("");
+    setTaskName('');
+    setTaskDescription('');
     setSelectedAssigneeId(null);
     setActiveCollaborators([]);
     setAvailableTeamMembers([]);
@@ -305,7 +371,9 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   };
 
   const handleInviteCollaborator = async (userId: string) => {
-    if (!selectedProjectForTask) { return; }
+    if (!selectedProjectForTask) {
+      return;
+    }
     setInvitingCollaborator(true);
 
     try {
@@ -313,22 +381,25 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       const token = user ? await user.getIdToken() : null;
 
       const projectId = getProjectId(selectedProjectForTask);
-      const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}/invite-collaborator`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ userId }),
-      });
+      const response = await fetch(
+        `${API_BASE_URL}/api/projects/${projectId}/invite-collaborator`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ userId }),
+        }
+      );
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
-        throw new Error(errBody?.message || "Failed to invite collaborator");
+        throw new Error(errBody?.message || 'Failed to invite collaborator');
       }
 
       const data = await response.json();
-      toast({ title: "Invite Sent", description: data?.message || "Repository invitation sent." });
+      toast({ title: 'Invite Sent', description: data?.message || 'Repository invitation sent.' });
 
       if (selectedProjectForTask) {
         const projectId = getProjectId(selectedProjectForTask);
@@ -337,8 +408,12 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         }
       }
     } catch (error: any) {
-      console.error("Invite collaborator error:", error);
-      toast({ title: "Invite Failed", description: error?.message || "Could not send invite.", variant: "destructive" });
+      console.error('Invite collaborator error:', error);
+      toast({
+        title: 'Invite Failed',
+        description: error?.message || 'Could not send invite.',
+        variant: 'destructive',
+      });
     } finally {
       setInvitingCollaborator(false);
     }
@@ -349,16 +424,26 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   };
 
   const handleSubmitTaskAssignment = async () => {
-    if (!selectedProjectForTask) { return; }
+    if (!selectedProjectForTask) {
+      return;
+    }
 
     const trimmedName = taskName.trim();
     if (!trimmedName) {
-      toast({ title: "Validation Error", description: "Task Name is required.", variant: "destructive" });
+      toast({
+        title: 'Validation Error',
+        description: 'Task Name is required.',
+        variant: 'destructive',
+      });
       return;
     }
 
     if (!selectedAssigneeId) {
-      toast({ title: "Validation Error", description: "Select one assignee.", variant: "destructive" });
+      toast({
+        title: 'Validation Error',
+        description: 'Select one assignee.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -369,9 +454,9 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       const token = user ? await user.getIdToken() : null;
 
       const response = await fetch(`${API_BASE_URL}/api/tasks/assign`, {
-        method: "POST",
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
@@ -384,25 +469,25 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
       if (!response.ok) {
         const errBody = await response.json().catch(() => ({}));
-        throw new Error(errBody?.message || "Failed to assign task");
+        throw new Error(errBody?.message || 'Failed to assign task');
       }
 
       toast({
-        title: "Task assigned",
+        title: 'Task assigned',
         description: `Task has been assigned successfully.`,
       });
 
       setTaskDrawerOpen(false);
       setSelectedProjectForTask(null);
-      setTaskName("");
-      setTaskDescription("");
+      setTaskName('');
+      setTaskDescription('');
       setSelectedAssigneeId(null);
     } catch (error: any) {
-      console.error("Task assignment error:", error);
+      console.error('Task assignment error:', error);
       toast({
-        title: "Assignment Failed",
-        description: error?.message || "Could not assign task.",
-        variant: "destructive",
+        title: 'Assignment Failed',
+        description: error?.message || 'Could not assign task.',
+        variant: 'destructive',
       });
     } finally {
       setAssigningTask(false);
@@ -429,19 +514,22 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`
+              Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify({ installationId })
+            body: JSON.stringify({ installationId }),
           });
 
           if (!res.ok) {
             throw new Error(`API returned ${res.status}`);
           }
 
-          toast({ title: "GitHub Connected", description: "App installation verified successfully." });
+          toast({
+            title: 'GitHub Connected',
+            description: 'App installation verified successfully.',
+          });
           handleOpenCreateModal();
         } catch (error) {
-          console.error("Failed to save installation ID", error);
+          console.error('Failed to save installation ID', error);
         } finally {
           navigate(location.pathname, { replace: true });
         }
@@ -483,20 +571,26 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       displayName:
         ownerFromPayload?.displayName ||
         fallbackUser?.displayName ||
-        (isProjectOwner(project) ? "You" : "Unknown"),
-      photoURL: ownerFromPayload?.photoURL || fallbackUser?.photoURL || (isProjectOwner(project) ? currentUser?.photoURL : null),
+        (isProjectOwner(project) ? 'You' : 'Unknown'),
+      photoURL:
+        ownerFromPayload?.photoURL ||
+        fallbackUser?.photoURL ||
+        (isProjectOwner(project) ? currentUser?.photoURL : null),
     };
   };
 
   if (loading) {
-    return <div className="p-8 text-sm text-muted-foreground flex items-center justify-center h-full">Loading workspace...</div>;
+    return (
+      <div className="p-8 text-sm text-muted-foreground flex items-center justify-center h-full">
+        Loading workspace...
+      </div>
+    );
   }
   return (
     <div className="flex-1 p-6 md:p-8 h-full bg-transparent overflow-y-auto">
       <div className="max-w-7xl mx-auto w-full space-y-8">
         <div className="flex items-center justify-between">
           <div>
-
             <p className="text-muted-foreground mt-1 text-lg">
               Manage your AI-generated projects and assignments.
             </p>
@@ -514,7 +608,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
               <h3 className="text-xl font-semibold">Pinned Notes</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {pinnedNotes.map(note => (
+              {pinnedNotes.map((note) => (
                 <Card
                   key={note._id}
                   className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50 group"
@@ -529,7 +623,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   <CardContent className="p-4 pt-2">
                     <h4 className="font-semibold truncate">{note.title}</h4>
                     <p className="text-xs text-muted-foreground overflow-hidden h-4 mt-1">
-                      {format(new Date(note.updatedAt), "MMM d, yyyy")}
+                      {format(new Date(note.updatedAt), 'MMM d, yyyy')}
                     </p>
                   </CardContent>
                 </Card>
@@ -546,22 +640,28 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
               </div>
               <h3 className="text-xl font-semibold mb-2">No projects yet</h3>
               <p className="text-muted-foreground max-w-sm mb-6">
-                Get started by creating your first AI-powered project. Describe your idea and let us build the architecture.
+                Get started by creating your first AI-powered project. Describe your idea and let us
+                build the architecture.
               </p>
-              <Button onClick={handleOpenCreateModal}>
-                Add your first project
-              </Button>
+              <Button onClick={handleOpenCreateModal}>Add your first project</Button>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {projects.map((project) => (
-              <Card key={getProjectId(project)} className="group hover:shadow-lg transition-all duration-200 border border-border/10 shadow-sm hover:border-border/30">
+              <Card
+                key={getProjectId(project)}
+                className="group hover:shadow-lg transition-all duration-200 border border-border/10 shadow-sm hover:border-border/30"
+              >
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
-                    <Badge variant="outline" className="mb-2">Project</Badge>
+                    <Badge variant="outline" className="mb-2">
+                      Project
+                    </Badge>
                     {isProjectOwner(project) && (
-                      <Badge variant="secondary" className="text-xs">Owner</Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        Owner
+                      </Badge>
                     )}
                   </div>
                   <CardTitle className="text-xl line-clamp-1 group-hover:text-foreground transition-colors">
@@ -579,13 +679,20 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                     </div>
                     <div className="flex items-center gap-2">
                       <User className="w-4 h-4" />
-                      <div className="flex items-center gap-2" title={`Owner: ${getOwnerProfile(project).displayName}`}>
+                      <div
+                        className="flex items-center gap-2"
+                        title={`Owner: ${getOwnerProfile(project).displayName}`}
+                      >
                         <span>Owner</span>
                         <div className="flex items-center gap-1 bg-secondary/50 pr-2 pl-1 py-0.5 rounded-full">
                           <Avatar className="w-5 h-5">
-                            <AvatarImage src={getFullUrl(getOwnerProfile(project).photoURL || undefined)} />
+                            <AvatarImage
+                              src={getFullUrl(getOwnerProfile(project).photoURL || undefined)}
+                            />
                             <AvatarFallback className="text-[9px]">
-                              {getOwnerProfile(project).displayName?.substring(0, 2)?.toUpperCase() || '??'}
+                              {getOwnerProfile(project)
+                                .displayName?.substring(0, 2)
+                                ?.toUpperCase() || '??'}
                             </AvatarFallback>
                           </Avatar>
                           <span className="font-medium text-xs max-w-[90px] truncate">
@@ -609,7 +716,9 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   {project.githubRepoName && (
                     <div className="flex items-center gap-2 mt-3 p-2 bg-secondary/30 rounded-md text-xs">
                       <Github className="w-3 h-3 flex-shrink-0" />
-                      <span className="truncate flex-1">{project.githubRepoOwner}/{project.githubRepoName}</span>
+                      <span className="truncate flex-1">
+                        {project.githubRepoOwner}/{project.githubRepoName}
+                      </span>
                     </div>
                   )}
                 </CardContent>
@@ -686,7 +795,12 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
               ) : repos.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
                   <p>No repositories found.</p>
-                  <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                  <a
+                    href="https://github.com/apps/ZYNC-meet/installations/new"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-foreground hover:underline mt-2 block"
+                  >
                     Install Zync App on GitHub
                   </a>
                 </div>
@@ -699,7 +813,9 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   >
                     <div className="flex flex-col overflow-hidden">
                       <span className="font-medium text-sm truncate">{repo.name}</span>
-                      <span className="text-xs text-muted-foreground truncate">{repo.full_name}</span>
+                      <span className="text-xs text-muted-foreground truncate">
+                        {repo.full_name}
+                      </span>
                     </div>
                     {selectedProjectForLink?.githubRepoName === repo.name && <Badge>Linked</Badge>}
                   </div>
@@ -715,9 +831,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
           <DialogHeader>
             <DialogTitle>Add Project from GitHub</DialogTitle>
-            <DialogDescription>
-              Select repositories to import as new projects.
-            </DialogDescription>
+            <DialogDescription>Select repositories to import as new projects.</DialogDescription>
           </DialogHeader>
 
           <div className="flex flex-col md:flex-row gap-6 py-4 flex-1 min-h-[350px] overflow-hidden">
@@ -725,9 +839,11 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
             <div className="flex-1 flex flex-col border border-border/10 rounded-xl overflow-hidden bg-background shadow-sm">
               <div className="p-3 border-b border-border/10 bg-secondary/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <Checkbox 
-                    id="select-all" 
-                    checked={addProjectRepos.length > 0 && selectedRepos.length === addProjectRepos.length}
+                  <Checkbox
+                    id="select-all"
+                    checked={
+                      addProjectRepos.length > 0 && selectedRepos.length === addProjectRepos.length
+                    }
                     onCheckedChange={toggleSelectAll}
                   />
                   <label htmlFor="select-all" className="text-sm font-medium cursor-pointer">
@@ -746,58 +862,67 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
               </div>
 
               <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                  {loadingRepos ? (
-                      <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        Loading repositories…
-                      </div>
-                  ) : repos.length === 0 ? (
-                      <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
-                        <p>No repositories found.</p>
-                        <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
-                          Install Zync App on GitHub
-                        </a>
-                      </div>
-                  ) : addProjectRepos.length === 0 ? (
-                      <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
-                        All matching repositories are already added to your workspace.
-                      </div>
-                  ) : (
-                      addProjectRepos.map((repo: any) => {
-                        const isChecked = selectedRepos.some(r => r.id === repo.id);
-                        return (
+                {loadingRepos ? (
+                  <div className="flex items-center justify-center gap-2 py-8 text-sm text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Loading repositories…
+                  </div>
+                ) : repos.length === 0 ? (
+                  <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
+                    <p>No repositories found.</p>
+                    <a
+                      href="https://github.com/apps/ZYNC-meet/installations/new"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-foreground hover:underline mt-2 block"
+                    >
+                      Install Zync App on GitHub
+                    </a>
+                  </div>
+                ) : addProjectRepos.length === 0 ? (
+                  <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
+                    All matching repositories are already added to your workspace.
+                  </div>
+                ) : (
+                  addProjectRepos.map((repo: any) => {
+                    const isChecked = selectedRepos.some((r) => r.id === repo.id);
+                    return (
+                      <div
+                        key={repo.id}
+                        onClick={() => toggleRepoSelection(repo)}
+                        className={`flex items-center justify-between p-2 rounded-md border border-transparent cursor-pointer transition-colors ${isChecked ? 'bg-secondary border-border' : 'hover:bg-secondary/50'}`}
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden pr-2">
                           <div
-                            key={repo.id}
-                            onClick={() => toggleRepoSelection(repo)}
-                            className={`flex items-center justify-between p-2 rounded-md border border-transparent cursor-pointer transition-colors ${isChecked ? 'bg-secondary border-border' : 'hover:bg-secondary/50'}`}
-                          >
-                            <div className="flex items-center gap-3 overflow-hidden pr-2">
-                              <div className={`w-2 h-2 rounded-full flex-shrink-0 ${repo.private ? 'bg-orange-500' : 'bg-green-500'}`} />
-                              <div className="flex flex-col flex-1 overflow-hidden">
-                                <span className="font-medium text-sm truncate leading-none">
-                                  {repo.name} 
-                                  <span className="text-xs text-muted-foreground font-normal ml-1 hidden sm:inline-block truncate">
-                                    {repo.full_name}
-                                  </span>
-                                </span>
-                              </div>
-                            </div>
-                            <Checkbox 
-                              checked={isChecked}
-                              onCheckedChange={() => toggleRepoSelection(repo)}
-                              onClick={e => e.stopPropagation()}
-                            />
+                            className={`w-2 h-2 rounded-full flex-shrink-0 ${repo.private ? 'bg-orange-500' : 'bg-green-500'}`}
+                          />
+                          <div className="flex flex-col flex-1 overflow-hidden">
+                            <span className="font-medium text-sm truncate leading-none">
+                              {repo.name}
+                              <span className="text-xs text-muted-foreground font-normal ml-1 hidden sm:inline-block truncate">
+                                {repo.full_name}
+                              </span>
+                            </span>
                           </div>
-                        );
-                      })
-                  )}
+                        </div>
+                        <Checkbox
+                          checked={isChecked}
+                          onCheckedChange={() => toggleRepoSelection(repo)}
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 
             {/* Right Pane - Selected Repos */}
             <div className="flex-1 flex flex-col border border-border/10 rounded-xl overflow-hidden bg-secondary/5 shadow-sm relative">
               <div className="p-3 border-b border-border/10 bg-secondary/10">
-                <span className="text-sm text-muted-foreground">{selectedRepos.length} checked</span>
+                <span className="text-sm text-muted-foreground">
+                  {selectedRepos.length} checked
+                </span>
               </div>
               <div className="flex-1 overflow-y-auto p-2 space-y-2">
                 {selectedRepos.length === 0 ? (
@@ -805,13 +930,23 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                     Nothing selected yet.
                   </div>
                 ) : (
-                  selectedRepos.map(repo => (
-                    <div key={`selected-${repo.id}`} className="flex items-center justify-between p-2 rounded-md bg-background border border-border/10 shadow-sm">
+                  selectedRepos.map((repo) => (
+                    <div
+                      key={`selected-${repo.id}`}
+                      className="flex items-center justify-between p-2 rounded-md bg-background border border-border/10 shadow-sm"
+                    >
                       <div className="flex items-center gap-2 overflow-hidden flex-1 pr-2">
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${repo.private ? 'bg-orange-500' : 'bg-green-500'}`} />
+                        <div
+                          className={`w-2 h-2 rounded-full flex-shrink-0 ${repo.private ? 'bg-orange-500' : 'bg-green-500'}`}
+                        />
                         <span className="font-medium text-sm truncate">{repo.name}</span>
                       </div>
-                      <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-destructive/10 hover:text-destructive shrink-0" onClick={() => toggleRepoSelection(repo)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 rounded-full opacity-60 hover:opacity-100 hover:bg-destructive/10 hover:text-destructive shrink-0"
+                        onClick={() => toggleRepoSelection(repo)}
+                      >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
                     </div>
@@ -822,10 +957,16 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
           </div>
 
           <DialogFooter className="mt-2 border-t pt-4">
-              <Button variant="outline" onClick={() => setCreateModalOpen(false)}>Cancel</Button>
-              <Button onClick={handleCreateMultipleProjects} disabled={selectedRepos.length === 0 || creatingProjects} className="min-w-[100px]">
-                  {creatingProjects ? "Creating..." : "Submit"}
-              </Button>
+            <Button variant="outline" onClick={() => setCreateModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateMultipleProjects}
+              disabled={selectedRepos.length === 0 || creatingProjects}
+              className="min-w-[100px]"
+            >
+              {creatingProjects ? 'Creating...' : 'Submit'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -833,7 +974,11 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       <TaskAssignmentDrawer
         open={taskDrawerOpen}
         onOpenChange={setTaskDrawerOpen}
-        project={selectedProjectForTask ? { id: getProjectId(selectedProjectForTask), name: selectedProjectForTask.name } : null}
+        project={
+          selectedProjectForTask
+            ? { id: getProjectId(selectedProjectForTask), name: selectedProjectForTask.name }
+            : null
+        }
         taskName={taskName}
         onTaskNameChange={setTaskName}
         taskDescription={taskDescription}

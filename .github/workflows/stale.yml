@@ -43,7 +43,7 @@ on:
   # Run automatically every day at 1:00 AM UTC
   schedule:
     - cron: '0 1 * * *'
-  
+
   # Allow manual triggering from the Actions tab
   workflow_dispatch:
     inputs:
@@ -84,18 +84,18 @@ jobs:
   # ===========================================================================
   # Job: Stale Issues and PRs Management
   # ===========================================================================
-  
+
   stale:
     name: 🧹 Mark/Close Stale Items
     runs-on: ubuntu-latest
-    
-    timeout-minutes: 30  # Prevent runaway jobs
-    
+
+    timeout-minutes: 30 # Prevent runaway jobs
+
     steps:
       # -----------------------------------------------------------------------
       # Step 1: Run Stale Action
       # -----------------------------------------------------------------------
-      
+
       - name: 🧹 Process Stale Issues and PRs
         uses: actions/stale@v9
         with:
@@ -104,23 +104,23 @@ jobs:
           # -------------------------------------------------------------------
           # Use the default GITHUB_TOKEN for authentication.
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          
+
           # -------------------------------------------------------------------
           # Issue Configuration
           # -------------------------------------------------------------------
-          
+
           # Days until an issue is considered stale
           days-before-issue-stale: 90
-          
+
           # Days until a stale issue is closed
           days-before-issue-close: 30
-          
+
           # Label to apply to stale issues
           stale-issue-label: 'stale'
-          
+
           # Label to apply when closing stale issues
           close-issue-label: 'closed-stale'
-          
+
           # Labels that exempt issues from being marked stale
           exempt-issue-labels: |
             pinned
@@ -135,69 +135,69 @@ jobs:
             needs-design
             blocked
             epic
-          
+
           # Message posted when an issue is marked stale
           stale-issue-message: |
             👋 Hello! This issue has been automatically marked as **stale** because it has had no activity for 90 days.
-            
+
             **What does this mean?**
             - This issue will be closed in 30 days if there is no further activity
             - If you believe this issue is still relevant, please leave a comment
             - Adding any activity (comment, label change, etc.) will remove the stale label
-            
+
             **Still affected by this issue?**
             - Please add a 👍 reaction to the original post
             - Leave a comment describing your current situation
             - If possible, provide additional reproduction steps or information
-            
+
             **No longer relevant?**
             - Feel free to close this issue if it's no longer needed
             - Or simply let it close automatically after 30 days
-            
+
             **Exemptions:**
             Some issues are exempt from this policy, including those labeled with:
             `pinned`, `security`, `bug-confirmed`, `help-wanted`, `good-first-issue`,
             `priority-critical`, `priority-high`, `sponsored`, `in-progress`, `needs-design`,
             `blocked`, or `epic`.
-            
+
             ---
             *This is an automated message. If you have questions about this policy, please ask in [Discussions](https://github.com/zync-app/zync/discussions).*
-          
+
           # Message posted when a stale issue is closed
           close-issue-message: |
             🔒 This issue has been automatically closed due to inactivity.
-            
+
             **Why was this closed?**
             - This issue was marked as stale 30 days ago
             - No activity occurred since then
             - To keep our issue tracker manageable, we close stale issues
-            
+
             **Still affected by this issue?**
             - You can reopen this issue if it's still relevant
             - Or create a new issue with updated information
             - Make sure to reference this issue if creating a new one
-            
+
             **Note:** Closed issues can still be searched and referenced.
-            
+
             ---
             *This is an automated message. Thank you for your contribution!*
-          
+
           # -------------------------------------------------------------------
           # Pull Request Configuration
           # -------------------------------------------------------------------
-          
+
           # Days until a PR is considered stale
           days-before-pr-stale: 60
-          
+
           # Days until a stale PR is closed
           days-before-pr-close: 14
-          
+
           # Label to apply to stale PRs
           stale-pr-label: 'stale'
-          
+
           # Label to apply when closing stale PRs
           close-pr-label: 'closed-stale'
-          
+
           # Labels that exempt PRs from being marked stale
           exempt-pr-labels: |
             pinned
@@ -210,91 +210,91 @@ jobs:
             priority-critical
             priority-high
             do-not-close
-          
+
           # Message posted when a PR is marked stale
           stale-pr-message: |
             👋 Hello! This pull request has been automatically marked as **stale** because it has had no activity for 60 days.
-            
+
             **What does this mean?**
             - This PR will be closed in 14 days if there is no further activity
             - If you're still working on this, please leave a comment or push a commit
             - Any activity will remove the stale label
-            
+
             **Still working on this?**
             - Push a commit with your latest changes
             - Leave a comment describing your progress
             - If you need help, mention the reviewers or maintainers
-            
+
             **Need more time?**
             - Add the `WIP` label to indicate work in progress
             - Leave a comment explaining your timeline
-            
+
             **Finished with this PR?**
             - Feel free to close it if it's no longer needed
             - Or let it close automatically after 14 days
-            
+
             **Ready for review?**
             - Make sure all CI checks pass
             - Resolve any merge conflicts
             - Request a review from maintainers
-            
+
             ---
             *This is an automated message. If you have questions, please ask in the PR comments.*
-          
+
           # Message posted when a stale PR is closed
           close-pr-message: |
             🔒 This pull request has been automatically closed due to inactivity.
-            
+
             **Why was this closed?**
             - This PR was marked as stale 14 days ago
             - No activity (commits, comments) occurred since then
             - Inactive PRs are closed to keep the codebase maintainable
-            
+
             **Still want to continue?**
             - You can reopen this PR if you want to continue working on it
             - Or create a new PR with your changes
             - Consider rebasing on the latest main branch
-            
+
             **Changes still valid?**
             If your changes are still valuable:
             1. Reopen this PR or create a new one
             2. Rebase on the latest main branch
             3. Resolve any conflicts
             4. Request a new review
-            
+
             ---
             *Thank you for your contribution! We hope to see you again.*
-          
+
           # -------------------------------------------------------------------
           # General Configuration
           # -------------------------------------------------------------------
-          
+
           # Remove stale label when there's activity
           remove-stale-when-updated: true
-          
+
           # Use issue/PR creation date instead of update date
           start-date: '2024-01-01'
-          
+
           # Maximum number of operations per run
           # This prevents hitting API rate limits
           operations-per-run: 100
-          
+
           # Order to process (oldest first to handle backlog)
           ascending: true
-          
+
           # Enable debug logging if requested
           debug-only: ${{ inputs.dry_run || false }}
-          
+
           # Don't process draft PRs
           exempt-draft-pr: true
-          
+
           # Process issues and PRs
           enable-statistics: true
 
       # -----------------------------------------------------------------------
       # Step 2: Summary Report
       # -----------------------------------------------------------------------
-      
+
       - name: 📊 Summary
         run: |
           echo "## 🧹 Stale Workflow Complete" >> $GITHUB_STEP_SUMMARY

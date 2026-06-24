@@ -15,8 +15,14 @@ const isDbReady = () => mongoose.connection.readyState === 1;
  */
 module.exports = (io) => {
   const chatNamespace = io.of('/chat');
-  const DELIVERY_CATCHUP_BATCH_SIZE = Number.parseInt(process.env.DELIVERY_CATCHUP_BATCH_SIZE || '200', 10);
-  const DELIVERY_CATCHUP_MAX_BATCHES = Number.parseInt(process.env.DELIVERY_CATCHUP_MAX_BATCHES || '10', 10);
+  const DELIVERY_CATCHUP_BATCH_SIZE = Number.parseInt(
+    process.env.DELIVERY_CATCHUP_BATCH_SIZE || '200',
+    10
+  );
+  const DELIVERY_CATCHUP_MAX_BATCHES = Number.parseInt(
+    process.env.DELIVERY_CATCHUP_MAX_BATCHES || '10',
+    10
+  );
 
   // userId → Set<socket.id>  (a user may have several tabs open)
   const userSockets = new Map();
@@ -46,7 +52,10 @@ module.exports = (io) => {
   // ── connection ────────────────────────────────────────────────────
   chatNamespace.on('connection', async (socket) => {
     const userId = socket.handshake.query.userId;
-    if (!userId) { socket.disconnect(); return; }
+    if (!userId) {
+      socket.disconnect();
+      return;
+    }
 
     addSocket(userId, socket.id);
     logger.log(`[ChatSocket] ✅ ${userId} connected (${socket.id})`);
@@ -54,8 +63,15 @@ module.exports = (io) => {
     // ── delivery-catchup (mark queued messages as delivered) ─────────
     if (isDbReady()) {
       try {
-        for (let batchIndex = 0; batchIndex < DELIVERY_CATCHUP_MAX_BATCHES; batchIndex++) {
-          const undelivered = await Message.find({ receiverId: userId, delivered: false })
+        for (
+          let batchIndex = 0;
+          batchIndex < DELIVERY_CATCHUP_MAX_BATCHES;
+          batchIndex++
+        ) {
+          const undelivered = await Message.find({
+            receiverId: userId,
+            delivered: false,
+          })
             .select('_id senderId')
             .sort({ _id: 1 })
             .limit(DELIVERY_CATCHUP_BATCH_SIZE)
@@ -63,16 +79,18 @@ module.exports = (io) => {
 
           if (undelivered.length === 0) break;
 
-          const ids = undelivered.map(m => m._id);
+          const ids = undelivered.map((m) => m._id);
           await Message.updateMany(
             { _id: { $in: ids } },
             { $set: { delivered: true, deliveredAt: new Date() } }
           );
 
           // Notify senders about delivery
-          const senderIds = [...new Set(undelivered.map(m => m.senderId))];
+          const senderIds = [...new Set(undelivered.map((m) => m.senderId))];
           for (const sid of senderIds) {
-            const msgIds = undelivered.filter(m => m.senderId === sid).map(m => String(m._id));
+            const msgIds = undelivered
+              .filter((m) => m.senderId === sid)
+              .map((m) => String(m._id));
             emitToUser(sid, 'message-delivered', { messageIds: msgIds });
           }
 
@@ -91,27 +109,36 @@ module.exports = (io) => {
       }
       try {
         const {
-          chatId, text, receiverId, senderName, senderPhotoURL,
-          type = 'text', fileUrl, fileName, fileSize,
-          projectId, projectName, projectOwnerId
+          chatId,
+          text,
+          receiverId,
+          senderName,
+          senderPhotoURL,
+          type = 'text',
+          fileUrl,
+          fileName,
+          fileSize,
+          projectId,
+          projectName,
+          projectOwnerId,
         } = payload;
 
         const msg = await Message.create({
-            chatId,
-            text: text || null,
-            senderId: userId,
-            senderName: senderName || 'User',
-            senderPhotoURL: senderPhotoURL || null,
-            receiverId,
-            type,
-            fileUrl: fileUrl || null,
-            fileName: fileName || null,
-            fileSize: fileSize ? parseInt(fileSize, 10) : null,
-            projectId: projectId || null,
-            projectName: projectName || null,
-            projectOwnerId: projectOwnerId || null,
-            delivered: userSockets.has(receiverId),
-            deliveredAt: userSockets.has(receiverId) ? new Date() : null
+          chatId,
+          text: text || null,
+          senderId: userId,
+          senderName: senderName || 'User',
+          senderPhotoURL: senderPhotoURL || null,
+          receiverId,
+          type,
+          fileUrl: fileUrl || null,
+          fileName: fileName || null,
+          fileSize: fileSize ? parseInt(fileSize, 10) : null,
+          projectId: projectId || null,
+          projectName: projectName || null,
+          projectOwnerId: projectOwnerId || null,
+          delivered: userSockets.has(receiverId),
+          deliveredAt: userSockets.has(receiverId) ? new Date() : null,
         });
 
         const msgObj = msg.toObject();
@@ -176,5 +203,4 @@ module.exports = (io) => {
       logger.log(`[ChatSocket] ❌ ${userId} disconnected (${socket.id})`);
     });
   });
-
 };

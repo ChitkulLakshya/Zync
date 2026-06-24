@@ -10,29 +10,41 @@ export const BuiltinChatWalkthrough = () => {
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
     checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   useEffect(() => {
     let active = true;
     const sequence = async () => {
-      if (!active) {return;}
+      if (!active) {
+        return;
+      }
       setStep(0);
-      await new Promise(r => setTimeout(r, 1000));
-      if (!active) {return;}
+      await new Promise((r) => setTimeout(r, 1000));
+      if (!active) {
+        return;
+      }
       setStep(1); // Cursor moves to input
-      await new Promise(r => setTimeout(r, 800));
-      if (!active) {return;}
+      await new Promise((r) => setTimeout(r, 800));
+      if (!active) {
+        return;
+      }
       setStep(2); // Typing starts
-      await new Promise(r => setTimeout(r, 2000));
-      if (!active) {return;}
+      await new Promise((r) => setTimeout(r, 2000));
+      if (!active) {
+        return;
+      }
       setStep(3); // Clicks send
-      await new Promise(r => setTimeout(r, 600));
-      if (!active) {return;}
+      await new Promise((r) => setTimeout(r, 600));
+      if (!active) {
+        return;
+      }
       setStep(4); // Message sent
-      await new Promise(r => setTimeout(r, 3000));
-      if (!active) {return;}
+      await new Promise((r) => setTimeout(r, 3000));
+      if (!active) {
+        return;
+      }
       sequence(); // Loop
     };
     sequence();
@@ -41,7 +53,7 @@ export const BuiltinChatWalkthrough = () => {
     };
   }, []);
 
-  const textToType = "The new design looks amazing! 🚀";
+  const textToType = 'The new design looks amazing! 🚀';
 
   return (
     <div className="relative w-full max-w-sm aspect-[4/3] sm:aspect-[4/3] bg-surface-glass-regular backdrop-blur-regular border border-border/10 rounded-2xl sm:rounded-xl overflow-hidden shadow-elevation3 mx-auto flex flex-col min-h-[300px] sm:min-h-0">
@@ -54,28 +66,38 @@ export const BuiltinChatWalkthrough = () => {
           <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border border-background bg-task-green" />
         </div>
         <div className="flex flex-col">
-          <span className="text-[11px] sm:text-[10px] font-semibold text-foreground leading-tight">Sarah Chen</span>
-          <span className="text-[9px] sm:text-[8px] text-muted-foreground leading-tight">online</span>
+          <span className="text-[11px] sm:text-[10px] font-semibold text-foreground leading-tight">
+            Sarah Chen
+          </span>
+          <span className="text-[9px] sm:text-[8px] text-muted-foreground leading-tight">
+            online
+          </span>
         </div>
       </div>
 
       {/* Chat History */}
       <div className="flex-1 p-3 space-y-3 relative overflow-hidden bg-background/50 flex flex-col justify-end pb-12">
         <div className="absolute inset-0 bg-gradient-to-tr from-task-teal/5 to-transparent pointer-events-none" />
-        
+
         {/* Received Message */}
         <div className="flex gap-2 justify-start relative z-10">
-          <div className="w-5 h-5 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-[7px] font-bold text-foreground mt-auto">SC</div>
+          <div className="w-5 h-5 rounded-full bg-secondary flex-shrink-0 flex items-center justify-center text-[7px] font-bold text-foreground mt-auto">
+            SC
+          </div>
           <div className="bg-secondary text-secondary-foreground rounded-2xl rounded-bl-sm px-2.5 py-1.5 max-w-[85%] sm:max-w-[75%] shadow-sm">
-            <p className="text-[9px] sm:text-[8px] leading-relaxed">Hey! Did you check the mockups for the landing page?</p>
-            <div className="text-[7px] sm:text-[6px] text-muted-foreground mt-0.5 text-right">10:42 AM</div>
+            <p className="text-[9px] sm:text-[8px] leading-relaxed">
+              Hey! Did you check the mockups for the landing page?
+            </p>
+            <div className="text-[7px] sm:text-[6px] text-muted-foreground mt-0.5 text-right">
+              10:42 AM
+            </div>
           </div>
         </div>
 
         {/* New Message Bubble */}
         <AnimatePresence>
           {step >= 4 && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0 }}
@@ -103,24 +125,26 @@ export const BuiltinChatWalkthrough = () => {
               <Smile className="w-3 h-3" />
             </div>
           </div>
-          
+
           <div className="flex-1 h-7 sm:h-6 bg-secondary/30 border border-border/20 rounded-md relative flex items-center px-2 overflow-hidden">
             {step === 0 || step === 1 ? (
-              <span className="text-[9px] sm:text-[8px] text-muted-foreground">Type a message...</span>
+              <span className="text-[9px] sm:text-[8px] text-muted-foreground">
+                Type a message...
+              </span>
             ) : null}
             {step >= 2 && step < 4 && (
-              <motion.span 
+              <motion.span
                 initial={{ clipPath: 'inset(0 100% 0 0)' }}
                 animate={{ clipPath: 'inset(0 0% 0 0)' }}
-                transition={{ duration: 1.8, ease: "linear" }}
+                transition={{ duration: 1.8, ease: 'linear' }}
                 className="text-[9px] sm:text-[8px] text-foreground font-medium whitespace-nowrap"
               >
                 {textToType}
               </motion.span>
             )}
           </div>
-          
-          <motion.div 
+
+          <motion.div
             animate={{ scale: step === 3 ? 0.9 : 1 }}
             className={`w-7 h-7 sm:w-6 sm:h-6 rounded flex items-center justify-center transition-colors ${step >= 2 && step < 4 ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-secondary text-muted-foreground'}`}
           >
@@ -131,19 +155,20 @@ export const BuiltinChatWalkthrough = () => {
 
       {/* Simulated Cursor */}
       {(() => {
-        const cursorPos = 
-          step === 0 ? { x: isMobile ? "90%" : "85%", y: isMobile ? "60%" : "85%" } :
-          step === 1 ? { x: "30%", y: "96%" } : // Click input
-          step === 2 ? { x: "30%", y: "96%" } : // Typing
-          step === 3 ? { x: isMobile ? "94p%" : "92%", y: isMobile ? "92%" : "90%" } : // Click send
-          step === 4 ? { x: isMobile ? "90%" : "120%", y: isMobile ? "60%" : "120%" } : // Leave
-          { x: isMobile ? "90%" : "85%", y: isMobile ? "90%" : "85%" };
+        const cursorPos =
+          step === 0
+            ? { x: isMobile ? '90%' : '85%', y: isMobile ? '60%' : '85%' }
+            : step === 1
+              ? { x: '30%', y: '96%' } // Click input
+              : step === 2
+                ? { x: '30%', y: '96%' } // Typing
+                : step === 3
+                  ? { x: isMobile ? '94p%' : '92%', y: isMobile ? '92%' : '90%' } // Click send
+                  : step === 4
+                    ? { x: isMobile ? '90%' : '120%', y: isMobile ? '60%' : '120%' } // Leave
+                    : { x: isMobile ? '90%' : '85%', y: isMobile ? '90%' : '85%' };
         return (
-          <SimulatedCursor 
-            x={cursorPos.x}
-            y={cursorPos.y}
-            isClicking={step === 1 || step === 3}
-          />
+          <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={step === 1 || step === 3} />
         );
       })()}
     </div>

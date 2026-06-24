@@ -1,12 +1,18 @@
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { CheckSquare, Loader2, UserPlus, Github } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { getFullUrl } from "@/lib/utils";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { CheckSquare, Loader2, UserPlus, Github } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getFullUrl } from '@/lib/utils';
 
 interface AssignableUser {
   uid: string;
@@ -69,13 +75,17 @@ const TaskAssignmentDrawer = ({
             <SheetTitle>Assign Task</SheetTitle>
           </div>
           <SheetDescription>
-            Create a task for <span className="font-medium text-foreground">{project?.name || "project"}</span> and assign it to one or more team members.
+            Create a task for{' '}
+            <span className="font-medium text-foreground">{project?.name || 'project'}</span> and
+            assign it to one or more team members.
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="task-name">Task Name <span className="text-destructive">*</span></Label>
+            <Label htmlFor="task-name">
+              Task Name <span className="text-destructive">*</span>
+            </Label>
             <Input
               id="task-name"
               placeholder="e.g., Build authentication API"
@@ -124,15 +134,17 @@ const TaskAssignmentDrawer = ({
                         <Avatar className="h-7 w-7">
                           <AvatarImage src={getFullUrl(user.photoURL || undefined)} />
                           <AvatarFallback className="text-[10px]">
-                            {(user.displayName || user.email || user.uid || 'U').substring(0, 2).toUpperCase()}
+                            {(user.displayName || user.email || user.uid || 'U')
+                              .substring(0, 2)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
                           <p className="text-sm font-medium truncate">
-                            {user.displayName || user.email || user.uid}
-                            {" "}
+                            {user.displayName || user.email || user.uid}{' '}
                             <span className="text-xs text-muted-foreground font-normal">
-                              (GitHub: {user.githubUsername ? `@${user.githubUsername}` : 'Not connected'})
+                              (GitHub:{' '}
+                              {user.githubUsername ? `@${user.githubUsername}` : 'Not connected'})
                             </span>
                           </p>
                           {user.email && (
@@ -151,7 +163,9 @@ const TaskAssignmentDrawer = ({
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium">Add Collaborator to Repo</p>
-                <p className="text-xs text-muted-foreground">Invite team members who are connected to GitHub but not collaborators yet.</p>
+                <p className="text-xs text-muted-foreground">
+                  Invite team members who are connected to GitHub but not collaborators yet.
+                </p>
               </div>
               <UserPlus className="w-4 h-4 text-foreground" />
             </div>
@@ -169,19 +183,27 @@ const TaskAssignmentDrawer = ({
               ) : (
                 <div className="p-2 space-y-1">
                   {availableTeamMembers.map((member) => (
-                    <div key={member.uid} className="flex items-center justify-between gap-3 rounded-md p-2 hover:bg-secondary/60">
+                    <div
+                      key={member.uid}
+                      className="flex items-center justify-between gap-3 rounded-md p-2 hover:bg-secondary/60"
+                    >
                       <div className="min-w-0 flex items-center gap-2">
                         <Avatar className="h-7 w-7">
                           <AvatarImage src={getFullUrl(member.photoURL || undefined)} />
                           <AvatarFallback className="text-[10px]">
-                            {(member.displayName || member.email || member.uid || 'U').substring(0, 2).toUpperCase()}
+                            {(member.displayName || member.email || member.uid || 'U')
+                              .substring(0, 2)
+                              .toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="min-w-0">
-                        <p className="text-sm font-medium truncate">{member.displayName || member.email || member.uid}</p>
-                        <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                          <Github className="w-3 h-3" /> {member.githubUsername ? `@${member.githubUsername}` : 'Not connected'}
-                        </p>
+                          <p className="text-sm font-medium truncate">
+                            {member.displayName || member.email || member.uid}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                            <Github className="w-3 h-3" />{' '}
+                            {member.githubUsername ? `@${member.githubUsername}` : 'Not connected'}
+                          </p>
                         </div>
                       </div>
                       <Button
@@ -192,7 +214,11 @@ const TaskAssignmentDrawer = ({
                         onClick={() => onInviteCollaborator(member.uid)}
                         title={member.inviteDisabledReason || undefined}
                       >
-                        {isInvitingCollaborator ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Send Invite"}
+                        {isInvitingCollaborator ? (
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          'Send Invite'
+                        )}
                       </Button>
                     </div>
                   ))}
@@ -213,7 +239,7 @@ const TaskAssignmentDrawer = ({
                 Creating...
               </>
             ) : (
-              "Create Task"
+              'Create Task'
             )}
           </Button>
         </div>

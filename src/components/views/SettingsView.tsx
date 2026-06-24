@@ -1,23 +1,47 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import ProfilePhotoCropper from "@/components/ProfilePhotoCropper";
-import { auth } from "@/lib/firebase";
-import { signOutAndClearState } from "@/lib/auth-signout";
-import { updateProfile, GithubAuthProvider, GoogleAuthProvider, linkWithPopup, getAdditionalUserInfo, onAuthStateChanged, reauthenticateWithPopup } from "firebase/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useMe } from "@/hooks/useMe";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/use-toast";
-import { DelayedLoaderGate } from "@/loading/DelayedLoaderGate";
-import { Textarea } from "@/components/ui/textarea";
-import { Camera, Github, AlertTriangle, Check, ChevronsUpDown, Mail, Headphones, MessageSquare, Newspaper, UserMinus, Trash2, Copy, LogOut, Crown, Users } from "lucide-react";
-import { cn, API_BASE_URL, getFullUrl } from "@/lib/utils";
-import { getLogoById, getDeterministicLogoId } from "@/lib/team-logos";
+import { useState, useRef, useEffect, useCallback } from 'react';
+import ProfilePhotoCropper from '@/components/ProfilePhotoCropper';
+import { auth } from '@/lib/firebase';
+import { signOutAndClearState } from '@/lib/auth-signout';
+import {
+  updateProfile,
+  GithubAuthProvider,
+  GoogleAuthProvider,
+  linkWithPopup,
+  getAdditionalUserInfo,
+  onAuthStateChanged,
+  reauthenticateWithPopup,
+} from 'firebase/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useMe } from '@/hooks/useMe';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/components/ui/use-toast';
+import { DelayedLoaderGate } from '@/loading/DelayedLoaderGate';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Camera,
+  Github,
+  AlertTriangle,
+  Check,
+  ChevronsUpDown,
+  Mail,
+  Headphones,
+  MessageSquare,
+  Newspaper,
+  UserMinus,
+  Trash2,
+  Copy,
+  LogOut,
+  Crown,
+  Users,
+} from 'lucide-react';
+import { cn, API_BASE_URL, getFullUrl } from '@/lib/utils';
+import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
 import {
   Command,
   CommandEmpty,
@@ -25,33 +49,28 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
+} from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { useTheme } from "next-themes";
-
+} from '@/components/ui/select';
+import { useTheme } from 'next-themes';
 
 const countries = [
-  { name: "United States", code: "US", dial_code: "+1", flag: "🇺🇸" },
-  { name: "India", code: "IN", dial_code: "+91", flag: "🇮🇳" },
-  { name: "United Kingdom", code: "GB", dial_code: "+44", flag: "🇬🇧" },
-  { name: "Canada", code: "CA", dial_code: "+1", flag: "🇨🇦" },
-  { name: "Australia", code: "AU", dial_code: "+61", flag: "🇦🇺" },
-  { name: "Germany", code: "DE", dial_code: "+49", flag: "🇩🇪" },
-  { name: "France", code: "FR", dial_code: "+33", flag: "🇫🇷" },
-  { name: "Japan", code: "JP", dial_code: "+81", flag: "🇯🇵" },
-  { name: "China", code: "CN", dial_code: "+86", flag: "🇨🇳" },
-  { name: "Brazil", code: "BR", dial_code: "+55", flag: "🇧🇷" },
+  { name: 'United States', code: 'US', dial_code: '+1', flag: '🇺🇸' },
+  { name: 'India', code: 'IN', dial_code: '+91', flag: '🇮🇳' },
+  { name: 'United Kingdom', code: 'GB', dial_code: '+44', flag: '🇬🇧' },
+  { name: 'Canada', code: 'CA', dial_code: '+1', flag: '🇨🇦' },
+  { name: 'Australia', code: 'AU', dial_code: '+61', flag: '🇦🇺' },
+  { name: 'Germany', code: 'DE', dial_code: '+49', flag: '🇩🇪' },
+  { name: 'France', code: 'FR', dial_code: '+33', flag: '🇫🇷' },
+  { name: 'Japan', code: 'JP', dial_code: '+81', flag: '🇯🇵' },
+  { name: 'China', code: 'CN', dial_code: '+86', flag: '🇨🇳' },
+  { name: 'Brazil', code: 'BR', dial_code: '+55', flag: '🇧🇷' },
 ];
 
 interface SettingsViewProps {
@@ -64,104 +83,102 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
   const { data: realUserData, isLoading: isMeLoading } = useMe();
   const userData = isPreview && mockMe ? mockMe : realUserData;
   const [currentUser, setCurrentUser] = useState(isPreview && mockMe ? mockMe : auth.currentUser);
-  
+
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [isConnectingGithub, setIsConnectingGithub] = useState(false);
   const [isConnectingGoogle, setIsConnectingGoogle] = useState(false);
-  
+
   const [teamsData, setTeamsData] = useState<any[]>([]);
   const [teamLoading, setTeamLoading] = useState(false);
 
-
   useEffect(() => {
-    if (isPreview) {return;}
+    if (isPreview) {
+      return;
+    }
     return onAuthStateChanged(auth, (user) => {
       setCurrentUser(user);
     });
   }, [isPreview]);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme } = useTheme();
 
   const [openCountry, setOpenCountry] = useState(false);
   const [cropperOpen, setCropperOpen] = useState(false);
-  const [cropperImage, setCropperImage] = useState<string>("");
+  const [cropperImage, setCropperImage] = useState<string>('');
 
   const [deleteStep, setDeleteStep] = useState<'initial' | 'verifying'>('initial');
-  const [deleteCode, setDeleteCode] = useState("");
+  const [deleteCode, setDeleteCode] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [supportLoading, setSupportLoading] = useState(false);
   const [supportForm, setSupportForm] = useState({
-    message: ""
+    message: '',
   });
-
 
   const googleProvider = currentUser?.providerData?.find((p: any) => p.providerId === 'google.com');
   const isGoogleLinked = !!googleProvider;
   const isCalendarSynced = userData?.integrations?.google?.connected;
 
-
   const queryClient = useQueryClient();
   const isGitHubLinked = !!userData?.githubIntegration?.connected;
 
-  const setUserData = useCallback((updater: any) => {
-    queryClient.setQueryData(['me', currentUser?.uid], updater);
-  }, [queryClient, currentUser?.uid]);
-
+  const setUserData = useCallback(
+    (updater: any) => {
+      queryClient.setQueryData(['me', currentUser?.uid], updater);
+    },
+    [queryClient, currentUser?.uid]
+  );
 
   const [profileForm, setProfileForm] = useState({
-    username: "",
-    firstName: "",
-    lastName: "",
-    displayName: "",
-    country: "",
-    countryCode: "",
-    phoneNumber: "",
-    photoURL: ""
+    username: '',
+    firstName: '',
+    lastName: '',
+    displayName: '',
+    country: '',
+    countryCode: '',
+    phoneNumber: '',
+    photoURL: '',
   });
-
 
   useEffect(() => {
     if (userData) {
       setProfileForm({
-        username: userData.username || "",
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        displayName: userData.displayName || "",
-        country: userData.country || "",
-        countryCode: userData.countryCode || "",
-        phoneNumber: userData.phoneNumber || "",
-        photoURL: userData.photoURL || currentUser?.photoURL || ""
+        username: userData.username || '',
+        firstName: userData.firstName || '',
+        lastName: userData.lastName || '',
+        displayName: userData.displayName || '',
+        country: userData.country || '',
+        countryCode: userData.countryCode || '',
+        phoneNumber: userData.phoneNumber || '',
+        photoURL: userData.photoURL || currentUser?.photoURL || '',
       });
     }
   }, [userData, currentUser]);
-
 
   const handleProfileUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSavingProfile(true);
     try {
       const res = await fetch(`${API_BASE_URL}/api/users/${currentUser?.uid}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(profileForm)
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(profileForm),
       });
-
 
       if (currentUser && profileForm.displayName) {
         await updateProfile(currentUser, {
-          displayName: profileForm.displayName
+          displayName: profileForm.displayName,
         });
       }
 
       if (res.ok) {
-        toast({ title: "Success", description: "Profile updated successfully" });
+        toast({ title: 'Success', description: 'Profile updated successfully' });
         queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
       } else {
-        throw new Error("Failed to update");
+        throw new Error('Failed to update');
       }
     } catch (error) {
-      toast({ title: "Error", description: "Failed to update profile", variant: "destructive" });
+      toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' });
     } finally {
       setIsSavingProfile(false);
     }
@@ -171,7 +188,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       if (!currentUser?.uid) {
-        toast({ title: "Error", description: "You must be signed in.", variant: "destructive" });
+        toast({ title: 'Error', description: 'You must be signed in.', variant: 'destructive' });
         return;
       }
 
@@ -182,50 +199,58 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
       };
       reader.readAsDataURL(file);
 
-      e.target.value = "";
+      e.target.value = '';
     }
   };
 
-  const handleCroppedUpload = useCallback(async (croppedBlob: Blob) => {
-    setCropperOpen(false);
-    if (!currentUser?.uid) { return; }
-
-    setIsUploadingPhoto(true);
-    try {
-      const token = await currentUser.getIdToken();
-      const formData = new FormData();
-      formData.append('file', croppedBlob, 'profile.jpg');
-
-      const response = await fetch(`${API_BASE_URL}/api/upload/profile-photo`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-      });
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.message || 'Upload failed');
+  const handleCroppedUpload = useCallback(
+    async (croppedBlob: Blob) => {
+      setCropperOpen(false);
+      if (!currentUser?.uid) {
+        return;
       }
 
-      const data = await response.json();
-      const photoURL = data.photoURL;
+      setIsUploadingPhoto(true);
+      try {
+        const token = await currentUser.getIdToken();
+        const formData = new FormData();
+        formData.append('file', croppedBlob, 'profile.jpg');
 
-      setProfileForm(prev => ({ ...prev, photoURL }));
+        const response = await fetch(`${API_BASE_URL}/api/upload/profile-photo`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+          body: formData,
+        });
 
-      if (auth.currentUser) {
-        await updateProfile(auth.currentUser, { photoURL });
+        if (!response.ok) {
+          const err = await response.json();
+          throw new Error(err.message || 'Upload failed');
+        }
+
+        const data = await response.json();
+        const photoURL = data.photoURL;
+
+        setProfileForm((prev) => ({ ...prev, photoURL }));
+
+        if (auth.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL });
+        }
+
+        toast({ title: 'Success', description: 'Profile photo updated' });
+        queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
+      } catch (error: any) {
+        console.error('Upload error:', error);
+        toast({
+          title: 'Error',
+          description: (error as Error).message || 'Failed to upload photo',
+          variant: 'destructive',
+        });
+      } finally {
+        setIsUploadingPhoto(false);
       }
-
-      toast({ title: "Success", description: "Profile photo updated" });
-      queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
-    } catch (error: any) {
-      console.error("Upload error:", error);
-      toast({ title: "Error", description: (error as Error).message || "Failed to upload photo", variant: "destructive" });
-    } finally {
-      setIsUploadingPhoto(false);
-    }
-  }, [currentUser, queryClient]);
-
+    },
+    [currentUser, queryClient]
+  );
 
   const handleGithubConnect = async () => {
     setIsConnectingGithub(true);
@@ -234,7 +259,9 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
       provider.addScope('repo');
       provider.addScope('read:user');
 
-      if (!auth.currentUser) { throw new Error("User must be signed in"); }
+      if (!auth.currentUser) {
+        throw new Error('User must be signed in');
+      }
 
       let accessToken: string | undefined;
       let githubUsername: string | undefined;
@@ -246,9 +273,8 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
 
         const details = getAdditionalUserInfo(result);
         githubUsername = details?.username || (details?.profile as any)?.login;
-
       } catch (linkError: any) {
-        console.warn("Firebase Link Warning:", linkError.code);
+        console.warn('Firebase Link Warning:', linkError.code);
         if (linkError.code === 'auth/credential-already-in-use') {
           const credential = GithubAuthProvider.credentialFromError(linkError);
           accessToken = credential?.accessToken;
@@ -257,19 +283,21 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
         }
       }
 
-      if (!accessToken) { throw new Error("No Access Token retrieved from GitHub."); }
+      if (!accessToken) {
+        throw new Error('No Access Token retrieved from GitHub.');
+      }
 
       if (!githubUsername) {
         try {
           const ghResponse = await fetch('https://api.github.com/user', {
-            headers: { Authorization: `Bearer ${accessToken}` }
+            headers: { Authorization: `Bearer ${accessToken}` },
           });
           if (ghResponse.ok) {
             const ghData = await ghResponse.json();
             githubUsername = ghData.login;
           }
         } catch (e) {
-          console.warn("Could not fetch username fallback", e);
+          console.warn('Could not fetch username fallback', e);
         }
       }
 
@@ -278,28 +306,28 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           accessToken,
-          username: githubUsername || 'GitHub User'
-        })
+          username: githubUsername || 'GitHub User',
+        }),
       });
 
       if (!response.ok) {
         const err = await response.json();
-        throw new Error(err.message || "Backend connection failed");
+        throw new Error(err.message || 'Backend connection failed');
       }
 
       const data = await response.json();
-      toast({ title: "Connected!", description: `Linked GitHub account: ${data.username}` });
+      toast({ title: 'Connected!', description: `Linked GitHub account: ${data.username}` });
       queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
       console.error(error);
       toast({
-        variant: "destructive",
-        title: "Connection Failed",
-        description: error.message
+        variant: 'destructive',
+        title: 'Connection Failed',
+        description: error.message,
       });
     } finally {
       setIsConnectingGithub(false);
@@ -307,29 +335,32 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
   };
 
   const handleGithubDisconnect = async () => {
-    if (!window.confirm("Are you sure you want to unlink your GitHub account?")) { return; }
+    if (!window.confirm('Are you sure you want to unlink your GitHub account?')) {
+      return;
+    }
     setIsConnectingGithub(true);
     try {
       const idToken = await auth.currentUser?.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/github/disconnect`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${idToken}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${idToken}`,
+          'Content-Type': 'application/json',
         },
       });
 
-      if (!res.ok) { throw new Error("Failed to disconnect"); }
+      if (!res.ok) {
+        throw new Error('Failed to disconnect');
+      }
 
-      toast({ title: "Disconnected", description: "GitHub account unlinked." });
+      toast({ title: 'Disconnected', description: 'GitHub account unlinked.' });
       queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setIsConnectingGithub(false);
     }
   };
-
 
   const handleGoogleConnect = async () => {
     setIsConnectingGoogle(true);
@@ -338,7 +369,9 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
       provider.addScope('https://www.googleapis.com/auth/calendar');
       provider.addScope('https://www.googleapis.com/auth/calendar.events');
 
-      if (!auth.currentUser) { throw new Error("User must be signed in"); }
+      if (!auth.currentUser) {
+        throw new Error('User must be signed in');
+      }
 
       let accessToken: string | undefined;
       let googleEmail: string | undefined;
@@ -350,7 +383,6 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
 
         const details = getAdditionalUserInfo(result);
         googleEmail = (details?.profile as any)?.email;
-
       } catch (linkError: any) {
         if (linkError.code === 'auth/credential-already-in-use') {
           const credential = GoogleAuthProvider.credentialFromError(linkError);
@@ -364,53 +396,58 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
         }
       }
 
-      if (!accessToken) { throw new Error("No Access Token retrieved."); }
+      if (!accessToken) {
+        throw new Error('No Access Token retrieved.');
+      }
 
       const idToken = await auth.currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/google/connect`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${idToken}`
+          Authorization: `Bearer ${idToken}`,
         },
         body: JSON.stringify({
           accessToken,
-          email: googleEmail || auth.currentUser.email
-        })
+          email: googleEmail || auth.currentUser.email,
+        }),
       });
 
-      if (!response.ok) { throw new Error("Backend connection failed"); }
+      if (!response.ok) {
+        throw new Error('Backend connection failed');
+      }
 
       const data = await response.json();
-      toast({ title: "Connected!", description: `Linked Google Calendar: ${data.email}` });
+      toast({ title: 'Connected!', description: `Linked Google Calendar: ${data.email}` });
       queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (error: any) {
       console.error(error);
-      toast({ variant: "destructive", title: "Connection Failed", description: error.message });
+      toast({ variant: 'destructive', title: 'Connection Failed', description: error.message });
     } finally {
       setIsConnectingGoogle(false);
     }
   };
 
   const handleGoogleDisconnect = async () => {
-    if (!window.confirm("Disconnect Google Calendar?")) { return; }
+    if (!window.confirm('Disconnect Google Calendar?')) {
+      return;
+    }
     setIsConnectingGoogle(true);
     try {
       const idToken = await auth.currentUser?.getIdToken();
       await fetch(`${API_BASE_URL}/api/google/disconnect`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${idToken}` }
+        headers: { Authorization: `Bearer ${idToken}` },
       });
 
-      toast({ title: "Disconnected", description: "Google account unlinked." });
+      toast({ title: 'Disconnected', description: 'Google account unlinked.' });
       queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
     } catch (err: any) {
-      toast({ title: "Error", variant: "destructive", description: err.message });
+      toast({ title: 'Error', variant: 'destructive', description: err.message });
     } finally {
       setIsConnectingGoogle(false);
     }
   };
-
 
   if (isMeLoading) {
     return (
@@ -425,62 +462,59 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
     setSupportLoading(true);
 
     try {
-      let firstName = "User";
-      let lastName = "";
+      let firstName = 'User';
+      let lastName = '';
       if (currentUser?.displayName) {
-        const parts = currentUser.displayName.split(" ");
+        const parts = currentUser.displayName.split(' ');
         firstName = parts[0];
         if (parts.length > 1) {
-          lastName = parts.slice(1).join(" ");
+          lastName = parts.slice(1).join(' ');
         }
       }
-      const email = currentUser?.email || "No email provided";
+      const email = currentUser?.email || 'No email provided';
 
       const res = await fetch(`${API_BASE_URL}/api/support`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           firstName,
           lastName,
           email,
-          message: supportForm.message
-        })
+          message: supportForm.message,
+        }),
       });
 
       let data;
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.indexOf("application/json") !== -1) {
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.indexOf('application/json') !== -1) {
         try {
           data = await res.json();
         } catch (jsonError) {
-
-          console.error("Failed to parse JSON response:", jsonError);
+          console.error('Failed to parse JSON response:', jsonError);
         }
       }
 
       if (!res.ok) {
+        let errorMessage = data?.message || res.statusText || 'Failed to send message';
 
-        let errorMessage = data?.message || res.statusText || "Failed to send message";
-
-
-        if (errorMessage.includes("Invalid login") || res.status === 500) {
-          console.error("Backend Error:", errorMessage);
-          errorMessage = "Our support system is temporarily unavailable. Please try again later or email us directly.";
+        if (errorMessage.includes('Invalid login') || res.status === 500) {
+          console.error('Backend Error:', errorMessage);
+          errorMessage =
+            'Our support system is temporarily unavailable. Please try again later or email us directly.';
         }
 
         throw new Error(errorMessage);
       }
 
-      toast({ title: "Message Sent", description: "We'll get back to you soon!" });
+      toast({ title: 'Message Sent', description: "We'll get back to you soon!" });
       setSupportForm({
-        message: ""
+        message: '',
       });
-
     } catch (error: any) {
-      console.error("Support Form Error:", error);
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      console.error('Support Form Error:', error);
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setSupportLoading(false);
     }
@@ -490,46 +524,46 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
     setDeleteLoading(true);
     try {
       if (deleteStep === 'initial') {
-
         const idToken = await currentUser?.getIdToken();
         const res = await fetch(`${API_BASE_URL}/api/users/delete/request`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${idToken}`
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
           },
-          body: JSON.stringify({ uid: currentUser?.uid })
+          body: JSON.stringify({ uid: currentUser?.uid }),
         });
 
-        if (!res.ok) { throw new Error("Failed to send verification code"); }
+        if (!res.ok) {
+          throw new Error('Failed to send verification code');
+        }
 
-        toast({ title: "Verification Sent", description: "Check your email for the confirmation code." });
+        toast({
+          title: 'Verification Sent',
+          description: 'Check your email for the confirmation code.',
+        });
         setDeleteStep('verifying');
-
       } else {
-
         const idToken = await currentUser?.getIdToken();
         const res = await fetch(`${API_BASE_URL}/api/users/delete/confirm`, {
-          method: "POST",
+          method: 'POST',
           headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${idToken}`
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
           },
-          body: JSON.stringify({ uid: currentUser?.uid, code: deleteCode })
+          body: JSON.stringify({ uid: currentUser?.uid, code: deleteCode }),
         });
 
         if (!res.ok) {
           const err = await res.json();
-          throw new Error(err.message || "Failed to verify code");
+          throw new Error(err.message || 'Failed to verify code');
         }
 
-
         await signOutAndClearState(auth);
-        window.location.href = "/";
+        window.location.href = '/';
       }
-
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setDeleteLoading(false);
     }
@@ -541,12 +575,24 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
         <Tabs defaultValue="profile" className="space-y-6">
           <div className="w-full overflow-x-auto pb-1 scrollbar-thin">
             <TabsList className="bg-card/50 backdrop-blur-xl border border-border/10 inline-flex w-max min-w-full sm:min-w-0 whitespace-nowrap">
-              <TabsTrigger value="profile" className="shrink-0">My Profile</TabsTrigger>
-              <TabsTrigger value="team" className="shrink-0">Team</TabsTrigger>
-              <TabsTrigger value="preferences" className="shrink-0">Preferences</TabsTrigger>
-              <TabsTrigger value="integrations" className="shrink-0">Integrations</TabsTrigger>
-              <TabsTrigger value="support" className="shrink-0">Support</TabsTrigger>
-              <TabsTrigger value="security" className="shrink-0">Security</TabsTrigger>
+              <TabsTrigger value="profile" className="shrink-0">
+                My Profile
+              </TabsTrigger>
+              <TabsTrigger value="team" className="shrink-0">
+                Team
+              </TabsTrigger>
+              <TabsTrigger value="preferences" className="shrink-0">
+                Preferences
+              </TabsTrigger>
+              <TabsTrigger value="integrations" className="shrink-0">
+                Integrations
+              </TabsTrigger>
+              <TabsTrigger value="support" className="shrink-0">
+                Support
+              </TabsTrigger>
+              <TabsTrigger value="security" className="shrink-0">
+                Security
+              </TabsTrigger>
             </TabsList>
           </div>
 
@@ -561,10 +607,16 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                 <form onSubmit={handleProfileUpdate} className="space-y-4">
                   {}
                   <div className="flex flex-col items-center justify-center mb-6">
-                    <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                    <div
+                      className="relative group cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       <Avatar className="w-24 h-24 border-2 border-border">
                         <AvatarImage src={getFullUrl(profileForm.photoURL)} />
-                        <AvatarFallback className="text-2xl">{profileForm.firstName?.[0]}{profileForm.lastName?.[0]}</AvatarFallback>
+                        <AvatarFallback className="text-2xl">
+                          {profileForm.firstName?.[0]}
+                          {profileForm.lastName?.[0]}
+                        </AvatarFallback>
                       </Avatar>
                       <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Camera className="w-8 h-8 text-primary-foreground" />
@@ -577,7 +629,9 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       accept="image/*"
                       onChange={handleFileSelect}
                     />
-                    <p className="text-xs text-muted-foreground mt-2">Click to change profile photo</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Click to change profile photo
+                    </p>
                   </div>
 
                   {}
@@ -592,25 +646,42 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                     <Label>Display Name</Label>
                     <Input
                       value={profileForm.displayName}
-                      onChange={e => setProfileForm({ ...profileForm, displayName: e.target.value })}
+                      onChange={(e) =>
+                        setProfileForm({ ...profileForm, displayName: e.target.value })
+                      }
                       placeholder="e.g. John Doe"
                     />
-                    <p className="text-[0.8rem] text-muted-foreground">This is how your name will appear to other users.</p>
+                    <p className="text-[0.8rem] text-muted-foreground">
+                      This is how your name will appear to other users.
+                    </p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>First Name</Label>
-                      <Input value={profileForm.firstName} onChange={e => setProfileForm({ ...profileForm, firstName: e.target.value })} />
+                      <Input
+                        value={profileForm.firstName}
+                        onChange={(e) =>
+                          setProfileForm({ ...profileForm, firstName: e.target.value })
+                        }
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label>Last Name</Label>
-                      <Input value={profileForm.lastName} onChange={e => setProfileForm({ ...profileForm, lastName: e.target.value })} />
+                      <Input
+                        value={profileForm.lastName}
+                        onChange={(e) =>
+                          setProfileForm({ ...profileForm, lastName: e.target.value })
+                        }
+                      />
                     </div>
                   </div>
 
                   <div className="space-y-2">
                     <Label>Username</Label>
-                    <Input value={profileForm.username} onChange={e => setProfileForm({ ...profileForm, username: e.target.value })} />
+                    <Input
+                      value={profileForm.username}
+                      onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
+                    />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -618,10 +689,17 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       <Label>Country</Label>
                       <Popover open={openCountry} onOpenChange={setOpenCountry}>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" role="combobox" aria-expanded={openCountry} className="w-full justify-between">
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={openCountry}
+                            className="w-full justify-between"
+                          >
                             {profileForm.countryCode
-                              ? countries.find((country) => country.dial_code === profileForm.countryCode)?.name
-                              : "Select country..."}
+                              ? countries.find(
+                                  (country) => country.dial_code === profileForm.countryCode
+                                )?.name
+                              : 'Select country...'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
@@ -636,11 +714,22 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                                     key={country.code}
                                     value={country.name}
                                     onSelect={() => {
-                                      setProfileForm({ ...profileForm, country: country.name, countryCode: country.dial_code });
+                                      setProfileForm({
+                                        ...profileForm,
+                                        country: country.name,
+                                        countryCode: country.dial_code,
+                                      });
                                       setOpenCountry(false);
                                     }}
                                   >
-                                    <Check className={cn("mr-2 h-4 w-4", profileForm.countryCode === country.dial_code ? "opacity-100" : "opacity-0")} />
+                                    <Check
+                                      className={cn(
+                                        'mr-2 h-4 w-4',
+                                        profileForm.countryCode === country.dial_code
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                                      )}
+                                    />
                                     {country.flag} {country.name}
                                   </CommandItem>
                                 ))}
@@ -654,15 +743,26 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                     <div className="space-y-2">
                       <Label>Phone Number</Label>
                       <div className="flex gap-2">
-                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">{profileForm.countryCode}</div>
-                        <Input type="tel" value={profileForm.phoneNumber} onChange={e => setProfileForm({ ...profileForm, phoneNumber: e.target.value.replace(/\D/g, '') })} />
+                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">
+                          {profileForm.countryCode}
+                        </div>
+                        <Input
+                          type="tel"
+                          value={profileForm.phoneNumber}
+                          onChange={(e) =>
+                            setProfileForm({
+                              ...profileForm,
+                              phoneNumber: e.target.value.replace(/\D/g, ''),
+                            })
+                          }
+                        />
                       </div>
                     </div>
                   </div>
 
                   <div className="flex justify-end pt-4">
                     <Button type="submit" disabled={isSavingProfile}>
-                      {isSavingProfile ? "Saving..." : "Save Changes"}
+                      {isSavingProfile ? 'Saving...' : 'Save Changes'}
                     </Button>
                   </div>
                 </form>
@@ -690,7 +790,9 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
             <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
               <CardHeader>
                 <CardTitle>Connected Accounts</CardTitle>
-                <CardDescription>Manage your external connections to sync projects.</CardDescription>
+                <CardDescription>
+                  Manage your external connections to sync projects.
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {}
@@ -702,29 +804,36 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       <p className="text-sm text-muted-foreground">
                         {userData?.githubIntegration?.connected
                           ? `Connected as ${userData.githubIntegration.username}`
-                          : "Connect repositories to Zync."}
+                          : 'Connect repositories to Zync.'}
                       </p>
                     </div>
                   </div>
-                  <Button 
-                    variant={isGitHubLinked ? "outline" : "default"}
+                  <Button
+                    variant={isGitHubLinked ? 'outline' : 'default'}
                     disabled={isConnectingGithub}
                     onClick={isGitHubLinked ? handleGithubDisconnect : handleGithubConnect}
                   >
-                    {isConnectingGithub ? (
-                      "Connecting..."
-                    ) : isGitHubLinked ? (
-                      "Disconnect"
-                    ) : (
-                      "Connect GitHub"
-                    )}
+                    {isConnectingGithub
+                      ? 'Connecting...'
+                      : isGitHubLinked
+                        ? 'Disconnect'
+                        : 'Connect GitHub'}
                   </Button>
                 </div>
 
                 {}
                 <div className="flex items-center justify-between p-4 border rounded-lg">
                   <div className="flex items-center gap-4">
-                    <div className={cn("w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full", (isGoogleLinked || isCalendarSynced) ? "text-blue-600 dark:text-blue-400 bg-blue-500/10" : "text-muted-foreground bg-muted")}>G</div>
+                    <div
+                      className={cn(
+                        'w-8 h-8 flex items-center justify-center font-bold text-xl rounded-full',
+                        isGoogleLinked || isCalendarSynced
+                          ? 'text-blue-600 dark:text-blue-400 bg-blue-500/10'
+                          : 'text-muted-foreground bg-muted'
+                      )}
+                    >
+                      G
+                    </div>
                     <div>
                       <p className="font-medium">Google Calendar</p>
                       <p className="text-sm text-muted-foreground">
@@ -732,16 +841,16 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                           ? `Connected as ${userData.integrations.google.email}`
                           : isGoogleLinked
                             ? `Linked as ${googleProvider?.email}. Enable Calendar?`
-                            : "Sync meetings and events."}
+                            : 'Sync meetings and events.'}
                       </p>
                     </div>
                   </div>
                   <Button
-                    variant={isCalendarSynced ? "destructive" : "secondary"}
+                    variant={isCalendarSynced ? 'destructive' : 'secondary'}
                     onClick={isCalendarSynced ? handleGoogleDisconnect : handleGoogleConnect}
                     disabled={isConnectingGoogle}
                   >
-                    {isCalendarSynced ? "Disconnect" : (isGoogleLinked ? "Enable Sync" : "Connect")}
+                    {isCalendarSynced ? 'Disconnect' : isGoogleLinked ? 'Enable Sync' : 'Connect'}
                   </Button>
                 </div>
               </CardContent>
@@ -751,12 +860,16 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
           {}
           <TabsContent value="preferences">
             <Card className="bg-card/50 border-border/10 backdrop-blur-xl">
-              <CardHeader><CardTitle>App Preferences</CardTitle></CardHeader>
+              <CardHeader>
+                <CardTitle>App Preferences</CardTitle>
+              </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between">
                   <Label>Theme</Label>
                   <Select value={theme} onValueChange={setTheme}>
-                    <SelectTrigger className="w-[180px]"><SelectValue placeholder="Select" /></SelectTrigger>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select" />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="light">Light</SelectItem>
                       <SelectItem value="dark">Dark</SelectItem>
@@ -778,7 +891,8 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                   <div>
                     <h3 className="text-2xl font-bold tracking-tight">Contact Us</h3>
                     <p className="text-muted-foreground mt-2">
-                      Email, call, or complete the form to learn how Zync can solve your collaboration needs.
+                      Email, call, or complete the form to learn how Zync can solve your
+                      collaboration needs.
                     </p>
                   </div>
                 </div>
@@ -797,21 +911,29 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                           className="min-h-[100px] resize-none"
                           maxLength={120}
                           value={supportForm.message}
-                          onChange={(e) => setSupportForm({ ...supportForm, message: e.target.value })}
+                          onChange={(e) =>
+                            setSupportForm({ ...supportForm, message: e.target.value })
+                          }
                           required
                         />
-                        <p className="text-xs text-muted-foreground text-right">{supportForm.message.length}/120</p>
+                        <p className="text-xs text-muted-foreground text-right">
+                          {supportForm.message.length}/120
+                        </p>
                       </div>
 
                       <Button type="submit" className="w-full" disabled={supportLoading}>
-                        {supportLoading ? "Submitting..." : "Submit"}
+                        {supportLoading ? 'Submitting...' : 'Submit'}
                       </Button>
 
                       <p className="text-xs text-center text-muted-foreground">
-                        By contacting us, you agree to our{" "}
-                        <a href="#" className="underline font-medium hover:text-primary">Terms of Service</a>{" "}
-                        and{" "}
-                        <a href="#" className="underline font-medium hover:text-primary">Privacy Policy</a>
+                        By contacting us, you agree to our{' '}
+                        <a href="#" className="underline font-medium hover:text-primary">
+                          Terms of Service
+                        </a>{' '}
+                        and{' '}
+                        <a href="#" className="underline font-medium hover:text-primary">
+                          Privacy Policy
+                        </a>
                       </p>
                     </form>
                   </CardContent>
@@ -828,7 +950,8 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       </div>
                       <h4 className="font-semibold">Customer Support</h4>
                       <p className="text-sm text-muted-foreground">
-                        Our support team is available around the clock to address any concerns or queries you may have.
+                        Our support team is available around the clock to address any concerns or
+                        queries you may have.
                       </p>
                     </div>
                   </CardContent>
@@ -842,7 +965,8 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       </div>
                       <h4 className="font-semibold">Feedback and Suggestions</h4>
                       <p className="text-sm text-muted-foreground">
-                        We value your feedback and are continuously working to improve Zync. Your input is crucial in shaping our future.
+                        We value your feedback and are continuously working to improve Zync. Your
+                        input is crucial in shaping our future.
                       </p>
                     </div>
                   </CardContent>
@@ -856,7 +980,8 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       </div>
                       <h4 className="font-semibold">Media Inquiries</h4>
                       <p className="text-sm text-muted-foreground">
-                        For media-related questions or press inquiries, please contact us at consolemaster.app@gmail.com.
+                        For media-related questions or press inquiries, please contact us at
+                        consolemaster.app@gmail.com.
                       </p>
                     </div>
                   </CardContent>
@@ -869,9 +994,12 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
           <TabsContent value="security">
             <Card className="border-destructive/50">
               <CardHeader>
-                <CardTitle className="text-destructive flex items-center gap-2">Danger Zone</CardTitle>
+                <CardTitle className="text-destructive flex items-center gap-2">
+                  Danger Zone
+                </CardTitle>
                 <CardDescription>
-                  Permanently remove your Personal Account and all of its contents from the Zync platform. This action is not reversible, so please continue with caution.
+                  Permanently remove your Personal Account and all of its contents from the Zync
+                  platform. This action is not reversible, so please continue with caution.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -881,15 +1009,22 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       <AlertTriangle className="w-4 h-4 inline mr-2" />
                       Warning: Deleting your account is irreversible.
                     </div>
-                    <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleteLoading}>
-                      {deleteLoading ? "Requesting..." : "Request Account Deletion"}
+                    <Button
+                      variant="destructive"
+                      onClick={handleDeleteAccount}
+                      disabled={deleteLoading}
+                    >
+                      {deleteLoading ? 'Requesting...' : 'Request Account Deletion'}
                     </Button>
                   </div>
                 ) : (
                   <div className="space-y-4 max-w-sm">
                     <div className="space-y-2">
                       <Label>Verification Code</Label>
-                      <p className="text-sm text-muted-foreground">Please check your email <b>{currentUser?.email}</b> for the 6-digit confirmation code.</p>
+                      <p className="text-sm text-muted-foreground">
+                        Please check your email <b>{currentUser?.email}</b> for the 6-digit
+                        confirmation code.
+                      </p>
                       <Input
                         value={deleteCode}
                         onChange={(e) => setDeleteCode(e.target.value)}
@@ -898,8 +1033,12 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button variant="destructive" onClick={handleDeleteAccount} disabled={deleteLoading || deleteCode.length !== 6}>
-                        {deleteLoading ? "Confirming..." : "Confirm Deletion"}
+                      <Button
+                        variant="destructive"
+                        onClick={handleDeleteAccount}
+                        disabled={deleteLoading || deleteCode.length !== 6}
+                      >
+                        {deleteLoading ? 'Confirming...' : 'Confirm Deletion'}
                       </Button>
                     </div>
                   </div>
@@ -913,12 +1052,21 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
   );
 }
 
-
-function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLoading, setTeamLoading, setUserData, isPreview, mockTeams }: any) {
+function TeamTabContent({
+  currentUser,
+  userData,
+  teamsData,
+  setTeamsData,
+  teamLoading,
+  setTeamLoading,
+  setUserData,
+  isPreview,
+  mockTeams,
+}: any) {
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [teamNameDraft, setTeamNameDraft] = useState("");
+  const [teamNameDraft, setTeamNameDraft] = useState('');
   const [isEditingTeamName, setIsEditingTeamName] = useState(false);
   const [renameSaved, setRenameSaved] = useState(false);
   const teamNameInputRef = useRef<HTMLInputElement>(null);
@@ -934,7 +1082,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
   }, [teamsData, selectedTeamId]);
 
   useEffect(() => {
-    setTeamNameDraft(selectedTeam?.name || "");
+    setTeamNameDraft(selectedTeam?.name || '');
     setIsEditingTeamName(false);
     setRenameSaved(false);
   }, [selectedTeamId, selectedTeam?.name]);
@@ -973,7 +1121,6 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
     ]);
   };
 
-
   useEffect(() => {
     const fetchAllTeams = async () => {
       if (isPreview) {
@@ -992,7 +1139,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
 
         // Fetch all teams the user belongs to
         const mineRes = await fetch(`${API_BASE_URL}/api/teams/mine`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!mineRes.ok) {
@@ -1013,9 +1160,11 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
           const teamId = team.id || team._id;
           try {
             const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/details`, {
-              headers: { 'Authorization': `Bearer ${token}` }
+              headers: { Authorization: `Bearer ${token}` },
             });
-            if (res.ok) {return await res.json();}
+            if (res.ok) {
+              return await res.json();
+            }
             return null;
           } catch {
             return null;
@@ -1025,7 +1174,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         const details = await Promise.all(detailPromises);
         setTeamsData(details.filter(Boolean));
       } catch (err) {
-        console.error("Failed to fetch teams:", err);
+        console.error('Failed to fetch teams:', err);
         setTeamsData([]);
       } finally {
         setTeamLoading(false);
@@ -1036,15 +1185,19 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
   }, [currentUser, userData?.teamMemberships]);
 
   const handleRemoveMember = async (teamId: string, memberUid: string) => {
-    if (!currentUser) {return;}
-    if (!window.confirm("Remove this member from the team?")) {return;}
+    if (!currentUser) {
+      return;
+    }
+    if (!window.confirm('Remove this member from the team?')) {
+      return;
+    }
 
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/members/${memberUid}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -1052,33 +1205,41 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         throw new Error(err.message || 'Failed to remove member');
       }
 
-      toast({ title: "Member Removed", description: "Successfully removed from the team." });
+      toast({ title: 'Member Removed', description: 'Successfully removed from the team.' });
 
-      setTeamsData((prev: any[]) => prev.map(t =>
-        t.id === teamId ? {
-          ...t,
-          members: t.members.filter((uid: string) => uid !== memberUid),
-          memberDetails: t.memberDetails.filter((m: any) => m.uid !== memberUid)
-        } : t
-      ));
+      setTeamsData((prev: any[]) =>
+        prev.map((t) =>
+          t.id === teamId
+            ? {
+                ...t,
+                members: t.members.filter((uid: string) => uid !== memberUid),
+                memberDetails: t.memberDetails.filter((m: any) => m.uid !== memberUid),
+              }
+            : t
+        )
+      );
       await refreshTeamQueries();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleLeaveTeam = async (teamId: string) => {
-    if (!currentUser) {return;}
-    if (!window.confirm("Are you sure you want to leave this team?")) {return;}
+    if (!currentUser) {
+      return;
+    }
+    if (!window.confirm('Are you sure you want to leave this team?')) {
+      return;
+    }
 
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/leave`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -1086,30 +1247,36 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         throw new Error(err.message || 'Failed to leave team');
       }
 
-      toast({ title: "Left Team", description: "You have left the team." });
-      setTeamsData((prev: any[]) => prev.filter(t => t.id !== teamId));
+      toast({ title: 'Left Team', description: 'You have left the team.' });
+      setTeamsData((prev: any[]) => prev.filter((t) => t.id !== teamId));
       setUserData((prev: any) => ({
         ...prev,
-        teamMemberships: prev.teamMemberships?.filter((id: string) => id !== teamId) || []
+        teamMemberships: prev.teamMemberships?.filter((id: string) => id !== teamId) || [],
       }));
       await refreshTeamQueries();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleDeleteTeam = async (teamId: string) => {
-    if (!currentUser) {return;}
-    if (!window.confirm("Are you sure you want to DELETE this team? This action cannot be undone.")) {return;}
+    if (!currentUser) {
+      return;
+    }
+    if (
+      !window.confirm('Are you sure you want to DELETE this team? This action cannot be undone.')
+    ) {
+      return;
+    }
 
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}`, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (!res.ok) {
@@ -1117,29 +1284,35 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         throw new Error(err.message || 'Failed to delete team');
       }
 
-      toast({ title: "Team Deleted", description: "The team has been permanently deleted." });
-      setTeamsData((prev: any[]) => prev.filter(t => t.id !== teamId));
+      toast({ title: 'Team Deleted', description: 'The team has been permanently deleted.' });
+      setTeamsData((prev: any[]) => prev.filter((t) => t.id !== teamId));
       if (selectedTeamId === teamId) {
         setSelectedTeamId(null);
       }
       setUserData((prev: any) => ({
         ...prev,
-        teamMemberships: prev.teamMemberships?.filter((id: string) => id !== teamId) || []
+        teamMemberships: prev.teamMemberships?.filter((id: string) => id !== teamId) || [],
       }));
       await refreshTeamQueries();
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleTransferOwnership = async (teamId: string, newOwnerId: string) => {
-    if (!currentUser) {return;}
+    if (!currentUser) {
+      return;
+    }
     const team = teamsData.find((t: any) => t.id === teamId);
     const member = team?.memberDetails?.find((m: any) => m.uid === newOwnerId);
-    
-    if (!window.confirm(`Are you sure you want to transfer ownership to ${member?.displayName || 'this member'}? You will lose owner permissions.`)) {
+
+    if (
+      !window.confirm(
+        `Are you sure you want to transfer ownership to ${member?.displayName || 'this member'}? You will lose owner permissions.`
+      )
+    ) {
       return;
     }
 
@@ -1148,11 +1321,11 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
       const token = await currentUser.getIdToken();
       const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/transfer-ownership`, {
         method: 'PATCH',
-        headers: { 
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ newOwnerId })
+        body: JSON.stringify({ newOwnerId }),
       });
 
       if (!res.ok) {
@@ -1160,34 +1333,47 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         throw new Error(err.message || 'Failed to transfer ownership');
       }
 
-      toast({ title: "Ownership Transferred", description: "Successfully updated the team leader." });
-      
+      toast({
+        title: 'Ownership Transferred',
+        description: 'Successfully updated the team leader.',
+      });
+
       // Update local state
-      setTeamsData((prev: any[]) => prev.map(t => 
-        t.id === teamId ? { 
-          ...t, 
-          ownerId: newOwnerId,
-          memberDetails: t.memberDetails.map((m: any) => ({
-            ...m,
-            isOwner: m.uid === newOwnerId
-          }))
-        } : t
-      ));
+      setTeamsData((prev: any[]) =>
+        prev.map((t) =>
+          t.id === teamId
+            ? {
+                ...t,
+                ownerId: newOwnerId,
+                memberDetails: t.memberDetails.map((m: any) => ({
+                  ...m,
+                  isOwner: m.uid === newOwnerId,
+                })),
+              }
+            : t
+        )
+      );
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
   };
 
   const handleRenameTeam = async (teamId: string) => {
-    if (!currentUser) {return;}
-    const currentName = selectedTeam?.name?.trim() || "";
+    if (!currentUser) {
+      return;
+    }
+    const currentName = selectedTeam?.name?.trim() || '';
     const typedName = teamNameDraft.trim();
     const nextName = typedName || currentName;
 
     if (!nextName) {
-      toast({ title: "Invalid Name", description: "Team name cannot be empty.", variant: "destructive" });
+      toast({
+        title: 'Invalid Name',
+        description: 'Team name cannot be empty.',
+        variant: 'destructive',
+      });
       return;
     }
 
@@ -1208,10 +1394,10 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
       const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/name`, {
         method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name: nextName })
+        body: JSON.stringify({ name: nextName }),
       });
 
       if (!res.ok) {
@@ -1222,7 +1408,9 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
       const updatedTeam = await res.json();
       const updatedId = updatedTeam.id || updatedTeam._id;
       setTeamsData((prev: any[]) =>
-        prev.map((team: any) => ((team.id || team._id) === updatedId ? { ...team, name: updatedTeam.name } : team))
+        prev.map((team: any) =>
+          (team.id || team._id) === updatedId ? { ...team, name: updatedTeam.name } : team
+        )
       );
 
       setRenameSaved(true);
@@ -1232,9 +1420,9 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         renameSavedTimerRef.current = null;
       }, 2000);
 
-      toast({ title: "Team Updated", description: "Team name changed successfully." });
+      toast({ title: 'Team Updated', description: 'Team name changed successfully.' });
     } catch (error: any) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setActionLoading(false);
     }
@@ -1242,7 +1430,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
 
   const copyInviteCode = (code: string) => {
     navigator.clipboard.writeText(code);
-    toast({ title: "Copied!", description: "Invite code copied to clipboard." });
+    toast({ title: 'Copied!', description: 'Invite code copied to clipboard.' });
   };
 
   if (teamLoading) {
@@ -1262,7 +1450,8 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
               <Users className="w-8 h-8 text-muted-foreground" />
             </div>
             <p className="text-muted-foreground text-sm max-w-sm">
-              Create a team or join one using an invite code to start collaborating with your colleagues.
+              Create a team or join one using an invite code to start collaborating with your
+              colleagues.
             </p>
           </div>
         </CardContent>
@@ -1282,11 +1471,11 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
           const isOwner = team.ownerId === currentUser?.uid;
 
           return (
-            <Card 
+            <Card
               key={tid}
               className={cn(
-                "cursor-pointer transition-all hover:bg-card/50 border-border/10",
-                isSelected ? "ring-2 ring-foreground/20 bg-card/80" : "bg-card/50 backdrop-blur-xl"
+                'cursor-pointer transition-all hover:bg-card/50 border-border/10',
+                isSelected ? 'ring-2 ring-foreground/20 bg-card/80' : 'bg-card/50 backdrop-blur-xl'
               )}
               onClick={() => setSelectedTeamId(tid)}
             >
@@ -1297,20 +1486,24 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                     style={{
                       color: fgColor,
                       backgroundColor: isSelected ? bgColor : `${bgColor}CC`,
-                      borderColor
+                      borderColor,
                     }}
                   >
                     <LogoIcon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate max-w-[120px]">{team.name}</p>
-                    <p className="text-[10px] text-muted-foreground">{isOwner ? "Owner" : "Member"}</p>
+                    <p className="text-[10px] text-muted-foreground">
+                      {isOwner ? 'Owner' : 'Member'}
+                    </p>
                   </div>
                 </div>
-                <div className={cn(
-                  "h-4 w-4 rounded-full border-2 border-primary/20",
-                  isSelected ? "bg-primary border-primary" : ""
-                )} />
+                <div
+                  className={cn(
+                    'h-4 w-4 rounded-full border-2 border-primary/20',
+                    isSelected ? 'bg-primary border-primary' : ''
+                  )}
+                />
               </CardContent>
             </Card>
           );
@@ -1338,11 +1531,17 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                   })()}
                   <div>
                     <CardTitle>{selectedTeam.name}</CardTitle>
-                    <CardDescription>{selectedTeam.type} · {selectedTeam.members?.length || 0} member{selectedTeam.members?.length !== 1 ? 's' : ''}</CardDescription>
+                    <CardDescription>
+                      {selectedTeam.type} · {selectedTeam.members?.length || 0} member
+                      {selectedTeam.members?.length !== 1 ? 's' : ''}
+                    </CardDescription>
                   </div>
                 </div>
                 {selectedTeam.ownerId === currentUser?.uid && (
-                  <Badge variant="secondary" className="gap-1 bg-amber-500/10 text-amber-500 border-amber-500/20 py-1">
+                  <Badge
+                    variant="secondary"
+                    className="gap-1 bg-amber-500/10 text-amber-500 border-amber-500/20 py-1"
+                  >
                     <Crown className="h-3 w-3" />
                     Owner
                   </Badge>
@@ -1352,10 +1551,19 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
             <CardContent>
               <div className="flex items-center gap-3">
                 <div className="space-y-1.5 flex-1">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Invite Code</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Invite Code
+                  </Label>
                   <div className="flex items-center gap-2">
-                    <code className="px-4 py-2 rounded-lg bg-foreground/10 text-sm font-mono tracking-widest text-foreground border border-border/10">{selectedTeam.inviteCode}</code>
-                    <Button variant="ghost" size="icon" className="h-10 w-10 hover:bg-foreground/10" onClick={() => copyInviteCode(selectedTeam.inviteCode)}>
+                    <code className="px-4 py-2 rounded-lg bg-foreground/10 text-sm font-mono tracking-widest text-foreground border border-border/10">
+                      {selectedTeam.inviteCode}
+                    </code>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-10 w-10 hover:bg-foreground/10"
+                      onClick={() => copyInviteCode(selectedTeam.inviteCode)}
+                    >
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
@@ -1363,7 +1571,9 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
               </div>
               {selectedTeam.ownerId === currentUser?.uid && (
                 <div className="mt-4 space-y-2">
-                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Team Name</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                    Team Name
+                  </Label>
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <Input
                       ref={teamNameInputRef}
@@ -1391,7 +1601,7 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                         }}
                         disabled={actionLoading}
                       >
-                        {renameSaved ? "Saved" : "Edit"}
+                        {renameSaved ? 'Saved' : 'Edit'}
                       </Button>
                     )}
                   </div>
@@ -1405,7 +1615,9 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
             <CardHeader>
               <CardTitle className="text-lg">Members Management</CardTitle>
               <CardDescription>
-                {selectedTeam.ownerId === currentUser?.uid ? "Manage authority and participation." : "View team collaborators."}
+                {selectedTeam.ownerId === currentUser?.uid
+                  ? 'Manage authority and participation.'
+                  : 'View team collaborators.'}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -1415,17 +1627,32 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
                 const amITheOwner = selectedTeam.ownerId === currentUser?.uid;
 
                 return (
-                  <div key={member.uid} className="flex items-center justify-between p-4 rounded-xl border border-border/10 bg-card/50 hover:bg-card/80 transition-all">
+                  <div
+                    key={member.uid}
+                    className="flex items-center justify-between p-4 rounded-xl border border-border/10 bg-card/50 hover:bg-card/80 transition-all"
+                  >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-10 w-10 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
-                        <AvatarImage src={member.photoURL ? getFullUrl(member.photoURL) : undefined} />
+                        <AvatarImage
+                          src={member.photoURL ? getFullUrl(member.photoURL) : undefined}
+                        />
                         <AvatarFallback className="text-xs bg-muted text-foreground font-bold">
-                          {member.displayName?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase() || '?'}
+                          {member.displayName
+                            ?.split(' ')
+                            .map((n: string) => n[0])
+                            .join('')
+                            .slice(0, 2)
+                            .toUpperCase() || '?'}
                         </AvatarFallback>
                       </Avatar>
                       <div>
                         <p className="text-sm font-bold flex items-center gap-2">
-                          {member.displayName} {isYou && <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">You</span>}
+                          {member.displayName}{' '}
+                          {isYou && (
+                            <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+                              You
+                            </span>
+                          )}
                           {isMemberOwner && (
                             <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500/20" />
                           )}
@@ -1466,33 +1693,60 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
           </Card>
 
           {/* Danger Zone / Leave */}
-          <Card className={cn("bg-card/60 backdrop-blur-sm", selectedTeam.ownerId === currentUser?.uid ? "border-destructive/30 bg-destructive/5" : "")}>
+          <Card
+            className={cn(
+              'bg-card/60 backdrop-blur-sm',
+              selectedTeam.ownerId === currentUser?.uid
+                ? 'border-destructive/30 bg-destructive/5'
+                : ''
+            )}
+          >
             <CardHeader>
-              <CardTitle className={cn("flex items-center gap-2", selectedTeam.ownerId === currentUser?.uid ? "text-destructive" : "")}>
-                {selectedTeam.ownerId === currentUser?.uid ? <AlertTriangle className="h-5 w-5" /> : <LogOut className="h-5 w-5" />}
-                {selectedTeam.ownerId === currentUser?.uid ? "Danger Zone" : "Leave Team"}
+              <CardTitle
+                className={cn(
+                  'flex items-center gap-2',
+                  selectedTeam.ownerId === currentUser?.uid ? 'text-destructive' : ''
+                )}
+              >
+                {selectedTeam.ownerId === currentUser?.uid ? (
+                  <AlertTriangle className="h-5 w-5" />
+                ) : (
+                  <LogOut className="h-5 w-5" />
+                )}
+                {selectedTeam.ownerId === currentUser?.uid ? 'Danger Zone' : 'Leave Team'}
               </CardTitle>
               <CardDescription>
                 {selectedTeam.ownerId === currentUser?.uid
-                  ? "Permanently delete this team and wipe all associated data."
-                  : "Remove yourself from this workspace and lose access."}
+                  ? 'Permanently delete this team and wipe all associated data.'
+                  : 'Remove yourself from this workspace and lose access.'}
               </CardDescription>
             </CardHeader>
             <CardContent>
               {selectedTeam.ownerId === currentUser?.uid ? (
                 <div className="space-y-4">
                   <p className="text-xs text-destructive/80 font-medium">
-                    This action is destructive and cannot be undone. All project mappings for this team will be lost.
+                    This action is destructive and cannot be undone. All project mappings for this
+                    team will be lost.
                   </p>
-                  <Button variant="destructive" onClick={() => handleDeleteTeam(selectedTeam.id)} disabled={actionLoading} className="font-bold shadow-lg shadow-destructive/20">
+                  <Button
+                    variant="destructive"
+                    onClick={() => handleDeleteTeam(selectedTeam.id)}
+                    disabled={actionLoading}
+                    className="font-bold shadow-lg shadow-destructive/20"
+                  >
                     <Trash2 className="mr-2 h-4 w-4" />
-                    {actionLoading ? "Processing..." : "Wipe Team Data"}
+                    {actionLoading ? 'Processing...' : 'Wipe Team Data'}
                   </Button>
                 </div>
               ) : (
-                <Button variant="outline" onClick={() => handleLeaveTeam(selectedTeam.id)} disabled={actionLoading} className="border-border/10 bg-transparent hover:bg-destructive/10 hover:text-destructive font-bold transition-all">
+                <Button
+                  variant="outline"
+                  onClick={() => handleLeaveTeam(selectedTeam.id)}
+                  disabled={actionLoading}
+                  className="border-border/10 bg-transparent hover:bg-destructive/10 hover:text-destructive font-bold transition-all"
+                >
                   <LogOut className="mr-2 h-4 w-4" />
-                  {actionLoading ? "Leaving..." : "Leave Workspace"}
+                  {actionLoading ? 'Leaving...' : 'Leave Workspace'}
                 </Button>
               )}
             </CardContent>
@@ -1500,7 +1754,9 @@ function TeamTabContent({ currentUser, userData, teamsData, setTeamsData, teamLo
         </div>
       ) : (
         <Card className="h-[200px] flex items-center justify-center bg-card/40 border-dashed">
-          <p className="text-muted-foreground text-sm">Select a team to view and manage settings.</p>
+          <p className="text-muted-foreground text-sm">
+            Select a team to view and manage settings.
+          </p>
         </Card>
       )}
     </div>

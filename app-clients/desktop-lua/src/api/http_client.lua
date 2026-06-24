@@ -1,0 +1,1 @@
+local http = require("socket.http")\nlocal HttpClient = {}\nfunction HttpClient.request(url) print("Requesting " .. url) end\nreturn HttpClient

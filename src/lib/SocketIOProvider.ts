@@ -35,7 +35,7 @@ export class SocketIOProvider extends Observable<string> {
       this.connected = true;
       this.emit('status', [{ status: 'connected' }]);
       this.socket.emit('join-note', noteId);
-      
+
       // Send our initial state so others receive our document
       setTimeout(() => {
         try {
@@ -44,7 +44,7 @@ export class SocketIOProvider extends Observable<string> {
         } catch (e) {
           console.error('[YJS Socket] Failed to send initial state', e);
         }
-        
+
         if (this.awareness.clientID) {
           const awarenessUpdate = encodeAwarenessUpdate(this.awareness, [this.awareness.clientID]);
           this.socket.emit('awareness-update', { noteId, update: Array.from(awarenessUpdate) });
@@ -82,7 +82,7 @@ export class SocketIOProvider extends Observable<string> {
         } else {
           uint8 = new Uint8Array(update);
         }
-        
+
         Y.applyUpdate(this.doc, uint8, this);
       } catch (e) {
         console.error('[YJS Socket] Failed to apply update', e, update);

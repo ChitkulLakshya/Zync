@@ -1,4 +1,4 @@
-import PrivacyPolicy from "@/pages/PrivacyPolicy";
+import PrivacyPolicy from '@/pages/PrivacyPolicy';
 
 const PrivacyPolicyMobile = () => <PrivacyPolicy />;
 

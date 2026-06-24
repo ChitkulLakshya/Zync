@@ -1,15 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
 
-@import "tailwindcss";
+@import 'tailwindcss';
 @config "../tailwind.config.ts";
 
 @layer base {
   html {
     scroll-behavior: smooth;
   }
-  
-  :root {
 
+  :root {
     --background: 0 0% 100%;
     --foreground: 0 0% 10%;
 
@@ -42,7 +41,6 @@
 
     --glass-bevel: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 0 0 1px rgba(0, 0, 0, 0.05);
 
-
     --task-orange: 25 95% 53%;
     --task-green: 142 71% 45%;
     --task-teal: 173 80% 40%;
@@ -50,23 +48,21 @@
     --task-purple: 258 90% 66%;
     --task-yellow: 45 93% 47%;
 
-
     --gradient-hero: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(0 0% 98%) 100%);
     --gradient-primary: linear-gradient(180deg, hsl(0 0% 20%) 0%, hsl(0 0% 0%) 100%);
 
-    --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
-    --shadow-md: 0 4px 12px rgba(0,0,0,0.05), 0 1px 2px rgba(0,0,0,0.02);
-    --shadow-lg: 0 12px 24px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04);
-    --shadow-xl: 0 24px 48px rgba(0,0,0,0.12), 0 8px 16px rgba(0,0,0,0.06);
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --shadow-lg: 0 12px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+    --shadow-xl: 0 24px 48px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
     --shadow-glow: 0 0 40px hsl(199 89% 48% / 0.15);
 
-    --shadow-elevation1: 0 1px 3px rgba(0,0,0,0.05);
-    --shadow-elevation2: 0 4px 12px rgba(0,0,0,0.08);
-    --shadow-elevation3: 0 12px 32px rgba(0,0,0,0.12);
-    --shadow-elevation4: 0 24px 64px rgba(0,0,0,0.16);
-    --shadow-elevation5: 0 32px 80px rgba(0,0,0,0.2);
-
+    --shadow-elevation1: 0 1px 3px rgba(0, 0, 0, 0.05);
+    --shadow-elevation2: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-elevation3: 0 12px 32px rgba(0, 0, 0, 0.12);
+    --shadow-elevation4: 0 24px 64px rgba(0, 0, 0, 0.16);
+    --shadow-elevation5: 0 32px 80px rgba(0, 0, 0, 0.2);
 
     --sidebar-background: 215 16% 96%;
     --sidebar-foreground: 215 20% 10%;
@@ -76,7 +72,6 @@
     --sidebar-accent-foreground: 215 20% 10%;
     --sidebar-border: 215 16% 90%;
     --sidebar-ring: 0 0% 9%;
-
 
     --level-0: #ebedf0;
     --level-1: #9be9a8;
@@ -132,7 +127,8 @@
     --shadow-elevation4: none;
     --shadow-elevation5: none;
 
-    --glass-bevel: inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --glass-bevel:
+      inset 0 1px 1px rgba(255, 255, 255, 0.15), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
 
     --sidebar-background: 0 0% 0%;
     --sidebar-foreground: 210 40% 98%;
@@ -149,7 +145,6 @@
     --task-pink: 330 60% 68%;
     --task-purple: 258 65% 72%;
     --task-yellow: 45 70% 55%;
-
 
     --level-0: #161b22;
     --level-1: #0e4429;
@@ -176,14 +171,11 @@
   html {
     scroll-behavior: smooth;
     scrollbar-width: none;
-
   }
 
   body {
     -ms-overflow-style: none;
-
   }
-
 
   ::-webkit-scrollbar {
     display: none;
@@ -251,9 +243,7 @@
   }
 }
 
-
 @keyframes float {
-
   0%,
   100% {
     transform: translateY(0px);
@@ -323,7 +313,6 @@
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     box-shadow: 0 0 20px hsl(199 89% 48% / 0.3);
@@ -334,7 +323,6 @@
   }
 }
 
-
 .paper-container {
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.03),
@@ -343,12 +331,9 @@
     0 20px 25px -5px rgba(0, 0, 0, 0.3);
 }
 
-
 .ZYNC-editor-overrides .bn-editor {
   @apply bg-transparent;
-
 }
-
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -366,7 +351,6 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   @apply bg-muted-foreground/40;
 }
-
 
 .scrollbar-thin::-webkit-scrollbar {
   width: 6px;
@@ -394,13 +378,10 @@
   background: transparent;
 }
 
-
 .dark .ZYNC-editor-overrides .bn-editor {
-
   --bn-colors-editor-text: var(--foreground);
   --bn-colors-editor-background: transparent;
 }
-
 
 .dark .mantine-Paper-root,
 .dark .mantine-Menu-dropdown,
@@ -414,14 +395,10 @@
   background-color: hsl(var(--secondary)) !important;
 }
 
-
-.ZYNC-editor-overrides .bn-block-content[data-content-type="heading"] {
-
-
+.ZYNC-editor-overrides .bn-block-content[data-content-type='heading'] {
   font-family: inherit;
   font-weight: 700;
 }
-
 
 .dark .bn-side-menu-trigger {
   color: hsl(var(--muted-foreground));
@@ -432,25 +409,22 @@
   border: 1px solid hsl(var(--border));
 }
 
-
 .dark .bn-slash-menu {
   background-color: hsl(var(--popover));
   border: 1px solid hsl(var(--border));
   color: hsl(var(--foreground));
 }
 
-.dark .bn-slash-menu-item[data-hovered="true"] {
+.dark .bn-slash-menu-item[data-hovered='true'] {
   background-color: hsl(var(--secondary));
 }
 
-
-.ZYNC-editor-overrides .bn-editor[data-is-empty-placeholder="true"]::before {
+.ZYNC-editor-overrides .bn-editor[data-is-empty-placeholder='true']::before {
   color: var(--muted-foreground) !important;
   opacity: 0.5;
   text-align: center;
   width: 100%;
 }
-
 
 @keyframes wave-flow {
   0% {
@@ -471,7 +445,6 @@
   animation: wave-flow 15s ease infinite;
 }
 
-
 .typing-cursor::after {
   content: '|';
   animation: blink 1s step-start infinite;
@@ -485,36 +458,55 @@
   }
 }
 
-
 .text-glow {
   text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-
 .font-serif-elegant {
 }
-
 
 .bg-geometric-elegant {
   background-color: #f3f4f6;
   opacity: 0.8;
-  background-image: linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(150deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(150deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff), linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff), linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff);
+  background-image:
+    linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff),
+    linear-gradient(
+      150deg,
+      #e0e7ff 12%,
+      transparent 12.5%,
+      transparent 87%,
+      #e0e7ff 87.5%,
+      #e0e7ff
+    ),
+    linear-gradient(30deg, #e0e7ff 12%, transparent 12.5%, transparent 87%, #e0e7ff 87.5%, #e0e7ff),
+    linear-gradient(
+      150deg,
+      #e0e7ff 12%,
+      transparent 12.5%,
+      transparent 87%,
+      #e0e7ff 87.5%,
+      #e0e7ff
+    ),
+    linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff),
+    linear-gradient(60deg, #e9d5ff 25%, transparent 25.5%, transparent 75%, #e9d5ff 75%, #e9d5ff);
   background-size: 40px 70px;
-  background-position: 0 0, 0 0, 20px 35px, 20px 35px, 0 0, 20px 35px;
+  background-position:
+    0 0,
+    0 0,
+    20px 35px,
+    20px 35px,
+    0 0,
+    20px 35px;
 }
-
 
 .bg-paper-texture {
   background-color: #fdfbf7;
   background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E");
 }
 
-
 .bg-navy-900 {
   background-color: #0f172a;
-
 }
-
 
 .ZYNC-editor-overrides p,
 .ZYNC-editor-overrides h1,
@@ -523,33 +515,24 @@
 .ZYNC-editor-overrides li {
 }
 
-
-.ZYNC-editor-overrides .bn-editor[data-is-empty-placeholder="true"]::before {
+.ZYNC-editor-overrides .bn-editor[data-is-empty-placeholder='true']::before {
   color: #94a3b8 !important;
-
 }
-
 
 .dark .bg-geometric-elegant {
   background-color: #121212;
   opacity: 0.5;
-
-
 }
 
 .dark .bg-paper-texture {
   background-color: #171717;
 
   border-color: #262626;
-
 }
 
-
-.dark .ZYNC-editor-overrides .bn-editor[data-is-empty-placeholder="true"]::before {
+.dark .ZYNC-editor-overrides .bn-editor[data-is-empty-placeholder='true']::before {
   color: #525252 !important;
-
 }
-
 
 .dark .ZYNC-editor-overrides p,
 .dark .ZYNC-editor-overrides h1,
@@ -558,31 +541,31 @@
 .dark .ZYNC-editor-overrides li,
 .dark .ZYNC-editor-overrides span {
   color: #e5e5e5;
-
 }
-
 
 .ZYNC-editor-overrides [data-collab-user],
 .ZYNC-editor-overrides .bn-block-outer[data-collab-user] {
   position: relative !important;
 
   border-left: 3px solid var(--collab-color, #3b82f6) !important;
-  background: linear-gradient(90deg,
-      color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%,
-      transparent 100%) !important;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--collab-color, #3b82f6) 8%, transparent) 0%,
+    transparent 100%
+  ) !important;
   border-radius: 4px;
   margin-left: -3px;
   padding-left: 12px;
-  transition: border-color 0.2s ease, background 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
 }
-
 
 .ZYNC-editor-overrides .bn-block-outer:not([data-collab-user]),
 .ZYNC-editor-overrides [data-id]:not([data-collab-user]) {
   border-left: 3px solid transparent;
   transition: border-color 0.2s ease;
 }
-
 
 .ZYNC-editor-overrides [data-collab-user]::before,
 .ZYNC-editor-overrides .bn-block-outer[data-collab-user]::before {
@@ -607,7 +590,6 @@
   animation: collab-label-enter 0.2s ease-out;
 }
 
-
 .ZYNC-editor-overrides [data-collab-user]::after,
 .ZYNC-editor-overrides .bn-block-outer[data-collab-user]::after {
   content: '';
@@ -621,7 +603,6 @@
   border-radius: 2px 0 0 2px;
 }
 
-
 @keyframes collab-label-enter {
   from {
     opacity: 0;
@@ -634,9 +615,7 @@
   }
 }
 
-
 @keyframes collab-glow-pulse {
-
   0%,
   100% {
     box-shadow: 0 0 8px var(--collab-color, #3b82f6);
@@ -647,11 +626,12 @@
   }
 }
 
-
 .dark .ZYNC-editor-overrides [data-collab-user] {
-  background: linear-gradient(90deg,
-      color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%,
-      transparent 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--collab-color, #3b82f6) 12%, transparent) 0%,
+    transparent 100%
+  );
 }
 
 /* Theme Toggle View Transitions */
