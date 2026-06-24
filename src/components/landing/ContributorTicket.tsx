@@ -44,7 +44,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.1) 0%, transparent 60%)`;
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return;
+    if (!ref.current) {return;}
     const rect = ref.current.getBoundingClientRect();
     
     const width = rect.width;
@@ -100,7 +100,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!githubUser || !email) return;
+    if (!githubUser || !email) {return;}
 
     setIsSubmitting(true);
     try {
