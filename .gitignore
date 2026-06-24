@@ -181,4 +181,3 @@ vite_build_debug.log
 backend/.env
 backend/.cache/
 docs/
-dev-dist/
