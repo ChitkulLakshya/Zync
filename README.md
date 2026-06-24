@@ -1,5 +1,9 @@
 <div align="center">
-  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=150&auto=format&fit=crop" width="150" style="border-radius: 20%; margin-bottom: 20px;" alt="Zync Logo" />
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/zync-dark.webp">
+    <source media="(prefers-color-scheme: light)" srcset="public/zync-white.webp">
+    <img alt="Zync Logo" src="public/zync-dark.webp" width="150" style="border-radius: 20%; margin-bottom: 20px;">
+  </picture>
   
   <h1>Zync</h1>
   <p><b>An open-source, AI-native collaborative workspace. Plan, design, and write together in real-time.</b></p>
