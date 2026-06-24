@@ -953,9 +953,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       <PanelResizeHandle className="w-px bg-transparent opacity-0" />
 
         {/* Main Content Panel - The Floating Canvas */}
-        <Panel defaultSize={84} className="min-h-0 bg-transparent py-2 pr-0">
+        <Panel defaultSize={84} className="min-h-0 bg-transparent py-2 pr-2">
           <div className="h-full w-full p-0 bg-transparent">
-            <div className="h-full w-full bg-background border-l border-y border-sidebar-border/40 shadow-elevation4 rounded-l-[32px] overflow-hidden relative flex flex-col">
+            <div className="h-full w-full bg-background border border-sidebar-border/40 shadow-elevation4 rounded-[32px] overflow-hidden relative flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
