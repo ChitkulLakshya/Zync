@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const nodemailer = require('nodemailer');
+const { Octokit } = require('octokit');
 
 router.post('/', async (req, res) => {
   const { githubUsername, githubProfileUrl, email } = req.body;
@@ -10,6 +11,43 @@ router.post('/', async (req, res) => {
   }
 
   try {
+    // 1. GitHub API Integration for automatic collaborator invite
+    const githubToken = process.env.GITHUB_ADMIN_TOKEN;
+    const repoOwner = process.env.GITHUB_REPO_OWNER;
+    const repoName = process.env.GITHUB_REPO_NAME;
+    let githubInviteStatus = 'Not configured';
+
+    if (githubToken && repoOwner && repoName) {
+      try {
+        const octokit = new Octokit({ auth: githubToken });
+        // Invite the user as a collaborator with 'push' permission
+        // 'push' allows them to push feature branches. Branch protection on 'main' restricts merging.
+        const response = await octokit.request('PUT /repos/{owner}/{repo}/collaborators/{username}', {
+          owner: repoOwner,
+          repo: repoName,
+          username: githubUsername,
+          permission: 'push',
+          headers: {
+            'X-GitHub-Api-Version': '2022-11-28'
+          }
+        });
+        
+        if (response.status === 201) {
+          githubInviteStatus = 'Invitation sent successfully.';
+        } else if (response.status === 204) {
+          githubInviteStatus = 'User is already a collaborator.';
+        } else {
+          githubInviteStatus = `Unexpected status: ${response.status}`;
+        }
+        console.log(`[BETA SIGNUP] GitHub invite status for ${githubUsername}: ${githubInviteStatus}`);
+      } catch (ghError) {
+        console.error(`[BETA SIGNUP] Failed to invite ${githubUsername} to GitHub:`, ghError.message);
+        githubInviteStatus = `Failed: ${ghError.message}`;
+      }
+    } else {
+      console.warn('[BETA SIGNUP] GitHub token or repo details missing. Skipping automated invite.');
+    }
+
     // Determine the admin email from environment, or fallback for safety
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
 
