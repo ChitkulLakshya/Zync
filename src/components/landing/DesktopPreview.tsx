@@ -94,22 +94,22 @@ const DesktopPreview = () => {
         const sequence = async () => {
             // Wait for the user to scroll down to this section
             await new Promise(r => setTimeout(r, 2000));
-            if (hasInteractedRef.current) return;
+            if (hasInteractedRef.current) {return;}
             setGhostState("entering");
             
             // Wait for it to travel to "My Workspace"
             await new Promise(r => setTimeout(r, 1000));
-            if (hasInteractedRef.current) return;
+            if (hasInteractedRef.current) {return;}
             setGhostState("clicking");
             
             // Trigger click
             await new Promise(r => setTimeout(r, 200));
-            if (hasInteractedRef.current) return;
+            if (hasInteractedRef.current) {return;}
             setActiveSection("My Workspace");
             
             // Leave
             await new Promise(r => setTimeout(r, 400));
-            if (hasInteractedRef.current) return;
+            if (hasInteractedRef.current) {return;}
             setGhostState("leaving");
             
             // Done
