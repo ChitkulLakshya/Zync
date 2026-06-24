@@ -1,1 +1,0 @@
-# Zync Android Native\n\nBuilt with Kotlin and Jetpack Compose. Requires JDK 17.
