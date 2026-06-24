@@ -68,7 +68,7 @@ const AppContent = () => {
         >
           <Suspense fallback={<div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
             <Routes location={location}>
-              <Route path="/" element={isMobile ? <IndexMobile /> : <Index />} />
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={isMobile ? <LoginMobile /> : <Login />} />
               <Route path="/signup" element={isMobile ? <SignupMobile /> : <Signup />} />
               <Route path="/welcome" element={isMobile ? <WelcomeToZyncMobile /> : <WelcomeToZync />} />
