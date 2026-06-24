@@ -29,7 +29,7 @@ const CTASection = () => {
   }, [cursorState]);
 
   return (
-    <section id="cta" className="py-32 relative overflow-hidden bg-background border-t border-black/5 dark:border-white/5">
+    <section id="cta" className="py-20 md:py-32 relative overflow-hidden bg-background border-t border-black/5 dark:border-white/5">
       {/* Brutalist Grid Lines */}
       <div className="absolute inset-0 z-0 opacity-[0.03]" style={{
           backgroundImage: `linear-gradient(hsl(var(--foreground) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.5) 1px, transparent 1px)`,
@@ -38,8 +38,8 @@ const CTASection = () => {
 
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
         {/* Massive Typography */}
-        <div className="mb-16 text-center">
-          <h2 className="text-4xl md:text-5xl lg:text-7xl font-bold tracking-tighter text-foreground mb-6 uppercase">
+        <div className="mb-12 md:mb-16 text-center px-4">
+          <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-foreground mb-4 md:mb-6 uppercase leading-[1.1]">
             The Codebase <br />
             is <span className="text-foreground/50">open.</span>
           </h2>
