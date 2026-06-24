@@ -116,11 +116,10 @@ npm run dev
 
 Take full control of your data. Zync is designed to be easily deployed on your own infrastructure.
 
-### Docker (Recommended)
-You can spin up the entire Zync stack (Frontend, Backend, Redis, Postgres/Mongo) using our provided `docker-compose.yml`.
-```bash
-docker-compose up -d
-```
+### Managed Cloud (Vercel & Render)
+Zync includes out-of-the-box configuration files for one-click deployments:
+- **Frontend**: Deploy instantly via `vercel.json` on [Vercel](https://vercel.com).
+- **Backend**: Deploy as a Web Service via `render.yaml` on [Render](https://render.com).
 
 ### Oracle Cloud / Terraform
 For enterprise scale, we provide complete Terraform scripts to provision a highly-available Zync cluster on Oracle Cloud Infrastructure (OCI). See our [Oracle VM Setup Guide](docs/guides/ORACLE_VM_SETUP.md).
