@@ -6,7 +6,7 @@ Zync is built using a modern, scalable, and real-time web stack designed for hig
 - **Framework**: React with TypeScript, Vite
 - **Styling**: TailwindCSS, Framer Motion, Radix UI Primitives
 - **Real-time & State**: Yjs (CRDTs for conflict-free collaborative editing), Socket.IO Client, React Query
-- **Data Fetching**: Axios
+- **Data Fetching**: Native Fetch API
 
 ### Backend
 - **Framework**: Node.js, Express
@@ -20,5 +20,5 @@ Zync is built using a modern, scalable, and real-time web stack designed for hig
 - **Automation**: Puppeteer (Web scraping for design inspiration), Octokit (GitHub API sync)
 
 ### DevOps & CI
-- **Package Manager**: npm (with workspaces/postinstall hooks)
+- **Package Manager**: npm (with root postinstall scripts)
 - **CI/CD**: GitHub Actions (Jest, Playwright)
