@@ -37,12 +37,12 @@ export const MultiplayerWalkthrough = () => {
 
       // 1. Alex moves in to type
       if (!isActive) {return;}
-      setAlexPos({ x: "13%", y: "65%" }); // Positioned at the end of the green typing block
+      setAlexPos({ x: "13%", y: "69%" }); // Positioned at the end of the green typing block
       setAlexPhase("typing");
       
       // Sarah moves in right after
-      setSarahPos({ x: "13%", y: "77%" }); // Over the purple block
-      setMikePos({ x: "60%", y: "90%" }); // Mike hovers the orange bottom block
+      setSarahPos({ x: "13%", y: "81%" }); // Over the purple block
+      setMikePos({ x: "60%", y: "94%" }); // Mike hovers the orange bottom block
 
       await new Promise(r => setTimeout(r, 800));
 
@@ -71,7 +71,7 @@ export const MultiplayerWalkthrough = () => {
 
       // 3. Sarah moves down to click a task
       if (!isActive) {return;}
-      setSarahPos({ x: "30%", y: "97%" }); // Move to slash menu item
+      setSarahPos({ x: "30%", y: "101%" }); // Move to slash menu item
       await new Promise(r => setTimeout(r, 600));
       setSarahClicking(true);
       await new Promise(r => setTimeout(r, 150));
@@ -82,8 +82,8 @@ export const MultiplayerWalkthrough = () => {
       setSarahPhase("inserted");
       
       // Move Sarah cursor away slightly to the end of the tag
-      setSarahPos({ x: "73%", y: "75%" });
-      setAlexPos({ x: "77%", y: "65%" });
+      setSarahPos({ x: "73%", y: "79%" });
+      setAlexPos({ x: "77%", y: "69%" });
 
       await new Promise(r => setTimeout(r, 2000));
 

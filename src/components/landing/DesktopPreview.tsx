@@ -195,7 +195,7 @@ const DesktopPreview = () => {
                 </div>
                 <div>
                     <div className="flex items-center mb-4"><h3 className="text-xl font-semibold">Pinned Notes</h3></div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-4 gap-4">
                         <Card className="cursor-pointer hover:shadow-md transition-all hover:border-primary/50 group">
                             <CardHeader className="p-4 pb-2">
                                 <div className="flex justify-between items-start">
@@ -210,7 +210,7 @@ const DesktopPreview = () => {
                         </Card>
                     </div>
                 </div>
-                <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-6 grid-cols-3">
                     {[1, 2].map(i => (
                         <Card key={i} className="group hover:shadow-lg transition-all duration-200 border border-border/10 shadow-sm hover:border-border/30 bg-card/50">
                             <CardHeader className="pb-3">
@@ -436,7 +436,7 @@ const DesktopPreview = () => {
     const renderDesign = () => (
         <div className="h-full bg-transparent overflow-y-auto w-full custom-scrollbar">
             <div className="w-full max-w-7xl mx-auto p-6 md:p-8 flex flex-col items-start gap-8">
-                <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/10 pb-6">
+                <div className="w-full flex flex-row justify-between items-end gap-6 border-b border-border/10 pb-6">
                     <div className="space-y-1">
                         <p className="text-muted-foreground text-sm tracking-wide uppercase font-medium">Curated Web Design</p>
                     </div>
@@ -456,7 +456,7 @@ const DesktopPreview = () => {
                 </div>
             </div>
             <div className="px-6 md:px-8 pb-20 max-w-7xl mx-auto">
-                <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
+                <div className="columns-4 gap-6 space-y-6">
                     {mockDesigns.map((item, index) => (
                         <DesignCard key={`${item.id}-${index}`} item={item} />
                     ))}
@@ -591,7 +591,7 @@ const DesktopPreview = () => {
                 )}
             </AnimatePresence>
 
-            <aside className="w-48 bg-transparent flex flex-col hidden md:flex shrink-0">
+            <aside className="w-48 bg-transparent flex flex-col shrink-0">
                 <div className="p-3 h-12 flex items-center">
                     <>
                       <img src="/zync-white.webp" alt="Zync" className="h-9 w-auto rounded-lg block dark:hidden" />
