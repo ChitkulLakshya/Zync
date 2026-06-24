@@ -2,15 +2,14 @@
 
 <!--
   =============================================================================
-  CONTRIBUTING.md — ZYNC Desktop Application
+  CONTRIBUTING.md — ZYNC Platform
   =============================================================================
 
-  This document provides comprehensive guidelines for contributing to the ZYNC
-  desktop application. Following these guidelines helps maintain code quality,
-  ensures consistency across the codebase, and makes the review process smoother
-  for both contributors and maintainers.
+  This document provides comprehensive guidelines for contributing to ZYNC.
+  Following these guidelines helps maintain code quality, ensures consistency
+  across the codebase, and makes the review process smoother for everyone.
 
-  Last Updated: February 2026
+  Last Updated: June 2026
   =============================================================================
 -->
 
@@ -82,8 +81,7 @@ unacceptable behavior to [conduct@zync.io](mailto:conduct@zync.io).
 
 <!--
   Before contributing, ensure you have the following tools installed on your
-  development machine. These are required for building and running the ZYNC
-  desktop application from source.
+  development machine. These are required for running ZYNC locally.
 -->
 
 Ensure you have the following tools installed on your development machine:
@@ -223,20 +221,20 @@ git checkout -b feature/my-new-feature
 ### Running the Application
 
 <!--
-  The ZYNC application can be run in several modes depending on what you're
-  working on. The most common is the full Electron development mode.
+  ZYNC consists of a Vite frontend and a Node.js backend. You can run them
+  concurrently using our development scripts.
 -->
 
 ```bash
-# Run the full Electron application in development mode
-# This starts both the Vite dev server and the Electron app
-npm run electron:dev
+# Run both the frontend and backend concurrently
+npm run dev:full
 
-# Run only the web application (useful for frontend-only changes)
-npm run dev
+# Or run them separately:
+# Terminal 1: Run the frontend
+npm run dev:frontend
 
-# Run with verbose Electron logging (useful for debugging main process)
-ELECTRON_ENABLE_LOGGING=1 npm run electron:dev
+# Terminal 2: Run the backend
+npm run dev:backend
 ```
 
 ### Testing Your Changes
@@ -383,58 +381,26 @@ npm run test:watch
    - Sub-components (if any)
    - Export statement
 
-### Electron Main Process Guidelines
+### Backend Development Guidelines
 
 <!--
-  The Electron main process has special considerations due to its Node.js
-  environment and its role in managing the application lifecycle.
+  The backend API is built with Node.js and Express. Follow these guidelines
+  when working in the backend directory.
 -->
 
-1. **Always validate IPC inputs** from the renderer process:
-   ```typescript
-   ipcMain.handle('save-file', async (_event, filePath: unknown, content: unknown) => {
-     // Validate inputs before processing
-     if (typeof filePath !== 'string' || typeof content !== 'string') {
-       throw new Error('Invalid arguments: expected (string, string)');
-     }
-
-     // Sanitize file path to prevent directory traversal
-     const safePath = path.resolve(app.getPath('userData'), path.basename(filePath));
-
-     await fs.promises.writeFile(safePath, content, 'utf-8');
-   });
-   ```
-
-2. **Use proper error handling** with try-catch blocks:
-   ```typescript
-   try {
-     await autoUpdater.checkForUpdates();
-   } catch (error) {
-     logger.error('Failed to check for updates:', error);
-     // Don't crash the app for non-critical failures
-   }
-   ```
-
-3. **Clean up resources** when windows are closed:
-   ```typescript
-   mainWindow.on('closed', () => {
-     mainWindow = null;  // Allow garbage collection
-     // Clean up any event listeners or timers
-   });
-   ```
+1. **Always validate incoming requests** using middleware (like Zod) or explicitly checking `req.body`.
+2. **Handle errors gracefully**: Use try-catch blocks and send appropriate HTTP status codes, never crash the server.
+3. **Keep controllers focused**: Delegate complex business logic to the `services/` directory.
 
 ### CSS and Styling Guidelines
 
 <!--
-  ZYNC uses Tailwind CSS for the renderer process (React app) and vanilla
-  CSS for the Electron-specific pages (settings, splash screen).
+  ZYNC uses Tailwind CSS across the entire React frontend.
 -->
 
-1. **Use Tailwind CSS** classes for React components
-2. **Use vanilla CSS** for Electron-specific pages (settings, splash)
-3. **Follow BEM naming** for vanilla CSS: `.block__element--modifier`
-4. **Support both light and dark themes** using CSS custom properties
-5. **Use relative units** (rem, em) instead of absolute units (px) where possible
+1. **Use Tailwind CSS** classes for all styling in React components.
+2. **Follow existing design tokens** defined in the `tailwind.config.ts`.
+3. **Support both light and dark themes** using Tailwind's `dark:` variant and CSS custom properties.
 
 ### Documentation Guidelines
 
@@ -497,35 +463,30 @@ and makes it easier to understand the history of changes in the project.
 
 | Scope | Description |
 |-------|-------------|
-| `main` | Electron main process |
-| `renderer` | Renderer process (React app) |
-| `preload` | Preload scripts |
-| `settings` | Settings page |
-| `ipc` | IPC communication |
-| `tray` | System tray |
-| `menu` | Application menu |
-| `updater` | Auto-updater |
-| `build` | Build configuration |
+| `frontend` | React frontend application |
+| `backend` | Node.js backend API |
+| `docs` | Documentation and architecture notes |
+| `ci` | GitHub Actions and workflows |
 | `deps` | Dependency updates |
+| `design` | UI/UX adjustments |
 
 ### Commit Examples
 
 ```bash
 # Feature with scope
-feat(tray): add notification count badge to tray icon
+feat(frontend): add notification count badge to header
 
 # Bug fix with body
-fix(main): prevent multiple instances of settings window
+fix(backend): prevent duplicate project creation
 
-Previously, clicking "Settings" multiple times would create duplicate
-windows. Now it focuses the existing window if one is already open.
+Previously, rapid requests could create duplicate projects. Now there is
+a database constraint and rate-limiting to prevent it.
 
 # Breaking change
-feat(ipc)!: restructure IPC channel naming
+feat(backend)!: restructure API endpoints
 
-BREAKING CHANGE: All IPC channels have been renamed to use
-kebab-case convention. Update any renderer code that references
-IPC channels directly.
+BREAKING CHANGE: All API endpoints now prefix with `/api/v2/`.
+Update any frontend services that reference the old endpoints.
 ```
 
 ---
@@ -672,60 +633,41 @@ within 48 hours. See our [Security Policy](security/SECURITY.md) for more detail
 <!--
   Understanding the project structure is essential for making meaningful
   contributions. The project follows a clear separation between the
-  Electron main process and the renderer process.
+  backend API and the React frontend.
 -->
 
 ```
-electron/           → Electron main process (Node.js)
-├── main/           → Main process modules (menu, tray, window state)
-├── preload/        → Preload script type definitions
-├── services/       → Background services (auto-updater)
-├── settings/       → Settings window (HTML/CSS/JS)
-├── utils/          → Utility functions (logger, network, paths)
-├── config/         → Configuration (CSP, permissions, constants)
-├── interfaces/     → TypeScript interfaces
-├── assets/         → Embedded assets (icons, logos)
-├── main.ts         → Main process entry point
-└── preload.ts      → Preload script entry point
+backend/            → Node.js + Express API server
+├── controllers/    → Request handlers (auth, users, projects)
+├── models/         → Mongoose database schemas
+├── routes/         → Express API routing
+├── services/       → Core business logic (AI generation, scraping)
+├── index.js        → Backend entry point
 
-src/                → Renderer process (React + Vite)
-├── components/     → React components
+src/                → Renderer process (React + Vite Frontend)
+├── components/     → Reusable React components (UI, specific features)
 ├── hooks/          → Custom React hooks
-├── lib/            → Library utilities
-├── pages/          → Page components
-├── services/       → API service modules
-├── App.tsx         → Root component
-└── main.tsx        → Entry point
+├── lib/            → Utility functions and Firebase configuration
+├── pages/          → Top-level route components
+├── services/       → Frontend API clients and socket handlers
+├── App.tsx         → Root application component
+
+docs/               → Deep-dive documentation and architecture blueprints
+scripts/            → Automation scripts (build, prepare)
 ```
 
-### Main Process vs Renderer Process
+### Backend vs Frontend Process
 
 <!--
-  Understanding the difference between the main and renderer processes
-  is critical for Electron development. Code placed in the wrong process
-  can cause security vulnerabilities or runtime errors.
+  Code placed in the wrong environment will cause runtime errors.
 -->
 
-| Aspect | Main Process | Renderer Process |
+| Aspect | Backend API | Frontend |
 |--------|-------------|-----------------|
-| **Environment** | Node.js | Chromium (browser) |
-| **File Location** | `electron/` | `src/` |
-| **Access** | Full OS access | Sandboxed (limited) |
-| **Window** | No window, runs in background | Runs inside BrowserWindow |
-| **Examples** | File I/O, system tray, menus | UI components, user interaction |
-
-### IPC Communication Patterns
-
-<!--
-  IPC is the bridge between the main and renderer processes. Following
-  consistent patterns ensures security and maintainability.
--->
-
-```
-Renderer → Main (one-way):   ipcRenderer.send() → ipcMain.on()
-Renderer → Main (two-way):   ipcRenderer.invoke() → ipcMain.handle()
-Main → Renderer (one-way):   mainWindow.webContents.send() → ipcRenderer.on()
-```
+| **Environment** | Node.js | Browser |
+| **File Location** | `backend/` | `src/` |
+| **Access** | Full OS/DB access | Sandboxed |
+| **Examples** | Database queries, WebRTC signaling | UI components, user interaction |
 
 ---
 
