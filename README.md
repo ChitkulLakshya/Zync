@@ -24,7 +24,7 @@
   </p>
 
   <br />
-  <a href="https://zync-meet.vercel.app"><img src="public/placeholder.svg" width="700" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync UI Workspace Demo Placeholder" /></a>
+  <a href="https://zync-meet.vercel.app"><img src="public/macbook.png" width="900" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync UI Workspace" /></a>
 </div>
 
 <br/>
