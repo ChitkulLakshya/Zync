@@ -88,7 +88,7 @@ async function getProjectsWithSteps(filter, sort = { createdAt: -1 }) {
       ? await ProjectTask.find({ stepId: { $in: stepIds } }).lean()
       : [];
 
-  // Group tasks by stepId
+
   const tasksByStep = {};
   tasks.forEach((t) => {
     const key = t.stepId.toString();
@@ -96,7 +96,7 @@ async function getProjectsWithSteps(filter, sort = { createdAt: -1 }) {
     tasksByStep[key].push(normalizeDoc(t));
   });
 
-  // Group steps by projectId
+
   const stepsByProject = {};
   steps.forEach((s) => {
     const key = s.projectId.toString();
