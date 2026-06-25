@@ -12,12 +12,12 @@ jobs:
     
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
           
       - name: Install dependencies
@@ -27,12 +27,6 @@ jobs:
           
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
-        
-      - name: Start Vite Development Server
-        run: npm run dev:frontend &
-        
-      - name: Wait for Vite server to boot
-        run: sleep 10
         
       - name: Execute Tests and Send Report
         env:
