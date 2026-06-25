@@ -34,7 +34,7 @@ jobs:
           # Check if package-lock.json was modified
           if git diff --name-only | grep -q "package-lock.json"; then
             echo "Updates found in package-lock.json. Committing..."
-            git add package.json package-lock.json
+            git add package-lock.json
             git commit -m "build: auto-update npm dependencies"
             git push origin main
           else
