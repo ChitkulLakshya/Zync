@@ -27,6 +27,7 @@ import {
   Send,
   ChevronsLeft,
   ChevronsRight,
+  PanelLeft,
 } from 'lucide-react';
 import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
 import { NotesView } from '@/components/notes/NotesView';
@@ -127,12 +128,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const toggleSidebar = () => {
     const panel = sidebarRef.current;
     if (panel) {
-      if (isLocked) {
-        setIsLocked(false);
-        panel.collapse();
-      } else {
-        setIsLocked(true);
+      if (panel.isCollapsed()) {
         panel.expand();
+      } else {
+        panel.collapse();
       }
     }
   };
@@ -920,18 +919,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       <PanelGroup
         orientation="horizontal"
-        autoSave="persistence"
+        id="zync-desktop-main-layout-v10"
         className="relative z-[1] h-full w-full bg-sidebar"
       >
         {/* Sidebar Panel - The Base Tray */}
         <Panel
           panelRef={sidebarRef}
+          id="zync-sidebar-v10"
           defaultSize={16}
-          minSize={4}
-          maxSize={20}
+          minSize={12}
+          maxSize={22}
           collapsible={true}
-          collapsedSize={4}
-          onResize={(size) => setIsCollapsed(size.asPercentage <= 4)}
+          collapsedSize={5}
+          onResize={(size) => setIsCollapsed(size.asPercentage <= 6)}
           className={cn(
             'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none',
             isCollapsed && 'min-w-[70px]'
@@ -1082,15 +1082,24 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           </div>
         </Panel>
 
-        <PanelResizeHandle className="w-px bg-transparent opacity-0" />
+        <PanelResizeHandle className="w-1.5 bg-transparent hover:bg-foreground/10 transition-colors cursor-col-resize z-30" />
 
         {/* Main Content Panel - The Floating Canvas */}
-        <Panel defaultSize={84} className="min-h-0 bg-transparent py-2 pr-2">
+        <Panel id="zync-canvas-v10" defaultSize={84} className="min-h-0 bg-transparent py-2 pr-2">
           <div className="h-full w-full p-0 bg-transparent">
             <div className="h-full w-full bg-background border border-sidebar-border/40 shadow-elevation4 rounded-[32px] overflow-hidden relative flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
                 <div className="flex items-center gap-4">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={toggleSidebar}
+                    className="h-9 w-9 rounded-xl border border-border/10 bg-card/40 hover:bg-card text-muted-foreground hover:text-foreground transition-all shrink-0"
+                    title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  >
+                    <PanelLeft className="w-5 h-5" />
+                  </Button>
                   <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
                     <span>{activeSection}</span>
                     {showCompactSpinner && (
