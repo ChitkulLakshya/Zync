@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     headers: {
-      // www.google.com + gstatic: Firebase App Check (reCAPTCHA v3); *.googleapis.com covers Firebase Auth & App Check APIs
+
       'Content-Security-Policy':
         "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://apis.google.com https://www.googleapis.com https://www.gstatic.com https://www.google.com; " +
         "frame-src 'self' https://*.firebaseapp.com https://*.google.com https://www.google.com; " +
@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
         navigateFallback: '/index.html',
-        // Dashboard bundle is currently >2 MiB; raise cap to avoid SW generation failure on CI.
+
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       devOptions: {
