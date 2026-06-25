@@ -88,7 +88,7 @@ router.post('/create', verifyToken, async (req, res) => {
     });
     const teamObj = normalizeDoc(savedTeam.toObject());
 
-    // Add team to user's memberships
+
     const memberships = [...(user.teamMemberships || []), teamObj.id];
     await User.updateOne({ uid }, { $set: { teamMemberships: memberships } });
     await cache.invalidate(`user:me:${uid}`);
