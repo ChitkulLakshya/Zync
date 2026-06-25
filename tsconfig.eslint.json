@@ -8,7 +8,8 @@
     "scripts/**/*.ts",
     "*.config.ts",
     "*.config.js",
-    ".eslintrc.cjs"
+    ".eslintrc.cjs",
+    "tests/**/*.ts"
   ],
   "exclude": ["node_modules", "dist", "dist-electron", "backend"]
 }

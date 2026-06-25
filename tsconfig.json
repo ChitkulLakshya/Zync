@@ -12,6 +12,7 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "noEmit": true,
+    "types": ["vite/client", "vite-plugin-pwa/client"],
     "ignoreDeprecations": "5.0",
     "paths": {
       "@/*": ["./src/*"],
@@ -26,6 +27,6 @@
     "forceConsistentCasingInFileNames": true,
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "electron/**/*", "vite.config.ts", "tailwind.config.ts"],
+  "include": ["src/**/*", "electron/**/*", "vite.config.ts", "tailwind.config.ts", "tests/**/*"],
   "exclude": ["node_modules", "dist", "dist-electron", "release"]
 }
