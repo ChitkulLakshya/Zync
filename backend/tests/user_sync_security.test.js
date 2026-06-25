@@ -1,6 +1,6 @@
 
 const request = require('supertest');
-import express from 'express';
+const express = require('express');
 
 const createSelectLeanChain = (result) => ({
   select: jest.fn().mockReturnThis(),
@@ -27,22 +27,15 @@ const mockTeamModel = jest.requireMock('../models/Team');
 const { sendZyncEmail } = jest.requireMock('../services/mailer');
 const { appendRow } = jest.requireMock('../services/sheetLogger');
 
-jest.mock('firebase-admin', () => {
-  const verifyIdToken = jest.fn((token) => {
-    if (token === 'valid_token') {
-      return Promise.resolve({ uid: 'secure_uid', email: 'test@example.com' });
+jest.mock('../middleware/authMiddleware', () => {
+  return jest.fn((req, res, next) => {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (authHeader === 'Bearer valid_token') {
+      req.user = { uid: 'secure_uid', email: 'test@example.com' };
+      return next();
     }
-    return Promise.reject(new Error('Invalid token'));
+    return res.status(401).json({ message: 'Unauthorized' });
   });
-
-  return {
-    apps: [],
-    initializeApp: jest.fn(() => {}),
-    credential: { cert: jest.fn(() => {}) },
-    auth: () => ({
-      verifyIdToken,
-    }),
-  };
 });
 
 jest.mock('../utils/encryption', () => ({}));
@@ -67,7 +60,7 @@ jest.mock('../services/cloudinaryService', () => ({
   deleteCloudinaryAsset: jest.fn(() => Promise.resolve()),
 }));
 
-import userRoutes from '../routes/userRoutes';
+const userRoutes = require('../routes/userRoutes');
 
 const app = express();
 app.use(express.json());

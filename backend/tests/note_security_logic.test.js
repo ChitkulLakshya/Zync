@@ -1,4 +1,4 @@
-import { describe, it, expect, mock } from 'bun:test';
+
 
 const mockNotes = [
   { id: '1', title: 'Secret Note', ownerId: 'victim', folderId: null },
@@ -7,7 +7,7 @@ const mockNotes = [
 
 const prisma = {
   note: {
-    findMany: mock((args) => {
+    findMany: jest.fn((args) => {
       const query = args.where;
       return Promise.resolve(
         mockNotes.filter((n) => {
@@ -25,8 +25,8 @@ const prisma = {
     }),
   },
   folder: {
-    findUnique: mock(() => Promise.resolve(null)),
-    findMany: mock(() => Promise.resolve([])),
+    findUnique: jest.fn(() => Promise.resolve(null)),
+    findMany: jest.fn(() => Promise.resolve([])),
   },
 };
 
@@ -95,8 +95,8 @@ describe('Fixed IDOR Vulnerability (Handler Logic)', () => {
       user: { uid: 'me' },
     };
     const res = {
-      status: mock(() => res),
-      json: mock(),
+      status: jest.fn(() => res),
+      json: jest.fn(),
     };
 
     await fixedHandler(req, res);
@@ -126,8 +126,8 @@ describe('Fixed IDOR Vulnerability (Handler Logic)', () => {
       user: null,
     };
     const res = {
-      status: mock(() => res),
-      json: mock(),
+      status: jest.fn(() => res),
+      json: jest.fn(),
     };
 
     await fixedHandler(req, res);

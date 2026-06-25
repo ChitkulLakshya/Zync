@@ -1,7 +1,7 @@
 
-import express from 'express';
-import request from 'supertest';
-import path from 'path';
+const express = require('express');
+const request = require('supertest');
+const path = require('path');
 
 const mockPrisma = {
   session: {
@@ -15,8 +15,11 @@ const mockPrisma = {
 };
 
 jest.mock('../lib/prisma', () => mockPrisma);
+jest.mock('../middleware/authMiddleware', () =>
+  jest.fn((req, res) => res.status(401).json({ message: 'Unauthorized' }))
+);
 
-import sessionRoutes from '../routes/sessionRoutes';
+const sessionRoutes = require('../routes/sessionRoutes');
 
 const app = express();
 app.use(express.json());

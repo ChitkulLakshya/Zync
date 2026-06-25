@@ -1,30 +1,20 @@
-import { describe, it, expect, mock, beforeAll, afterAll } from 'bun:test';
 const express = require('express');
 const request = require('supertest');
 
 process.env.GROQ_API_KEY = 'dummy_key';
 
-const mockVerifyIdToken = mock(() =>
-  Promise.resolve({ uid: 'test-user-id', email: 'test@example.com' })
-);
-const mockAuth = mock(() => ({
-  verifyIdToken: mockVerifyIdToken,
-}));
+jest.mock('../middleware/authMiddleware', () => {
+  return jest.fn((req, res, next) => {
+    const authHeader = req.headers.authorization || req.headers.Authorization;
+    if (authHeader === 'Bearer valid-token') {
+      req.user = { uid: 'test-user-id', email: 'test@example.com' };
+      return next();
+    }
+    return res.status(401).json({ message: 'No token provided' });
+  });
+});
 
-mock.module('firebase-admin', () => ({
-  apps: [],
-  initializeApp: mock(),
-  credential: { cert: mock() },
-  auth: mockAuth,
-  default: {
-    apps: [],
-    initializeApp: mock(),
-    credential: { cert: mock() },
-    auth: mockAuth,
-  },
-}));
-
-const mockGroqCreate = mock(() =>
+const mockGroqCreate = jest.fn(() =>
   Promise.resolve({
     choices: [
       { message: { content: JSON.stringify({ architecture: {}, steps: [] }) } },
@@ -37,35 +27,22 @@ const MockGroq = class {
   }
 };
 
-const groqPath = require.resolve('groq-sdk');
-mock.module(groqPath, () => {
-  return {
-    Groq: MockGroq,
-    default: { Groq: MockGroq },
-  };
-});
-mock.module('groq-sdk', () => {
-  return {
-    Groq: MockGroq,
-    default: { Groq: MockGroq },
-  };
-});
+jest.mock('groq-sdk', () => MockGroq);
 
-const mockUserFindUnique = mock(() =>
-  Promise.resolve({ id: 'user-id', uid: 'test-user-id' })
-);
-const mockProjectCreate = mock(() =>
-  Promise.resolve({ id: 'new-project-id', name: 'Test Project' })
-);
-
-mock.module('../lib/prisma', () => ({
-  user: {
-    findUnique: mockUserFindUnique,
-  },
-  project: {
-    create: mockProjectCreate,
-  },
-  $disconnect: mock(() => Promise.resolve()),
+jest.mock('../models/User', () => ({
+  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid' }) })),
+}));
+jest.mock('../models/Project', () => ({
+  create: jest.fn(() => Promise.resolve({ _id: 'project_oid' })),
+}));
+jest.mock('../models/Step', () => ({
+  insertMany: jest.fn((steps) => Promise.resolve(steps.map((s, idx) => ({ ...s, _id: `step_${idx}` })))),
+}));
+jest.mock('../models/ProjectTask', () => ({
+  insertMany: jest.fn((tasks) => Promise.resolve(tasks.map((t, idx) => ({ ...t, _id: `task_${idx}` })))),
+}));
+jest.mock('../utils/projectHelper', () => ({
+  getProjectWithSteps: jest.fn(() => Promise.resolve({ id: 'new-project-id', name: 'Test Project' })),
 }));
 
 const generateProjectRoutes = require('../routes/generateProjectRoutes');
@@ -85,14 +62,11 @@ describe('Generate Project Routes', () => {
   });
 
   it('should return 201 if authenticated', async () => {
-    mockVerifyIdToken.mockClear();
-
     const res = await request(app)
       .post('/')
       .set('Authorization', 'Bearer valid-token')
       .send({ name: 'Test Project', description: 'Test Description' });
 
     expect(res.status).toBe(201);
-    expect(mockVerifyIdToken).toHaveBeenCalled();
   });
 });

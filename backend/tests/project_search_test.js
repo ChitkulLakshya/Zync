@@ -1,6 +1,4 @@
-import { describe, it, expect, mock, beforeEach } from 'bun:test';
-
-const mockProjectFindMany = mock(() =>
+const mockProjectFindMany = jest.fn(() =>
   Promise.resolve([
     {
       id: 'p1',
@@ -97,8 +95,8 @@ describe('Project Search Logic', () => {
       user: { uid: 'user123' },
     };
     const res = {
-      json: mock(),
-      status: mock(() => res),
+      json: jest.fn(),
+      status: jest.fn(() => res),
     };
 
     await secureSearchHandler(req, res);
@@ -118,8 +116,8 @@ describe('Project Search Logic', () => {
       user: null,
     };
     const res = {
-      json: mock(),
-      status: mock(() => res),
+      json: jest.fn(),
+      status: jest.fn(() => res),
     };
 
     await secureSearchHandler(req, res);
