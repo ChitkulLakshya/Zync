@@ -373,6 +373,11 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                 className="w-6 h-6 rounded-full border border-background"
                 alt="eesha264"
               />
+              <img
+                src="https://github.com/thanmayeereddykotha.png"
+                className="w-6 h-6 rounded-full border border-background"
+                alt="thanmayeereddykotha"
+              />
             </div>
             <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">
               Endorsed by Core

@@ -172,9 +172,9 @@ Dive deeper into Zync's internals by exploring our comprehensive documentation i
 
 Zync is proudly built and maintained by:
 
-| [<img src="https://github.com/chitkullakshya.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/chitkullakshya) | [<img src="https://github.com/prem22k.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/prem22k) | [<img src="https://github.com/eesha264.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/eesha264) |
-|:---:|:---:|:---:|
-| **[Lakshya Chitkul](https://github.com/chitkullakshya)** | **[Prem Sai Kota](https://github.com/prem22k)** | **[Eeshitha Gone](https://github.com/eesha264)** |
+| [<img src="https://github.com/chitkullakshya.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/chitkullakshya) | [<img src="https://github.com/prem22k.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/prem22k) | [<img src="https://github.com/eesha264.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/eesha264) | [<img src="https://github.com/thanmayeereddykotha.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/thanmayeereddykotha) |
+|:---:|:---:|:---:|:---:|
+| **[Lakshya Chitkul](https://github.com/chitkullakshya)** | **[Prem Sai Kota](https://github.com/prem22k)** | **[Eeshitha Gone](https://github.com/eesha264)** | **[Thanmayee Reddy Kotha](https://github.com/thanmayeereddykotha)** |
 
 ---
 
