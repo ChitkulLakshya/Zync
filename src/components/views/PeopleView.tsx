@@ -318,7 +318,7 @@ const PeopleView = ({
     );
   }
 
-  // Removed global loading check to prevent sidebar unmount
+
 
   const effectiveCollapsed = isCollapsed && !isHovered;
   const isFloating = isCollapsed && isHovered;
@@ -870,7 +870,7 @@ const PeopleView = ({
                             statusText = `Offline ${duration}`;
                           }
                         } catch (e) {
-                          // Ignore date formatting errors
+
                         }
                       }
 
@@ -1024,7 +1024,7 @@ const PeopleView = ({
         open={joinTeamOpen}
         onOpenChange={setJoinTeamOpen}
         onSuccess={() => {
-          // Refresh data
+
           window.location.reload();
         }}
       />
