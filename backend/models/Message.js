@@ -18,7 +18,7 @@ const messageSchema = new mongoose.Schema(
     fileName: { type: String, default: null },
     fileSize: { type: Number, default: null },
 
-    // project-invite specific
+
     projectId: { type: String, default: null },
     projectName: { type: String, default: null },
     projectOwnerId: { type: String, default: null },
@@ -30,11 +30,11 @@ const messageSchema = new mongoose.Schema(
   },
   {
     timestamps: { createdAt: 'createdAt', updatedAt: false },
-    collection: 'messages', // matches Prisma @@map("messages")
+    collection: 'messages',
   }
 );
 
-// Compound indexes matching the Prisma schema
+
 messageSchema.index({ chatId: 1, createdAt: 1 });
 messageSchema.index({ receiverId: 1, delivered: 1 });
 messageSchema.index({ receiverId: 1, createdAt: -1 });
