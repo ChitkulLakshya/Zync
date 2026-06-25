@@ -56,7 +56,7 @@ export function connectTaskSocket(userId: string): Socket {
     assignedListeners.forEach((cb) => cb(data));
   });
 
-  // Rejoin previously joined projects on reconnect
+
   socket.on('connect', () => {
     joinedProjects.forEach((projectId) => {
       socket?.emit('join-project', projectId);
@@ -88,7 +88,7 @@ export function leaveProject(projectId: string) {
   socket?.emit('leave-project', projectId);
 }
 
-// ── Subscribe / unsubscribe ──────────────────────────────────────────
+
 
 export function onTaskCreated(cb: TaskEventCallback) {
   createdListeners.add(cb);
