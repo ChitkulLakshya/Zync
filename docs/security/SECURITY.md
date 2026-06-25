@@ -1,103 +1,68 @@
-# Security Policy — ZYNC Desktop Application
+# 🛡️ Enterprise Security Policy & Procedures
 
-<!--
-  =============================================================================
-  SECURITY.md — ZYNC Desktop Application
-  =============================================================================
+## Supported Production Versions
 
-  This document outlines the security procedures and policies for the ZYNC
-  desktop application, including how to report vulnerabilities, our response
-  process, and the security measures built into the application.
+Zync follows continuous deployment practices. Security patches and hardening updates are applied exclusively to the latest active production deployment on the `main` branch.
 
-  =============================================================================
--->
+| Branch / Release | Status | Security Support |
+| :--- | :--- | :--- |
+| `main` (Production) | ✅ Active | Fully supported with automated vulnerability scanning |
+| Legacy Branches | ❌ Unsupported | Deprecated; no ongoing security patches |
 
-## Supported Versions
+---
 
-The following versions of ZYNC receive security updates:
+## 🚨 Reporting Vulnerabilities
 
-| Version | Supported |
-|---------|-----------|
-| 1.x.x  | ✅ Active support |
-| < 1.0  | ❌ No longer supported |
+**⚠️ Do NOT report security vulnerabilities via public GitHub issues, pull requests, or discussion boards.**
 
-## Reporting a Vulnerability
+We take the security of our enterprise workspace platform seriously. If you discover a potential security flaw, please report it responsibly directly to our core security engineering team.
 
-**⚠️ Do NOT report security vulnerabilities through public GitHub issues.**
+### Submission Guidelines
 
-If you discover a security vulnerability in ZYNC, please report it responsibly:
+1. **Email Contact**: Send encrypted or detailed reports to [security@zync.io](mailto:security@zync.io)
+2. **Subject Line**: Use prefix `[VULNERABILITY] <Brief Description>`
+3. **Required Information**:
+   - Detailed step-by-step reproduction guide.
+   - Proof-of-concept (PoC) scripts or HTTP request captures.
+   - Assessment of potential blast radius and data impact.
+   - Contact details for coordinated disclosure.
 
-### How to Report
+### Response & Patch SLAs
 
-1. **Email**: Send details to [security@zync.io](mailto:security@zync.io)
-2. **Subject**: Use the format: `[SECURITY] Brief description`
-3. **Include**:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact assessment
-   - Suggested fix (if any)
-   - Your contact information
+| Phase | Target SLA |
+| :--- | :--- |
+| **Initial Acknowledgment** | Within 12 hours |
+| **Triage & Reproduction** | Within 48 hours |
+| **Patch Deployment (Critical/High)** | Within 7 days |
+| **Public Advisory Publication** | Coordinated post-patch confirmation |
 
-### Response Timeline
+---
 
-| Action | Timeline |
-|--------|----------|
-| Acknowledgment | Within 24 hours |
-| Initial assessment | Within 72 hours |
-| Status update | Within 7 days |
-| Fix release | Within 30 days (critical) |
+## 🔒 Codebase Security Architecture
 
-### What to Expect
+Zync implements multi-layered security controls across its Web Application and API infrastructure:
 
-- We will acknowledge receipt of your report
-- We will investigate and validate the vulnerability
-- We will work on a fix and coordinate disclosure
-- We will credit you in the security advisory (unless you prefer anonymity)
+### 1. API & Network Security (`backend/index.js`)
+- **HTTP Header Hardening**: Secured via `helmet` enforcing strict Content Security Policies (CSP), frameguarding (`DENY`), and cross-site scripting filters.
+- **DDoS & Brute Force Defense**: Global IP rate limiting via `express-rate-limit` (100 requests per 15-minute window) coupled with dynamic server **Event Loop Load Shedding** (`loadSheddingMiddleware.js`) to automatically drop traffic during CPU spikes.
+- **CORS Enforcement**: Explicit origin whitelisting matching verified frontend domains (`credentials: true`).
 
-## Security Measures
+### 2. Authentication & Identity (`backend/middleware/authMiddleware.js`)
+- **Stateless Verification**: API endpoints authenticate incoming requests using **Firebase Authentication ID Tokens** verified cryptographically via `firebase-admin`.
+- **Encrypted Integrations**: Third-party OAuth tokens (GitHub, LinkedIn, Google) are encrypted at rest using high-entropy AES-256 keys before ingestion into MongoDB.
 
-### Electron Security
+### 3. Cryptographic Webhook Validation (`backend/middleware/verifyGithub.js`)
+- **HMAC Signatures**: Incoming GitHub push events (`POST /api/github-app/webhook`) are intercepted prior to standard JSON parsing to compute SHA-256 HMAC digests (`x-hub-signature-256`) against raw request body buffers.
 
-ZYNC implements the following Electron security best practices:
+### 4. Client-Side Data Sandboxing
+- **CRDT Isolation**: Collaborative rich-text documents (`Yjs`) sync over isolated Socket.IO namespaces (`/notes`), persisting binary blobs locally via `IndexedDB` without exposing raw database queries to client bundles.
 
-1. **Context Isolation**: Enabled — renderer JavaScript cannot access Node.js
-2. **Node Integration**: Disabled in renderer — prevents direct Node.js access
-3. **Sandbox**: Enabled — renderer runs in a sandboxed environment
-4. **Content Security Policy**: Strict CSP headers limit resource loading
-5. **WebSecurity**: Enabled — enforces same-origin policy
-6. **Preload Script**: Only whitelisted APIs exposed via `contextBridge`
-7. **IPC Validation**: All IPC inputs validated and sanitized
-8. **Protocol Handlers**: Only `http:` and `https:` URLs allowed for external links
+---
 
-### Data Security
+## ✅ Pre-Commit Contributor Checklist
 
-- No sensitive data stored in plain text
-- Firebase authentication tokens managed by Firebase SDK
-- User preferences stored locally in the app data directory
-- No telemetry or analytics data collected without consent
-
-### Dependencies
-
-- Dependencies regularly audited with `npm audit`
-- Dependabot configured for automated security updates
-- Electron and Chromium kept up-to-date for security patches
-
-## Security Checklist for Contributors
-
-When contributing code, ensure:
-
-- [ ] No `nodeIntegration: true` in any BrowserWindow
-- [ ] No `contextIsolation: false` in any BrowserWindow
-- [ ] All IPC inputs are validated and type-checked
-- [ ] No `eval()` or `Function()` in production code
-- [ ] External URLs validated before opening with `shell.openExternal()`
-- [ ] File paths sanitized to prevent directory traversal
-- [ ] No secrets or API keys committed to the repository
-- [ ] CSP headers not weakened without documented justification
-
-## Disclosure Policy
-
-- Security issues are disclosed after a fix is available
-- CVE identifiers are requested for significant vulnerabilities
-- Security advisories are published on the GitHub repository
-- Users are notified through the auto-updater mechanism
+All submitted pull requests must satisfy our automated CI security gates:
+- [ ] No hardcoded API keys, JWT secrets, or `.env` credentials.
+- [ ] No usage of dangerous JavaScript primitives (`eval()`, `Function()`).
+- [ ] All database mutations utilize parameterized queries or sanitized ORM constructs (`Prisma` / `Mongoose`).
+- [ ] Dependencies audited via `npm audit` with zero unresolved high/critical CVEs.

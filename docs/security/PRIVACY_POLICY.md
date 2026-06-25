@@ -1,63 +1,59 @@
-# Privacy Policy — ZYNC Desktop Application
+# 🔐 Global Privacy Policy & Google API Compliance
 
-**Last Updated: February 13, 2026**
+**Effective Date: February 13, 2026**
 
-<!--
-  =============================================================================
-  PRIVACY_POLICY.md — ZYNC Desktop Application
-  =============================================================================
-  This document outlines how ZYNC ("we", "our", or "us") collects, uses, and
-  protects your information when you use our desktop application and its
-  integrations, specifically with Google APIs.
-  =============================================================================
--->
+This Privacy Policy describes how Zync ("we", "our", or "us") ingests, processes, and safeguards user information across our enterprise real-time collaboration web application and distributed backend services.
 
-## Introduction
-ZYNC is a real-time collaboration desktop application designed to streamline team workflows. This Privacy Policy explains our practices regarding the collection, use, and disclosure of your information, including data received from Google APIs.
+---
 
-## Information We Collect
-To provide our core collaboration features, ZYNC collects the following information:
+## 1. Information Collection & Scope
 
-### Google User Data
-When you connect your Google Account to ZYNC, we request access to your **Google Calendar** data via OAuth 2.0. The specific information we collect includes:
-- **Calendar Events**: Summaries, start/end times, and descriptions of team meetings.
-- **Calendar Metadata**: Names and identifiers of calendars you choose to synchronize.
+Zync operates on a principle of data minimization, collecting only data strictly required for collaborative document editing, team presence tracking, and workspace scheduling.
 
-### Local Application Data
-- **Application Settings**: Preferences stored locally on your device (theme, notification settings).
-- **Log Data**: Technical logs created during app usage (stored locally) to assist with debugging.
+### A. Connected Google API Data (OAuth 2.0)
+When users authorize the Google Calendar integration within their workspace settings, Zync requests read-only access to calendar data. Specifically, we ingest:
+- **Event Summaries & Timestamps**: Meeting titles, start/end times, and attendee lists required to render the unified workspace schedule canvas.
+- **Calendar Identifiers**: Primary calendar IDs selected explicitly by the user for workspace synchronization.
 
-## How We Use Your Information
-We use the information collected from Google Calendar exclusively to:
-1. **Display Team Meetings**: Show your upcoming schedule directly within the ZYNC dashboard.
-2. **Synchronize Schedules**: Ensure that meeting changes made in Google Calendar are reflected in ZYNC in real-time.
-3. **Notify Users**: Provide desktop notifications for upcoming meetings.
+### B. Core Workspace Data
+- **Identity Metadata**: Display names, email addresses, and profile avatars provided by authenticated identity providers (Firebase Auth, GitHub, LinkedIn).
+- **Collaborative State**: Binary CRDT update payloads (`Yjs`) and unstructured canvas annotations stored in MongoDB.
 
-**We do not use your Google Calendar data for any other purpose, such as marketing, profiling, or selling to third parties.**
+---
 
-## Google API "Limited Use" Disclosure
-ZYNC's use and transfer to any other app of information received from Google APIs will adhere to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.
+## 2. Exclusive Use of Google API Data
 
-## Data Retention and Deletion
-- **Local Cache**: Google Calendar data is cached locally on your device to improve performance. This cache is cleared when you log out of the application or disconnect the integration.
-- **Authentication Tokens**: OAuth tokens are stored securely in your system's keychain/credentials manager.
-- **Deletion**: You can revoke ZYNC's access to your Google Account at any time via your [Google Security Settings](https://myaccount.google.com/permissions). Upon revocation, ZYNC will no longer be able to access your calendar data, and local caches will be purged.
+Data acquired from Google Calendar is strictly ring-fenced. We utilize this data **exclusively** to:
+1. **Render Workspace Agendas**: Populate the dashboard calendar widget with upcoming meetings.
+2. **Calculate Team Overlaps**: Determine optimal collaboration windows across distributed timezones.
+3. **Trigger In-App Reminders**: Deliver real-time meeting notifications via WebSockets.
 
-## Third-Party Disclosure
-We do not share your personal information or Google Calendar data with third-party services, except as required to provide the core functionality (e.g., Firebase for real-time synchronization of non-calendar ZYNC data) or as required by law.
+**🚫 Strict Prohibitions**: Zync **never** sells, transfers, or shares Google Calendar data with third-party data brokers, advertising networks, or AI training pipelines.
 
-## Security
-We implement industry-standard security measures to protect your data, including:
-- **Encryption**: All data in transit is encrypted via HTTPS/TLS.
-- **Context Isolation**: The ZYNC desktop app uses Electron's security features (context isolation and sandboxing) to ensure your local data remains secure.
+---
 
-## Changes to This Policy
-We may update this Privacy Policy from time to time. We will notify you of any significant changes via the application or our official website.
+## 3. Google API Limited Use Disclosure
 
-## Contact Information
-If you have any questions or concerns about this Privacy Policy or our data practices, please contact:
+Zync's ingestion, internal transfer, and processing of information received from Google APIs strictly adheres to the [Google API Services User Data Policy](https://developers.google.com/terms/api-services-user-data-policy), including the **Limited Use** requirements.
 
-**Lakshya Chitkul**
-Lead Developer, ZYNC
-Email: [lakshya@zync.io](mailto:lakshya@zync.io)
-GitHub: [ChitkulLakshya](https://github.com/ChitkulLakshya)
+---
+
+## 4. Data Storage, Encryption & Retention
+
+### Encryption Standards
+- **In Transit**: All frontend client-server interactions enforce TLS 1.3 encryption over HTTPS and WSS (WebSocket Secure).
+- **At Rest**: Third-party OAuth refresh tokens and session credentials are encrypted prior to database persistence using AES-256-GCM.
+
+### Lifecycle & Purging
+- **Local Browser Caches**: Collaborative scratch buffers cached in browser `IndexedDB` are wiped upon explicit user sign-out or session expiration.
+- **Account Revocation**: Users may revoke Zync's OAuth access at any time via [Google Account Security Settings](https://myaccount.google.com/permissions). Upon webhook notification or API revocation detection, Zync permanently purges associated cached calendar entries from MongoDB.
+
+---
+
+## 5. Contact & Data Protection Officer
+
+For formal data subject access requests (DSAR) or compliance inquiries, contact:
+
+**Zync Security & Compliance Engineering**  
+Email: [privacy@zync.io](mailto:privacy@zync.io)  
+GitHub Organization: [zync-meet](https://github.com/zync-meet)
