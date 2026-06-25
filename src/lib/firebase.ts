@@ -5,18 +5,16 @@ import { getFirestore } from 'firebase/firestore';
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || 'mock_api_key',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || 'mock.firebaseapp.com',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || 'mock_project_id',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || 'mock.appspot.com',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '123456789',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || '1:123456789:web:mockappid',
 };
 
-if (!firebaseConfig.apiKey) {
-  console.error(
-    'CRITICAL: Firebase Configuration Missing. Please ensure .env file exists and contains VITE_FIREBASE_API_KEY.'
-  );
+if (!import.meta.env.VITE_FIREBASE_API_KEY) {
+  console.warn('Firebase configuration secrets missing. Using mock fallback credentials for testing/CI.');
 }
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
