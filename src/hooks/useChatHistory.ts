@@ -39,7 +39,7 @@ export const useChatHistory = (chatId: string | null) => {
     queryKey,
     queryFn: () => fetchChatHistory(chatId!),
     enabled: !!chatId && !!auth.currentUser,
-    staleTime: 1000 * 60 * 30, // 30 minutes
+    staleTime: 1000 * 60 * 30,
   });
 
   useEffect(() => {
