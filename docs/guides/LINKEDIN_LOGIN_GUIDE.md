@@ -1,114 +1,44 @@
-# Adding LinkedIn Login to Zync
+# 💼 LinkedIn Authentication Integration Guide
 
-Your request mentioned *Next.js 14/15* and *NextAuth.js v5*, but Zync is currently built using **React (Vite), Express.js**, and **Firebase Auth**. 
-I have updated your current architecture to support LinkedIn authentication directly using Firebase.
+## Overview
 
-## 1. Firebase (Current Architecture) Configuration
-
-### Firebase Console Setup
-Firebase supports LinkedIn login using **OpenID Connect (OIDC)**. Since LinkedIn now natively supports OIDC, this is a smooth process.
-
-1. Go to the [Firebase Console](https://console.firebase.google.com/).
-2. Navigate to **Authentication** > **Sign-in method**.
-3. Click **Add new provider** > **OpenID Connect**.
-4. Configure as follows:
-   - **Name**: `LinkedIn`
-   - **Provider ID**: `oidc.linkedin` (This matches our code `new OAuthProvider('oidc.linkedin')`).
-   - **Client ID**: `869ub9zqulapww` *(from your prompt)*
-   - **Issuer**: `https://www.linkedin.com` or `https://www.linkedin.com/oauth`
-   - **Client Secret**: `<YOUR_LINKEDIN_CLIENT_SECRET>` *(from your prompt)*
-5. Save the configuration.
-
-### LinkedIn Developer Portal Setup
-In the [LinkedIn Developer Portal](https://www.linkedin.com/developers/):
-1. **Enable** "Sign In with LinkedIn using OpenID Connect" in your app's products.
-2. Under **Auth** > **OAuth 2.0 settings**, add the **Firebase Redirect URI**:
-   - `https://<YOUR_FIREBASE_PROJECT_ID>.firebaseapp.com/__/auth/handler`
+Zync supports enterprise single sign-on (SSO) via LinkedIn. Rather than relying on third-party frontend wrappers or unsupported IDP configurations, Zync implements a secure **OAuth 2.0 Authorization Code Flow** managed directly by the Express backend, bridging authentications into **Firebase Custom Tokens**.
 
 ---
 
-## 2. Using NextAuth.js v5 (If rewriting frontend to Next.js)
+## ⚡ Architecture & Authentication Flow
 
-If you are planning to migrate Zync away from the Vite SPA architecture to Next.js 14/15, here is exactly how you would set up the environment and `auth.ts` logic you requested.
+### 1. Frontend Trigger (`LinkedinSignInButton.tsx`)
+When a user clicks "Sign in with LinkedIn", the client initiates a full-page redirect directly to the backend auth endpoint:
+```javascript
+window.location.href = `${API_BASE_URL}/api/linkedin/auth`;
+```
 
-### Environment Config (`.env.local`)
+### 2. Backend Handshake (`backend/routes/linkedinRoutes.js`)
+1. **Authorization Request (`GET /api/linkedin/auth`)**: Redirects the user to LinkedIn's OAuth v2 authorization endpoint requesting `openid profile email` scopes.
+2. **Code Exchange (`GET /api/linkedin/callback`)**:
+   - Intercepts the returned authorization `code`.
+   - Exchanges the code via `axios.post('https://www.linkedin.com/oauth/v2/accessToken')` using `LINKEDIN_CLIENT_ID` and `LINKEDIN_CLIENT_SECRET`.
+3. **Profile Ingestion**: Retrieves profile metadata from `https://api.linkedin.com/v2/userinfo`.
+4. **Firebase Identity Bridging**:
+   - Checks if a user exists in Firebase Admin via `admin.auth().getUserByEmail(email)`.
+   - If not found, provisions a new Firebase account (`admin.auth().createUser`).
+   - Mints a cryptographically secure Firebase Custom Token via `admin.auth().createCustomToken(uid)`.
+5. **Client Handoff**: Redirects back to the frontend login route with the token attached (`/login?customToken=<token>`), allowing the client SDK to immediately authenticate.
+
+---
+
+## 🔐 Environment Configuration
+
+Ensure your `backend/.env` contains the required LinkedIn developer credentials:
 ```env
-AUTH_LINKEDIN_ID="869ub9zqulapww"
-AUTH_LINKEDIN_SECRET="<YOUR_LINKEDIN_CLIENT_SECRET>"
-AUTH_SECRET="your-generated-secret"
-
-# Important for local testing and Vercel:
-NEXTAUTH_URL="http://localhost:3000"
-# (Vercel sets its own NEXTAUTH_URL automatically in production)
+LINKEDIN_CLIENT_ID="your_client_id"
+LINKEDIN_CLIENT_SECRET="your_client_secret"
+FRONTEND_URL="https://your-frontend-domain.com"
 ```
 
-In the LinkedIn Portal, you'd add these Redirect URIs:
-- Development: `http://localhost:3000/api/auth/callback/linkedin`
-- Production: `https://zync-meet.vercel.app/api/auth/callback/linkedin`
+---
 
-### Auth Configuration (`auth.ts` or `src/auth.ts`)
-```typescript
-import NextAuth from "next-auth"
-import LinkedIn from "next-auth/providers/linkedin"
+## 🚫 Purged Speculative Documentation
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  providers: [
-    LinkedIn({
-      clientId: process.env.AUTH_LINKEDIN_ID,
-      clientSecret: process.env.AUTH_LINKEDIN_SECRET,
-      issuer: "https://www.linkedin.com/oauth",
-      authorization: {
-        params: { scope: "openid profile email" },
-      },
-      profile(profile) {
-        return {
-          id: profile.sub,
-          name: profile.name,
-          email: profile.email,
-          image: profile.picture,
-        };
-      },
-    }),
-  ]
-})
-```
-
-### Protected Dashboard Route (`src/app/dashboard/page.tsx`)
-```tsx
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-
-export default async function DashboardPage() {
-  const session = await auth();
-
-  if (!session) {
-    redirect("/login");
-  }
-
-  return <div>Welcome to Zync Dashboard, {session.user?.name}</div>;
-}
-```
-
-### Navbar Profile Picture (`src/components/Navbar.tsx`)
-```tsx
-import { auth } from "@/auth";
-import Image from "next/image";
-
-export default async function Navbar() {
-  const session = await auth();
-
-  return (
-    <nav>
-      {session?.user?.image && (
-        <Image 
-          src={session.user.image} 
-          alt="Profile" 
-          width={40} 
-          height={40} 
-          className="rounded-full" 
-        />
-      )}
-    </nav>
-  )
-}
-```
+Older versions of this guide incorrectly referenced NextAuth.js v5 and native Firebase OIDC provider IDs (`oidc.linkedin`). Those references were hallucinated consumer tutorials and have been purged to reflect true production codebase execution.
