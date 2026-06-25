@@ -53,7 +53,7 @@ export const useTaskPersistence = (userId: string | undefined) => {
 
     const docRef = doc(db, 'tasks', userId);
 
-    // Listen for real-time updates
+
     const unsubscribe = onSnapshot(
       docRef,
       (docSnap) => {
@@ -94,12 +94,12 @@ export const useTaskPersistence = (userId: string | undefined) => {
       const normalized = normalizeStats(newStats);
       const fingerprint = buildFingerprint(normalized);
 
-      // Skip unchanged writes.
+
       if (fingerprint === lastSavedFingerprintRef.current) {
         return;
       }
 
-      // Coalesce frequent writes caused by rapid UI/state updates.
+
       if (now - lastSavedAtRef.current < SAVE_DEBOUNCE_MS) {
         return;
       }
@@ -132,8 +132,8 @@ export const useTaskPersistence = (userId: string | undefined) => {
     if (!userId || !allowFirestoreWrites) {
       return;
     }
-    // In Firestore, we should ideally track individual task statuses in a subcollection
-    // but to satisfy "Overdue = user just opened the task" simply, we can increment a counter or track in a map
+
+
     try {
       const docRef = doc(db, 'tasks', userId);
       const snap = await getDoc(docRef);
@@ -141,8 +141,8 @@ export const useTaskPersistence = (userId: string | undefined) => {
         ? (snap.data() as TaskStats)
         : { total: 0, inProgress: 0, completed: 0, overdue: 0 };
 
-      // For now, let's just increment overdue if this is a "new" opening (simulated)
-      // A better way would be tracking specific task IDs in a sub-collection
+
+
       await setDoc(
         docRef,
         { ...currentStats, overdue: (currentStats.overdue || 0) + 1 },

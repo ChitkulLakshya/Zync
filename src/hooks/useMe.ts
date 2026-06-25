@@ -64,9 +64,9 @@ export const useMe = () => {
         throw new Error('Invalid user data');
       }
 
-      // Ensure teamId is consistently handled
+
       if (data.teamId && typeof data.teamId === 'object' && data.teamId.id) {
-        // Already normalized
+
       } else if (data.teamId && typeof data.teamId === 'object' && data.teamId._id) {
         data.teamId.id = data.teamId._id.toString();
       }
@@ -74,7 +74,7 @@ export const useMe = () => {
       return data;
     },
     enabled: !!user,
-    // Local-first: profile is persisted; refetch only when invalidated (e.g. settings, team changes).
+
     staleTime: Number.POSITIVE_INFINITY,
     refetchOnMount: false,
     refetchOnWindowFocus: false,

@@ -7,7 +7,7 @@ import { API_BASE_URL } from '@/lib/utils';
 import { onAuthStateChanged } from 'firebase/auth';
 import { fetchProjects } from '@/api/projects';
 
-// --- API helpers ---
+
 async function fetchSyncData(token: string) {
   const userRes = await fetch(`${API_BASE_URL}/api/users/me`, {
     headers: { Authorization: `Bearer ${token}` },
@@ -20,8 +20,8 @@ async function fetchSyncData(token: string) {
 }
 
 async function saveDataToApi(payload: any, token: string) {
-  // Mock unified endpoint or save individually via separate fetches
-  // Here we use projects endpoint as an example of optimistic updates
+
+
   if (payload.projects && payload.projects.length > 0) {
     const proj = payload.projects[0];
     const res = await fetch(`${API_BASE_URL}/api/projects`, {
@@ -30,7 +30,7 @@ async function saveDataToApi(payload: any, token: string) {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(proj), // e.g. creating/updating a project
+      body: JSON.stringify(proj),
     });
     if (!res.ok) {
       throw new Error('Failed to save data');
@@ -58,7 +58,7 @@ export function useSyncData() {
 
   const userId = currentUser?.uid;
 
-  // 1) Local-first reads (instant, reactive)
+
   const localUser = useLiveQuery(
     () => (userId ? db.userData.get(userId) : undefined),
     [userId],
@@ -71,7 +71,7 @@ export function useSyncData() {
     []
   );
 
-  // 2) Background fetch
+
   const syncQuery = useQuery({
     queryKey: ['syncData', userId],
     queryFn: async () => {
@@ -87,7 +87,7 @@ export function useSyncData() {
     staleTime: 30_000,
   });
 
-  // 3) When fresh API data arrives, write to IndexedDB
+
   useEffect(() => {
     if (!syncQuery.data || !userId) {
       return;
@@ -96,7 +96,7 @@ export function useSyncData() {
     const { user, projects } = syncQuery.data;
 
     db.transaction('rw', db.userData, db.projectData, async () => {
-      // OVERWRITE the user data
+
       if (user && user.uid) {
         await db.userData.put({
           ...user,
@@ -105,9 +105,9 @@ export function useSyncData() {
         });
       }
 
-      // DELETE old projects and bulk put new ones
+
       if (Array.isArray(projects)) {
-        await db.projectData.where({ userId }).delete(); // Delete previous local data first
+        await db.projectData.where({ userId }).delete();
         await db.projectData.bulkPut(
           projects.map((p: any) => ({
             ...p,
@@ -122,7 +122,7 @@ export function useSyncData() {
     });
   }, [syncQuery.data, userId]);
 
-  // 4) Optimistic mutation
+
   const saveMutation = useMutation({
     mutationFn: async (payload: any) => {
       if (!currentUser) {
