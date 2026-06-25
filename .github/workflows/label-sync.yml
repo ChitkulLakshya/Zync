@@ -260,53 +260,54 @@ jobs:
         uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
-      # Step 2: Transform Config Format
-      # -----------------------------------------------------------------------
-      # The EndBug/label-sync action expects a different format,
-      # so we transform our labels.yml to match.
-      
-      - name: 🔄 Transform Configuration
-        run: |
-          python3 << 'EOF'
-          import yaml
-          import json
-          
-          with open('.github/labels.yml', 'r') as f:
-              config = yaml.safe_load(f)
-          
-          # Transform to the format expected by label-sync
-          labels = []
-          for label in config.get('labels', []):
-              labels.append({
-                  'name': label['name'],
-                  'color': label['color'],
-                  'description': label.get('description', '')
-              })
-          
-          with open('labels-sync-config.json', 'w') as f:
-              json.dump(labels, f, indent=2)
-          
-          print(f"Transformed {len(labels)} labels")
-          EOF
-
-      # -----------------------------------------------------------------------
-      # Step 3: Sync Labels
+      # Step 2: Sync Labels using GitHub CLI
       # -----------------------------------------------------------------------
       
       - name: 🏷️ Sync Labels
-        uses: EndBug/label-sync@v2
-        with:
-          # Configuration file (transformed)
-          config-file: labels-sync-config.json
-          
-          # Delete labels not in config? (controlled by input)
-          delete-other-labels: ${{ inputs.delete_extra || false }}
-          
-          # Dry run mode
-          dry-run: ${{ inputs.dry_run || false }}
-          
-          # Token for API access
-          token: ${{ secrets.GITHUB_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          DELETE_EXTRA: ${{ inputs.delete_extra || 'false' }}
+        run: |
+          python3 << 'EOF'
+          import yaml
+          import subprocess
+          import json
+          import os
+          import sys
+
+          dry_run = os.environ.get('DRY_RUN', 'false').lower() == 'true'
+          delete_extra = os.environ.get('DELETE_EXTRA', 'false').lower() == 'true'
+
+          with open('.github/labels.yml', 'r') as f:
+              config = yaml.safe_load(f)
+
+          config_labels = {label['name']: label for label in config.get('labels', [])}
+          print(f"Loaded {len(config_labels)} target labels from config.")
+
+          if dry_run:
+              print("DRY RUN MODE: No changes will be applied to GitHub.")
+              sys.exit(0)
+
+          for name, label in config_labels.items():
+              color = label['color']
+              desc = label.get('description', '')
+              cmd = ['gh', 'label', 'create', name, '--color', color, '--description', desc, '--force']
+              res = subprocess.run(cmd, capture_output=True, text=True)
+              if res.returncode != 0:
+                  print(f"Warning: Failed to create/update label '{name}': {res.stderr.strip()}")
+              else:
+                  print(f"Synced label: {name}")
+
+          if delete_extra:
+              res = subprocess.run(['gh', 'label', 'list', '--limit', '1000', '--json', 'name'], capture_output=True, text=True)
+              if res.returncode == 0:
+                  current_labels = [l['name'] for l in json.loads(res.stdout)]
+                  for cur in current_labels:
+                      if cur not in config_labels:
+                          print(f"Deleting extra label: {cur}")
+                          subprocess.run(['gh', 'label', 'delete', cur, '--yes'], capture_output=True)
+          EOF
 
       # -----------------------------------------------------------------------
       # Step 4: Summary
