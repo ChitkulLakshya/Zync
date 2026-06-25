@@ -1,6 +1,6 @@
-import Navbar from '@/components/layout/Navbar';
-import Footer from '@/components/landing/Footer';
-import { Separator } from '@/components/ui/separator';
+import Navbar from "@/components/layout/Navbar";
+import Footer from "@/components/landing/Footer";
+import { Separator } from "@/components/ui/separator";
 
 const PrivacyPolicy = () => {
   return (
@@ -23,9 +23,9 @@ const PrivacyPolicy = () => {
             </p>
 
             <p className="leading-7">
-              User data such as name, email, and activity logs are used solely to provide
-              authentication, workspace management, and collaboration features. We do not sell,
-              share, or distribute user data to third parties.
+              User data such as name, email, and activity logs are used solely to
+              provide authentication, workspace management, and collaboration features.
+              We do not sell, share, or distribute user data to third parties.
             </p>
 
             <p className="font-medium">
@@ -34,12 +34,7 @@ const PrivacyPolicy = () => {
 
             <div className="pt-8">
               <p className="text-sm text-muted-foreground">
-                Last updated:{' '}
-                {new Date().toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
+                Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
           </div>

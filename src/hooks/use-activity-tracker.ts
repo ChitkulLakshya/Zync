@@ -11,6 +11,7 @@ export const useActivityTracker = () => {
   const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user && !sessionIdRef.current) {
 
@@ -38,40 +39,42 @@ export const useActivityTracker = () => {
     };
 
     const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
-    events.forEach((event) => window.addEventListener(event, handleUserActivity));
+    events.forEach(event => window.addEventListener(event, handleUserActivity));
+
 
     const interval = setInterval(() => {
-      if (!sessionIdRef.current) {
-        return;
-      }
+        if (!sessionIdRef.current) {return;}
 
-      const now = Date.now();
-      const timeSinceLastAction = now - lastActionRef.current;
+        const now = Date.now();
+        const timeSinceLastAction = now - lastActionRef.current;
 
-      let increment = 0;
-      if (timeSinceLastAction < IDLE_TIMEOUT) {
-        increment = HEARTBEAT_INTERVAL / 1000;
-      }
 
-      if (auth.currentUser) {
-        auth.currentUser.getIdToken().then((token) => {
-          fetch(`${API_BASE_URL}/api/sessions/${sessionIdRef.current}`, {
-            method: 'PUT',
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              lastAction: new Date(lastActionRef.current),
-              activeIncrement: increment,
-            }),
-          }).catch((err) => console.error('Heartbeat failed', err));
-        });
-      }
+        let increment = 0;
+        if (timeSinceLastAction < IDLE_TIMEOUT) {
+            increment = HEARTBEAT_INTERVAL / 1000;
+        }
+
+
+        if (auth.currentUser) {
+          auth.currentUser.getIdToken().then(token => {
+            fetch(`${API_BASE_URL}/api/sessions/${sessionIdRef.current}`, {
+                method: 'PUT',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    lastAction: new Date(lastActionRef.current),
+                    activeIncrement: increment
+                })
+            }).catch(err => console.error("Heartbeat failed", err));
+          });
+        }
+
     }, HEARTBEAT_INTERVAL);
 
     return () => {
-      events.forEach((event) => window.removeEventListener(event, handleUserActivity));
+      events.forEach(event => window.removeEventListener(event, handleUserActivity));
       clearInterval(interval);
     };
   }, []);

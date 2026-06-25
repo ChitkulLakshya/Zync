@@ -1,12 +1,7 @@
 const { getSafeEnvInt } = require('../utils/safeEnv');
 
 const HEAP_LIMIT_MB = getSafeEnvInt('LOAD_SHED_HEAP_LIMIT_MB', 128, 4096, 400);
-const RETRY_AFTER_SECONDS = getSafeEnvInt(
-  'LOAD_SHED_RETRY_AFTER_SECONDS',
-  1,
-  300,
-  15
-);
+const RETRY_AFTER_SECONDS = getSafeEnvInt('LOAD_SHED_RETRY_AFTER_SECONDS', 1, 300, 15);
 
 const ALLOWLIST_PATH_PREFIXES = ['/api/auth', '/api/sessions', '/api/chat'];
 const DEFAULT_HEAVY_PATH_PREFIXES = [
@@ -28,8 +23,7 @@ const HEAVY_PATH_PREFIXES = (() => {
   return custom.length > 0 ? custom : DEFAULT_HEAVY_PATH_PREFIXES;
 })();
 
-const isPathMatchedByPrefixes = (path, prefixes) =>
-  prefixes.some((prefix) => path.startsWith(prefix));
+const isPathMatchedByPrefixes = (path, prefixes) => prefixes.some((prefix) => path.startsWith(prefix));
 
 const loadSheddingMiddleware = (req, res, next) => {
   const requestPath = String((req.originalUrl || req.path || '').split('?')[0]);

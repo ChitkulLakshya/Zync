@@ -13,9 +13,7 @@ router.post('/link-repo', authMiddleware, async (req, res) => {
     const uid = req.user.uid;
 
     if (!projectId || !githubRepoId) {
-      return res
-        .status(400)
-        .json({ message: 'projectId and githubRepoId are required' });
+      return res.status(400).json({ message: 'projectId and githubRepoId are required' });
     }
 
     const project = await Project.findById(projectId).lean();
@@ -28,19 +26,14 @@ router.post('/link-repo', authMiddleware, async (req, res) => {
 
     let repo = await Repository.findOne({ githubRepoId }).lean();
     if (!repo) {
-      repo = (
-        await Repository.create({ githubRepoId, repoName: githubRepoId })
-      ).toObject();
+      repo = (await Repository.create({ githubRepoId, repoName: githubRepoId })).toObject();
     }
 
 
     const currentIds = project.githubRepoIds || [];
     if (!currentIds.includes(githubRepoId)) {
       const newIds = [...currentIds, githubRepoId];
-      await Project.updateOne(
-        { _id: projectId },
-        { $set: { githubRepoIds: newIds } }
-      );
+      await Project.updateOne({ _id: projectId }, { $set: { githubRepoIds: newIds } });
     }
 
     const updatedProject = await getProjectWithSteps(projectId);
@@ -65,11 +58,8 @@ router.post('/unlink-repo', authMiddleware, async (req, res) => {
     }
 
     const currentIds = project.githubRepoIds || [];
-    const newIds = currentIds.filter((id) => id !== githubRepoId);
-    await Project.updateOne(
-      { _id: projectId },
-      { $set: { githubRepoIds: newIds } }
-    );
+    const newIds = currentIds.filter(id => id !== githubRepoId);
+    await Project.updateOne({ _id: projectId }, { $set: { githubRepoIds: newIds } });
 
     const updatedProject = await getProjectWithSteps(projectId);
     res.json(updatedProject);

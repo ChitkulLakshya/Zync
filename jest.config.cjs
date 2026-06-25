@@ -19,10 +19,6 @@ module.exports = {
     '/backend/tests/note_security_logic\\.test\\.js',
   ],
   moduleFileExtensions: ['js', 'jsx', 'ts', 'tsx', 'json', 'node', 'cjs'],
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[jt]s?(x)',
-    '**/?(*.)+(spec|test).cjs',
-  ],
+  testMatch: ['**/__tests__/**/*.[jt]s?(x)', '**/?(*.)+(spec|test).[jt]s?(x)', '**/?(*.)+(spec|test).cjs'],
   setupFilesAfterEnv: ['<rootDir>/node_modules/@testing-library/jest-dom/dist/index.js'],
 };

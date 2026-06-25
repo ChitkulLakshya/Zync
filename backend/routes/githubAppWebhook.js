@@ -9,8 +9,7 @@ const {
 } = require('../services/webhookQueue');
 
 const isDebugWebhookEnabled =
-  process.env.DEBUG_WEBHOOKS === 'true' ||
-  String(process.env.LOG_LEVEL || '').toLowerCase() === 'debug';
+  process.env.DEBUG_WEBHOOKS === 'true' || String(process.env.LOG_LEVEL || '').toLowerCase() === 'debug';
 
 const debugWebhookLog = (...args) => {
   if (!isDebugWebhookEnabled) return;
@@ -44,18 +43,14 @@ router.post('/webhook', verifyGithub, async (req, res) => {
     );
 
     return res.status(202).json({
-      message: enqueueResult.duplicate
-        ? 'Duplicate delivery already queued/processed'
-        : 'Webhook accepted',
+      message: enqueueResult.duplicate ? 'Duplicate delivery already queued/processed' : 'Webhook accepted',
       duplicate: enqueueResult.duplicate,
       deliveryId: normalizedDeliveryId,
       job: enqueueResult.job,
     });
   } catch (error) {
     console.error('[GitHub App Webhook] Error:', error);
-    return res
-      .status(500)
-      .json({ message: 'Webhook enqueue failed', error: error.message });
+    return res.status(500).json({ message: 'Webhook enqueue failed', error: error.message });
   }
 });
 

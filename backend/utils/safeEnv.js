@@ -9,9 +9,7 @@ const clampInt = (value, min, max) => {
 const getSafeEnvInt = (key, min, max, fallback) => {
   const safeFallback = clampInt(fallback, min, max);
   if (safeFallback === null) {
-    throw new Error(
-      `Invalid fallback for ${key}. Expected integer within [${min}, ${max}].`
-    );
+    throw new Error(`Invalid fallback for ${key}. Expected integer within [${min}, ${max}].`);
   }
 
   const raw = process.env[key];

@@ -16,4 +16,4 @@ services:
       - key: NODE_ENV
         value: production
       - key: HUSKY
-        value: '0'
+        value: "0"

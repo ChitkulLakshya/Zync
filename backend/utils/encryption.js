@@ -3,8 +3,7 @@ const crypto = require('crypto');
 const ALGORITHM = 'aes-256-cbc';
 const ENCODING = 'hex';
 const IV_LENGTH = 16;
-const KEY =
-  process.env.MASTER_ENCRYPTION_KEY || '12345678901234567890123456789012';
+const KEY = process.env.MASTER_ENCRYPTION_KEY || '12345678901234567890123456789012';
 
 const encrypt = (text) => {
   if (!text) return null;

@@ -4,13 +4,13 @@ const folderSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
 
-    ownerId: { type: String, required: true },
+    ownerId:  { type: String, required: true },
     parentId: { type: String, default: null },
 
-    type: { type: String, default: 'personal' },
+    type:  { type: String, default: 'personal' },
     color: { type: String, default: '#FFFFFF' },
 
-    projectId: { type: String, default: null },
+    projectId:     { type: String, default: null },
     collaborators: { type: [String], default: [] },
   },
   {

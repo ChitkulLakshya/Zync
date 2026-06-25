@@ -28,21 +28,14 @@ const buildOctokitForInstallation = async (installationId) => {
 };
 
 const getRepoCollaboratorLogins = async (octokit, owner, repo) => {
-  const response = await octokit.request(
-    'GET /repos/{owner}/{repo}/collaborators',
-    {
-      owner,
-      repo,
-      per_page: 100,
-      affiliation: 'all',
-    }
-  );
+  const response = await octokit.request('GET /repos/{owner}/{repo}/collaborators', {
+    owner,
+    repo,
+    per_page: 100,
+    affiliation: 'all',
+  });
 
-  return new Set(
-    (response.data || []).map((collab) =>
-      String(collab.login || '').toLowerCase()
-    )
-  );
+  return new Set((response.data || []).map((collab) => String(collab.login || '').toLowerCase()));
 };
 
 const generateUniqueCommitCode = async () => {
@@ -51,9 +44,7 @@ const generateUniqueCommitCode = async () => {
 
   while (exists) {
     code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-    const found = await ProjectTask.findOne({ commitCode: code })
-      .select('_id')
-      .lean();
+    const found = await ProjectTask.findOne({ commitCode: code }).select('_id').lean();
     exists = !!found;
   }
 
@@ -62,19 +53,11 @@ const generateUniqueCommitCode = async () => {
 
 router.post('/assign', verifyToken, async (req, res) => {
   try {
-    const {
-      projectId,
-      taskName,
-      description,
-      assignedUserId,
-      assignedUserIds,
-    } = req.body || {};
+    const { projectId, taskName, description, assignedUserId, assignedUserIds } = req.body || {};
     const requesterUid = req.user?.uid;
 
     if (!projectId || !taskName?.trim()) {
-      return res
-        .status(400)
-        .json({ message: 'projectId and taskName are required' });
+      return res.status(400).json({ message: 'projectId and taskName are required' });
     }
 
     const normalizedArray = Array.isArray(assignedUserIds)
@@ -92,9 +75,7 @@ router.post('/assign', verifyToken, async (req, res) => {
     }
 
     if (resolvedAssigneeId === requesterUid) {
-      return res
-        .status(400)
-        .json({ message: 'You cannot assign a task to yourself' });
+      return res.status(400).json({ message: 'You cannot assign a task to yourself' });
     }
 
     const project = await Project.findById(projectId).lean();
@@ -103,54 +84,37 @@ router.post('/assign', verifyToken, async (req, res) => {
     }
 
     if (project.ownerUid !== requesterUid) {
-      return res
-        .status(403)
-        .json({ message: 'Only the repository owner can assign tasks' });
+      return res.status(403).json({ message: 'Only the repository owner can assign tasks' });
     }
 
     if (!project.githubRepoOwner || !project.githubRepoName) {
-      return res
-        .status(400)
-        .json({ message: 'Project is not linked to a GitHub repository' });
+      return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
     }
 
     const requester = await User.findOne({ uid: requesterUid }).lean();
     if (!requester?.githubIntegration?.installationId) {
-      return res
-        .status(400)
-        .json({
-          message: 'GitHub App installation is missing for this account',
-        });
+      return res.status(400).json({ message: 'GitHub App installation is missing for this account' });
     }
 
     const normalizedAssigneeIds = [resolvedAssigneeId];
 
-    const teams = await Team.find({ members: requesterUid })
-      .select('members')
-      .lean();
+    const teams = await Team.find({ members: requesterUid }).select('members').lean();
     const sameTeamUids = new Set(teams.flatMap((team) => team.members || []));
 
     const assignees = await User.find({ uid: { $in: normalizedAssigneeIds } })
       .select('uid displayName email githubIntegration.username')
       .lean();
 
-    const assigneeMap = new Map(
-      assignees.map((assignee) => [assignee.uid, assignee])
-    );
+    const assigneeMap = new Map(assignees.map((assignee) => [assignee.uid, assignee]));
 
     const hasInvalidAssignee = normalizedAssigneeIds.some((uid) => {
       const assignee = assigneeMap.get(uid);
-      return (
-        !assignee ||
-        !sameTeamUids.has(uid) ||
-        !assignee?.githubIntegration?.username
-      );
+      return !assignee || !sameTeamUids.has(uid) || !assignee?.githubIntegration?.username;
     });
 
     if (hasInvalidAssignee) {
       return res.status(400).json({
-        message:
-          'This user is not connected to ZYNC GitHub or is not in your team.',
+        message: 'This user is not connected to ZYNC GitHub or is not in your team.'
       });
     }
 
@@ -169,36 +133,20 @@ router.post('/assign', verifyToken, async (req, res) => {
       step = createdStep.toObject();
     }
 
-    const octokit = await buildOctokitForInstallation(
-      requester.githubIntegration.installationId
-    );
-    const collaboratorLogins = await getRepoCollaboratorLogins(
-      octokit,
-      project.githubRepoOwner,
-      project.githubRepoName
-    );
+    const octokit = await buildOctokitForInstallation(requester.githubIntegration.installationId);
+    const collaboratorLogins = await getRepoCollaboratorLogins(octokit, project.githubRepoOwner, project.githubRepoName);
 
     const assigneesNotCollaborators = normalizedAssigneeIds.filter((uid) => {
       const assignee = assigneeMap.get(uid);
-      const githubUsername = String(
-        assignee?.githubIntegration?.username || ''
-      ).toLowerCase();
+      const githubUsername = String(assignee?.githubIntegration?.username || '').toLowerCase();
       return !collaboratorLogins.has(githubUsername);
     });
 
     if (assigneesNotCollaborators.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message:
-            'Selected assignee is not a collaborator on this repository.',
-        });
+      return res.status(400).json({ message: 'Selected assignee is not a collaborator on this repository.' });
     }
 
-    if (
-      !project.team?.includes(resolvedAssigneeId) &&
-      resolvedAssigneeId !== project.ownerUid
-    ) {
+    if (!project.team?.includes(resolvedAssigneeId) && resolvedAssigneeId !== project.ownerUid) {
       await Project.updateOne(
         { _id: project._id },
         { $addToSet: { team: resolvedAssigneeId } }
@@ -241,24 +189,15 @@ router.post('/assign', verifyToken, async (req, res) => {
           lines: [
             { label: 'Step', value: step.title || 'Backlog' },
             { label: 'Task', value: taskName.trim() },
-            {
-              label: 'Description',
-              value: description?.trim() || 'No description',
-            },
-            {
-              label: 'Assigned By',
-              value: requester?.displayName || requester?.email || requesterUid,
-            },
+            { label: 'Description', value: description?.trim() || 'No description' },
+            { label: 'Assigned By', value: requester?.displayName || requester?.email || requesterUid },
           ],
         });
 
         try {
           await sendZyncEmail(assignee.email, subject, html, text);
         } catch (emailError) {
-          console.error(
-            `Failed to send task assignment email to ${assignee.email}:`,
-            emailError
-          );
+          console.error(`Failed to send task assignment email to ${assignee.email}:`, emailError);
         }
       })
     );
@@ -289,17 +228,12 @@ router.post('/assign', verifyToken, async (req, res) => {
       })
     );
 
-    await cache.invalidate(
-      `projects:${requesterUid}`,
-      `projects:${resolvedAssigneeId}`
-    );
+    await cache.invalidate(`projects:${requesterUid}`, `projects:${resolvedAssigneeId}`);
 
 
     const taskIO = req.app.get('taskIO');
     if (taskIO) {
-      const normalizedTasks = normalizeDocs(
-        createdTasks.map((t) => t.toObject())
-      );
+      const normalizedTasks = normalizeDocs(createdTasks.map(t => t.toObject()));
       taskIO.emitToProject(projectId, 'task-created', {
         projectId,
         stepId: String(step._id),
@@ -322,9 +256,7 @@ router.post('/assign', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Error assigning task:', error);
-    return res
-      .status(500)
-      .json({ message: 'Failed to assign task', error: error.message });
+    return res.status(500).json({ message: 'Failed to assign task', error: error.message });
   }
 });
 

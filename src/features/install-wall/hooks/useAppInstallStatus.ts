@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from "react";
 
 declare global {
   interface Navigator {
@@ -22,14 +22,14 @@ export const useAppInstallStatus = (): AppInstallStatus => {
   const [isStandalone, setIsStandalone] = useState(false);
   const [hasCheckedStatus, setHasCheckedStatus] = useState(false);
 
-  const userAgent = navigator.userAgent || '';
+  const userAgent = navigator.userAgent || "";
   const isiPadOSDesktopUA = /Macintosh/i.test(userAgent) && (navigator.maxTouchPoints || 0) > 1;
   const isMobileDevice = MOBILE_UA_REGEX.test(userAgent) || isiPadOSDesktopUA;
   const isIOS = /iPad|iPhone|iPod/i.test(userAgent) || isiPadOSDesktopUA;
   const isAndroid = /Android/i.test(userAgent);
 
   useEffect(() => {
-    const standaloneByDisplayMode = window.matchMedia('(display-mode: standalone)').matches;
+    const standaloneByDisplayMode = window.matchMedia("(display-mode: standalone)").matches;
     const standaloneByIOS = Boolean(window.navigator.standalone);
 
     setIsStandalone(standaloneByDisplayMode || standaloneByIOS);
@@ -52,3 +52,4 @@ export const useAppInstallStatus = (): AppInstallStatus => {
     hasCheckedStatus,
   };
 };
+

@@ -2,7 +2,14 @@
   "compilerOptions": {
     "noEmit": true,
     "composite": false,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["vite.config.ts", "scripts/**/*.ts", "electron.vite.config.ts", "tailwind.config.ts"]
+  "include": [
+    "vite.config.ts",
+    "scripts/**/*.ts",
+    "electron.vite.config.ts",
+    "tailwind.config.ts"
+  ]
 }

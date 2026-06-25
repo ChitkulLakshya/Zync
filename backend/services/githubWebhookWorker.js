@@ -6,17 +6,15 @@ const {
 } = require('../config/freeTierLimits');
 
 const isDebugWebhookEnabled =
-  process.env.DEBUG_WEBHOOKS === 'true' ||
-  String(process.env.LOG_LEVEL || '').toLowerCase() === 'debug';
+  process.env.DEBUG_WEBHOOKS === 'true' || String(process.env.LOG_LEVEL || '').toLowerCase() === 'debug';
 
 const debugWebhookLog = (...args) => {
   if (!isDebugWebhookEnabled) return;
   console.log(...args);
 };
 
-const toUniqueStrings = (values) => [
-  ...new Set((values || []).map((v) => String(v || '').trim()).filter(Boolean)),
-];
+const toUniqueStrings = (values) =>
+  [...new Set((values || []).map((v) => String(v || '').trim()).filter(Boolean))];
 
 const aggregateProjectEffectsFromCommits = (commits = []) => {
   const commitShas = [];
@@ -37,9 +35,7 @@ const aggregateProjectEffectsFromCommits = (commits = []) => {
 const TASK_REF_REGEX = /\b(?:TASK-\d+|ID-\d+|#\d+)\b/i;
 
 const analyzeArchitectureImpact = async (commits = []) => {
-  const commitMessages = commits
-    .map((commit) => String(commit?.message || '').trim())
-    .filter(Boolean);
+  const commitMessages = commits.map((commit) => String(commit?.message || '').trim()).filter(Boolean);
   if (commitMessages.length === 0) {
     return {
       analyzedCommits: 0,
@@ -50,9 +46,7 @@ const analyzeArchitectureImpact = async (commits = []) => {
 
 
   if (!process.env.GROQ_API_KEY) {
-    const taskReferenceMentions = commitMessages.filter((message) =>
-      TASK_REF_REGEX.test(message)
-    ).length;
+    const taskReferenceMentions = commitMessages.filter((message) => TASK_REF_REGEX.test(message)).length;
     return {
       analyzedCommits: commitMessages.length,
       taskReferenceMentions,
@@ -102,12 +96,7 @@ const findLinkedProject = async (repository) => {
   return linkedProject;
 };
 
-const processGithubWebhookJob = async ({
-  deliveryId,
-  event,
-  payload,
-  getIo,
-}) => {
+const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) => {
   if (event === 'installation' || event === 'installation_repositories') {
     return { ignored: true, reason: 'installation_event' };
   }
@@ -121,8 +110,7 @@ const processGithubWebhookJob = async ({
     return { ignored: true, reason: 'no_commits' };
   }
 
-  const maxProcessableCommits =
-    DELIVERY_CATCHUP_BATCH_SIZE * DELIVERY_CATCHUP_MAX_BATCHES;
+  const maxProcessableCommits = DELIVERY_CATCHUP_BATCH_SIZE * DELIVERY_CATCHUP_MAX_BATCHES;
   const commitsToProcess = commits.slice(0, maxProcessableCommits);
   const droppedCommits = Math.max(0, commits.length - commitsToProcess.length);
 
@@ -143,8 +131,7 @@ const processGithubWebhookJob = async ({
     ...aggregateProjectEffectsFromCommits(commitsToProcess),
   };
 
-  const architectureAnalysis =
-    await analyzeArchitectureImpact(commitsToProcess);
+  const architectureAnalysis = await analyzeArchitectureImpact(commitsToProcess);
   const now = new Date();
 
   await Project.updateOne(

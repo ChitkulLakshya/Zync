@@ -21,9 +21,7 @@ async function ensureConnected(retries = 5, delayMs = 5000) {
       console.log('✅ Prisma connected to Oracle ADB');
       return true;
     } catch (err) {
-      console.error(
-        `❌ Prisma connect attempt ${i}/${retries}: ${err.message}`
-      );
+      console.error(`❌ Prisma connect attempt ${i}/${retries}: ${err.message}`);
       if (i < retries) {
         console.log(`   Retrying in ${delayMs / 1000}s...`);
         await new Promise((r) => setTimeout(r, delayMs));

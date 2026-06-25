@@ -1,11 +1,12 @@
-import { useState, useEffect, useRef } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, ArrowUpRight, Plus } from 'lucide-react';
-import { useInspiration } from '@/hooks/useInspiration';
-import { cn } from '@/lib/utils';
+import { useState, useEffect, useRef } from "react";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Search, ArrowUpRight, Plus } from "lucide-react";
+import { useInspiration } from "@/hooks/useInspiration";
+import { cn } from "@/lib/utils";
 
-const STORAGE_KEY = 'ZYNC-design-view-state';
+const STORAGE_KEY = "ZYNC-design-view-state";
+
 
 const DesignCard = ({ item }: { item: any }) => {
   const [loaded, setLoaded] = useState(false);
@@ -13,6 +14,7 @@ const DesignCard = ({ item }: { item: any }) => {
   const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
+
     if (imgRef.current && imgRef.current.complete) {
       setLoaded(true);
     }
@@ -29,8 +31,8 @@ const DesignCard = ({ item }: { item: any }) => {
         {}
         <div
           className={cn(
-            'absolute inset-0 bg-secondary/10 flex items-center justify-center z-10 transition-opacity duration-500',
-            loaded ? 'opacity-0 pointer-events-none' : 'opacity-100'
+            "absolute inset-0 bg-secondary/10 flex items-center justify-center z-10 transition-opacity duration-500",
+            loaded ? "opacity-0 pointer-events-none" : "opacity-100"
           )}
         >
           <div className="flex gap-1">
@@ -50,8 +52,8 @@ const DesignCard = ({ item }: { item: any }) => {
           onLoad={() => setLoaded(true)}
           onError={() => setError(true)}
           className={cn(
-            'w-full h-auto object-cover transition-all duration-700 will-change-transform group-hover:scale-[1.02]',
-            loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'
+            "w-full h-auto object-cover transition-all duration-700 will-change-transform group-hover:scale-[1.02]",
+            loaded ? "opacity-100 scale-100" : "opacity-0 scale-[1.02]"
           )}
           loading="lazy"
           referrerPolicy="no-referrer"
@@ -75,19 +77,16 @@ const DesignCard = ({ item }: { item: any }) => {
   );
 };
 
+
+
+
 const DesignView = () => {
   const savedState = (() => {
-    try {
-      return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || 'null');
-    } catch {
-      return null;
-    }
+    try { return JSON.parse(sessionStorage.getItem(STORAGE_KEY) || "null"); } catch { return null; }
   })();
 
-  const [query, setQuery] = useState(savedState?.query || 'web design');
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    savedState?.selectedCategory || 'All'
-  );
+  const [query, setQuery] = useState(savedState?.query || "web design");
+  const [selectedCategory, setSelectedCategory] = useState<string>(savedState?.selectedCategory || "All");
   const [hasSearched, setHasSearched] = useState(false);
 
   const { items, loading, scraping, hasMore, loadMore, search } = useInspiration();
@@ -97,40 +96,27 @@ const DesignView = () => {
 
 
   useEffect(() => {
-    search('web design');
+    search("web design");
     setHasSearched(true);
   }, [search]);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore) {
-          loadMore();
-        }
-      },
-      { threshold: 1.0 }
-    );
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting && hasMore) {loadMore();}
+    }, { threshold: 1.0 });
+    if (observerTarget.current) {observer.observe(observerTarget.current);}
     return () => observer.disconnect();
   }, [hasMore, loadMore]);
 
+
   useEffect(() => {
-    sessionStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ query, selectedCategory, scrollTop: scrollRef.current?.scrollTop || 0 })
-    );
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ query, selectedCategory, scrollTop: scrollRef.current?.scrollTop || 0 }));
   }, [query, selectedCategory]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) {
-      return;
-    }
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = 0;
-    }
+    if (!query.trim()) {return;}
+    if (scrollRef.current) {scrollRef.current.scrollTop = 0;}
     setHasSearched(true);
     search(query);
   };
@@ -141,6 +127,7 @@ const DesignView = () => {
       <div className="w-full max-w-7xl mx-auto p-6 md:p-8 flex flex-col items-start gap-8">
         <div className="w-full flex flex-col md:flex-row justify-between items-end gap-6 border-b border-border/10 pb-6">
           <div className="space-y-1">
+
             <p className="text-muted-foreground text-sm tracking-wide uppercase font-medium">
               Curated Web Design
             </p>
@@ -161,13 +148,13 @@ const DesignView = () => {
 
         {}
         <div className="flex flex-wrap gap-8 text-sm font-medium tracking-wide">
-          {['All', 'Godly', 'SiteInspire', 'Dribbble', 'Lapa Ninja', 'Awwwards'].map((cat) => (
+          {["All", "Godly", "SiteInspire", "Dribbble", "Lapa Ninja", "Awwwards"].map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
               className={cn(
-                'relative pb-1 uppercase transition-colors hover:text-foreground/80',
-                selectedCategory === cat ? 'text-foreground' : 'text-muted-foreground'
+                "relative pb-1 uppercase transition-colors hover:text-foreground/80",
+                selectedCategory === cat ? "text-foreground" : "text-muted-foreground"
               )}
             >
               {cat}
@@ -198,19 +185,14 @@ const DesignView = () => {
       {}
       <div className="px-6 md:px-8 pb-20 max-w-7xl mx-auto">
         <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-6 space-y-6">
+
           {loading && items.length === 0 && (
-            <div className="p-8 text-center text-muted-foreground w-full">
-              Loading inspiration...
-            </div>
+            <div className="p-8 text-center text-muted-foreground w-full">Loading inspiration...</div>
           )}
 
           {/* Actual Items */}
           {items
-            .filter(
-              (item) =>
-                selectedCategory === 'All' ||
-                item.source.toLowerCase() === selectedCategory.toLowerCase()
-            )
+            .filter(item => selectedCategory === "All" || item.source.toLowerCase() === selectedCategory.toLowerCase())
             .map((item, index) => (
               <DesignCard key={`${item.id}-${index}`} item={item} />
             ))}
@@ -229,13 +211,9 @@ const DesignView = () => {
           {!loading && !scraping && items.length === 0 && (
             <div className="text-center space-y-2">
               <p className="text-2xl font-light text-muted-foreground">
-                {hasSearched ? `Nothing found for "${query}"` : 'Explore the unknown.'}
+                {hasSearched ? `Nothing found for "${query}"` : "Explore the unknown."}
               </p>
-              {!hasSearched && (
-                <p className="text-sm text-muted-foreground/60 uppercase tracking-widest">
-                  Search to begin
-                </p>
-              )}
+              {!hasSearched && <p className="text-sm text-muted-foreground/60 uppercase tracking-widest">Search to begin</p>}
             </div>
           )}
         </div>

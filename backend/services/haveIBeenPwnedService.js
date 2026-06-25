@@ -12,11 +12,7 @@ const PWNED_PASSWORDS_BASE = 'https://api.pwnedpasswords.com/range/';
  * @returns {Promise<{ isCompromised: boolean, count: number }>}
  */
 const checkPassword = async (password) => {
-  const sha1 = crypto
-    .createHash('sha1')
-    .update(password)
-    .digest('hex')
-    .toUpperCase();
+  const sha1 = crypto.createHash('sha1').update(password).digest('hex').toUpperCase();
   const prefix = sha1.substring(0, 5);
   const suffix = sha1.substring(5);
 

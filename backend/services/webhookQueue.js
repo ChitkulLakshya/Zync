@@ -1,11 +1,6 @@
 const { getSafeEnvInt } = require('../utils/safeEnv');
 
-const MAX_STORED_JOBS = getSafeEnvInt(
-  'WEBHOOK_QUEUE_MAX_STORED_JOBS',
-  100,
-  5000,
-  1000
-);
+const MAX_STORED_JOBS = getSafeEnvInt('WEBHOOK_QUEUE_MAX_STORED_JOBS', 100, 5000, 1000);
 
 const jobsByDeliveryId = new Map();
 const queue = [];

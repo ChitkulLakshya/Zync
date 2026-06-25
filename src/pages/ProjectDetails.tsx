@@ -1,50 +1,23 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  ArrowLeft,
-  CheckCircle2,
-  Circle,
-  Server,
-  Layout,
-  Database,
-  Share2,
-  Plus,
-  GripVertical,
-  GitCommit,
-  ExternalLink,
-  Kanban,
-  Trash2,
-  Github,
-  Bot,
-  MoreVertical,
-  Settings,
-  MessageSquare,
-  Wrench,
-  FolderKanban,
-} from 'lucide-react';
-import { API_BASE_URL, SOCKET_BASE_URL, getFullUrl } from '@/lib/utils';
-import { auth } from '@/lib/firebase';
-import { sendMessage as socketSendMessage } from '@/services/chatSocketService';
-import { useTaskUpdates } from '@/hooks/use-task-updates';
-import KanbanBoard from '@/components/workspace/KanbanBoard';
-import { ActivityGraph } from '@/components/views/ActivityGraph';
-import { io } from 'socket.io-client';
-import { toast } from 'sonner';
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban, Trash2, Github, Bot, MoreVertical, Settings, MessageSquare, Wrench, FolderKanban } from "lucide-react";
+import { API_BASE_URL, SOCKET_BASE_URL, getFullUrl } from "@/lib/utils";
+import { auth } from "@/lib/firebase";
+import { sendMessage as socketSendMessage } from "@/services/chatSocketService";
+import { useTaskUpdates } from "@/hooks/use-task-updates";
+import KanbanBoard from "@/components/workspace/KanbanBoard";
+import { ActivityGraph } from "@/components/views/ActivityGraph";
+import { io } from "socket.io-client";
+import { toast } from "sonner";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import {
@@ -54,7 +27,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 
 interface Project {
   id: string;
@@ -95,7 +68,7 @@ interface Task {
   id: string;
   title: string;
   description: string;
-  status: 'Pending' | 'In Progress' | 'Active' | 'Completed';
+  status: "Pending" | "In Progress" | "Active" | "Completed";
   assignedTo?: string;
   assignedToName?: string;
   commitInfo?: {
@@ -112,69 +85,62 @@ interface Step {
   id: string;
   title: string;
   description: string;
-  status: 'Pending' | 'In Progress' | 'Completed';
+  status: "Pending" | "In Progress" | "Completed";
   type: string;
   page: string;
   assignedTo?: string;
   tasks: Task[];
 }
 
+
 const MOCK_USERS = [
-  { uid: 'admin1', name: 'Admin User', email: 'admin@zync.com' },
-  { uid: 'dev1', name: 'Frontend Dev', email: 'frontend@zync.com' },
-  { uid: 'dev2', name: 'Backend Dev', email: 'backend@zync.com' },
-  {
-    uid: auth.currentUser?.uid || 'current',
-    name: auth.currentUser?.displayName || 'You',
-    email: auth.currentUser?.email,
-  },
-].filter((v, i, a) => a.findIndex((t) => t.uid === v.uid) === i);
+  { uid: "admin1", name: "Admin User", email: "admin@zync.com" },
+  { uid: "dev1", name: "Frontend Dev", email: "frontend@zync.com" },
+  { uid: "dev2", name: "Backend Dev", email: "backend@zync.com" },
+  { uid: auth.currentUser?.uid || "current", name: auth.currentUser?.displayName || "You", email: auth.currentUser?.email },
+].filter((v, i, a) => a.findIndex(t => (t.uid === v.uid)) === i);
 
 const ProjectDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const backPath = (location.state as { from?: string } | null)?.from || '/dashboard/workspace';
+  const backPath = (location.state as { from?: string } | null)?.from || "/dashboard/workspace";
   const [project, setProject] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(true);
   const [users, setUsers] = useState<any[]>([]);
   const [readmeContent, setReadmeContent] = useState<string | null>(null);
 
-  const [selectedTaskForAssignment, setSelectedTaskForAssignment] = useState<{
-    stepId: string;
-    task: Task;
-  } | null>(null);
+
+  const [selectedTaskForAssignment, setSelectedTaskForAssignment] = useState<{ stepId: string, task: Task } | null>(null);
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
 
+
   const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskDescription, setNewTaskDescription] = useState('');
-  const [selectedStepId, setSelectedStepId] = useState<string>('');
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [selectedStepId, setSelectedStepId] = useState<string>("");
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
+
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
+
   const handleAnalyzeArchitecture = async () => {
-    if (!project || !auth.currentUser) {
-      return;
-    }
+    if (!project || !auth.currentUser) {return;}
     setIsAnalyzing(true);
     try {
       const token = await auth.currentUser.getIdToken();
-      const response = await fetch(
-        `${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
       if (!response.ok) {
         throw new Error('Analysis failed');
@@ -182,35 +148,32 @@ const ProjectDetails = () => {
 
       const updatedProject = await response.json();
       setProject(updatedProject);
-      toast.success('Architecture analysis complete!');
+      toast.success("Architecture analysis complete!");
     } catch (error) {
-      console.error('Analysis Error:', error);
-      toast.error('Failed to analyze architecture. Please try again.');
+      console.error("Analysis Error:", error);
+      toast.error("Failed to analyze architecture. Please try again.");
     } finally {
       setIsAnalyzing(false);
     }
   };
+
 
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [selectedShareUser, setSelectedShareUser] = useState<string | null>(null);
   const [isSharing, setIsSharing] = useState(false);
 
   const handleShareProject = async () => {
-    if (!selectedShareUser || !project || !auth.currentUser) {
-      return;
-    }
+    if (!selectedShareUser || !project || !auth.currentUser) {return;}
     setIsSharing(true);
     try {
-      const receiver = users.find((u) => u.uid === selectedShareUser);
-      if (!receiver) {
-        throw new Error('User not found');
-      }
+      const receiver = users.find(u => u.uid === selectedShareUser);
+      if (!receiver) {throw new Error("User not found");}
 
-      const chatId = [auth.currentUser.uid, receiver.uid].sort().join('_');
+      const chatId = [auth.currentUser.uid, receiver.uid].sort().join("_");
       socketSendMessage({
         chatId,
         receiverId: receiver.uid,
-        senderName: auth.currentUser.displayName || 'Unknown',
+        senderName: auth.currentUser.displayName || "Unknown",
         senderPhotoURL: auth.currentUser.photoURL || undefined,
         text: `Start collaborating on project "${project.name}"`,
         type: 'project-invite',
@@ -222,11 +185,13 @@ const ProjectDetails = () => {
       setIsShareDialogOpen(false);
       toast.success(`Invite sent to ${receiver.displayName}`);
 
+
       const event = new CustomEvent('ZYNC-open-chat', { detail: receiver });
       window.dispatchEvent(event);
+
     } catch (error) {
-      console.error('Share failed', error);
-      toast.error('Failed to share project');
+      console.error("Share failed", error);
+      toast.error("Failed to share project");
     } finally {
       setIsSharing(false);
     }
@@ -243,51 +208,47 @@ const ProjectDetails = () => {
 
   const fetchUsers = async () => {
     try {
-      if (!currentUser) {
-        return;
-      }
+      if (!currentUser) {return;}
       const token = await currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/users`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     }
   };
 
   const fetchProject = async () => {
     try {
+
+
       const options: any = {};
       if (currentUser) {
         const token = await currentUser.getIdToken();
         options.headers = { Authorization: `Bearer ${token}` };
       }
       const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, options);
-      if (!response.ok) {
-        throw new Error('Project not found');
-      }
+      if (!response.ok) {throw new Error("Project not found");}
       const data = await response.json();
       setProject(data);
+
 
       if (data.githubRepoName && data.githubRepoOwner && currentUser) {
         const token = await currentUser.getIdToken();
         try {
-          const readmeRes = await fetch(
-            `${API_BASE_URL}/api/github/readme?owner=${data.githubRepoOwner}&repo=${data.githubRepoName}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
+          const readmeRes = await fetch(`${API_BASE_URL}/api/github/readme?owner=${data.githubRepoOwner}&repo=${data.githubRepoName}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
           if (readmeRes.ok) {
             const text = await readmeRes.text();
             setReadmeContent(text);
           }
         } catch (err) {
-          console.error('Failed to fetch README', err);
+          console.error("Failed to fetch README", err);
         }
       }
     } catch (error) {
@@ -305,8 +266,9 @@ const ProjectDetails = () => {
   }, [id, currentUser]);
 
   useEffect(() => {
+
     const socket = io(SOCKET_BASE_URL || API_BASE_URL, {
-      transports: ['websocket', 'polling'],
+      transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
@@ -321,16 +283,14 @@ const ProjectDetails = () => {
       toast.success(`Task ${data.taskId} completed via commit!`);
 
       setProject((prevProject) => {
-        if (!prevProject) {
-          return null;
-        }
+        if (!prevProject) {return null;}
 
-        const newSteps = prevProject.steps.map((step) => {
-          const newTasks = step.tasks.map((task) => {
+        const newSteps = prevProject.steps.map(step => {
+          const newTasks = step.tasks.map(task => {
             if (task.id === data.taskId || task._id === data.taskId) {
               return {
                 ...task,
-                status: data.status,
+                status: data.status
               } as Task;
             }
             return task;
@@ -342,9 +302,11 @@ const ProjectDetails = () => {
       });
     });
 
+
     socket.on('projectUpdate', (data: any) => {
-      if (data.projectId && data.projectId === id) {
-        console.log('Received live project update');
+
+      if (data.projectId && (data.projectId === id)) {
+        console.log("Received live project update");
         setProject(data.project);
       }
     });
@@ -368,27 +330,24 @@ const ProjectDetails = () => {
   });
 
   const handleTaskUpdate = async (stepId: string, taskId: string, updates: any) => {
-    console.log('handleTaskUpdate called with:', { stepId, taskId, updates });
+    console.log("handleTaskUpdate called with:", { stepId, taskId, updates });
     if (!project) {
-      console.error('Project not loaded in handleTaskUpdate');
+      console.error("Project not loaded in handleTaskUpdate");
       return;
     }
 
-    const stepIndex = project.steps.findIndex((s) => s._id === stepId || s.id === stepId);
-    if (stepIndex === -1) {
-      return;
-    }
 
-    const taskIndex = project.steps[stepIndex].tasks.findIndex(
-      (t) => t._id === taskId || t.id === taskId
-    );
-    if (taskIndex === -1) {
-      return;
-    }
+    const stepIndex = project.steps.findIndex(s => s._id === stepId || s.id === stepId);
+    if (stepIndex === -1) {return;}
+
+    const taskIndex = project.steps[stepIndex].tasks.findIndex(t => t._id === taskId || t.id === taskId);
+    if (taskIndex === -1) {return;}
+
 
     const newSteps = [...project.steps];
     const newStep = { ...newSteps[stepIndex] };
     const newTasks = [...newStep.tasks];
+
 
     const updatedTask = { ...newTasks[taskIndex], ...updates };
     newTasks[taskIndex] = updatedTask;
@@ -402,38 +361,33 @@ const ProjectDetails = () => {
       const realStepId = step._id || step.id;
       const realTaskId = step.tasks[taskIndex]._id || step.tasks[taskIndex].id;
 
-      if (!realStepId || !realTaskId) {
-        return;
-      }
+      if (!realStepId || !realTaskId) {return;}
 
-      await fetch(
-        `${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${realTaskId}`,
-        {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            ...updates,
-            assignedBy: auth.currentUser?.displayName || 'Admin',
-          }),
-        }
-      );
+      await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${realTaskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...updates,
+          assignedBy: auth.currentUser?.displayName || 'Admin'
+        })
+      });
     } catch (error) {
-      console.error('Failed to update task', error);
+      console.error("Failed to update task", error);
       fetchProject();
-      toast.error('Failed to update task');
+      toast.error("Failed to update task");
     }
   };
 
-  const handleDeleteTask = async (stepId: string, taskId: string) => {
-    if (!project) {
-      return;
-    }
 
-    const newSteps = project.steps.map((step) => {
+  const handleDeleteTask = async (stepId: string, taskId: string) => {
+    if (!project) {return;}
+
+
+    const newSteps = project.steps.map(step => {
       if (step._id === stepId || step.id === stepId) {
         return {
           ...step,
-          tasks: step.tasks.filter((t) => t._id !== taskId && t.id !== taskId),
+          tasks: step.tasks.filter(t => t._id !== taskId && t.id !== taskId)
         };
       }
       return step;
@@ -442,31 +396,25 @@ const ProjectDetails = () => {
     setProject({ ...project, steps: newSteps });
 
     try {
-      const step = project.steps.find((s) => s._id === stepId || s.id === stepId);
-      if (!step) {
-        return;
-      }
+      const step = project.steps.find(s => s._id === stepId || s.id === stepId);
+      if (!step) {return;}
 
       const realStepId = step._id;
 
-      const token = await auth.currentUser?.getIdToken();
-      const response = await fetch(
-        `${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${taskId}`,
-        {
-          method: 'DELETE',
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to delete');
-      }
-      toast.success('Task deleted');
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${taskId}`, {
+        method: 'DELETE',
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (!response.ok) {throw new Error("Failed to delete");}
+      toast.success("Task deleted");
     } catch (error) {
-      console.error('Delete failed', error);
-      toast.error('Failed to delete task');
+      console.error("Delete failed", error);
+      toast.error("Failed to delete task");
       fetchProject();
     }
   };
@@ -478,84 +426,74 @@ const ProjectDetails = () => {
   };
 
   const handleAssignSubmit = async () => {
-    if (!selectedTaskForAssignment || !project) {
-      return;
-    }
+    if (!selectedTaskForAssignment || !project) {return;}
     setIsSubmittingAssignment(true);
 
     const { stepId, task } = selectedTaskForAssignment;
-    const assignedUser = users.find((u) => u.uid === selectedUserId);
-    const assignedToName = assignedUser
-      ? assignedUser.displayName || assignedUser.email
-      : undefined;
+    const assignedUser = users.find(u => u.uid === selectedUserId);
+    const assignedToName = assignedUser ? (assignedUser.displayName || assignedUser.email) : undefined;
 
     await handleTaskUpdate(stepId, task._id || task.id, {
       assignedTo: selectedUserId,
-      assignedToName: assignedToName,
+      assignedToName: assignedToName
     });
 
     setIsSubmittingAssignment(false);
     setIsAssignmentDialogOpen(false);
-    toast.success(selectedUserId ? `Assigned to ${assignedToName}` : 'Task Unassigned');
+    toast.success(selectedUserId ? `Assigned to ${assignedToName}` : "Task Unassigned");
   };
 
   const handleCreateTask = async () => {
     if (!project || !newTaskTitle || !selectedStepId) {
-      toast.error('Please fill in all required fields');
+      toast.error("Please fill in all required fields");
       return;
     }
 
     setIsCreatingTask(true);
     try {
-      const assignedUser = users.find((u) => u.uid === selectedAssigneeId);
-      const assignedToName = assignedUser
-        ? assignedUser.displayName || assignedUser.email
-        : undefined;
+      const assignedUser = users.find(u => u.uid === selectedAssigneeId);
+      const assignedToName = assignedUser ? (assignedUser.displayName || assignedUser.email) : undefined;
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/projects/${project.id}/steps/${selectedStepId}/tasks`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            title: newTaskTitle,
-            description: newTaskDescription,
-            assignedTo: selectedAssigneeId,
-            assignedToName: assignedToName,
-            assignedBy: auth.currentUser?.displayName || 'Admin',
-          }),
-        }
-      );
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${selectedStepId}/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+
+        },
+        body: JSON.stringify({
+          title: newTaskTitle,
+          description: newTaskDescription,
+          assignedTo: selectedAssigneeId,
+          assignedToName: assignedToName,
+          assignedBy: auth.currentUser?.displayName || 'Admin'
+        })
+      });
 
       if (!response.ok) {
-        throw new Error('Failed to create task');
+        throw new Error("Failed to create task");
       }
 
       const updatedProject = await response.json();
       setProject(updatedProject);
-      toast.success('Task created successfully');
+      toast.success("Task created successfully");
       setIsCreateTaskDialogOpen(false);
 
-      setNewTaskTitle('');
-      setNewTaskDescription('');
-      setSelectedStepId('');
+
+      setNewTaskTitle("");
+      setNewTaskDescription("");
+      setSelectedStepId("");
       setSelectedAssigneeId(null);
     } catch (error) {
-      console.error('Error creating task:', error);
-      toast.error('Failed to create task');
+      console.error("Error creating task:", error);
+      toast.error("Failed to create task");
     } finally {
       setIsCreatingTask(false);
     }
   };
 
+
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">
-        Loading project details…
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center text-sm text-muted-foreground">Loading project details…</div>;
   }
 
   if (!project) {
@@ -605,24 +543,15 @@ const ProjectDetails = () => {
       <main className="flex-1 p-6">
         <Tabs defaultValue="architecture" className="flex flex-col">
           <TabsList className="w-full justify-start border-b rounded-none bg-transparent p-0 mb-6">
-            <TabsTrigger
-              value="architecture"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2"
-            >
+            <TabsTrigger value="architecture" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
               Architecture
             </TabsTrigger>
             {!isGitHubProject && (
-              <TabsTrigger
-                value="steps"
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2"
-              >
+              <TabsTrigger value="steps" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
                 Development Steps
               </TabsTrigger>
             )}
-            <TabsTrigger
-              value="board"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2"
-            >
+            <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
               Task Board
             </TabsTrigger>
           </TabsList>
@@ -637,7 +566,9 @@ const ProjectDetails = () => {
                 <CardContent>
                   <ScrollArea className="h-[400px] w-full rounded-md border p-4">
                     <div className="prose dark:prose-invert max-w-none">
-                      <ReactMarkdown remarkPlugins={[remarkGfm]}>{readmeContent}</ReactMarkdown>
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {readmeContent}
+                      </ReactMarkdown>
                     </div>
                   </ScrollArea>
                 </CardContent>
@@ -649,9 +580,7 @@ const ProjectDetails = () => {
               <Card>
                 <CardHeader>
                   <CardTitle>Architecture Analysis</CardTitle>
-                  <CardDescription>
-                    Generate a comprehensive architecture breakdown using AI.
-                  </CardDescription>
+                  <CardDescription>Generate a comprehensive architecture breakdown using AI.</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button
@@ -659,9 +588,7 @@ const ProjectDetails = () => {
                     disabled={isAnalyzing}
                     className="w-full sm:w-auto"
                   >
-                    {isAnalyzing ? (
-                      'Analyzing...'
-                    ) : (
+                    {isAnalyzing ? "Analyzing..." : (
                       <>
                         <Server className="mr-2 h-4 w-4" />
                         Generate Architecture with AI
@@ -673,7 +600,7 @@ const ProjectDetails = () => {
             )}
 
             {}
-            {(project.architecture?.highLevel || !isGitHubProject) && (
+            {(project.architecture?.highLevel || (!isGitHubProject)) && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {}
                 <Card className="col-span-full">
@@ -681,13 +608,11 @@ const ProjectDetails = () => {
                     <CardTitle>High-Level Architecture</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">
-                      {project.architecture?.highLevel || 'No high-level architecture generated.'}
-                    </p>
+                    <p className="text-muted-foreground">{project.architecture?.highLevel || "No high-level architecture generated."}</p>
                     <div className="mt-4">
                       <h4 className="font-semibold mb-2">API Flow</h4>
                       <p className="text-sm text-muted-foreground bg-secondary/50 p-3 rounded-md">
-                        {project.architecture?.apiFlow || 'N/A'}
+                        {project.architecture?.apiFlow || "N/A"}
                       </p>
                     </div>
                   </CardContent>
@@ -702,9 +627,7 @@ const ProjectDetails = () => {
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="text-sm font-semibold mb-1">Structure</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {project.architecture?.frontend?.structure || 'N/A'}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.frontend?.structure || "N/A"}</p>
                     </div>
                     <Separator />
                     <div>
@@ -736,9 +659,7 @@ const ProjectDetails = () => {
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="text-sm font-semibold mb-1">Structure</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {project.architecture?.backend?.structure || 'N/A'}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.backend?.structure || "N/A"}</p>
                     </div>
                     <Separator />
                     <div>
@@ -770,9 +691,7 @@ const ProjectDetails = () => {
                   <CardContent className="space-y-4">
                     <div>
                       <h4 className="text-sm font-semibold mb-1">Design</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {project.architecture?.database?.design || 'N/A'}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.database?.design || "N/A"}</p>
                     </div>
                     <Separator />
                     <div>
@@ -786,9 +705,7 @@ const ProjectDetails = () => {
                     <Separator />
                     <div>
                       <h4 className="text-sm font-semibold mb-1">Relationships</h4>
-                      <p className="text-xs text-muted-foreground">
-                        {project.architecture?.database?.relationships || 'N/A'}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{project.architecture?.database?.relationships || "N/A"}</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -818,15 +735,10 @@ const ProjectDetails = () => {
                 <CardContent>
                   <div className="space-y-6">
                     {project.steps.map((step, index) => (
-                      <div
-                        key={step.id || index}
-                        className="border border-border/10 rounded-lg p-4 bg-card/50 backdrop-blur-xl"
-                      >
+                      <div key={step.id || index} className="border border-border/10 rounded-lg p-4 bg-card/50 backdrop-blur-xl">
                         <div className="flex items-center justify-between mb-4">
                           <div className="flex items-center gap-2">
-                            <Badge variant="outline" className="bg-background">
-                              {index + 1}
-                            </Badge>
+                            <Badge variant="outline" className="bg-background">{index + 1}</Badge>
                             <h3 className="font-semibold">{step.title}</h3>
                           </div>
                           <Badge variant="secondary">{step.type}</Badge>
@@ -834,162 +746,109 @@ const ProjectDetails = () => {
                         <p className="text-sm text-muted-foreground mb-4">{step.description}</p>
 
                         <div className="space-y-3 pl-4 border-l-2 border-muted ml-2">
-                          {step.tasks &&
-                            step.tasks.map((task) => (
-                              <div
-                                key={task.id || task._id}
-                                className="flex items-start gap-3 group"
-                              >
-                                <Checkbox
-                                  id={task.id}
-                                  checked={task.status === 'Completed'}
-                                  onCheckedChange={(checked) =>
-                                    handleTaskUpdate(step._id, task._id, {
-                                      status: checked ? 'Completed' : 'Pending',
-                                    })
-                                  }
-                                  disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
-                                />
-                                <div className="flex-1 space-y-1">
-                                  <div className="flex items-center justify-between">
-                                    <label
-                                      htmlFor={task.id}
-                                      className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === 'Completed' ? 'line-through text-muted-foreground' : ''}`}
-                                    >
-                                      {task.title}
-                                    </label>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground">
-                                    {task.description}
-                                  </p>
+                          {step.tasks && step.tasks.map((task) => (
+                            <div key={task.id || task._id} className="flex items-start gap-3 group">
+                              <Checkbox
+                                id={task.id}
+                                checked={task.status === "Completed"}
+                                onCheckedChange={(checked) => handleTaskUpdate(step._id, task._id, { status: checked ? "Completed" : "Pending" })}
+                                disabled={!isAdmin && task.assignedTo !== auth.currentUser?.uid}
+                              />
+                              <div className="flex-1 space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <label
+                                    htmlFor={task.id}
+                                    className={`text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 ${task.status === "Completed" ? "line-through text-muted-foreground" : ""}`}
+                                  >
+                                    {task.title}
+                                  </label>
+                                </div>
+                                <p className="text-xs text-muted-foreground">{task.description}</p>
 
-                                  {task.commitInfo && (
-                                    <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
-                                      <GitCommit className="w-3 h-3 text-foreground" />
-                                      <span className="font-mono text-foreground truncate max-w-[200px]">
-                                        {task.commitInfo.message}
-                                      </span>
-                                      <span className="text-muted-foreground">
-                                        - {task.commitInfo.author}
-                                      </span>
-                                      {task.commitInfo.url && (
-                                        <a
-                                          href={task.commitInfo.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="ml-auto hover:text-foreground"
-                                        >
-                                          <ExternalLink className="w-3 h-3" />
-                                        </a>
+                                {task.commitInfo && (
+                                  <div className="mt-2 text-xs bg-muted/50 p-2 rounded border border-border/50 flex items-center gap-2">
+                                    <GitCommit className="w-3 h-3 text-foreground" />
+                                    <span className="font-mono text-foreground truncate max-w-[200px]">{task.commitInfo.message}</span>
+                                    <span className="text-muted-foreground">- {task.commitInfo.author}</span>
+                                    {task.commitInfo.url && (
+                                      <a href={task.commitInfo.url} target="_blank" rel="noopener noreferrer" className="ml-auto hover:text-foreground">
+                                        <ExternalLink className="w-3 h-3" />
+                                      </a>
+                                    )}
+                                  </div>
+                                )}
+
+                                <div className="flex items-center gap-4 mt-2">
+                                  {}
+                                  {isOwner ? (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="h-7 text-xs border border-dashed gap-2"
+                                      onClick={() => openAssignmentDialog(step._id, task)}
+                                    >
+                                      {task.assignedTo ? (
+                                        <>
+                                          <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                            {(() => {
+                                              const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                              return assignedUser ? (
+                                                <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <div className="w-full h-full bg-foreground/20" />
+                                              )
+                                            })()}
+                                          </div>
+                                          <span>{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                        </>
+                                      ) : (
+                                        <><span>Assign</span></>
+                                      )}
+                                    </Button>
+                                  ) : (
+                                    <div className="flex items-center gap-2 px-2 h-7 text-xs border border-transparent">
+                                      {task.assignedTo ? (
+                                        <>
+                                          <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
+                                            {(() => {
+                                              const assignedUser = users.find(u => u.uid === task.assignedTo);
+                                              return assignedUser ? (
+                                                <img src={getFullUrl(assignedUser.photoURL)} className="w-full h-full object-cover" />
+                                              ) : (
+                                                <div className="w-full h-full bg-foreground/20" />
+                                              )
+                                            })()}
+                                          </div>
+                                          <span className="text-muted-foreground">{task.assignedToName || users.find(u => u.uid === task.assignedTo)?.displayName || 'Unknown'}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-muted-foreground italic">Unassigned</span>
                                       )}
                                     </div>
                                   )}
 
-                                  <div className="flex items-center gap-4 mt-2">
-                                    {}
-                                    {isOwner ? (
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-7 text-xs border border-dashed gap-2"
-                                        onClick={() => openAssignmentDialog(step._id, task)}
-                                      >
-                                        {task.assignedTo ? (
-                                          <>
-                                            <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
-                                              {(() => {
-                                                const assignedUser = users.find(
-                                                  (u) => u.uid === task.assignedTo
-                                                );
-                                                return assignedUser ? (
-                                                  <img
-                                                    src={getFullUrl(assignedUser.photoURL)}
-                                                    className="w-full h-full object-cover"
-                                                  />
-                                                ) : (
-                                                  <div className="w-full h-full bg-foreground/20" />
-                                                );
-                                              })()}
-                                            </div>
-                                            <span>
-                                              {task.assignedToName ||
-                                                users.find((u) => u.uid === task.assignedTo)
-                                                  ?.displayName ||
-                                                'Unknown'}
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <>
-                                            <span>Assign</span>
-                                          </>
-                                        )}
-                                      </Button>
-                                    ) : (
-                                      <div className="flex items-center gap-2 px-2 h-7 text-xs border border-transparent">
-                                        {task.assignedTo ? (
-                                          <>
-                                            <div className="w-4 h-4 rounded-full overflow-hidden bg-secondary">
-                                              {(() => {
-                                                const assignedUser = users.find(
-                                                  (u) => u.uid === task.assignedTo
-                                                );
-                                                return assignedUser ? (
-                                                  <img
-                                                    src={getFullUrl(assignedUser.photoURL)}
-                                                    className="w-full h-full object-cover"
-                                                  />
-                                                ) : (
-                                                  <div className="w-full h-full bg-foreground/20" />
-                                                );
-                                              })()}
-                                            </div>
-                                            <span className="text-muted-foreground">
-                                              {task.assignedToName ||
-                                                users.find((u) => u.uid === task.assignedTo)
-                                                  ?.displayName ||
-                                                'Unknown'}
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <span className="text-muted-foreground italic">
-                                            Unassigned
-                                          </span>
-                                        )}
-                                      </div>
-                                    )}
-
-                                    {}
-                                    <Select
-                                      value={task.status}
-                                      onValueChange={(val) =>
-                                        handleTaskUpdate(step._id, task._id, { status: val })
-                                      }
-                                    >
-                                      <SelectTrigger
-                                        className={`w-[110px] h-7 text-xs border-0 ${
-                                          task.status === 'Completed'
-                                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                            : task.status === 'In Progress'
-                                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                              : 'bg-muted text-muted-foreground'
-                                        }`}
-                                      >
-                                        <SelectValue />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        <SelectItem value="Pending">Pending</SelectItem>
-                                        <SelectItem value="In Progress">In Progress</SelectItem>
-                                        <SelectItem value="Completed">Completed</SelectItem>
-                                      </SelectContent>
-                                    </Select>
-                                  </div>
+                                  {}
+                                  <Select
+                                    value={task.status}
+                                    onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}
+                                  >
+                                    <SelectTrigger className={`w-[110px] h-7 text-xs border-0 ${task.status === 'Completed' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                      task.status === 'In Progress' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-muted text-muted-foreground'
+                                      }`}>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      <SelectItem value="Pending">Pending</SelectItem>
+                                      <SelectItem value="In Progress">In Progress</SelectItem>
+                                      <SelectItem value="Completed">Completed</SelectItem>
+                                    </SelectContent>
+                                  </Select>
                                 </div>
                               </div>
-                            ))}
-                          {(!step.tasks || step.tasks.length === 0) && (
-                            <div className="text-sm text-muted-foreground italic">
-                              No specific tasks generated for this step.
                             </div>
+                          ))}
+                          {(!step.tasks || step.tasks.length === 0) && (
+                            <div className="text-sm text-muted-foreground italic">No specific tasks generated for this step.</div>
                           )}
                         </div>
                       </div>
@@ -999,6 +858,7 @@ const ProjectDetails = () => {
               </Card>
             </TabsContent>
           )}
+
         </Tabs>
       </main>
 
@@ -1008,14 +868,13 @@ const ProjectDetails = () => {
           <DialogHeader>
             <DialogTitle>Assign Task</DialogTitle>
             <DialogDescription>
-              Select a team member to assign "
-              <strong>{selectedTaskForAssignment?.task.title}</strong>" to.
+              Select a team member to assign "<strong>{selectedTaskForAssignment?.task.title}</strong>" to.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 max-h-[300px] overflow-y-auto">
             <div className="space-y-2">
               <div
-                className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedUserId === null ? 'bg-primary/10 border-primary' : 'hover:bg-muted'}`}
+                className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedUserId === null ? "bg-primary/10 border-primary" : "hover:bg-muted"}`}
                 onClick={() => setSelectedUserId(null)}
               >
                 <Checkbox
@@ -1024,10 +883,7 @@ const ProjectDetails = () => {
                   id="unassign"
                 />
                 <div className="flex-1">
-                  <label
-                    htmlFor="unassign"
-                    className="text-sm font-medium leading-none cursor-pointer"
-                  >
+                  <label htmlFor="unassign" className="text-sm font-medium leading-none cursor-pointer">
                     Unassigned
                   </label>
                 </div>
@@ -1036,7 +892,7 @@ const ProjectDetails = () => {
               {users.map((user) => (
                 <div
                   key={user.uid}
-                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedUserId === user.uid ? 'bg-primary/10 border-primary' : 'hover:bg-muted'}`}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedUserId === user.uid ? "bg-primary/10 border-primary" : "hover:bg-muted"}`}
                   onClick={() => setSelectedUserId(user.uid)}
                 >
                   <Checkbox
@@ -1049,10 +905,7 @@ const ProjectDetails = () => {
                     <AvatarFallback>{user.displayName?.substring(0, 2)}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1 space-y-1">
-                    <label
-                      htmlFor={user.uid}
-                      className="text-sm font-medium leading-none cursor-pointer"
-                    >
+                    <label htmlFor={user.uid} className="text-sm font-medium leading-none cursor-pointer">
                       {user.displayName || user.email}
                     </label>
                     <p className="text-xs text-muted-foreground">{user.email}</p>
@@ -1062,15 +915,11 @@ const ProjectDetails = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAssignmentDialogOpen(false)}
-              disabled={isSubmittingAssignment}
-            >
+            <Button variant="outline" onClick={() => setIsAssignmentDialogOpen(false)} disabled={isSubmittingAssignment}>
               Cancel
             </Button>
             <Button onClick={handleAssignSubmit} disabled={isSubmittingAssignment}>
-              {isSubmittingAssignment ? 'Assigning...' : 'Confirm Assignment'}
+              {isSubmittingAssignment ? "Assigning..." : "Confirm Assignment"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1087,9 +936,7 @@ const ProjectDetails = () => {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <label htmlFor="title" className="text-sm font-medium">
-                Task Title *
-              </label>
+              <label htmlFor="title" className="text-sm font-medium">Task Title *</label>
               <input
                 id="title"
                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1099,9 +946,7 @@ const ProjectDetails = () => {
               />
             </div>
             <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">
-                Description
-              </label>
+              <label htmlFor="description" className="text-sm font-medium">Description</label>
               <textarea
                 id="description"
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
@@ -1128,10 +973,7 @@ const ProjectDetails = () => {
               </div>
               <div className="grid gap-2">
                 <label className="text-sm font-medium">Assign To</label>
-                <Select
-                  value={selectedAssigneeId || 'unassigned'}
-                  onValueChange={(val) => setSelectedAssigneeId(val === 'unassigned' ? null : val)}
-                >
+                <Select value={selectedAssigneeId || "unassigned"} onValueChange={(val) => setSelectedAssigneeId(val === "unassigned" ? null : val)}>
                   <SelectTrigger>
                     <SelectValue placeholder="Select User" />
                   </SelectTrigger>
@@ -1142,9 +984,7 @@ const ProjectDetails = () => {
                         <div className="flex items-center gap-2">
                           <Avatar className="h-6 w-6">
                             <AvatarImage src={getFullUrl(user.photoURL)} />
-                            <AvatarFallback>
-                              {user.displayName?.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
+                            <AvatarFallback>{user.displayName?.substring(0, 2).toUpperCase()}</AvatarFallback>
                           </Avatar>
                           <span>{user.displayName || user.email}</span>
                         </div>
@@ -1156,18 +996,9 @@ const ProjectDetails = () => {
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateTaskDialogOpen(false)}
-              disabled={isCreatingTask}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleCreateTask}
-              disabled={isCreatingTask || !newTaskTitle || !selectedStepId}
-            >
-              {isCreatingTask ? 'Creating...' : 'Create Task'}
+            <Button variant="outline" onClick={() => setIsCreateTaskDialogOpen(false)} disabled={isCreatingTask}>Cancel</Button>
+            <Button onClick={handleCreateTask} disabled={isCreatingTask || !newTaskTitle || !selectedStepId}>
+              {isCreatingTask ? "Creating..." : "Create Task"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1179,56 +1010,47 @@ const ProjectDetails = () => {
           <DialogHeader>
             <DialogTitle>Share Project</DialogTitle>
             <DialogDescription>
-              Select a user to invite to <strong>{project.name}</strong>. They will receive an
-              invite in their chat.
+              Select a user to invite to <strong>{project.name}</strong>. They will receive an invite in their chat.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 max-h-[300px] overflow-y-auto">
             <div className="space-y-2">
-              {users
-                .filter((u) => u.uid !== auth.currentUser?.uid)
-                .map((user) => (
-                  <div
-                    key={user.uid}
-                    className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedShareUser === user.uid ? 'bg-primary/10 border-primary' : 'hover:bg-muted'}`}
-                    onClick={() => setSelectedShareUser(user.uid)}
-                  >
-                    <Checkbox
-                      checked={selectedShareUser === user.uid}
-                      onCheckedChange={() => setSelectedShareUser(user.uid)}
-                      id={`share-${user.uid}`}
-                    />
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={getFullUrl(user.photoURL)} />
-                      <AvatarFallback>{user.displayName?.substring(0, 2)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <label
-                        htmlFor={`share-${user.uid}`}
-                        className="text-sm font-medium leading-none cursor-pointer"
-                      >
-                        {user.displayName || user.email}
-                      </label>
-                      <p className="text-xs text-muted-foreground">{user.email}</p>
-                    </div>
+              {users.filter(u => u.uid !== auth.currentUser?.uid).map((user) => (
+                <div
+                  key={user.uid}
+                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${selectedShareUser === user.uid ? "bg-primary/10 border-primary" : "hover:bg-muted"}`}
+                  onClick={() => setSelectedShareUser(user.uid)}
+                >
+                  <Checkbox
+                    checked={selectedShareUser === user.uid}
+                    onCheckedChange={() => setSelectedShareUser(user.uid)}
+                    id={`share-${user.uid}`}
+                  />
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={getFullUrl(user.photoURL)} />
+                    <AvatarFallback>{user.displayName?.substring(0, 2)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 space-y-1">
+                    <label htmlFor={`share-${user.uid}`} className="text-sm font-medium leading-none cursor-pointer">
+                      {user.displayName || user.email}
+                    </label>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
-                ))}
+                </div>
+              ))}
             </div>
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsShareDialogOpen(false)}
-              disabled={isSharing}
-            >
+            <Button variant="outline" onClick={() => setIsShareDialogOpen(false)} disabled={isSharing}>
               Cancel
             </Button>
             <Button onClick={handleShareProject} disabled={isSharing || !selectedShareUser}>
-              {isSharing ? 'Sending...' : 'Send Invite'}
+              {isSharing ? "Sending..." : "Send Invite"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
     </div>
   );
 };

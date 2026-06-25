@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient } from "@tanstack/react-query";
 
 /** Keep cached query data on disk (PersistQueryClient) and in memory for a week. */
 const ONE_WEEK_MS = 1000 * 60 * 60 * 24 * 7;

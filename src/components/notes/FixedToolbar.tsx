@@ -1,6 +1,6 @@
 import React from 'react';
-import { BlockNoteEditor } from '@blocknote/core';
-import { cn } from '@/lib/utils';
+import { BlockNoteEditor } from "@blocknote/core";
+import { cn } from "@/lib/utils";
 import {
   Bold,
   Italic,
@@ -20,7 +20,12 @@ import {
   Link,
   Plus,
 } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface ActiveUser {
   id: string;
@@ -39,6 +44,7 @@ interface FixedToolbarProps {
   onAddTask?: () => void;
 }
 
+
 const ToolbarButton: React.FC<{
   icon: React.ReactNode;
   tooltip: string;
@@ -53,10 +59,10 @@ const ToolbarButton: React.FC<{
           onClick={onClick}
           disabled={disabled}
           className={cn(
-            'p-2 rounded-md transition-all duration-150',
-            'hover:bg-secondary/50 active:scale-95',
-            'disabled:opacity-40 disabled:cursor-not-allowed',
-            isActive && 'bg-secondary text-foreground'
+            "p-2 rounded-md transition-all duration-150",
+            "hover:bg-secondary/50 active:scale-95",
+            "disabled:opacity-40 disabled:cursor-not-allowed",
+            isActive && "bg-secondary text-foreground"
           )}
         >
           {icon}
@@ -69,17 +75,14 @@ const ToolbarButton: React.FC<{
   </TooltipProvider>
 );
 
-const ToolbarDivider = () => <div className="w-px h-6 bg-border/10 mx-1" />;
 
-const FixedToolbar: React.FC<FixedToolbarProps> = ({
-  editor,
-  className,
-  onLinkTask,
-  onAddTask,
-}) => {
-  if (!editor) {
-    return null;
-  }
+const ToolbarDivider = () => (
+  <div className="w-px h-6 bg-border/10 mx-1" />
+);
+
+const FixedToolbar: React.FC<FixedToolbarProps> = ({ editor, className, onLinkTask, onAddTask }) => {
+  if (!editor) {return null;}
+
 
   const toggleBold = () => {
     editor.toggleStyles({ bold: true });
@@ -101,44 +104,46 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({
     editor.toggleStyles({ code: true });
   };
 
+
   const setHeading1 = () => {
     editor.updateBlock(editor.getTextCursorPosition().block, {
-      type: 'heading',
-      props: { level: 1 },
+      type: "heading",
+      props: { level: 1 }
     });
   };
 
   const setHeading2 = () => {
     editor.updateBlock(editor.getTextCursorPosition().block, {
-      type: 'heading',
-      props: { level: 2 },
+      type: "heading",
+      props: { level: 2 }
     });
   };
 
   const setHeading3 = () => {
     editor.updateBlock(editor.getTextCursorPosition().block, {
-      type: 'heading',
-      props: { level: 3 },
+      type: "heading",
+      props: { level: 3 }
     });
   };
 
   const setBulletList = () => {
     editor.updateBlock(editor.getTextCursorPosition().block, {
-      type: 'bulletListItem',
+      type: "bulletListItem"
     });
   };
 
   const setNumberedList = () => {
     editor.updateBlock(editor.getTextCursorPosition().block, {
-      type: 'numberedListItem',
+      type: "numberedListItem"
     });
   };
 
   const setCheckList = () => {
     editor.updateBlock(editor.getTextCursorPosition().block, {
-      type: 'checkListItem',
+      type: "checkListItem"
     });
   };
+
 
   const getActiveStyles = () => {
     try {
@@ -152,7 +157,7 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({
     try {
       return editor.getTextCursorPosition().block.type;
     } catch {
-      return 'paragraph';
+      return "paragraph";
     }
   };
 
@@ -162,10 +167,10 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({
   return (
     <div
       className={cn(
-        'sticky top-0 z-50',
-        'flex items-center gap-0.5 px-4 py-2',
-        'backdrop-blur-md bg-background/80',
-        'border-b border-border/10',
+        "sticky top-0 z-50",
+        "flex items-center gap-0.5 px-4 py-2",
+        "backdrop-blur-md bg-background/80",
+        "border-b border-border/10",
         className
       )}
     >
@@ -185,56 +190,31 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({
 
       {}
       <ToolbarButton
-        icon={
-          <Bold
-            size={16}
-            className={cn(activeStyles.bold ? 'text-foreground' : 'text-muted-foreground')}
-          />
-        }
+        icon={<Bold size={16} className={cn(activeStyles.bold ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Bold (Ctrl+B)"
         onClick={toggleBold}
         isActive={!!activeStyles.bold}
       />
       <ToolbarButton
-        icon={
-          <Italic
-            size={16}
-            className={cn(activeStyles.italic ? 'text-foreground' : 'text-muted-foreground')}
-          />
-        }
+        icon={<Italic size={16} className={cn(activeStyles.italic ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Italic (Ctrl+I)"
         onClick={toggleItalic}
         isActive={!!activeStyles.italic}
       />
       <ToolbarButton
-        icon={
-          <Underline
-            size={16}
-            className={cn(activeStyles.underline ? 'text-foreground' : 'text-muted-foreground')}
-          />
-        }
+        icon={<Underline size={16} className={cn(activeStyles.underline ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Underline (Ctrl+U)"
         onClick={toggleUnderline}
         isActive={!!activeStyles.underline}
       />
       <ToolbarButton
-        icon={
-          <Strikethrough
-            size={16}
-            className={cn(activeStyles.strike ? 'text-foreground' : 'text-muted-foreground')}
-          />
-        }
+        icon={<Strikethrough size={16} className={cn(activeStyles.strike ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Strikethrough"
         onClick={toggleStrike}
         isActive={!!activeStyles.strike}
       />
       <ToolbarButton
-        icon={
-          <Code
-            size={16}
-            className={cn(activeStyles.code ? 'text-foreground' : 'text-muted-foreground')}
-          />
-        }
+        icon={<Code size={16} className={cn(activeStyles.code ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Inline Code"
         onClick={toggleCode}
         isActive={!!activeStyles.code}
@@ -244,14 +224,7 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({
 
       {}
       <ToolbarButton
-        icon={
-          <Heading1
-            size={16}
-            className={cn(
-              currentBlockType === 'heading' ? 'text-foreground' : 'text-muted-foreground'
-            )}
-          />
-        }
+        icon={<Heading1 size={16} className={cn(currentBlockType === "heading" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Heading 1"
         onClick={setHeading1}
       />
@@ -270,43 +243,22 @@ const FixedToolbar: React.FC<FixedToolbarProps> = ({
 
       {}
       <ToolbarButton
-        icon={
-          <List
-            size={16}
-            className={cn(
-              currentBlockType === 'bulletListItem' ? 'text-foreground' : 'text-muted-foreground'
-            )}
-          />
-        }
+        icon={<List size={16} className={cn(currentBlockType === "bulletListItem" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Bullet List"
         onClick={setBulletList}
-        isActive={currentBlockType === 'bulletListItem'}
+        isActive={currentBlockType === "bulletListItem"}
       />
       <ToolbarButton
-        icon={
-          <ListOrdered
-            size={16}
-            className={cn(
-              currentBlockType === 'numberedListItem' ? 'text-foreground' : 'text-muted-foreground'
-            )}
-          />
-        }
+        icon={<ListOrdered size={16} className={cn(currentBlockType === "numberedListItem" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Numbered List"
         onClick={setNumberedList}
-        isActive={currentBlockType === 'numberedListItem'}
+        isActive={currentBlockType === "numberedListItem"}
       />
       <ToolbarButton
-        icon={
-          <CheckSquare
-            size={16}
-            className={cn(
-              currentBlockType === 'checkListItem' ? 'text-foreground' : 'text-muted-foreground'
-            )}
-          />
-        }
+        icon={<CheckSquare size={16} className={cn(currentBlockType === "checkListItem" ? "text-foreground" : "text-muted-foreground")} />}
         tooltip="Checklist"
         onClick={setCheckList}
-        isActive={currentBlockType === 'checkListItem'}
+        isActive={currentBlockType === "checkListItem"}
       />
 
       {}

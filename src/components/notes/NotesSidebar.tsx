@@ -1,16 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Folder, Note, createFolder, createNote, shareFolder, updateNote, deleteNote, duplicateNote } from '../../services/notesService';
 import {
-  Folder,
-  Note,
-  createFolder,
-  createNote,
-  shareFolder,
-  updateNote,
-  deleteNote,
-  duplicateNote,
-} from '../../services/notesService';
-import { Plus, Users, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
-import { cn } from '@/lib/utils';
+  Plus,
+  Users,
+  PanelLeftClose,
+  PanelLeftOpen,
+} from 'lucide-react';
+import { cn } from "@/lib/utils";
 import {
   Dialog,
   DialogContent,
@@ -18,16 +14,16 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { FolderItem } from './sidebar/FolderItem';
 import { NoteItem } from './sidebar/NoteItem';
 
@@ -43,19 +39,14 @@ interface NotesSidebarProps {
 }
 
 export const NotesSidebar: React.FC<NotesSidebarProps> = ({
-  userId,
-  folders,
-  notes,
-  selectedNoteId,
-  users = [],
-  onSelectNote,
-  onRefresh,
-  className,
+  userId, folders, notes, selectedNoteId, users = [], onSelectNote, onRefresh, className
 }) => {
   const [newFolderMode, setNewFolderMode] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
 
+
   const [hiddenNoteIds, setHiddenNoteIds] = useState<Set<string>>(new Set());
+
 
   const [width, setWidth] = useState(256);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -64,26 +55,19 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   const sidebarRef = useRef<HTMLDivElement>(null);
   const hoverTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+
   useEffect(() => {
     const storedWidth = localStorage.getItem('ZYNC-sidebar-width');
-    if (storedWidth) {
-      setWidth(parseInt(storedWidth));
-    }
+    if (storedWidth) {setWidth(parseInt(storedWidth));}
     const storedCollapsed = localStorage.getItem('ZYNC-sidebar-collapsed');
-    if (storedCollapsed) {
-      setIsCollapsed(storedCollapsed === 'true');
-    }
+    if (storedCollapsed) {setIsCollapsed(storedCollapsed === 'true');}
   }, []);
+
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isResizing) {
-        return;
-      }
-      const newWidth = Math.min(
-        Math.max(e.clientX - (sidebarRef.current?.getBoundingClientRect().left || 0), 160),
-        480
-      );
+      if (!isResizing) {return;}
+      const newWidth = Math.min(Math.max(e.clientX - (sidebarRef.current?.getBoundingClientRect().left || 0), 160), 480);
       setWidth(newWidth);
     };
     const handleMouseUp = () => {
@@ -114,47 +98,42 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
     const newState = !isCollapsed;
     setIsCollapsed(newState);
     localStorage.setItem('ZYNC-sidebar-collapsed', newState.toString());
-    if (!newState) {
-      setIsHovered(false);
-    }
+    if (!newState) {setIsHovered(false);}
   };
+
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [folderToShare, setFolderToShare] = useState<Folder | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string>('');
+  const [selectedUserId, setSelectedUserId] = useState<string>("");
 
   const handleShareClick = (folder: Folder) => {
     setFolderToShare(folder);
     setShareDialogOpen(true);
-    setSelectedUserId('');
+    setSelectedUserId("");
   };
 
   const executeShare = async () => {
-    if (!folderToShare || !selectedUserId) {
-      return;
-    }
+    if (!folderToShare || !selectedUserId) {return;}
     try {
       await shareFolder(folderToShare.id, [selectedUserId]);
       toast.success(`Folder shared successfully`);
       setShareDialogOpen(false);
       onRefresh();
     } catch (error) {
-      console.error('Failed to share folder', error);
-      toast.error('Failed to share folder');
+      console.error("Failed to share folder", error);
+      toast.error("Failed to share folder");
     }
   };
 
   const handleCreateFolder = async () => {
-    if (!newFolderName.trim()) {
-      return;
-    }
+    if (!newFolderName.trim()) {return;}
     try {
       await createFolder({ name: newFolderName, ownerId: userId, type: 'personal' });
       setNewFolderName('');
       setNewFolderMode(false);
       onRefresh();
     } catch (error) {
-      console.error('Failed to create folder', error);
+      console.error("Failed to create folder", error);
     }
   };
 
@@ -163,7 +142,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
       const initialData = {
         title: 'Untitled',
         ownerId: userId,
-        folderId: folderId || null,
+        folderId: folderId || null
       };
       const noteRef = await createNote(initialData);
 
@@ -173,40 +152,42 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
         content: [],
         createdAt: new Date(),
         updatedAt: new Date(),
-        ...initialData,
+        ...initialData
       };
 
       onRefresh();
       onSelectNote(newNote);
     } catch (error) {
-      console.error('Failed to create note', error);
+      console.error("Failed to create note", error);
     }
   };
 
+
   const handleDeleteNote = async (noteId: string) => {
-    setHiddenNoteIds((prev) => new Set(prev).add(noteId));
+
+    setHiddenNoteIds(prev => new Set(prev).add(noteId));
 
     try {
       await deleteNote(noteId);
-      toast.success('Note deleted');
+      toast.success("Note deleted");
       onRefresh();
     } catch (error) {
-      setHiddenNoteIds((prev) => {
+      setHiddenNoteIds(prev => {
         const next = new Set(prev);
         next.delete(noteId);
         return next;
       });
-      toast.error('Failed to delete note');
+      toast.error("Failed to delete note");
     }
   };
 
   const handleDuplicateNote = async (noteId: string) => {
     try {
       await duplicateNote(noteId, null, userId);
-      toast.success('Note duplicated');
+      toast.success("Note duplicated");
       onRefresh();
     } catch (error) {
-      toast.error('Failed to duplicate note');
+      toast.error("Failed to duplicate note");
     }
   };
 
@@ -215,60 +196,61 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
       await updateNote(noteId, { title: newTitle });
       onRefresh();
     } catch (error) {
-      toast.error('Failed to rename note');
+      toast.error("Failed to rename note");
     }
   };
 
-  const myFolders = folders.filter((f) => f.ownerId === userId);
-  const sharedFolders = folders.filter((f) => f.ownerId !== userId);
 
-  const visibleNotes = notes.filter((n) => !hiddenNoteIds.has(n.id));
-  const myUnorganizedNotes = visibleNotes.filter((n) => !n.folderId && n.ownerId === userId);
+  const myFolders = folders.filter(f => f.ownerId === userId);
+  const sharedFolders = folders.filter(f => f.ownerId !== userId);
+
+
+  const visibleNotes = notes.filter(n => !hiddenNoteIds.has(n.id));
+  const myUnorganizedNotes = visibleNotes.filter(n => !n.folderId && n.ownerId === userId);
+
 
   const handleDragStart = (e: React.DragEvent, noteId: string) => {
-    e.dataTransfer.setData('noteId', noteId);
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData("noteId", noteId);
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
+    e.dataTransfer.dropEffect = "move";
   };
 
   const handleDrop = async (e: React.DragEvent, targetFolderId: string | null) => {
     e.preventDefault();
-    const noteId = e.dataTransfer.getData('noteId');
-    if (!noteId) {
-      return;
-    }
+    const noteId = e.dataTransfer.getData("noteId");
+    if (!noteId) {return;}
 
     try {
       await updateNote(noteId, { folderId: targetFolderId });
-      toast.success('Note moved');
+      toast.success("Note moved");
       onRefresh();
     } catch (err) {
-      toast.error('Failed to move note');
+      toast.error("Failed to move note");
     }
   };
+
 
   const [clipboardNoteId, setClipboardNoteId] = useState<string | null>(null);
 
   const handleCopy = (noteId: string) => {
     setClipboardNoteId(noteId);
-    toast.info('Note copied to clipboard');
+    toast.info("Note copied to clipboard");
   };
 
   const handlePaste = async (targetFolderId: string | null) => {
-    if (!clipboardNoteId) {
-      return;
-    }
+    if (!clipboardNoteId) {return;}
     try {
       await duplicateNote(clipboardNoteId, targetFolderId, userId);
-      toast.success('Note pasted');
+      toast.success("Note pasted");
       onRefresh();
+
     } catch (err) {
       console.error(err);
-      toast.error('Failed to paste note');
+      toast.error("Failed to paste note");
     }
   };
 
@@ -278,18 +260,13 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
   return (
     <div
       ref={sidebarRef}
-      className={cn(
-        'relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/10 supports-[backdrop-filter]:bg-background/60 z-50',
-        className
-      )}
+      className={cn("relative h-full shrink-0 group/sidebar bg-background/60 backdrop-blur-xl border-r border-border/10 supports-[backdrop-filter]:bg-background/60 z-50", className)}
       style={{ width: isCollapsed ? 64 : width }}
     >
       <div
         className={cn(
-          'h-full flex flex-col bg-transparent text-foreground overflow-hidden',
-          isFloating
-            ? 'absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r border-border/10 bg-background/80 backdrop-blur-2xl'
-            : 'w-full'
+          "h-full flex flex-col bg-transparent text-foreground overflow-hidden",
+          isFloating ? "absolute inset-y-0 left-0 z-50 shadow-2xl w-[width]px border-r border-border/10 bg-background/80 backdrop-blur-2xl" : "w-full"
         )}
         style={{ width: isFloating ? width : '100%', transition: 'width 0.2s ease-out' }}
         onMouseEnter={() => {
@@ -309,33 +286,16 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           }
         }}
       >
-        <div
-          className={cn(
-            'p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-secondary/30 border-border/10',
-            effectiveCollapsed ? 'justify-center' : 'justify-between'
-          )}
-        >
-          {!effectiveCollapsed && (
-            <span className="font-semibold text-sm tracking-wide font-serif-elegant text-foreground truncate">
-              Zync Notes
-            </span>
-          )}
+        <div className={cn("p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-secondary/30 border-border/10", effectiveCollapsed ? "justify-center" : "justify-between")}>
+          {!effectiveCollapsed && <span className="font-semibold text-sm tracking-wide font-serif-elegant text-foreground truncate">Zync Notes</span>}
 
           <div className="flex items-center gap-1">
             {!effectiveCollapsed && (
-              <button
-                onClick={() => setNewFolderMode(true)}
-                className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
-                title="New Folder"
-              >
+              <button onClick={() => setNewFolderMode(true)} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground" title="New Folder">
                 <Plus size={16} />
               </button>
             )}
-            <button
-              onClick={toggleCollapse}
-              className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground"
-              title={isCollapsed ? 'Expand' : 'Collapse'}
-            >
+            <button onClick={toggleCollapse} className="p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground" title={isCollapsed ? "Expand" : "Collapse"}>
               {isCollapsed ? <PanelLeftOpen size={16} /> : <PanelLeftClose size={16} />}
             </button>
           </div>
@@ -352,8 +312,8 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                 className="w-full text-sm outline-none bg-transparent px-1 py-0.5 text-foreground placeholder:text-muted-foreground"
                 value={newFolderName}
                 placeholder="Folder Name..."
-                onChange={(e) => setNewFolderName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
+                onChange={e => setNewFolderName(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleCreateFolder()}
                 onBlur={() => setNewFolderMode(false)}
               />
             </div>
@@ -367,11 +327,11 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                   <Users size={12} /> Shared with Me
                 </div>
               )}
-              {sharedFolders.map((folder) => (
+              {sharedFolders.map(folder => (
                 <FolderItem
                   key={folder.id}
                   folder={folder}
-                  notes={visibleNotes.filter((n) => n.folderId === folder.id)}
+                  notes={visibleNotes.filter(n => n.folderId === folder.id)}
                   selectedNoteId={selectedNoteId}
                   onSelectNote={onSelectNote}
                   onCreateNote={() => handleCreateNote(folder.id)}
@@ -396,16 +356,12 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           {/* MY FOLDERS */}
           {(!effectiveCollapsed || myFolders.length > 0) && (
             <div className="mb-1">
-              {!effectiveCollapsed && (
-                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">
-                  My Folders
-                </div>
-              )}
-              {myFolders.map((folder) => (
+              {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">My Folders</div>}
+              {myFolders.map(folder => (
                 <FolderItem
                   key={folder.id}
                   folder={folder}
-                  notes={visibleNotes.filter((n) => n.folderId === folder.id)}
+                  notes={visibleNotes.filter(n => n.folderId === folder.id)}
                   selectedNoteId={selectedNoteId}
                   onSelectNote={onSelectNote}
                   onCreateNote={() => handleCreateNote(folder.id)}
@@ -427,19 +383,14 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           )}
 
           {/* MY UNORGANIZED NOTES */}
-          <div
-            className="mt-4"
+          <div className="mt-4"
             onDragOver={handleDragOver}
             onDrop={(e) => handleDrop(e, null)}
           >
-            {!effectiveCollapsed && (
-              <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">
-                My Notes
-              </div>
-            )}
+            {!effectiveCollapsed && <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">My Notes</div>}
             {effectiveCollapsed && <div className="h-px bg-border/10 w-8 mx-auto my-2" />}
 
-            {myUnorganizedNotes.map((note) => (
+            {myUnorganizedNotes.map(note => (
               <NoteItem
                 key={note.id}
                 note={note}
@@ -457,19 +408,13 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
             <button
               onClick={() => handleCreateNote()}
               className={cn(
-                'w-full flex items-center rounded-md text-xs mt-1 group text-muted-foreground hover:text-foreground transition-all',
-                effectiveCollapsed ? 'justify-center py-2 hover:bg-accent' : 'text-left px-2 py-1.5'
+                "w-full flex items-center rounded-md text-xs mt-1 group text-muted-foreground hover:text-foreground transition-all",
+                effectiveCollapsed ? "justify-center py-2 hover:bg-accent" : "text-left px-2 py-1.5"
               )}
               title="New Note"
             >
-              <Plus
-                size={16}
-                className={cn(
-                  'group-hover:scale-110 transition-transform',
-                  effectiveCollapsed ? '' : 'mr-2'
-                )}
-              />
-              {!effectiveCollapsed && 'New Note'}
+              <Plus size={16} className={cn("group-hover:scale-110 transition-transform", effectiveCollapsed ? "" : "mr-2")} />
+              {!effectiveCollapsed && "New Note"}
             </button>
           </div>
         </div>
@@ -478,12 +423,10 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
         {!isCollapsed && (
           <div
             className="absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-foreground/20 hover:w-1.5 transition-all z-20"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              setIsResizing(true);
-            }}
+            onMouseDown={(e) => { e.preventDefault(); setIsResizing(true); }}
           />
         )}
+
       </div>
 
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
@@ -506,26 +449,20 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {users
-                      .filter(
-                        (u) => u.uid !== userId && !folderToShare?.collaborators?.includes(u.uid)
-                      )
+                      .filter(u => u.uid !== userId && (!folderToShare?.collaborators?.includes(u.uid)))
                       .map((user) => (
                         <SelectItem key={user.uid} value={user.uid}>
                           {user.displayName || user.email}
                         </SelectItem>
                       ))}
-                    {users.length === 0 && (
-                      <div className="p-2 text-sm text-muted-foreground">No other users found</div>
-                    )}
+                    {users.length === 0 && <div className="p-2 text-sm text-muted-foreground">No other users found</div>}
                   </SelectContent>
                 </Select>
               </div>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
-              Cancel
-            </Button>
+            <Button variant="outline" onClick={() => setShareDialogOpen(false)}>Cancel</Button>
             <Button onClick={executeShare} disabled={!selectedUserId}>
               Share
             </Button>

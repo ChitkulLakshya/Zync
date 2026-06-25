@@ -41,10 +41,7 @@ async function delByPattern(pattern) {
   try {
     const client = getRedisClient();
     let deleted = 0;
-    for await (const key of client.scanIterator({
-      MATCH: pattern,
-      COUNT: 100,
-    })) {
+    for await (const key of client.scanIterator({ MATCH: pattern, COUNT: 100 })) {
       await client.del(key);
       deleted++;
     }

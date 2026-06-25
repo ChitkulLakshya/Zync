@@ -6,9 +6,7 @@ router.post('/', async (req, res) => {
   const { githubUsername, githubProfileUrl, email } = req.body;
 
   if (!githubUsername || !email) {
-    return res
-      .status(400)
-      .json({ error: 'GitHub username and email are required.' });
+    return res.status(400).json({ error: 'GitHub username and email are required.' });
   }
 
   try {
@@ -49,22 +47,14 @@ router.post('/', async (req, res) => {
 
       await transporter.sendMail(mailOptions);
     } else {
-      console.warn(
-        'SMTP credentials not found in .env. Skipping actual email dispatch.'
-      );
+      console.warn('SMTP credentials not found in .env. Skipping actual email dispatch.');
       console.log(`[BETA SIGNUP] User: ${githubUsername}, Email: ${email}`);
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: 'Application received successfully.' });
+    res.status(200).json({ success: true, message: 'Application received successfully.' });
   } catch (error) {
     console.error('Error dispatching collaborator beta email:', error);
-    res
-      .status(500)
-      .json({
-        error: 'Failed to process your application. Please try again later.',
-      });
+    res.status(500).json({ error: 'Failed to process your application. Please try again later.' });
   }
 });
 

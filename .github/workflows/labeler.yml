@@ -37,7 +37,7 @@ on:
       - opened
       - synchronize
       - reopened
-
+  
   # Also run when the labeler config or this workflow changes
   push:
     branches:
@@ -45,7 +45,7 @@ on:
     paths:
       - '.github/labeler.yml'
       - '.github/workflows/labeler.yml'
-
+  
   # Allow manual triggering for testing
   workflow_dispatch:
 
@@ -76,40 +76,40 @@ jobs:
   # ===========================================================================
   # Job: Label Pull Request
   # ===========================================================================
-
+  
   label:
     name: 🏷️ Apply Labels
     runs-on: ubuntu-latest
-
+    
     # Only run on PRs, not on push events to main
     if: github.event_name == 'pull_request'
-
+    
     timeout-minutes: 5
-
+    
     steps:
       # -----------------------------------------------------------------------
       # Step 1: Apply Labels Based on File Paths
       # -----------------------------------------------------------------------
-
+      
       - name: 🏷️ Apply Labels
         uses: actions/labeler@v6
         with:
           # Use the default GITHUB_TOKEN
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-
+          
           # Path to the labeler configuration file
           configuration-path: .github/labeler.yml
-
+          
           # Don't remove labels that were manually applied
           sync-labels: false
-
+          
           # Use v5 matching behavior (any match adds label)
           dot: true
 
       # -----------------------------------------------------------------------
       # Step 2: Summary
       # -----------------------------------------------------------------------
-
+      
       - name: 📊 Summary
         run: |
           echo "## 🏷️ Auto-Labeler Complete" >> $GITHUB_STEP_SUMMARY
@@ -123,45 +123,45 @@ jobs:
   # Job: Validate Labeler Config
   # ===========================================================================
   # This job runs when the labeler config is changed to ensure it's valid.
-
+  
   validate:
     name: ✅ Validate Config
     runs-on: ubuntu-latest
-
+    
     # Only run when labeler config is changed
     if: |
       github.event_name == 'push' || 
       (github.event_name == 'pull_request' && contains(github.event.pull_request.changed_files, '.github/labeler.yml'))
-
+    
     timeout-minutes: 5
-
+    
     steps:
       # -----------------------------------------------------------------------
       # Step 1: Checkout Repository
       # -----------------------------------------------------------------------
-
+      
       - name: 📥 Checkout
         uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
       # Step 2: Validate YAML Syntax
       # -----------------------------------------------------------------------
-
+      
       - name: ✅ Validate YAML Syntax
         run: |
           echo "Validating .github/labeler.yml syntax..."
-
+          
           # Check if file exists
           if [ ! -f .github/labeler.yml ]; then
             echo "❌ Error: .github/labeler.yml not found"
             exit 1
           fi
-
+          
           # Use Python to validate YAML
           python3 -c "
           import yaml
           import sys
-
+          
           try:
               with open('.github/labeler.yml', 'r') as f:
                   config = yaml.safe_load(f)
@@ -192,7 +192,7 @@ jobs:
       # -----------------------------------------------------------------------
       # Step 3: Summary
       # -----------------------------------------------------------------------
-
+      
       - name: 📊 Summary
         run: |
           echo "## ✅ Labeler Config Validation" >> $GITHUB_STEP_SUMMARY

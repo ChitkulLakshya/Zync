@@ -1,4 +1,4 @@
-import WelcomeToZync from '@/pages/WelcomeToZync';
+import WelcomeToZync from "@/pages/WelcomeToZync";
 
 const WelcomeToZyncMobile = () => <WelcomeToZync />;
 

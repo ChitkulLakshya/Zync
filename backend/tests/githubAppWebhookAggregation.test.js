@@ -58,10 +58,7 @@ describe('GitHub webhook aggregation and fanout reduction', () => {
         githubRepoName: 'repo-a',
       }),
     });
-    mockProjectUpdateOne.mockResolvedValue({
-      acknowledged: true,
-      modifiedCount: 1,
-    });
+    mockProjectUpdateOne.mockResolvedValue({ acknowledged: true, modifiedCount: 1 });
 
     app.use('/api/github-app', require('../routes/githubAppWebhook'));
 

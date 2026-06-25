@@ -20,18 +20,11 @@ router.post('/', authMiddleware, async (req, res) => {
     const uid = req.user.uid;
 
     if (!name || !description) {
-      return res
-        .status(400)
-        .json({ message: 'Name and description are required' });
+      return res.status(400).json({ message: 'Name and description are required' });
     }
 
     if (!groq) {
-      return res
-        .status(503)
-        .json({
-          message:
-            'AI generation service not configured (missing GROQ_API_KEY)',
-        });
+      return res.status(503).json({ message: 'AI generation service not configured (missing GROQ_API_KEY)' });
     }
 
 
@@ -98,16 +91,11 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
 
     let generatedData;
     try {
-      const cleaned = responseText
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
+      const cleaned = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
       generatedData = JSON.parse(cleaned);
     } catch (e) {
       console.error('Failed to parse AI response:', responseText);
-      return res
-        .status(500)
-        .json({ message: 'Failed to parse AI response', error: e.message });
+      return res.status(500).json({ message: 'Failed to parse AI response', error: e.message });
     }
 
 
@@ -135,7 +123,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
     );
 
     const allTasks = createdSteps.flatMap((step, i) =>
-      stepsData[i].tasks.map((task) => ({
+      stepsData[i].tasks.map(task => ({
         title: task.title,
         description: task.description || '',
         status: 'Pending',
@@ -151,9 +139,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
     res.status(201).json(fullProject);
   } catch (error) {
     console.error('Error generating project:', error);
-    res
-      .status(500)
-      .json({ message: 'Failed to generate project', error: error.message });
+    res.status(500).json({ message: 'Failed to generate project', error: error.message });
   }
 });
 

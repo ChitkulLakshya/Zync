@@ -13,10 +13,10 @@ runcmd:
   # Install Node.js 20
   - curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   - sudo apt-get install -y nodejs
-
+  
   # Install Bun (optional, but good for performance)
   - curl -fsSL https://bun.sh/install | bash
-
+  
   # Configure Redis to bind to localhost (secure by default)
   - sudo sed -i 's/^bind 127.0.0.1 ::1/bind 127.0.0.1/' /etc/redis/redis.conf
   - sudo systemctl restart redis-server

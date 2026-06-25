@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 
 interface DelayedLoaderGateProps {
   active: boolean;
@@ -6,7 +6,11 @@ interface DelayedLoaderGateProps {
   children: React.ReactNode;
 }
 
-export function DelayedLoaderGate({ active, delay = 300, children }: DelayedLoaderGateProps) {
+export function DelayedLoaderGate({
+  active,
+  delay = 300,
+  children,
+}: DelayedLoaderGateProps) {
   const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
@@ -22,12 +26,8 @@ export function DelayedLoaderGate({ active, delay = 300, children }: DelayedLoad
     return () => clearTimeout(timer);
   }, [active, delay]);
 
-  if (!active) {
-    return null;
-  }
-  if (!shouldRender) {
-    return null;
-  }
+  if (!active) {return null;}
+  if (!shouldRender) {return null;}
 
   return <>{children}</>;
 }

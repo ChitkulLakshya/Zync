@@ -1,13 +1,23 @@
 [
-  {
-    "origin": [
-      "http://localhost:8081",
-      "http://localhost:5173",
-      "http://localhost:3000",
-      "https://zync-meet.vercel.app"
-    ],
-    "method": ["GET", "POST", "PUT", "DELETE", "HEAD"],
-    "maxAgeSeconds": 3600,
-    "responseHeader": ["Content-Type", "Authorization", "x-goog-resumable"]
-  }
+    {
+        "origin": [
+            "http://localhost:8081",
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "https://zync-meet.vercel.app"
+        ],
+        "method": [
+            "GET",
+            "POST",
+            "PUT",
+            "DELETE",
+            "HEAD"
+        ],
+        "maxAgeSeconds": 3600,
+        "responseHeader": [
+            "Content-Type",
+            "Authorization",
+            "x-goog-resumable"
+        ]
+    }
 ]

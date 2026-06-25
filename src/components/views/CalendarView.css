@@ -1,181 +1,191 @@
 .rbc-calendar {
-  color: hsl(var(--foreground));
-  font-family: inherit;
+    color: hsl(var(--foreground));
+    font-family: inherit;
 }
+
 
 .rbc-toolbar {
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-  gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
+
 
 .rbc-toolbar button {
-  color: hsl(var(--foreground));
-  border: 1px solid hsl(var(--border) / 0.1);
-  background-color: transparent;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius);
-  font-weight: 500;
-  transition:
-    transform 0.2s,
-    box-shadow 0.2s;
+    color: hsl(var(--foreground));
+    border: 1px solid hsl(var(--border) / 0.1);
+    background-color: transparent;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    transition: transform 0.2s, box-shadow 0.2s;
 
-  cursor: pointer;
+    cursor: pointer;
 }
+
 
 .rbc-toolbar button:hover {
-  background-color: hsl(var(--accent));
-  color: hsl(var(--accent-foreground));
-  border-color: hsl(var(--accent));
-  transform: translateY(-2px);
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    background-color: hsl(var(--accent));
+    color: hsl(var(--accent-foreground));
+    border-color: hsl(var(--accent));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
 
 .rbc-toolbar button:active,
 .rbc-toolbar button:focus,
 .rbc-toolbar button.rbc-active,
 .rbc-toolbar button.rbc-active:hover,
 .rbc-toolbar button.rbc-active:focus {
-  background-color: hsl(var(--primary)) !important;
-  color: hsl(var(--primary-foreground)) !important;
-  border-color: hsl(var(--primary)) !important;
-  box-shadow: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
-  transform: none !important;
+    background-color: hsl(var(--primary)) !important;
+    color: hsl(var(--primary-foreground)) !important;
+    border-color: hsl(var(--primary)) !important;
+    box-shadow: 0 4px 6px -1px hsl(222 47% 11% / 0.1);
+    transform: none !important;
 
-  transition: none !important;
+    transition: none !important;
 
-  outline: none !important;
-  opacity: 1 !important;
+    outline: none !important;
+    opacity: 1 !important;
 }
 
+
 .rbc-toolbar button.rbc-active:hover {
-  background-color: hsl(var(--primary)) !important;
-  filter: brightness(1.1);
-  transform: translateY(-2px) !important;
-  transition: transform 0.2s !important;
+    background-color: hsl(var(--primary)) !important;
+    filter: brightness(1.1);
+    transform: translateY(-2px) !important;
+    transition: transform 0.2s !important;
+
 }
 
 .rbc-toolbar button:focus-visible {
-  outline: 2px solid hsl(var(--ring)) !important;
-  outline-offset: 2px;
+    outline: 2px solid hsl(var(--ring)) !important;
+    outline-offset: 2px;
 }
 
 .rbc-toolbar-label {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: hsl(var(--foreground));
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: hsl(var(--foreground));
 }
+
 
 .rbc-header {
-  padding: 10px 0;
-  font-weight: 600;
-  color: hsl(var(--muted-foreground));
-  border-bottom: 1px solid hsl(var(--border) / 0.1) !important;
+    padding: 10px 0;
+    font-weight: 600;
+    color: hsl(var(--muted-foreground));
+    border-bottom: 1px solid hsl(var(--border) / 0.1) !important;
 }
 
-.rbc-header + .rbc-header {
-  border-left: 1px solid hsl(var(--border) / 0.1) !important;
+.rbc-header+.rbc-header {
+    border-left: 1px solid hsl(var(--border) / 0.1) !important;
 }
 
 .rbc-month-view {
-  border: 1px solid hsl(var(--border) / 0.1);
-  border-radius: var(--radius);
-  background-color: transparent;
+    border: 1px solid hsl(var(--border) / 0.1);
+    border-radius: var(--radius);
+    background-color: transparent;
 }
 
-.rbc-month-row + .rbc-month-row {
-  border-top: 1px solid hsl(var(--border) / 0.1);
+.rbc-month-row+.rbc-month-row {
+    border-top: 1px solid hsl(var(--border) / 0.1);
 }
 
-.rbc-day-bg + .rbc-day-bg {
-  border-left: 1px solid hsl(var(--border) / 0.1);
+.rbc-day-bg+.rbc-day-bg {
+    border-left: 1px solid hsl(var(--border) / 0.1);
 }
+
 
 .rbc-off-range-bg {
-  background-color: hsl(var(--muted) / 0.3);
+    background-color: hsl(var(--muted) / 0.3);
 }
 
+
 .rbc-date-cell {
-  padding: 8px;
-  font-size: 0.875rem;
-  color: hsl(var(--foreground));
+    padding: 8px;
+    font-size: 0.875rem;
+    color: hsl(var(--foreground));
 }
 
 .rbc-off-range .rbc-date-cell {
-  color: hsl(var(--muted-foreground));
+    color: hsl(var(--muted-foreground));
 }
+
 
 .rbc-today {
-  background-color: hsl(var(--accent) / 0.1);
+    background-color: hsl(var(--accent) / 0.1);
 }
 
+
 .rbc-event {
-  background-color: hsl(var(--primary));
-  border: 1px solid hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  border-radius: 4px;
-  padding: 2px 5px;
-  font-size: 0.85rem;
-  cursor: pointer;
+    background-color: hsl(var(--primary));
+    border: 1px solid hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border-radius: 4px;
+    padding: 2px 5px;
+    font-size: 0.85rem;
+    cursor: pointer;
 }
 
 .rbc-event.rbc-selected {
-  background-color: hsl(var(--primary));
-  filter: brightness(1.1);
+    background-color: hsl(var(--primary));
+    filter: brightness(1.1);
 }
 
 .rbc-event:focus {
-  outline: none;
+    outline: none;
 }
+
 
 .rbc-agenda-view table.rbc-agenda-table {
-  border: 1px solid hsl(var(--border) / 0.1);
-  background-color: transparent;
+    border: 1px solid hsl(var(--border) / 0.1);
+    background-color: transparent;
 }
 
-.rbc-agenda-view table.rbc-agenda-table tbody > tr > td {
-  border-top: 1px solid hsl(var(--border) / 0.1);
-  padding: 10px;
+.rbc-agenda-view table.rbc-agenda-table tbody>tr>td {
+    border-top: 1px solid hsl(var(--border) / 0.1);
+    padding: 10px;
 }
 
 .rbc-agenda-time-cell {
-  color: hsl(var(--muted-foreground));
+    color: hsl(var(--muted-foreground));
 }
 
 .rbc-agenda-date-cell {
-  color: hsl(var(--foreground));
-  font-weight: 500;
+    color: hsl(var(--foreground));
+    font-weight: 500;
 }
 
 .rbc-agenda-event-cell {
-  color: hsl(var(--foreground));
+    color: hsl(var(--foreground));
 }
 
+
 .rbc-time-view {
-  border: 1px solid hsl(var(--border) / 0.1);
-  border-radius: var(--radius);
-  background-color: transparent;
+    border: 1px solid hsl(var(--border) / 0.1);
+    border-radius: var(--radius);
+    background-color: transparent;
 }
 
 .rbc-timeslot-group {
-  border-bottom: 1px solid hsl(var(--border) / 0.1);
+    border-bottom: 1px solid hsl(var(--border) / 0.1);
 }
 
 .rbc-time-content {
-  border-top: 1px solid hsl(var(--border) / 0.1);
+    border-top: 1px solid hsl(var(--border) / 0.1);
 }
 
 .rbc-day-slot .rbc-time-slot {
-  border-top: 1px solid hsl(var(--border) / 0.5);
+    border-top: 1px solid hsl(var(--border) / 0.5);
 }
 
 .rbc-label {
-  color: hsl(var(--muted-foreground));
-  padding: 5px;
+    color: hsl(var(--muted-foreground));
+    padding: 5px;
 }
 
+
 .rbc-current-time-indicator {
-  background-color: hsl(var(--destructive));
+    background-color: hsl(var(--destructive));
 }

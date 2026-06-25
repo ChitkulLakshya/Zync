@@ -1,10 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { paginateArray, setPaginationHeaders } = require('../utils/pagination');
-const {
-  getSharedBrowser,
-  scrapeDribbble,
-} = require('../services/scraperService');
+const { getSharedBrowser, scrapeDribbble } = require('../services/scraperService');
 
 const DATA_FILE = path.join(__dirname, '../data/inspiration.json');
 
@@ -32,21 +29,15 @@ function searchCache(query) {
 
   if (query && query !== 'web design') {
     const normalizedQuery = query.replace(/[\s-]+/g, '');
-    items = items.filter((item) => {
+    items = items.filter(item => {
       const title = item.title?.toLowerCase() || '';
       const source = item.source?.toLowerCase() || '';
-      const tags = item.tags?.map((t) => t.toLowerCase()) || [];
+      const tags = item.tags?.map(t => t.toLowerCase()) || [];
 
-      const titleMatch =
-        title.includes(query) ||
-        title.replace(/[\s-]+/g, '').includes(normalizedQuery);
-      const sourceMatch =
-        source.includes(query) ||
-        source.replace(/[\s-]+/g, '').includes(normalizedQuery);
-      const tagMatch = tags.some(
-        (tag) =>
-          tag.includes(query) ||
-          tag.replace(/[\s-]+/g, '').includes(normalizedQuery)
+      const titleMatch = title.includes(query) || title.replace(/[\s-]+/g, '').includes(normalizedQuery);
+      const sourceMatch = source.includes(query) || source.replace(/[\s-]+/g, '').includes(normalizedQuery);
+      const tagMatch = tags.some(tag =>
+        tag.includes(query) || tag.replace(/[\s-]+/g, '').includes(normalizedQuery)
       );
       return titleMatch || sourceMatch || tagMatch;
     });
@@ -69,7 +60,7 @@ async function getInspiration(req, res) {
       ok: true,
       count: items.length,
       total: allItems.length,
-      items,
+      items
     });
   } catch (error) {
     console.error('Inspiration Controller Error:', error);
@@ -94,13 +85,14 @@ async function getLiveScrape(req, res) {
     res.json({
       ok: true,
       count: items.length,
-      items,
+      items
     });
   } catch (error) {
     console.error('Live Scrape Error:', error);
     res.json({ ok: true, count: 0, items: [] });
   }
 }
+
 
 async function getDribbbleInspiration(req, res) {
   return getInspiration(req, res);

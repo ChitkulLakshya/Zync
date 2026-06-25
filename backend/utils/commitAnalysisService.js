@@ -5,7 +5,9 @@ const groq = process.env.GROQ_API_KEY
   : null;
 const MODEL_NAME = 'llama-3.1-8b-instant';
 
+
 const filterCommitMessage = (message) => {
+
   const taskRegex = /(?:TASK-|#)(\d+)/i;
   const match = message.match(taskRegex);
 
@@ -13,14 +15,13 @@ const filterCommitMessage = (message) => {
     return {
       found: true,
       id: match[0].toUpperCase().replace('#', 'TASK-'),
-      action: message.toLowerCase().includes('fix')
-        ? 'Complete'
-        : 'In Progress',
-      confidence: 0.8,
+      action: message.toLowerCase().includes('fix') ? 'Complete' : 'In Progress',
+      confidence: 0.8
     };
   }
   return { found: false, id: null, action: null, confidence: 0 };
 };
+
 
 const analyzeCommit = async (message) => {
   if (!groq) {
@@ -65,13 +66,10 @@ const analyzeCommit = async (message) => {
 
     let analysis;
     try {
-      const cleanJson = responseText
-        .replace(/```json/g, '')
-        .replace(/```/g, '')
-        .trim();
+      const cleanJson = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
       analysis = JSON.parse(cleanJson);
     } catch (e) {
-      console.error('Groq JSON Parse Error', e);
+      console.error("Groq JSON Parse Error", e);
       return filterCommitMessage(message);
     }
 
@@ -80,6 +78,7 @@ const analyzeCommit = async (message) => {
     } else {
       return filterCommitMessage(message);
     }
+
   } catch (error) {
     console.error('Groq Analysis Error:', error.message);
     return filterCommitMessage(message);

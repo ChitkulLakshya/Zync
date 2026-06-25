@@ -26,9 +26,7 @@ const joinedProjects = new Set<string>();
  * Connect to the /tasks namespace. Safe to call multiple times.
  */
 export function connectTaskSocket(userId: string): Socket {
-  if (socket?.connected) {
-    return socket;
-  }
+  if (socket?.connected) {return socket;}
 
   const socketUrl = SOCKET_BASE_URL;
 
@@ -41,24 +39,24 @@ export function connectTaskSocket(userId: string): Socket {
   });
 
   socket.on('task-created', (data: TaskEvent) => {
-    createdListeners.forEach((cb) => cb(data));
+    createdListeners.forEach(cb => cb(data));
   });
 
   socket.on('task-updated', (data: TaskEvent) => {
-    updatedListeners.forEach((cb) => cb(data));
+    updatedListeners.forEach(cb => cb(data));
   });
 
   socket.on('task-deleted', (data: TaskEvent) => {
-    deletedListeners.forEach((cb) => cb(data));
+    deletedListeners.forEach(cb => cb(data));
   });
 
   socket.on('task-assigned', (data: TaskEvent) => {
-    assignedListeners.forEach((cb) => cb(data));
+    assignedListeners.forEach(cb => cb(data));
   });
 
 
   socket.on('connect', () => {
-    joinedProjects.forEach((projectId) => {
+    joinedProjects.forEach(projectId => {
       socket?.emit('join-project', projectId);
     });
   });
@@ -92,28 +90,20 @@ export function leaveProject(projectId: string) {
 
 export function onTaskCreated(cb: TaskEventCallback) {
   createdListeners.add(cb);
-  return () => {
-    createdListeners.delete(cb);
-  };
+  return () => { createdListeners.delete(cb); };
 }
 
 export function onTaskUpdated(cb: TaskEventCallback) {
   updatedListeners.add(cb);
-  return () => {
-    updatedListeners.delete(cb);
-  };
+  return () => { updatedListeners.delete(cb); };
 }
 
 export function onTaskDeleted(cb: TaskEventCallback) {
   deletedListeners.add(cb);
-  return () => {
-    deletedListeners.delete(cb);
-  };
+  return () => { deletedListeners.delete(cb); };
 }
 
 export function onTaskAssigned(cb: TaskEventCallback) {
   assignedListeners.add(cb);
-  return () => {
-    assignedListeners.delete(cb);
-  };
+  return () => { assignedListeners.delete(cb); };
 }

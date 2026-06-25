@@ -9,10 +9,7 @@ const Session = require('../models/Session');
 const { normalizeDoc } = require('../utils/normalize');
 const { getProjectWithSteps } = require('../utils/projectHelper');
 
-const normalizeTaskStatus = (value) =>
-  String(value || '')
-    .trim()
-    .toLowerCase();
+const normalizeTaskStatus = (value) => String(value || '').trim().toLowerCase();
 const COMMIT_CODE_REGEX = /\b\d{10}\b/g;
 
 const extractCommitCodes = (message) => {
@@ -20,10 +17,7 @@ const extractCommitCodes = (message) => {
   return [...new Set(matches || [])];
 };
 
-const computeStatusFromCommit = ({
-  fromStatus,
-  hasOwnerGeneratedCommitCode,
-}) => {
+const computeStatusFromCommit = ({ fromStatus, hasOwnerGeneratedCommitCode }) => {
   const normalizedFrom = normalizeTaskStatus(fromStatus);
 
   if (hasOwnerGeneratedCommitCode) {
@@ -37,16 +31,7 @@ const computeStatusFromCommit = ({
   return 'In Progress';
 };
 
-async function logTaskProgressActivity({
-  recipients,
-  taskTitle,
-  projectName,
-  actorName,
-  projectId,
-  taskId,
-  fromStatus,
-  toStatus,
-}) {
+async function logTaskProgressActivity({ recipients, taskTitle, projectName, actorName, projectId, taskId, fromStatus, toStatus }) {
   const uniqueRecipients = [...new Set((recipients || []).filter(Boolean))];
   if (uniqueRecipients.length === 0) return;
 
@@ -105,19 +90,14 @@ router.post('/github', verifyGithub, async (req, res) => {
         task = await ProjectTask.findOne({ displayId }).lean();
         if (!task) {
           const taskByDisplayRegex = await ProjectTask.findOne({
-            displayId: {
-              $regex: `^${String(displayId).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`,
-              $options: 'i',
-            },
+            displayId: { $regex: `^${String(displayId).replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')}$`, $options: 'i' }
           }).lean();
           task = taskByDisplayRegex || null;
         }
       }
 
       if (!task && commitCodesInMessage.length > 0) {
-        task = await ProjectTask.findOne({
-          commitCode: { $in: commitCodesInMessage },
-        }).lean();
+        task = await ProjectTask.findOne({ commitCode: { $in: commitCodesInMessage } }).lean();
       }
 
       if (!task) {
@@ -127,10 +107,7 @@ router.post('/github', verifyGithub, async (req, res) => {
 
 
       const fromStatus = task.status;
-      const hasOwnerGeneratedCommitCode = Boolean(
-        task.commitCode &&
-        commitCodesInMessage.includes(String(task.commitCode))
-      );
+      const hasOwnerGeneratedCommitCode = Boolean(task.commitCode && commitCodesInMessage.includes(String(task.commitCode)));
       const updateData = {
         commitMessage: message,
         commitUrl: commit.url,
@@ -153,11 +130,7 @@ router.post('/github', verifyGithub, async (req, res) => {
         const project = await Project.findById(step.projectId).lean();
         if (updateData.status && updateData.status !== fromStatus) {
           await logTaskProgressActivity({
-            recipients: [
-              project?.ownerUid,
-              ...(project?.team || []),
-              task.assignedTo,
-            ],
+            recipients: [project?.ownerUid, ...(project?.team || []), task.assignedTo],
             taskTitle: task.title,
             projectName: project?.name,
             actorName: sender?.login || commit.author?.name || 'GitHub',
@@ -178,10 +151,7 @@ router.post('/github', verifyGithub, async (req, res) => {
             status: updateData.status || task.status,
             projectId: step.projectId.toString(),
           });
-          io.emit('projectUpdate', {
-            projectId: projectData.id,
-            project: projectData,
-          });
+          io.emit('projectUpdate', { projectId: projectData.id, project: projectData });
         }
       }
 
@@ -196,9 +166,7 @@ router.post('/github', verifyGithub, async (req, res) => {
     res.json({ message: 'Webhook processed', results });
   } catch (error) {
     console.error('Webhook processing error:', error);
-    res
-      .status(500)
-      .json({ message: 'Webhook processing failed', error: error.message });
+    res.status(500).json({ message: 'Webhook processing failed', error: error.message });
   }
 });
 

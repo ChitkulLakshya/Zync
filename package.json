@@ -32,7 +32,7 @@
     "test:e2e": "playwright test",
     "prepare": "node scripts/prepare-husky.cjs",
     "commit": "cz",
-    "format": "prettier --write .",
+    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,scss,md}\"",
     "clean": "rimraf dist dist_electron node_modules coverage",
     "typecheck": "tsc --noEmit",
     "storybook": "storybook dev -p 6006",

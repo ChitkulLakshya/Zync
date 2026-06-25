@@ -32,415 +32,415 @@ labels:
   # TYPE LABELS (Purple - #7057ff)
   # ===========================================================================
   # These describe what kind of change the issue/PR represents.
-
-  - name: 'type:bug'
-    color: 'd73a4a'
+  
+  - name: "type:bug"
+    color: "d73a4a"
     description: "Something isn't working correctly"
-
-  - name: 'type:feature'
-    color: '7057ff'
-    description: 'New feature or enhancement request'
-
-  - name: 'type:enhancement'
-    color: '7057ff'
-    description: 'Improvement to existing functionality'
-
-  - name: 'type:refactor'
-    color: '7057ff'
-    description: 'Code refactoring without functional changes'
-
-  - name: 'type:documentation'
-    color: '0075ca'
-    description: 'Documentation improvements or additions'
-
-  - name: 'type:test'
-    color: '7057ff'
-    description: 'Adding or updating tests'
-
-  - name: 'type:chore'
-    color: '7057ff'
-    description: 'Maintenance tasks and housekeeping'
-
-  - name: 'type:performance'
-    color: '7057ff'
-    description: 'Performance improvements'
-
-  - name: 'type:security'
-    color: 'd73a4a'
-    description: 'Security-related changes or vulnerabilities'
-
-  - name: 'type:accessibility'
-    color: '7057ff'
-    description: 'Accessibility improvements (a11y)'
-
-  - name: 'type:deprecation'
-    color: '7057ff'
-    description: 'Deprecating features or APIs'
-
-  - name: 'type:breaking-change'
-    color: 'd73a4a'
-    description: 'Breaking change that requires migration'
+  
+  - name: "type:feature"
+    color: "7057ff"
+    description: "New feature or enhancement request"
+  
+  - name: "type:enhancement"
+    color: "7057ff"
+    description: "Improvement to existing functionality"
+  
+  - name: "type:refactor"
+    color: "7057ff"
+    description: "Code refactoring without functional changes"
+  
+  - name: "type:documentation"
+    color: "0075ca"
+    description: "Documentation improvements or additions"
+  
+  - name: "type:test"
+    color: "7057ff"
+    description: "Adding or updating tests"
+  
+  - name: "type:chore"
+    color: "7057ff"
+    description: "Maintenance tasks and housekeeping"
+  
+  - name: "type:performance"
+    color: "7057ff"
+    description: "Performance improvements"
+  
+  - name: "type:security"
+    color: "d73a4a"
+    description: "Security-related changes or vulnerabilities"
+  
+  - name: "type:accessibility"
+    color: "7057ff"
+    description: "Accessibility improvements (a11y)"
+  
+  - name: "type:deprecation"
+    color: "7057ff"
+    description: "Deprecating features or APIs"
+  
+  - name: "type:breaking-change"
+    color: "d73a4a"
+    description: "Breaking change that requires migration"
 
   # ===========================================================================
   # AREA LABELS (Blue - #0366d6)
   # ===========================================================================
   # These describe which area of the codebase is affected.
-
-  - name: 'area:electron'
-    color: '0366d6'
-    description: 'Electron desktop application code'
-
-  - name: 'area:electron-main'
-    color: '0366d6'
-    description: 'Electron main process'
-
-  - name: 'area:electron-preload'
-    color: '0366d6'
-    description: 'Electron preload scripts'
-
-  - name: 'area:electron-renderer'
-    color: '0366d6'
-    description: 'Electron renderer process'
-
-  - name: 'area:electron-services'
-    color: '0366d6'
-    description: 'Electron services (auto-updater, etc.)'
-
-  - name: 'area:electron-settings'
-    color: '0366d6'
-    description: 'Electron settings UI'
-
-  - name: 'area:frontend'
-    color: '0366d6'
-    description: 'React/web frontend code'
-
-  - name: 'area:frontend-components'
-    color: '0366d6'
-    description: 'React components'
-
-  - name: 'area:frontend-pages'
-    color: '0366d6'
-    description: 'Frontend pages/views'
-
-  - name: 'area:frontend-hooks'
-    color: '0366d6'
-    description: 'React hooks'
-
-  - name: 'area:frontend-store'
-    color: '0366d6'
-    description: 'State management (store)'
-
-  - name: 'area:backend'
-    color: '0366d6'
-    description: 'Node.js backend code'
-
-  - name: 'area:backend-routes'
-    color: '0366d6'
-    description: 'Backend API routes'
-
-  - name: 'area:backend-models'
-    color: '0366d6'
-    description: 'Backend data models'
-
-  - name: 'area:backend-services'
-    color: '0366d6'
-    description: 'Backend services'
-
-  - name: 'area:database'
-    color: '0366d6'
-    description: 'Database and Prisma schema'
-
-  - name: 'area:tests'
-    color: '0366d6'
-    description: 'Test files and testing infrastructure'
-
-  - name: 'area:ci'
-    color: '0366d6'
-    description: 'CI/CD and GitHub Actions'
-
-  - name: 'area:docs'
-    color: '0366d6'
-    description: 'Documentation'
-
-  - name: 'area:assets'
-    color: '0366d6'
-    description: 'Images, icons, and other assets'
-
-  - name: 'area:styles'
-    color: '0366d6'
-    description: 'CSS and styling'
-
-  - name: 'area:config'
-    color: '0366d6'
-    description: 'Configuration files'
-
-  - name: 'area:build'
-    color: '0366d6'
-    description: 'Build system and scripts'
-
-  - name: 'area:dependencies'
-    color: '0366d6'
-    description: 'Package dependencies'
-
-  - name: 'area:i18n'
-    color: '0366d6'
-    description: 'Internationalization and localization'
+  
+  - name: "area:electron"
+    color: "0366d6"
+    description: "Electron desktop application code"
+  
+  - name: "area:electron-main"
+    color: "0366d6"
+    description: "Electron main process"
+  
+  - name: "area:electron-preload"
+    color: "0366d6"
+    description: "Electron preload scripts"
+  
+  - name: "area:electron-renderer"
+    color: "0366d6"
+    description: "Electron renderer process"
+  
+  - name: "area:electron-services"
+    color: "0366d6"
+    description: "Electron services (auto-updater, etc.)"
+  
+  - name: "area:electron-settings"
+    color: "0366d6"
+    description: "Electron settings UI"
+  
+  - name: "area:frontend"
+    color: "0366d6"
+    description: "React/web frontend code"
+  
+  - name: "area:frontend-components"
+    color: "0366d6"
+    description: "React components"
+  
+  - name: "area:frontend-pages"
+    color: "0366d6"
+    description: "Frontend pages/views"
+  
+  - name: "area:frontend-hooks"
+    color: "0366d6"
+    description: "React hooks"
+  
+  - name: "area:frontend-store"
+    color: "0366d6"
+    description: "State management (store)"
+  
+  - name: "area:backend"
+    color: "0366d6"
+    description: "Node.js backend code"
+  
+  - name: "area:backend-routes"
+    color: "0366d6"
+    description: "Backend API routes"
+  
+  - name: "area:backend-models"
+    color: "0366d6"
+    description: "Backend data models"
+  
+  - name: "area:backend-services"
+    color: "0366d6"
+    description: "Backend services"
+  
+  - name: "area:database"
+    color: "0366d6"
+    description: "Database and Prisma schema"
+  
+  - name: "area:tests"
+    color: "0366d6"
+    description: "Test files and testing infrastructure"
+  
+  - name: "area:ci"
+    color: "0366d6"
+    description: "CI/CD and GitHub Actions"
+  
+  - name: "area:docs"
+    color: "0366d6"
+    description: "Documentation"
+  
+  - name: "area:assets"
+    color: "0366d6"
+    description: "Images, icons, and other assets"
+  
+  - name: "area:styles"
+    color: "0366d6"
+    description: "CSS and styling"
+  
+  - name: "area:config"
+    color: "0366d6"
+    description: "Configuration files"
+  
+  - name: "area:build"
+    color: "0366d6"
+    description: "Build system and scripts"
+  
+  - name: "area:dependencies"
+    color: "0366d6"
+    description: "Package dependencies"
+  
+  - name: "area:i18n"
+    color: "0366d6"
+    description: "Internationalization and localization"
 
   # ===========================================================================
   # PRIORITY LABELS (Red/Orange/Yellow)
   # ===========================================================================
   # These describe how urgent the issue is.
-
-  - name: 'priority:critical'
-    color: 'b60205'
-    description: 'Critical priority - must be addressed immediately'
-
-  - name: 'priority:high'
-    color: 'd93f0b'
-    description: 'High priority - should be addressed soon'
-
-  - name: 'priority:medium'
-    color: 'fbca04'
-    description: 'Medium priority - normal queue'
-
-  - name: 'priority:low'
-    color: '0e8a16'
-    description: 'Low priority - nice to have'
+  
+  - name: "priority:critical"
+    color: "b60205"
+    description: "Critical priority - must be addressed immediately"
+  
+  - name: "priority:high"
+    color: "d93f0b"
+    description: "High priority - should be addressed soon"
+  
+  - name: "priority:medium"
+    color: "fbca04"
+    description: "Medium priority - normal queue"
+  
+  - name: "priority:low"
+    color: "0e8a16"
+    description: "Low priority - nice to have"
 
   # ===========================================================================
   # STATUS LABELS (Gray/Green)
   # ===========================================================================
   # These describe the current state of the issue/PR.
-
-  - name: 'status:needs-triage'
-    color: 'ededed'
-    description: 'Needs initial review and categorization'
-
-  - name: 'status:needs-info'
-    color: 'd876e3'
-    description: 'Needs more information from reporter'
-
-  - name: 'status:needs-design'
-    color: 'd876e3'
-    description: 'Needs design work before implementation'
-
-  - name: 'status:needs-investigation'
-    color: 'd876e3'
-    description: 'Needs investigation to understand the issue'
-
-  - name: 'status:confirmed'
-    color: '0e8a16'
-    description: 'Bug has been confirmed and reproduced'
-
-  - name: 'status:in-progress'
-    color: '0052cc'
-    description: 'Currently being worked on'
-
-  - name: 'status:blocked'
-    color: 'b60205'
-    description: 'Blocked by another issue or external factor'
-
-  - name: 'status:on-hold'
-    color: 'fef2c0'
-    description: 'On hold / deferred'
-
-  - name: 'status:ready-for-review'
-    color: '0e8a16'
-    description: 'Ready for code review'
-
-  - name: 'status:changes-requested'
-    color: 'fbca04'
-    description: 'Changes have been requested'
-
-  - name: 'status:approved'
-    color: '0e8a16'
-    description: 'Approved and ready to merge'
+  
+  - name: "status:needs-triage"
+    color: "ededed"
+    description: "Needs initial review and categorization"
+  
+  - name: "status:needs-info"
+    color: "d876e3"
+    description: "Needs more information from reporter"
+  
+  - name: "status:needs-design"
+    color: "d876e3"
+    description: "Needs design work before implementation"
+  
+  - name: "status:needs-investigation"
+    color: "d876e3"
+    description: "Needs investigation to understand the issue"
+  
+  - name: "status:confirmed"
+    color: "0e8a16"
+    description: "Bug has been confirmed and reproduced"
+  
+  - name: "status:in-progress"
+    color: "0052cc"
+    description: "Currently being worked on"
+  
+  - name: "status:blocked"
+    color: "b60205"
+    description: "Blocked by another issue or external factor"
+  
+  - name: "status:on-hold"
+    color: "fef2c0"
+    description: "On hold / deferred"
+  
+  - name: "status:ready-for-review"
+    color: "0e8a16"
+    description: "Ready for code review"
+  
+  - name: "status:changes-requested"
+    color: "fbca04"
+    description: "Changes have been requested"
+  
+  - name: "status:approved"
+    color: "0e8a16"
+    description: "Approved and ready to merge"
 
   # ===========================================================================
   # PLATFORM LABELS (Teal - #006b75)
   # ===========================================================================
   # These indicate platform-specific issues.
-
-  - name: 'platform:windows'
-    color: '006b75'
-    description: 'Windows-specific issue or feature'
-
-  - name: 'platform:macos'
-    color: '006b75'
-    description: 'macOS-specific issue or feature'
-
-  - name: 'platform:linux'
-    color: '006b75'
-    description: 'Linux-specific issue or feature'
-
-  - name: 'platform:all'
-    color: '006b75'
-    description: 'Affects all platforms'
+  
+  - name: "platform:windows"
+    color: "006b75"
+    description: "Windows-specific issue or feature"
+  
+  - name: "platform:macos"
+    color: "006b75"
+    description: "macOS-specific issue or feature"
+  
+  - name: "platform:linux"
+    color: "006b75"
+    description: "Linux-specific issue or feature"
+  
+  - name: "platform:all"
+    color: "006b75"
+    description: "Affects all platforms"
 
   # ===========================================================================
   # SIZE LABELS (Gradient green to red)
   # ===========================================================================
   # These indicate the size/complexity of the change.
-
-  - name: 'size:XS'
-    color: '0e8a16'
-    description: 'Extra small change (< 10 lines)'
-
-  - name: 'size:S'
-    color: '77dd77'
-    description: 'Small change (10-50 lines)'
-
-  - name: 'size:M'
-    color: 'fbca04'
-    description: 'Medium change (50-200 lines)'
-
-  - name: 'size:L'
-    color: 'd93f0b'
-    description: 'Large change (200-500 lines)'
-
-  - name: 'size:XL'
-    color: 'b60205'
-    description: 'Extra large change (> 500 lines)'
+  
+  - name: "size:XS"
+    color: "0e8a16"
+    description: "Extra small change (< 10 lines)"
+  
+  - name: "size:S"
+    color: "77dd77"
+    description: "Small change (10-50 lines)"
+  
+  - name: "size:M"
+    color: "fbca04"
+    description: "Medium change (50-200 lines)"
+  
+  - name: "size:L"
+    color: "d93f0b"
+    description: "Large change (200-500 lines)"
+  
+  - name: "size:XL"
+    color: "b60205"
+    description: "Extra large change (> 500 lines)"
 
   # ===========================================================================
   # COMMUNITY LABELS (Pink/Cyan)
   # ===========================================================================
   # These are for community management and contribution.
-
-  - name: 'good-first-issue'
-    color: '7057ff'
-    description: 'Good for newcomers to the project'
-
-  - name: 'help-wanted'
-    color: '008672'
-    description: 'Extra attention is needed'
-
-  - name: 'mentor-available'
-    color: '0e8a16'
-    description: 'A mentor is available to help with this issue'
-
-  - name: 'sponsored'
-    color: 'ea4aaa'
-    description: 'This issue/PR is sponsored'
-
-  - name: 'hacktoberfest'
-    color: 'ff7518'
-    description: 'Hacktoberfest eligible'
-
-  - name: 'duplicate'
-    color: 'cfd3d7'
-    description: 'This issue or PR already exists'
-
-  - name: 'wontfix'
-    color: 'ffffff'
-    description: 'This will not be worked on'
-
-  - name: 'invalid'
-    color: 'e4e669'
+  
+  - name: "good-first-issue"
+    color: "7057ff"
+    description: "Good for newcomers to the project"
+  
+  - name: "help-wanted"
+    color: "008672"
+    description: "Extra attention is needed"
+  
+  - name: "mentor-available"
+    color: "0e8a16"
+    description: "A mentor is available to help with this issue"
+  
+  - name: "sponsored"
+    color: "ea4aaa"
+    description: "This issue/PR is sponsored"
+  
+  - name: "hacktoberfest"
+    color: "ff7518"
+    description: "Hacktoberfest eligible"
+  
+  - name: "duplicate"
+    color: "cfd3d7"
+    description: "This issue or PR already exists"
+  
+  - name: "wontfix"
+    color: "ffffff"
+    description: "This will not be worked on"
+  
+  - name: "invalid"
+    color: "e4e669"
     description: "This doesn't seem right"
-
-  - name: 'question'
-    color: 'd876e3'
-    description: 'Further information is requested'
-
-  - name: 'discussion'
-    color: 'd876e3'
-    description: 'Open for discussion'
+  
+  - name: "question"
+    color: "d876e3"
+    description: "Further information is requested"
+  
+  - name: "discussion"
+    color: "d876e3"
+    description: "Open for discussion"
 
   # ===========================================================================
   # STALE MANAGEMENT LABELS
   # ===========================================================================
   # These are used by the stale bot workflow.
-
-  - name: 'stale'
-    color: 'fef2c0'
-    description: 'Marked as stale due to inactivity'
-
-  - name: 'closed-stale'
-    color: 'ededed'
-    description: 'Closed due to inactivity'
-
-  - name: 'pinned'
-    color: '0e8a16'
+  
+  - name: "stale"
+    color: "fef2c0"
+    description: "Marked as stale due to inactivity"
+  
+  - name: "closed-stale"
+    color: "ededed"
+    description: "Closed due to inactivity"
+  
+  - name: "pinned"
+    color: "0e8a16"
     description: "Pinned issue - won't be marked as stale"
-
-  - name: 'do-not-close'
-    color: '0e8a16'
-    description: 'Keep open - should not be auto-closed'
+  
+  - name: "do-not-close"
+    color: "0e8a16"
+    description: "Keep open - should not be auto-closed"
 
   # ===========================================================================
   # RELEASE LABELS
   # ===========================================================================
   # These are for release management.
-
-  - name: 'release:patch'
-    color: '0e8a16'
-    description: 'For the next patch release (x.x.X)'
-
-  - name: 'release:minor'
-    color: 'fbca04'
-    description: 'For the next minor release (x.X.0)'
-
-  - name: 'release:major'
-    color: 'd93f0b'
-    description: 'For the next major release (X.0.0)'
-
-  - name: 'release:breaking'
-    color: 'b60205'
-    description: 'Contains breaking changes'
-
-  - name: 'changelog:skip'
-    color: 'ededed'
-    description: 'Skip from changelog generation'
+  
+  - name: "release:patch"
+    color: "0e8a16"
+    description: "For the next patch release (x.x.X)"
+  
+  - name: "release:minor"
+    color: "fbca04"
+    description: "For the next minor release (x.X.0)"
+  
+  - name: "release:major"
+    color: "d93f0b"
+    description: "For the next major release (X.0.0)"
+  
+  - name: "release:breaking"
+    color: "b60205"
+    description: "Contains breaking changes"
+  
+  - name: "changelog:skip"
+    color: "ededed"
+    description: "Skip from changelog generation"
 
   # ===========================================================================
   # REVIEW LABELS
   # ===========================================================================
   # These help with code review workflow.
-
-  - name: 'review:needs-1'
-    color: 'fbca04'
-    description: 'Needs 1 more review'
-
-  - name: 'review:needs-2'
-    color: 'd93f0b'
-    description: 'Needs 2 more reviews'
-
-  - name: 'review:security'
-    color: 'b60205'
-    description: 'Needs security team review'
-
-  - name: 'review:architecture'
-    color: 'd876e3'
-    description: 'Needs architecture review'
+  
+  - name: "review:needs-1"
+    color: "fbca04"
+    description: "Needs 1 more review"
+  
+  - name: "review:needs-2"
+    color: "d93f0b"
+    description: "Needs 2 more reviews"
+  
+  - name: "review:security"
+    color: "b60205"
+    description: "Needs security team review"
+  
+  - name: "review:architecture"
+    color: "d876e3"
+    description: "Needs architecture review"
 
   # ===========================================================================
   # SPECIAL LABELS
   # ===========================================================================
-
-  - name: 'WIP'
-    color: 'fef2c0'
-    description: 'Work in Progress - not ready for review'
-
-  - name: 'RFC'
-    color: 'd876e3'
-    description: 'Request for Comments - seeking feedback'
-
-  - name: 'epic'
-    color: '3e4b9e'
-    description: 'Large feature with multiple sub-tasks'
-
-  - name: 'regression'
-    color: 'b60205'
-    description: 'Something that worked before is now broken'
-
-  - name: 'upstream'
-    color: 'ededed'
-    description: 'Issue in an upstream dependency'
-
-  - name: 'generated'
-    color: 'ededed'
-    description: 'Contains auto-generated code'
+  
+  - name: "WIP"
+    color: "fef2c0"
+    description: "Work in Progress - not ready for review"
+  
+  - name: "RFC"
+    color: "d876e3"
+    description: "Request for Comments - seeking feedback"
+  
+  - name: "epic"
+    color: "3e4b9e"
+    description: "Large feature with multiple sub-tasks"
+  
+  - name: "regression"
+    color: "b60205"
+    description: "Something that worked before is now broken"
+  
+  - name: "upstream"
+    color: "ededed"
+    description: "Issue in an upstream dependency"
+  
+  - name: "generated"
+    color: "ededed"
+    description: "Contains auto-generated code"
 
 # =============================================================================
 # Usage Instructions

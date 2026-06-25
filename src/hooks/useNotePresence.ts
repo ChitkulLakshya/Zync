@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { API_BASE_URL, SOCKET_BASE_URL } from '@/lib/utils';
 
+
 export interface ActiveUser {
   id: string;
   name: string;
@@ -17,7 +18,9 @@ export interface CurrentUser {
   photoURL?: string;
 }
 
+
 export type Collaborator = ActiveUser & { odId: string; displayName: string; photoURL?: string };
+
 
 const COLLABORATOR_COLORS = [
   '#ef4444',
@@ -40,7 +43,11 @@ export const getColorForUser = (userId: string): string => {
   return COLLABORATOR_COLORS[Math.abs(hash) % COLLABORATOR_COLORS.length];
 };
 
-export const useNotePresence = (noteId: string | undefined, user: CurrentUser | undefined) => {
+
+export const useNotePresence = (
+  noteId: string | undefined,
+  user: CurrentUser | undefined
+) => {
   const [activeUsers, setActiveUsers] = useState<ActiveUser[]>([]);
   const [remoteCursors, setRemoteCursors] = useState<Record<string, ActiveUser>>({});
   const [isConnected, setIsConnected] = useState(false);
@@ -58,10 +65,12 @@ export const useNotePresence = (noteId: string | undefined, user: CurrentUser | 
     const userColor = getColorForUser(user.uid);
     const socketUrl = SOCKET_BASE_URL;
 
+
     console.log('[NotePresence] 🔌 Socket URL:', socketUrl);
     console.log('[NotePresence] 🔌 Is DEV mode:', import.meta.env.DEV);
     console.log('[NotePresence] 🔌 API_BASE_URL:', API_BASE_URL);
     console.log('[NotePresence] 👤 Current User ID:', user.uid);
+
 
     const socket = io(`${socketUrl}/notes`, {
       transports: ['websocket', 'polling'],
@@ -73,9 +82,11 @@ export const useNotePresence = (noteId: string | undefined, user: CurrentUser | 
 
     socketRef.current = socket;
 
+
     socket.on('connect', () => {
       console.log('[NotePresence] Connected to server');
       setIsConnected(true);
+
 
       socket.emit('join_note', {
         noteId,
@@ -95,35 +106,33 @@ export const useNotePresence = (noteId: string | undefined, user: CurrentUser | 
       console.error('[NotePresence] Connection error:', error.message);
     });
 
+
     socket.on('presence_update', (users: ActiveUser[]) => {
+
       console.log('[NotePresence] 📡 Socket received presence_update:', users);
-      console.log(
-        '[NotePresence] 📡 Raw user IDs:',
-        users.map((u) => u.id)
-      );
+      console.log('[NotePresence] 📡 Raw user IDs:', users.map(u => u.id));
       console.log('[NotePresence] 👤 Current user ID to filter:', user.uid);
 
-      const now = Date.now();
-      const usersArray = (
-        Array.isArray(users) ? users : Object.values(users || {})
-      ) as ActiveUser[];
-      const filteredUsers = usersArray.filter((u) => {
-        const isSelf = u.id === user.uid;
-        const isStale = now - u.lastActive >= 60000;
 
-        console.log(
-          `[NotePresence] 🔍 User ${u.id} (${u.name}): isSelf=${isSelf}, isStale=${isStale}, keep=${!isSelf && !isStale}`
-        );
+      const now = Date.now();
+      const usersArray = (Array.isArray(users) ? users : Object.values(users || {})) as ActiveUser[];
+      const filteredUsers = usersArray.filter(u => {
+        const isSelf = u.id === user.uid;
+        const isStale = (now - u.lastActive) >= 60000;
+
+        console.log(`[NotePresence] 🔍 User ${u.id} (${u.name}): isSelf=${isSelf}, isStale=${isStale}, keep=${!isSelf && !isStale}`);
         return !isSelf && !isStale;
       });
+
 
       console.log('[NotePresence] ✅ Setting activeUsers state:', filteredUsers);
       console.log('[NotePresence] ✅ Filtered count:', filteredUsers.length);
 
       setActiveUsers(filteredUsers);
 
+
       const newRemoteCursors: Record<string, ActiveUser> = {};
-      filteredUsers.forEach((u) => {
+      filteredUsers.forEach(u => {
         if (u.blockId) {
           console.log(`[NotePresence] 🗺️ Mapping blockId "${u.blockId}" → user "${u.name}"`);
           newRemoteCursors[u.blockId] = u;
@@ -133,12 +142,13 @@ export const useNotePresence = (noteId: string | undefined, user: CurrentUser | 
       setRemoteCursors(newRemoteCursors);
     });
 
+
     socket.on('user_left', (userId: string) => {
-      setActiveUsers((prev) => (Array.isArray(prev) ? prev : []).filter((u) => u.id !== userId));
-      setRemoteCursors((prev) => {
+      setActiveUsers(prev => (Array.isArray(prev) ? prev : []).filter(u => u.id !== userId));
+      setRemoteCursors(prev => {
         const updated = { ...prev };
 
-        Object.keys(updated).forEach((blockId) => {
+        Object.keys(updated).forEach(blockId => {
           if (updated[blockId]?.id === userId) {
             delete updated[blockId];
           }
@@ -147,40 +157,37 @@ export const useNotePresence = (noteId: string | undefined, user: CurrentUser | 
       });
     });
 
+
     socket.on('cursor_update', ({ userId, blockId }: { userId: string; blockId: string }) => {
+
       console.log('📡 [NotePresence] Received cursor_update:', { userId, blockId });
 
-      setActiveUsers((prev) => {
+      setActiveUsers(prev => {
         const prevArray = Array.isArray(prev) ? prev : [];
-        const updatedUsers = prevArray.map((u) =>
+        const updatedUsers = prevArray.map(u =>
           u.id === userId ? { ...u, blockId, lastActive: Date.now() } : u
         );
 
-        console.log(
-          '📡 [NotePresence] Updated users after cursor_update:',
-          updatedUsers.map((u) => ({ id: u.id, name: u.name, blockId: u.blockId }))
-        );
+
+        console.log('📡 [NotePresence] Updated users after cursor_update:', updatedUsers.map(u => ({ id: u.id, name: u.name, blockId: u.blockId })));
+
 
         const newRemoteCursors: Record<string, ActiveUser> = {};
-        updatedUsers.forEach((u) => {
+        updatedUsers.forEach(u => {
           if (u.blockId) {
             newRemoteCursors[u.blockId] = u;
           }
         });
 
-        console.log(
-          '📡 [NotePresence] remoteCursors map:',
-          Object.keys(newRemoteCursors).map((blockId) => ({
-            blockId,
-            user: newRemoteCursors[blockId]?.name,
-          }))
-        );
+
+        console.log('📡 [NotePresence] remoteCursors map:', Object.keys(newRemoteCursors).map(blockId => ({ blockId, user: newRemoteCursors[blockId]?.name })));
 
         setRemoteCursors(newRemoteCursors);
 
         return updatedUsers;
       });
     });
+
 
     return () => {
       socket.emit('leave_note', { noteId, userId: user.uid });
@@ -192,46 +199,35 @@ export const useNotePresence = (noteId: string | undefined, user: CurrentUser | 
     };
   }, [noteId, user?.uid, user?.displayName, user?.photoURL]);
 
-  const updateCursorPosition = useCallback(
-    (blockId: string | undefined) => {
-      console.log('📤 [NotePresence] updateCursorPosition called:', {
-        blockId,
-        socketConnected: socketRef.current?.connected,
+
+  const updateCursorPosition = useCallback((blockId: string | undefined) => {
+
+    console.log('📤 [NotePresence] updateCursorPosition called:', { blockId, socketConnected: socketRef.current?.connected, noteId, userId: user?.uid });
+
+    if (socketRef.current?.connected && noteId && user) {
+      console.log('📤 [NotePresence] Emitting cursor_move to server');
+      socketRef.current.emit('cursor_move', {
         noteId,
-        userId: user?.uid,
+        userId: user.uid,
+        blockId,
       });
+    } else {
+      console.log('⚠️ [NotePresence] Cannot emit cursor_move - socket not connected or missing data');
+    }
+  }, [noteId, user]);
 
-      if (socketRef.current?.connected && noteId && user) {
-        console.log('📤 [NotePresence] Emitting cursor_move to server');
-        socketRef.current.emit('cursor_move', {
-          noteId,
-          userId: user.uid,
-          blockId,
-        });
-      } else {
-        console.log(
-          '⚠️ [NotePresence] Cannot emit cursor_move - socket not connected or missing data'
-        );
-      }
-    },
-    [noteId, user]
-  );
 
-  const getRemoteUserForBlock = useCallback(
-    (blockId: string): ActiveUser | undefined => {
-      return remoteCursors[blockId];
-    },
-    [remoteCursors]
-  );
+  const getRemoteUserForBlock = useCallback((blockId: string): ActiveUser | undefined => {
+    return remoteCursors[blockId];
+  }, [remoteCursors]);
 
-  const collaborators: Collaborator[] = (Array.isArray(activeUsers) ? activeUsers : []).map(
-    (u) => ({
-      ...u,
-      odId: u.id,
-      displayName: u.name,
-      photoURL: u.avatarUrl,
-    })
-  );
+
+  const collaborators: Collaborator[] = (Array.isArray(activeUsers) ? activeUsers : []).map(u => ({
+    ...u,
+    odId: u.id,
+    displayName: u.name,
+    photoURL: u.avatarUrl,
+  }));
 
   return {
     activeUsers,

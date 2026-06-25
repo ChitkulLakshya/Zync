@@ -46,9 +46,7 @@ describe('load shedding middleware', () => {
     const { loadSheddingMiddleware } = require(loadSheddingPath);
     const app = express();
     app.use('/api', loadSheddingMiddleware);
-    app.get('/api/generate-project', (_req, res) =>
-      res.status(200).json({ ok: true })
-    );
+    app.get('/api/generate-project', (_req, res) => res.status(200).json({ ok: true }));
 
     process.memoryUsage = jest.fn(() => ({
       rss: 800 * 1024 * 1024,

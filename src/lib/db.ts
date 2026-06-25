@@ -1,4 +1,4 @@
-import Dexie, { type Table } from 'dexie';
+import Dexie, { type Table } from "dexie";
 
 export interface UserData {
   id: string;
@@ -17,10 +17,10 @@ export class ZyncAppDB extends Dexie {
   projectData!: Table<ProjectData, string>;
 
   constructor() {
-    super('zyncAppDB');
+    super("zyncAppDB");
     this.version(1).stores({
-      userData: 'id, updatedAt',
-      projectData: 'id, userId, updatedAt',
+      userData: "id, updatedAt",
+      projectData: "id, userId, updatedAt",
     });
   }
 }

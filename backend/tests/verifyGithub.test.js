@@ -89,11 +89,7 @@ describe('verifyGithub middleware fail-closed behavior', () => {
 
     const rawBody = Buffer.from('{"event":"push"}');
     const signature =
-      'sha256=' +
-      crypto
-        .createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET)
-        .update(rawBody)
-        .digest('hex');
+      'sha256=' + crypto.createHmac('sha256', process.env.GITHUB_WEBHOOK_SECRET).update(rawBody).digest('hex');
 
     const req = {
       headers: {
