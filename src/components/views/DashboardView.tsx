@@ -157,7 +157,7 @@ const DashboardView = ({
         },
       });
 
-      // Invalidate GitHub queries to reflect the disconnected state
+
       queryClient.invalidateQueries({ queryKey: ['github'] });
     } catch (err) {
       console.error('Error unlinking:', err);
