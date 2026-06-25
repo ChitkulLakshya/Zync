@@ -25,27 +25,27 @@ export const BuiltinChatWalkthrough = () => {
       if (!active) {
         return;
       }
-      setStep(1); // Cursor moves to input
+      setStep(1);
       await new Promise((r) => setTimeout(r, 800));
       if (!active) {
         return;
       }
-      setStep(2); // Typing starts
+      setStep(2);
       await new Promise((r) => setTimeout(r, 2000));
       if (!active) {
         return;
       }
-      setStep(3); // Clicks send
+      setStep(3);
       await new Promise((r) => setTimeout(r, 600));
       if (!active) {
         return;
       }
-      setStep(4); // Message sent
+      setStep(4);
       await new Promise((r) => setTimeout(r, 3000));
       if (!active) {
         return;
       }
-      sequence(); // Loop
+      sequence();
     };
     sequence();
     return () => {
@@ -159,13 +159,13 @@ export const BuiltinChatWalkthrough = () => {
           step === 0
             ? { x: isMobile ? '90%' : '85%', y: isMobile ? '60%' : '85%' }
             : step === 1
-              ? { x: '30%', y: '96%' } // Click input
+              ? { x: '30%', y: '96%' }
               : step === 2
-                ? { x: '30%', y: '96%' } // Typing
+                ? { x: '30%', y: '96%' }
                 : step === 3
-                  ? { x: isMobile ? '94p%' : '92%', y: isMobile ? '92%' : '90%' } // Click send
+                  ? { x: isMobile ? '94p%' : '92%', y: isMobile ? '92%' : '90%' }
                   : step === 4
-                    ? { x: isMobile ? '90%' : '120%', y: isMobile ? '60%' : '120%' } // Leave
+                    ? { x: isMobile ? '90%' : '120%', y: isMobile ? '60%' : '120%' }
                     : { x: isMobile ? '90%' : '85%', y: isMobile ? '90%' : '85%' };
         return (
           <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={step === 1 || step === 3} />

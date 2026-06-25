@@ -11,7 +11,7 @@ const CTASection = () => {
 
   useEffect(() => {
     if (cursorState === 'approving') {
-      // 1. Cursors fly into the center. Wait 800ms for them to arrive.
+
       const arriveTimer = setTimeout(() => {
         setCursorState('clicking');
       }, 800);
@@ -19,13 +19,13 @@ const CTASection = () => {
     }
 
     if (cursorState === 'clicking') {
-      // 2. The moment they click, reveal the email form inside the ticket.
+
       setIsApproved(true);
 
-      // 3. Let the click ripple play, then fly away so they don't block the screen!
+
       const flyAwayTimer = setTimeout(() => {
         setCursorState('patrolling');
-      }, 400); // 400ms click duration
+      }, 400);
       return () => clearTimeout(flyAwayTimer);
     }
   }, [cursorState]);
