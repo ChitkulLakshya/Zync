@@ -1,275 +1,44 @@
 # =============================================================================
-# ZYNC Desktop Application - Code Owners Configuration
+# ZYNC Platform — Code Owners Configuration
 # =============================================================================
 #
-# This CODEOWNERS file defines who is responsible for code in this repository.
-# When a pull request modifies code owned by a team or individual, those owners
-# are automatically requested for review.
+# This CODEOWNERS file defines maintainers responsible for code in this repository.
+# When a pull request modifies code in any subsystem, these owners are automatically
+# requested for review.
 #
 # GitHub Documentation:
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
-#
-# =============================================================================
-# How Code Owners Works
-# =============================================================================
-#
-# 1. When a PR is opened, GitHub checks which files are modified
-# 2. For each file, it finds the matching pattern in this file (last match wins)
-# 3. The owners defined for that pattern are automatically requested for review
-# 4. PR cannot be merged until all required code owner reviews are approved
-#
-# Syntax:
-# - Pattern matching uses gitignore-style glob patterns
-# - Later patterns take precedence over earlier ones
-# - Use @username or @org/team-name to specify owners
-# - Email addresses can also be used
-#
-# =============================================================================
-# Review Requirements
-# =============================================================================
-#
-# - All PRs require at least one approval from a code owner
-# - Security-sensitive files require approval from the security team
-# - CI/CD changes require approval from the DevOps team
-# - Documentation changes require approval from the docs team
-#
 # =============================================================================
 
 # -----------------------------------------------------------------------------
-# DEFAULT OWNERS
+# CORE PLATFORM MAINTAINERS (Default Fallback)
 # -----------------------------------------------------------------------------
-# These owners are requested for any files that don't match a more specific
-# pattern below. This ensures every PR gets at least one relevant reviewer.
-
-*                                               @zync-app/core-team
+*                   @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
 
 # -----------------------------------------------------------------------------
-# DOCUMENTATION
+# BACKEND & REAL-TIME SERVICES (/backend)
 # -----------------------------------------------------------------------------
-# Documentation files should be reviewed by the documentation team to ensure
-# consistency, accuracy, and proper formatting.
-
-*.md                                            @zync-app/docs-team
-/docs/                                          @zync-app/docs-team
-README.md                                       @zync-app/core-team @zync-app/docs-team
-CONTRIBUTING.md                                 @zync-app/core-team @zync-app/docs-team
-CODE_OF_CONDUCT.md                              @zync-app/core-team @zync-app/community-team
-
-# Architecture and API documentation requires core team review
-docs/architecture/ARCHITECTURE.md               @zync-app/core-team @zync-app/architecture-team
-API.md                                          @zync-app/core-team @zync-app/backend-team
+/backend/           @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+firestore.rules     @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+storage.rules       @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
 
 # -----------------------------------------------------------------------------
-# ELECTRON MAIN PROCESS
+# FRONTEND CLIENT & COMPONENTS (/src)
 # -----------------------------------------------------------------------------
-# The Electron main process is security-critical. Changes here can affect
-# the entire application's security posture.
-
-/electron/                                      @zync-app/electron-team
-/electron/main.ts                               @zync-app/core-team @zync-app/electron-team
-/electron/preload.ts                            @zync-app/core-team @zync-app/electron-team @zync-app/security-team
-
-# Electron main process modules
-/electron/main/                                 @zync-app/electron-team
-/electron/main/menu.ts                          @zync-app/electron-team @zync-app/ux-team
-/electron/main/tray.ts                          @zync-app/electron-team @zync-app/ux-team
-/electron/main/ipc-handlers.ts                  @zync-app/electron-team @zync-app/security-team
-/electron/main/window-state.ts                  @zync-app/electron-team
-
-# Electron preload scripts (security boundary)
-/electron/preload/                              @zync-app/electron-team @zync-app/security-team
-
-# Electron renderer process
-/electron/renderer/                             @zync-app/electron-team @zync-app/frontend-team
-
-# Electron services
-/electron/services/                             @zync-app/electron-team
-/electron/services/auto-updater.ts              @zync-app/electron-team @zync-app/devops-team
-
-# Electron configuration
-/electron/config/                               @zync-app/electron-team @zync-app/security-team
-/electron/config/csp.ts                         @zync-app/security-team
-/electron/config/constants.ts                   @zync-app/electron-team
-
-# Electron utilities
-/electron/utils/                                @zync-app/electron-team
-/electron/utils/logger.ts                       @zync-app/electron-team
-/electron/utils/paths.ts                        @zync-app/electron-team
-/electron/utils/network.ts                      @zync-app/electron-team @zync-app/backend-team
-
-# Electron interfaces and types
-/electron/interfaces/                           @zync-app/electron-team @zync-app/typescript-team
-
-# Electron settings
-/electron/settings/                             @zync-app/electron-team @zync-app/frontend-team
+/src/               @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+index.html          @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
 
 # -----------------------------------------------------------------------------
-# BACKEND
+# DOCUMENTATION & SPECIFICATIONS (/docs)
 # -----------------------------------------------------------------------------
-# Backend code requires review from the backend team. Security-sensitive
-# areas also require security team review.
-
-/backend/                                       @zync-app/backend-team
-/backend/routes/                                @zync-app/backend-team
-/backend/controllers/                           @zync-app/backend-team
-/backend/services/                              @zync-app/backend-team
-/backend/models/                                @zync-app/backend-team @zync-app/database-team
-/backend/middleware/                            @zync-app/backend-team @zync-app/security-team
-/backend/middleware/authMiddleware.js           @zync-app/security-team
-/backend/prisma/                                @zync-app/database-team
-
-# Backend configuration
-/backend/lib/                                   @zync-app/backend-team
-
-# Backend tests
-/backend/tests/                                 @zync-app/backend-team @zync-app/qa-team
-
-# Socket handlers
-/backend/sockets/                               @zync-app/backend-team @zync-app/realtime-team
+/docs/              @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+README.md           @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
 
 # -----------------------------------------------------------------------------
-# FRONTEND (SRC)
+# INFRASTRUCTURE & CI/CD (/.github, /infrastructure)
 # -----------------------------------------------------------------------------
-# Frontend code requires review from the frontend team.
-
-/src/                                           @zync-app/frontend-team
-/src/components/                                @zync-app/frontend-team @zync-app/ux-team
-/src/pages/                                     @zync-app/frontend-team
-/src/hooks/                                     @zync-app/frontend-team
-/src/store/                                     @zync-app/frontend-team @zync-app/state-management-team
-/src/api/                                       @zync-app/frontend-team @zync-app/backend-team
-/src/services/                                  @zync-app/frontend-team
-/src/utils/                                     @zync-app/frontend-team
-/src/types/                                     @zync-app/frontend-team @zync-app/typescript-team
-/src/routes/                                    @zync-app/frontend-team
-
-# Styles
-/src/styles/                                    @zync-app/frontend-team @zync-app/ux-team
-/src/*.css                                      @zync-app/frontend-team @zync-app/ux-team
-
-# Localization
-/src/locales/                                   @zync-app/i18n-team
-
-# -----------------------------------------------------------------------------
-# TESTS
-# -----------------------------------------------------------------------------
-# Test files require review from the QA team in addition to the relevant
-# component team.
-
-/tests/                                         @zync-app/qa-team
-/tests/e2e/                                     @zync-app/qa-team @zync-app/frontend-team
-/tests/integration/                             @zync-app/qa-team @zync-app/backend-team
-/tests/unit/                                    @zync-app/qa-team
-
-# -----------------------------------------------------------------------------
-# CI/CD AND DEVOPS
-# -----------------------------------------------------------------------------
-# CI/CD configurations are critical for build and deployment security.
-# Changes here require DevOps and potentially security team review.
-
-/.github/                                       @zync-app/devops-team
-/.github/workflows/                             @zync-app/devops-team
-/.github/workflows/build.yml                    @zync-app/devops-team @zync-app/core-team
-/.github/workflows/release.yml                  @zync-app/devops-team @zync-app/core-team @zync-app/security-team
-
-# Issue templates - community team
-/.github/ISSUE_TEMPLATE/                        @zync-app/community-team
-/.github/PULL_REQUEST_TEMPLATE.md               @zync-app/community-team
-
-# Dependabot - DevOps and security
-/.github/dependabot.yml                         @zync-app/devops-team @zync-app/security-team
-
-# GitHub Actions configurations
-/.github/labeler.yml                            @zync-app/community-team
-/.github/CODEOWNERS                             @zync-app/core-team
-
-# -----------------------------------------------------------------------------
-# SECURITY-SENSITIVE FILES
-# -----------------------------------------------------------------------------
-# These files have direct security implications. Changes require explicit
-# approval from the security team.
-
-docs/security/SECURITY.md                       @zync-app/security-team
-/.env.example                                   @zync-app/security-team @zync-app/devops-team
-
-# Package files (dependency security)
-package.json                                    @zync-app/core-team @zync-app/security-team
-package-lock.json                               @zync-app/core-team
-bun.lockb                                       @zync-app/core-team
-/backend/package.json                           @zync-app/backend-team @zync-app/security-team
-
-# -----------------------------------------------------------------------------
-# BUILD AND CONFIGURATION
-# -----------------------------------------------------------------------------
-# Build configuration affects all builds and requires careful review.
-
-/build/                                         @zync-app/devops-team
-/config/                                        @zync-app/devops-team @zync-app/core-team
-/scripts/                                       @zync-app/devops-team
-
-# Electron Builder configuration
-electron-builder.yml                            @zync-app/electron-team @zync-app/devops-team
-
-# TypeScript configurations
-tsconfig.json                                   @zync-app/typescript-team
-tsconfig.*.json                                 @zync-app/typescript-team
-
-# Vite configuration
-vite.config.ts                                  @zync-app/frontend-team @zync-app/devops-team
-
-# Linting and formatting
-.eslintrc.cjs                                   @zync-app/core-team
-eslint.config.js                                @zync-app/core-team
-.prettierrc.json                                @zync-app/core-team
-.editorconfig                                   @zync-app/core-team
-
-# Tailwind CSS
-tailwind.config.ts                              @zync-app/frontend-team @zync-app/ux-team
-postcss.config.js                               @zync-app/frontend-team
-
-# -----------------------------------------------------------------------------
-# ASSETS
-# -----------------------------------------------------------------------------
-# Asset changes should be reviewed by the design team.
-
-/assets/                                        @zync-app/design-team
-/assets/icons/                                  @zync-app/design-team
-/assets/images/                                 @zync-app/design-team
-/assets/fonts/                                  @zync-app/design-team @zync-app/frontend-team
-/public/                                        @zync-app/design-team @zync-app/frontend-team
-
-# -----------------------------------------------------------------------------
-# LICENSE AND LEGAL
-# -----------------------------------------------------------------------------
-# Legal documents require review from the core team and potentially legal.
-
-LICENSE                                         @zync-app/core-team
-
-# =============================================================================
-# NOTES FOR REVIEWERS
-# =============================================================================
-#
-# 1. Review PRs within 2 business days when possible
-# 2. Provide constructive, actionable feedback
-# 3. Approve once you're confident in the changes
-# 4. Request changes if there are blocking issues
-# 5. Comment for non-blocking suggestions
-#
-# =============================================================================
-# NOTES FOR CONTRIBUTORS
-# =============================================================================
-#
-# 1. Small, focused PRs are reviewed faster
-# 2. Write clear PR descriptions explaining the "why"
-# 3. Add tests for new functionality
-# 4. Update documentation when needed
-# 5. Be patient - reviewers are often busy with other work
-#
-# =============================================================================
-#
-# Last Updated: 2026-02-10
-# Maintained by: ZYNC Core Team (@zync-app/core-team)
-#
-# To request changes to this file, open a PR or contact the core team.
-#
-# =============================================================================
+/.github/           @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+/infrastructure/    @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+render.yaml         @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+vercel.json         @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha
+deploy.sh           @prem22k @chitkullakshya @eesha264 @thanmayeereddykotha

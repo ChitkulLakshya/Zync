@@ -57,9 +57,9 @@ async function runAndReport() {
   });
 
   // Send Email
-  console.log('Dispatching email report to consolemaster.app@gmail.com...');
+  console.log('Dispatching email report to consolemaster@gmail.com...');
   await sendEmail({
-    to: 'consolemaster.app@gmail.com',
+    to: 'consolemaster@gmail.com',
     subject: `Weekly Zync Test Report: ${failed > 0 ? '❌ Failed' : '✅ Passed'}`,
     text: `Test Execution Complete. Passed: ${passed}, Failed: ${failed}. Check your HTML client to view the full report.`,
     html
