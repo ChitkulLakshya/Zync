@@ -17,7 +17,7 @@ export const useChatNotifications = () => {
       }
 
       const unsubscribeMessage = onMessage((msg: ChatMessage) => {
-        // Only notify for messages targeted at the current user
+
         if (msg.receiverId !== user.uid) {
           return;
         }

@@ -13,8 +13,8 @@ export const useActivityTracker = () => {
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (user) => {
       if (user && !sessionIdRef.current) {
-        // DesktopView already owns session start.
-        // Reuse the persisted active session to avoid duplicate /sessions/start calls.
+
+
         try {
           const raw = localStorage.getItem('currentSession');
           if (raw) {
