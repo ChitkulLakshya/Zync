@@ -1,10 +1,19 @@
 {
   "name": "zync",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
-  "author": "ZYNC Team",
-  "description": "ZYNC Desktop Application",
+  "author": {
+    "name": "ZYNC Team",
+    "email": "consolemaster@gmail.com",
+    "url": "https://zync-meet.vercel.app"
+  },
+  "description": "Zync is a modern, AI-powered collaboration platform designed to streamline team communication and project management. It combines real-time messaging, presence tracking, and robust project planning tools into a unified, responsive interface.",
+  "homepage": "https://zync-meet.vercel.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zync-meet/Zync.git"
+  },
   "scripts": {
     "dev": "node scripts/run-dev.cjs",
     "dev:full": "concurrently -k -n frontend,backend \"npm run dev:frontend\" \"npm run dev:backend\"",

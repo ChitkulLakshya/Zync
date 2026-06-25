@@ -9,11 +9,10 @@
   <p><b>An open-source, AI-native collaborative workspace. Plan, design, and write together in real-time.</b></p>
   
   <p>
-    <a href="https://zync.app">Home Page</a> •
-    <a href="https://discord.gg/yourlink">Discord</a> •
-    <a href="https://demo.zync.app">Live Demo</a> •
+    <a href="https://zync-meet.vercel.app">Live App</a> •
+    <a href="https://github.com/zync-meet/Zync/discussions">Discussions</a> •
     <a href="https://github.com/zync-meet/Zync/tree/main/docs">Documentation</a> •
-    <a href="https://zync.app/blog">Blog</a>
+    <a href="mailto:consolemaster@gmail.com">Contact</a>
   </p>
 
   <p>
@@ -25,8 +24,7 @@
   </p>
 
   <br />
-  <!-- Replace with your actual 15s product demo GIF -->
-  <img src="https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=1000&auto=format&fit=crop" width="1000" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync UI Demo" />
+  <a href="https://zync-meet.vercel.app"><img src="public/macbook.png" width="900" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync UI Workspace" /></a>
 </div>
 
 <br/>
@@ -185,7 +183,7 @@ We are building a vibrant, open-source community and we'd love for you to join u
 1. Read our [Contributing Guide](docs/CONTRIBUTING.md) to understand our workflow.
 2. Review our [Contribution Workflow](docs/guides/contribution_workflow.md).
 3. Check out our [Issues Board](https://github.com/zync-meet/Zync/issues) and look for issues labeled `good first issue`.
-4. Join our [Discord](#) to chat with the core team and get help.
+4. Reach out via email at [consolemaster@gmail.com](mailto:consolemaster@gmail.com) or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
 
 ---
 
