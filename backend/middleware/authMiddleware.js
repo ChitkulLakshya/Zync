@@ -3,10 +3,10 @@ const { getApps, initializeApp } = require('firebase-admin/app');
 const { getAuth } = require('firebase-admin/auth');
 
 if (!getApps().length) {
-  // Prefer service-account init from shared helper.
+
   getFirestoreAdmin();
 
-  // Fallback for environments that only provide ADC.
+
   if (!getApps().length) {
     try {
       initializeApp();

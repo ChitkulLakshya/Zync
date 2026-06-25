@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 
-// Do not throw at module load: the API must boot on hosts (e.g. Render) before env is fully wired.
-// Missing secret still fails closed per request below.
+
+
 if (
   process.env.NODE_ENV === 'production' &&
   !process.env.GITHUB_WEBHOOK_SECRET
