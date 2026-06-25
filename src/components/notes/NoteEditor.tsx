@@ -47,9 +47,9 @@ export const getColorForUser = (userId: string): string => {
   return COLLABORATOR_COLORS[Math.abs(hash) % COLLABORATOR_COLORS.length];
 };
 
-// ---------------------------------------------------------------------------
-// INNER EDITOR COMPONENT (Only renders when Y.Doc is fully ready)
-// ---------------------------------------------------------------------------
+
+
+
 const NoteEditorInner: React.FC<
   NoteEditorProps & { doc: Y.Doc; provider: any; isEditable: boolean }
 > = ({ note, user, onUpdate, className, doc, provider, isEditable }) => {
@@ -109,7 +109,7 @@ const NoteEditorInner: React.FC<
         onUpdate({ ...note, title: newTitle });
       } catch (error) {
         console.error('Failed to save title', error);
-        setStatus('Saved'); // Reset to saved even on error so it doesn't spin forever
+        setStatus('Saved');
       }
     }, 1000);
   };
@@ -130,8 +130,8 @@ const NoteEditorInner: React.FC<
 
   const editor = useCreateBlockNote(editorOptions);
 
-  // Helper to strip IDs from blocks so BlockNote generates new unique ones
-  // This prevents ProseMirror crashes if two clients hydrate the same JSON concurrently
+
+
   const stripBlockIds = (blocks: any[]): any[] => {
     if (!Array.isArray(blocks)) {
       return blocks;
@@ -145,14 +145,14 @@ const NoteEditorInner: React.FC<
     });
   };
 
-  // 1-TIME HYDRATION: If Y.Doc is completely empty (new local instance) but we have server content
+
   const [hasHydrated, setHasHydrated] = useState(false);
   useEffect(() => {
     if (editor && note.content && !hasHydrated) {
       if (editor.document.length === 1 && !editor.document[0].content) {
         if (Array.isArray(note.content) && note.content.length > 0) {
-          // If we are not the owner, we might be hydrating concurrently with the owner.
-          // Stripping IDs ensures we don't cause a RangeError collision in y-prosemirror.
+
+
           const safeContent =
             user.uid === note.ownerId ? note.content : stripBlockIds(note.content);
           editor.replaceBlocks(editor.document, safeContent);
@@ -213,7 +213,7 @@ const NoteEditorInner: React.FC<
         }
       }
     } catch (e) {
-      // Ignore errors when failing to get cursor position on focus
+
     }
   }, [editor, updateCursorPosition]);
 
@@ -222,7 +222,7 @@ const NoteEditorInner: React.FC<
       return;
     }
 
-    // Clear previous highlights
+
     const previousHighlights = document.querySelectorAll('[data-collab-user]');
     previousHighlights.forEach((el) => {
       el.removeAttribute('data-collab-user');
@@ -236,14 +236,14 @@ const NoteEditorInner: React.FC<
       return;
     }
 
-    // Iterate over elements that represent outer blocks
+
     let blockEls = document.querySelectorAll('.bn-block-outer[data-id]');
     if (blockEls.length === 0) {
-      // Fallback if the BlockNote version doesn't use bn-block-outer
+
       blockEls = document.querySelectorAll('[data-id]');
     }
 
-    // Keep track of processed IDs to avoid nested highlighting
+
     const processedIds = new Set<string>();
 
     blockEls.forEach((blockEl) => {
@@ -306,7 +306,7 @@ const NoteEditorInner: React.FC<
       const pos = editor.getTextCursorPosition();
       targetBlock = pos ? pos.block : undefined;
     } catch (e) {
-      // Ignore if editor doesn't have focus
+
     }
 
     const blockToInsert = {
@@ -324,7 +324,7 @@ const NoteEditorInner: React.FC<
     if (targetBlock) {
       editor.insertBlocks([blockToInsert], targetBlock, 'after');
     } else {
-      // Append at the end if no focus
+
       editor.insertBlocks([blockToInsert], editor.document[editor.document.length - 1], 'after');
     }
     setTaskLinkDialogOpen(false);
@@ -402,9 +402,9 @@ const NoteEditorInner: React.FC<
   );
 };
 
-// ---------------------------------------------------------------------------
-// OUTER WRAPPER (Manages Yjs + IndexedDB Setup + WebSocket)
-// ---------------------------------------------------------------------------
+
+
+
 const NoteEditor: React.FC<NoteEditorProps> = (props) => {
   const { note, user, isShared } = props;
   const [doc, setDoc] = useState<Y.Doc>();

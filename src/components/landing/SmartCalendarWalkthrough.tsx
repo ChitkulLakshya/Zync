@@ -31,7 +31,7 @@ export const SmartCalendarWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 1000));
 
-      // Move to event (on Wednesday, col 3, row 2)
+
       if (!isActive) {
         return;
       }
@@ -39,7 +39,7 @@ export const SmartCalendarWalkthrough = () => {
       setCursorPos({ x: '50%', y: '52%' });
       await new Promise((r) => setTimeout(r, 600));
 
-      // Grab event
+
       if (!isActive) {
         return;
       }
@@ -47,16 +47,16 @@ export const SmartCalendarWalkthrough = () => {
       setIsClicking(true);
       await new Promise((r) => setTimeout(r, 300));
 
-      // Drag event to Friday (col 5)
+
       if (!isActive) {
         return;
       }
       setPhase('dragging');
-      // We animate both the cursor and the event's x offset
+
       setCursorPos({ x: '78.5%', y: '52%' });
       await new Promise((r) => setTimeout(r, 600));
 
-      // Drop
+
       if (!isActive) {
         return;
       }
@@ -64,12 +64,12 @@ export const SmartCalendarWalkthrough = () => {
       setIsClicking(false);
       await new Promise((r) => setTimeout(r, 200));
 
-      // Done - cursor leaves
+
       if (!isActive) {
         return;
       }
       setPhase('done');
-      // Prevent cursor from overlapping surrounding content outside the component on mobile
+
       setCursorPos({ x: isMobile ? '90%' : '120%', y: isMobile ? '95%' : '120%' });
       await new Promise((r) => setTimeout(r, 3000));
 
@@ -140,9 +140,9 @@ export const SmartCalendarWalkthrough = () => {
 
           {/* Grid body */}
           {[...Array(28)].map((_, i) => {
-            const dayNum = i + 4; // Start from 4th
-            const isTargetDay = i === 12; // Fri 16 (Row 2, Col 5)
-            const isStartDay = i === 10; // Wed 14 (Row 2, Col 3)
+            const dayNum = i + 4;
+            const isTargetDay = i === 12;
+            const isStartDay = i === 10;
 
             return (
               <div
