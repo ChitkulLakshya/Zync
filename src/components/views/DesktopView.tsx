@@ -246,6 +246,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
 
     setIsLanding(false);
+    setIsExiting(false);
     localStorage.setItem('ZYNC_HAS_SEEN_LANDING', 'true');
     setActiveSection(section);
     const path = sectionToPath[section];
@@ -749,6 +750,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   const renderActiveView = () => {
     switch (activeSection) {
       case 'Dashboard':
+        if (isLanding) {
+          return (
+            <DashboardHome
+              onNavigate={(section) => {
+                setIsExiting(true);
+                setTimeout(() => handleSectionChange(section), 400);
+              }}
+            />
+          );
+        }
         return <DashboardView currentUser={currentUser} />;
 
       case 'My Workspace':
@@ -907,30 +918,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     <div className="h-screen w-full flex flex-col overflow-hidden bg-sidebar">
       {/* Top Banner (if any) */}
 
-      {/* Full Screen Landing Page Overlay */}
-      {isLanding && (
-        <div
-          className={cn(
-            'fixed inset-0 top-0 left-0 z-[100] w-screen h-screen bg-background flex flex-col items-center justify-center transition-all duration-500 ease-[cubic-bezier(0.2,0.0,0.0,1.0)]',
-            isExiting
-              ? 'opacity-0 -translate-y-8 blur-xl scale-[1.02]'
-              : 'opacity-100 translate-y-0'
-          )}
-        >
-          {/* Background Gradients for Landing Page */}
-          <div className="absolute top-[-10%] right-[20%] w-[500px] h-[500px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-          <div className="absolute top-[10%] right-[-10%] w-[600px] h-[600px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-foreground/5 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
-
-          <DashboardHome
-            onNavigate={(section) => {
-              setIsExiting(true);
-              setTimeout(() => handleSectionChange(section), 400);
-            }}
-          />
-        </div>
-      )}
-
       <PanelGroup
         orientation="horizontal"
         autoSave="persistence"
@@ -947,9 +934,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           onResize={(size) => setIsCollapsed(size.asPercentage <= 4)}
           className={cn(
             'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none',
-            isCollapsed && 'min-w-[70px]',
-
-            isLanding ? 'opacity-0 invisible' : ''
+            isCollapsed && 'min-w-[70px]'
           )}
         >
           {/* Sidebar Content */}
@@ -1083,7 +1068,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                         return;
                       }
                       localStorage.removeItem('ZYNC-active-section');
-                      localStorage.removeItem('ZYNC_HAS_SEEN_LANDING');
                       await signOutAndClearState(auth);
                       navigate('/');
                     }}
@@ -1212,11 +1196,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     <motion.div
                       key="content"
                       initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
+                      animate={{ opacity: isExiting ? 0 : 1 }}
                       transition={{ duration: 0.16 }}
                       className="h-full w-full"
                     >
-                      {(isExiting || !isLanding) && renderActiveView()}
+                      {renderActiveView()}
                     </motion.div>
                   )}
                 </AnimatePresence>
