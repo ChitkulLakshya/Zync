@@ -21,8 +21,8 @@ function getRedisClient() {
       ? ['1', 'true', 'yes', 'on'].includes(rejectUnauthorizedEnv)
       : false;
     const redisUrl = useTls
-      ? rawRedisUrl.replace(/^redis:\/\
-      : rawRedisUrl.replace(/^rediss:\/\
+      ? rawRedisUrl.replace(/^redis:\/\//i, 'rediss://')
+      : rawRedisUrl.replace(/^rediss:\/\//i, 'redis://');
 
     client = createClient({
       url: redisUrl,
