@@ -430,7 +430,7 @@ export const NotesSidebar: React.FC<NotesSidebarProps> = ({
           <div
             className="mt-4"
             onDragOver={handleDragOver}
-            onDrop={(e) => handleDrop(e, null)} // Drop to root
+            onDrop={(e) => handleDrop(e, null)}
           >
             {!effectiveCollapsed && (
               <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground/80">
