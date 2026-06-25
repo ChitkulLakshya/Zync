@@ -83,10 +83,10 @@ import TeamGateway from './TeamGateway';
 import MeetView from './MeetView';
 import { usePresence } from '@/hooks/usePresence';
 import {
-  PanelResizeHandle,
+  Separator as PanelResizeHandle,
   Panel,
-  PanelGroup,
-  ImperativePanelHandle,
+  Group as PanelGroup,
+  PanelImperativeHandle as ImperativePanelHandle,
 } from 'react-resizable-panels';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -932,20 +932,19 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       )}
 
       <PanelGroup
-        direction="horizontal"
-        autoSaveId="persistence"
+        orientation="horizontal"
+        autoSave="persistence"
         className="relative z-[1] h-full w-full bg-sidebar"
       >
         {/* Sidebar Panel - The Base Tray */}
         <Panel
-          ref={sidebarRef}
+          panelRef={sidebarRef}
           defaultSize={16}
           minSize={4}
           maxSize={20}
           collapsible={true}
           collapsedSize={4}
-          onCollapse={() => setIsCollapsed(true)}
-          onExpand={() => setIsCollapsed(false)}
+          onResize={(size) => setIsCollapsed(size.asPercentage <= 4)}
           className={cn(
             'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none',
             isCollapsed && 'min-w-[70px]',

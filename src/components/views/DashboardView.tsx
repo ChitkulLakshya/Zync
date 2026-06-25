@@ -100,7 +100,7 @@ const DashboardView = ({
         : null;
 
   const formatEventType = (type: string) => {
-    const typeMap: Record<string, { label: string; icon: JSX.Element }> = {
+    const typeMap: Record<string, { label: string; icon: React.JSX.Element }> = {
       PushEvent: { label: 'Pushed to', icon: <GitCommit className="h-4 w-4" /> },
       PullRequestEvent: { label: 'Pull request', icon: <GitPullRequest className="h-4 w-4" /> },
       CreateEvent: { label: 'Created', icon: <Star className="h-4 w-4" /> },

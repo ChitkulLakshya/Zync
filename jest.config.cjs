@@ -11,6 +11,7 @@ module.exports = {
     '/node_modules/',
     '/src/',
     '/electron/',
+    '/tests/',
     '/backend/utils/emailTemplates\\.test\\.js',
     '/backend/utils/commitAnalysisService\\.test\\.js',
     '/backend/utils/encryption\\.test\\.js',
