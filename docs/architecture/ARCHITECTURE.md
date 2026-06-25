@@ -22,6 +22,10 @@ To avoid redundancy and maintain a single source of truth, detailed specificatio
 * [Kanban Board & GitHub Sync](./kanban_github_sync.md): Bidirectional synchronization pipeline linking drag-and-drop Kanban state to GitHub repository commits and PRs.
 * [Design Inspiration Service](./design_inspiration_service.md): Stealth web scraping aggregation pipeline utilizing Puppeteer Extra and Redis caching.
 
+### UI/UX & Presentation Design System
+* [Agentic Liquid Glass UI Design System](./agentic_liquid_glass_ui.md): Definitive 2026 design token contract, 9-state component standards, Apple-inspired Liquid Glass aesthetics, and validation gates.
+* [Loading Animation Strategy](./loading_animation_strategy.md): Unified loading architecture employing depth through translucency, typographic glass lifts, and glass skeleton shimmers.
+
 ---
 
 ## 🏗️ High-Level System Design
