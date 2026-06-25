@@ -191,7 +191,7 @@ router.post('/sync', verifyToken, async (req, res) => {
       }
     );
 
-    const isNewUserInsert = !existingUser;
+    const isNewUserInsert = !existingUser || wasUserInsertedFromUpsertResult(user);
 
     if (isNewUserInsert) {
       console.log(
