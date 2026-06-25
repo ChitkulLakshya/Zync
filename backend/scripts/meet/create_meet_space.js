@@ -75,7 +75,7 @@ async function sendEmail(meetingLink) {
     const encodedMessage = Buffer.from(message)
       .toString('base64')
       .replace(/\+/g, '-')
-      .replace(/\//g, '_')
+      .replace(/\
       .replace(/=+$/, '');
 
     const res = await gmail.users.messages.send({

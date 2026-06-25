@@ -75,7 +75,7 @@ async function logTaskProgressActivity({
   );
 }
 
-// POST /api/webhooks/github — GitHub push webhook
+
 router.post('/github', verifyGithub, async (req, res) => {
   try {
     const event = req.headers['x-github-event'];
@@ -125,7 +125,7 @@ router.post('/github', verifyGithub, async (req, res) => {
         continue;
       }
 
-      // Update task found by displayId
+
       const fromStatus = task.status;
       const hasOwnerGeneratedCommitCode = Boolean(
         task.commitCode &&
@@ -147,7 +147,7 @@ router.post('/github', verifyGithub, async (req, res) => {
 
       await ProjectTask.updateOne({ _id: task._id }, { $set: updateData });
 
-      // Emit socket event
+
       const step = await Step.findById(task.stepId).lean();
       if (step) {
         const project = await Project.findById(step.projectId).lean();
