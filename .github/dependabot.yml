@@ -25,7 +25,7 @@ updates:
     commit-message:
       prefix: 'chore(deps)'
     reviewers:
-      - 'ChitkulLakshya'
+      - 'chitkullakshya'
 
   # Check GitHub Actions versions weekly
   - package-ecosystem: 'github-actions'

@@ -92,7 +92,7 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: 🏷️ Apply Labels
-        uses: actions/labeler@v6
+        uses: actions/labeler@v5
         with:
           # Use the default GITHUB_TOKEN
           repo-token: ${{ secrets.GITHUB_TOKEN }}
@@ -141,7 +141,7 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: 📥 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
       # Step 2: Validate YAML Syntax

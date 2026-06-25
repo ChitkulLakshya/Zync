@@ -35,62 +35,6 @@
 # These labels indicate which area of the codebase the PR modifies.
 
 # -----------------------------------------------------------------------------
-# Electron
-# -----------------------------------------------------------------------------
-# Changes to the Electron desktop application layer.
-
-area:electron:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/**/*'
-          - 'electron-builder.yml'
-          - 'tsconfig.electron.json'
-
-# Electron Main Process
-area:electron-main:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/main.ts'
-          - 'electron/main/**/*'
-
-# Electron Preload
-area:electron-preload:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/preload.ts'
-          - 'electron/preload/**/*'
-
-# Electron Renderer
-area:electron-renderer:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/renderer/**/*'
-
-# Electron Services
-area:electron-services:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/services/**/*'
-
-# Electron Utils
-area:electron-utils:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/utils/**/*'
-
-# Electron Config
-area:electron-config:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/config/**/*'
-
-# Electron Settings UI
-area:electron-settings:
-  - changed-files:
-      - any-glob-to-any-file:
-          - 'electron/settings/**/*'
-
-# -----------------------------------------------------------------------------
 # Frontend
 # -----------------------------------------------------------------------------
 # Changes to the React/web frontend.
@@ -328,7 +272,6 @@ area:build:
       - any-glob-to-any-file:
           - 'build/**/*'
           - 'scripts/**/*'
-          - 'electron-builder.yml'
 
 # -----------------------------------------------------------------------------
 # Dependencies
@@ -367,7 +310,6 @@ type:security:
       - any-glob-to-any-file:
           - '**/security/**/*'
           - '**/auth/**/*'
-          - 'electron/config/csp.ts'
           - 'backend/middleware/authMiddleware.js'
           - 'docs/security/SECURITY.md'
 

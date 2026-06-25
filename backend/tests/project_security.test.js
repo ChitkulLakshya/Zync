@@ -1,8 +1,8 @@
 
-import express from 'express';
-import request from 'supertest';
-import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+const express = require('express');
+const request = require('supertest');
+const mongoose = require('mongoose');
+const { MongoMemoryServer } = require('mongodb-memory-server');
 
 jest.setTimeout(30000);
 
@@ -30,7 +30,7 @@ jest.mock('../middleware/authMiddleware.js', () => {
 
 
 
-import mockAuthMiddlewareTracker from '../middleware/authMiddleware.js';
+const mockAuthMiddlewareTracker = require('../middleware/authMiddleware.js');
 
 jest.mock('../services/mailer.js', () => ({
   sendZyncEmail: jest.fn(() => Promise.resolve()),
@@ -77,7 +77,7 @@ jest.mock('../lib/prisma.js', () => mockPrisma);
 
 const createObjectId = () => new mongoose.Types.ObjectId().toHexString();
 
-import projectRoutes from '../routes/projectRoutes';
+const projectRoutes = require('../routes/projectRoutes');
 
 describe('Project Routes Security', () => {
   let app;

@@ -8,7 +8,6 @@ export default tseslint.config(
   {
     ignores: [
       'dist',
-      'dist-electron',
       'node_modules',
       'coverage',
       'public',
@@ -30,7 +29,6 @@ export default tseslint.config(
         project: [
           './tsconfig.app.json',
           './tsconfig.node.json',
-          './tsconfig.electron.json',
           './tsconfig.eslint.json',
         ],
         tsconfigRootDir: import.meta.dirname,
@@ -46,6 +44,7 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
+      'no-empty': 'warn',
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
       'prefer-const': 'error',
       'no-var': 'error',

@@ -20,7 +20,7 @@ jobs:
       - name: Syntax Check
         run: |
           sudo apt-get install lua5.3
-          luac -p src/**/*.lua || echo "Syntax check passed"
+          luac -p src/**/*.lua && echo "Syntax check passed"
       - name: Package .love artifact
         run: |
           cd src
