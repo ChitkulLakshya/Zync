@@ -258,7 +258,7 @@ const HeroSection = () => {
                       width: '1200px',
                       transformOrigin: 'top left',
                       transform: 'scale(0.55) translateX(1%)',
-                      marginBottom: '-340px', // Compensate for the scaled height so the next section doesn't have a massive gap
+                      marginBottom: '-340px',
                     }
                   : {
                       backgroundImage: 'linear-gradient(to bottom, #3a3b3c, #1c1d1e)',
