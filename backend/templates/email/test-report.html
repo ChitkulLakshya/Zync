@@ -3,226 +3,377 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Zync Test Execution Report</title>
+    <title>Weekly Test Report — Zync</title>
+    <style>
+      @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');
+
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+
+      body {
+        background-color: #060b14;
+        font-family: 'DM Sans', -apple-system, sans-serif;
+        color: #e2e8f0;
+        padding: 40px 16px;
+      }
+
+      .email-wrapper { max-width: 620px; margin: 0 auto; }
+
+      .brand-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+        padding: 0 4px;
+      }
+
+      .brand-logo {
+        width: 34px;
+        height: 34px;
+        background: #1a8fd1;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .brand-name {
+        font-size: 17px;
+        font-weight: 700;
+        color: #f0f4f8;
+        letter-spacing: 0.3px;
+      }
+
+      .beta-pill {
+        font-size: 10px;
+        font-weight: 600;
+        color: #1a8fd1;
+        background: rgba(26, 143, 209, 0.12);
+        border: 1px solid rgba(26, 143, 209, 0.3);
+        padding: 3px 9px;
+        border-radius: 999px;
+        letter-spacing: 0.8px;
+      }
+
+      .card {
+        background: #0d1421;
+        border: 1px solid #1c2a3f;
+        border-radius: 18px;
+        overflow: hidden;
+      }
+
+      .accent-bar {
+        height: 3px;
+        background: linear-gradient(90deg, #0ea5e9 0%, #38bdf8 50%, #0ea5e9 100%);
+      }
+
+      .hero {
+        position: relative;
+        padding: 44px 48px 36px;
+        text-align: center;
+        border-bottom: 1px solid #1c2a3f;
+        overflow: hidden;
+      }
+
+      .hero::before {
+        content: '';
+        position: absolute;
+        top: -80px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 320px;
+        height: 200px;
+        background: radial-gradient(ellipse, rgba(14, 165, 233, 0.12) 0%, transparent 70%);
+        pointer-events: none;
+      }
+
+      .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(14, 165, 233, 0.1);
+        border: 1px solid rgba(14, 165, 233, 0.25);
+        border-radius: 999px;
+        padding: 5px 14px;
+        font-size: 12px;
+        font-weight: 500;
+        color: #38bdf8;
+        margin-bottom: 20px;
+        letter-spacing: 0.3px;
+      }
+
+      .hero h1 {
+        font-size: 28px;
+        font-weight: 700;
+        color: #f0f6ff;
+        line-height: 1.25;
+        margin-bottom: 10px;
+        letter-spacing: -0.4px;
+      }
+
+      .hero h1 span { color: #0ea5e9; }
+
+      .hero p {
+        font-size: 15px;
+        color: #6e8ca8;
+        line-height: 1.7;
+        max-width: 400px;
+        margin: 0 auto;
+      }
+
+      .hero p strong { color: #c4d4e4; }
+
+      .body { padding: 36px 48px; }
+
+      .section-label {
+        font-family: 'DM Mono', monospace;
+        font-size: 11px;
+        font-weight: 500;
+        color: #3a5a78;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        margin-bottom: 16px;
+      }
+
+      /* Stats row */
+      .stats-row {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+
+      .stat-card {
+        flex: 1;
+        padding: 18px 16px;
+        background: #101b2e;
+        border: 1px solid #1c2a3f;
+        border-radius: 12px;
+        text-align: center;
+      }
+
+      .stat-card.pass { border-color: rgba(34, 197, 94, 0.3); background: rgba(16, 27, 46, 0.9); }
+      .stat-card.fail { border-color: rgba(239, 68, 68, 0.3); background: rgba(16, 27, 46, 0.9); }
+      .stat-card.time { border-color: rgba(14, 165, 233, 0.2); }
+
+      .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        line-height: 1;
+        margin-bottom: 6px;
+        letter-spacing: -0.5px;
+      }
+
+      .stat-value.green { color: #22c55e; }
+      .stat-value.red { color: #ef4444; }
+      .stat-value.blue { color: #38bdf8; }
+
+      .stat-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #3a5a78;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+      }
+
+      /* Details card */
+      .details-card {
+        background: #101b2e;
+        border: 1px solid #1c2a3f;
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 28px;
+      }
+
+      .details-header {
+        padding: 14px 20px;
+        border-bottom: 1px solid #1c2a3f;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .details-icon {
+        width: 28px;
+        height: 28px;
+        background: rgba(14, 165, 233, 0.1);
+        border-radius: 7px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .details-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: #c4d4e4;
+      }
+
+      .details-body {
+        padding: 16px 20px;
+      }
+
+      .output-block {
+        font-family: 'DM Mono', monospace;
+        font-size: 12px;
+        color: #5a7a96;
+        white-space: pre-wrap;
+        background: #060b14;
+        border: 1px solid #111d2f;
+        padding: 14px 16px;
+        border-radius: 8px;
+        line-height: 1.7;
+        overflow-x: auto;
+        max-height: 240px;
+        overflow-y: auto;
+      }
+
+      /* CTA */
+      .cta-wrap { text-align: center; margin-bottom: 32px; }
+
+      .cta-btn {
+        display: inline-block;
+        background: #1a8fd1;
+        color: #ffffff;
+        text-decoration: none;
+        font-size: 15px;
+        font-weight: 600;
+        padding: 14px 36px;
+        border-radius: 10px;
+        letter-spacing: 0.2px;
+      }
+
+      .signoff {
+        font-size: 14px;
+        color: #6e8ca8;
+        line-height: 1.7;
+      }
+
+      .signoff strong { color: #c4d4e4; }
+
+      /* Footer */
+      .footer {
+        padding: 24px 48px;
+        border-top: 1px solid #1c2a3f;
+        background: #090f1c;
+      }
+
+      .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-bottom: 14px;
+      }
+
+      .footer-links a {
+        font-size: 12px;
+        color: #3a5a78;
+        text-decoration: none;
+      }
+
+      .footer p {
+        font-size: 12px;
+        color: #2d4560;
+        text-align: center;
+        line-height: 1.6;
+      }
+
+      .footer a { color: #3a6f96; text-decoration: none; }
+    </style>
   </head>
-  <body
-    style="
-      font-family:
-        'Inter',
-        -apple-system,
-        BlinkMacSystemFont,
-        'Segoe UI',
-        Roboto,
-        sans-serif;
-      background-color: #000000;
-      margin: 0;
-      padding: 0;
-      color: #e5e7eb;
-      -webkit-font-smoothing: antialiased;
-    "
-  >
-    <table
-      role="presentation"
-      width="100%"
-      cellpadding="0"
-      cellspacing="0"
-      style="
-        background: linear-gradient(
-          180deg,
-          #000000 0%,
-          #050505 50%,
-          #000000 100%
-        );
-        background-color: #000000;
-      "
-    >
-      <tr>
-        <td align="center" style="padding: 48px 16px 64px">
-          <table
-            role="presentation"
-            width="540"
-            cellpadding="0"
-            cellspacing="0"
-            style="
-              max-width: 540px;
-              width: 100%;
-              background: linear-gradient(145deg, #0b0f19 0%, #05070a 100%);
-              border: 1px solid rgba(14, 165, 233, 0.15);
-              border-radius: 20px;
-              overflow: hidden;
-              box-shadow:
-                0 8px 32px rgba(0, 0, 0, 0.4),
-                0 0 60px rgba(14, 165, 233, 0.08);
-            "
-          >
-            <!-- Glow accent bar at top -->
-            <tr>
-              <td
-                style="
-                  height: 3px;
-                  background: linear-gradient(
-                    90deg,
-                    #0ea5e9 0%,
-                    #38bdf8 50%,
-                    #0ea5e9 100%
-                  );
-                "
-              ></td>
-            </tr>
+  <body>
+    <div class="email-wrapper">
+      <!-- Brand bar -->
+      <div class="brand-bar">
+        <div class="brand-logo">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="13 17 18 12 13 7"></polyline>
+            <polyline points="6 17 11 12 6 7"></polyline>
+          </svg>
+        </div>
+        <span class="brand-name">Zync</span>
+        <span class="beta-pill">CI/CD</span>
+      </div>
 
-            <!-- Header with Logo -->
-            <tr>
-              <td align="center" style="padding: 36px 40px 20px">
-                <img
-                  src="{{logoUrl}}"
-                  alt="ZYNC"
-                  width="85"
-                  height="auto"
-                  style="display: block; width: 85px; height: auto"
-                />
-              </td>
-            </tr>
+      <!-- Card -->
+      <div class="card">
+        <div class="accent-bar"></div>
 
-            <!-- Main Content -->
-            <tr>
-              <td style="padding: 0 40px 44px">
-                <h1
-                  style="
-                    font-size: 26px;
-                    font-weight: 700;
-                    margin: 0 0 14px;
-                    color: #ffffff;
-                    text-align: center;
-                    letter-spacing: -0.02em;
-                  "
-                >
-                  Weekly Test Execution Report
-                </h1>
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-badge">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+            </svg>
+            WEEKLY AUTOMATED REPORT
+          </div>
+          <h1>Test Execution<br/><span>Summary.</span></h1>
+          <p>
+            Your automated E2E test suite ran on<br/>
+            <strong>{{date}}</strong>
+          </p>
+        </div>
 
-                <p
-                  style="
-                    color: #94a3b8;
-                    line-height: 1.75;
-                    font-size: 15px;
-                    margin: 0 0 36px;
-                    text-align: center;
-                  "
-                >
-                  Here is the summary of the latest automated end-to-end testing run for Zync.<br/>
-                  Executed on <strong style="color: #ffffff; font-weight: 600">{{date}}</strong>
-                </p>
+        <!-- Body -->
+        <div class="body">
 
-                <table
-                  role="presentation"
-                  width="100%"
-                  cellpadding="0"
-                  cellspacing="0"
-                  style="
-                    background: rgba(15, 23, 42, 0.6);
-                    border: 1px solid rgba(14, 165, 233, 0.2);
-                    border-radius: 14px;
-                    margin-bottom: 32px;
-                    box-shadow: 0 0 20px rgba(14, 165, 233, 0.06);
-                  "
-                >
-                  <tr>
-                    <td style="padding: 24px 28px">
-                      <table
-                        role="presentation"
-                        width="100%"
-                        cellpadding="0"
-                        cellspacing="0"
-                      >
-                        <tr>
-                          <td style="padding-bottom: 14px">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                              <tr>
-                                <td style="color: #64748b; font-size: 13px; font-weight: 500;">
-                                  🧪 Total Tests Passed
-                                </td>
-                                <td align="right" style="color: #22c55e; font-weight: 700; font-size: 16px;">
-                                  {{passed}}
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding-bottom: 16px">
-                            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.3), transparent);"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding-bottom: 14px">
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                              <tr>
-                                <td style="color: #64748b; font-size: 13px; font-weight: 500;">
-                                  ❌ Total Tests Failed
-                                </td>
-                                <td align="right" style="color: #ef4444; font-weight: 700; font-size: 16px;">
-                                  {{failed}}
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td style="padding-bottom: 16px">
-                            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.3), transparent);"></div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                              <tr>
-                                <td style="color: #64748b; font-size: 13px; font-weight: 500;">
-                                  ⏱ Execution Time
-                                </td>
-                                <td align="right" style="color: #f1f5f9; font-weight: 600; font-size: 14px;">
-                                  {{duration}}
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                      </table>
-                    </td>
-                  </tr>
-                </table>
+          <!-- Stats -->
+          <p class="section-label">Results at a glance</p>
+          <div class="stats-row">
+            <div class="stat-card pass">
+              <div class="stat-value green">{{passed}}</div>
+              <div class="stat-label">✓ Passed</div>
+            </div>
+            <div class="stat-card fail">
+              <div class="stat-value red">{{failed}}</div>
+              <div class="stat-label">✗ Failed</div>
+            </div>
+            <div class="stat-card time">
+              <div class="stat-value blue" style="font-size: 22px; padding-top: 5px;">{{duration}}</div>
+              <div class="stat-label">⏱ Duration</div>
+            </div>
+          </div>
 
-                <!-- Detailed Test Results Container -->
-                <div style="margin-top: 24px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
-                  <h3 style="color: #ffffff; margin-top: 0; font-size: 16px; margin-bottom: 12px;">Execution Output:</h3>
-                  <div style="font-family: monospace; font-size: 12px; color: #a1a1aa; white-space: pre-wrap; background: #000; padding: 12px; border-radius: 6px; overflow-x: auto; max-height: 250px;">{{testOutput}}</div>
-                </div>
+          <!-- Execution output -->
+          <div class="details-card">
+            <div class="details-header">
+              <div class="details-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="4 17 10 11 4 5"></polyline>
+                  <line x1="12" y1="19" x2="20" y2="19"></line>
+                </svg>
+              </div>
+              <span class="details-title">Execution Output</span>
+            </div>
+            <div class="details-body">
+              <div class="output-block">{{testOutput}}</div>
+            </div>
+          </div>
 
-                <div style="margin-top: 32px; text-align: center;">
-                  <a href="{{repoUrl}}" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 25px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);">
-                    View CI Logs
-                  </a>
-                </div>
+          <!-- CTA -->
+          <div class="cta-wrap">
+            <a href="{{repoUrl}}" class="cta-btn">View CI Logs →</a>
+          </div>
 
-              </td>
-            </tr>
-          </table>
+          <!-- Sign off -->
+          <p class="signoff">
+            This report is sent automatically every Sunday by Zync CI.<br/>
+            — <strong>Zync Automated Testing</strong>
+          </p>
+        </div>
 
-          <table
-            role="presentation"
-            width="540"
-            cellpadding="0"
-            cellspacing="0"
-            style="max-width: 540px; width: 100%"
-          >
-            <tr>
-              <td align="center" style="padding: 36px 40px">
-                <p style="font-size: 12px; color: #475569; margin: 0 0 10px">
-                  Generated by <strong style="color: #0ea5e9">Zync Automated Testing</strong>
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>
-    </table>
+        <!-- Footer -->
+        <div class="footer">
+          <div class="footer-links">
+            <a href="#">Dashboard</a>
+            <a href="#">GitHub Actions</a>
+            <a href="#">Contact</a>
+            <a href="#">Unsubscribe</a>
+          </div>
+          <p>
+            Generated automatically by <a href="https://zync-meet.vercel.app">zync-meet.vercel.app</a> CI pipeline<br />
+            © 2026 Zync. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
