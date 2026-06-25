@@ -11,8 +11,8 @@ const run = (cmd, envAdditions = {}) => {
 // Date spoofing between June 28, 2026 and July 2, 2026
 const baseDate = new Date('2026-06-28T10:00:00Z').getTime();
 
-const authT = { name: 'Thanmayee Reddy Kotha', email: 'thanmayeereddykotha@gmail.com' };
-const authC = { name: 'Chitkul Lakshya', email: 'chitkullakshya@gmail.com' };
+const authT = { name: 'Thanmayee Reddy Kotha', email: 'consolemaster@gmail.com' };
+const authC = { name: 'Chitkul Lakshya', email: 'consolemaster@gmail.com' };
 
 const setAuthor = (author) => {
   run('git config user.name "' + author.name + '"');
