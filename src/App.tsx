@@ -42,7 +42,7 @@ const AppContent = () => {
   useActivityTracker();
   useChatNotifications();
   useUserSync();
-  useSyncData(); // Trigger local-first data fetch and Dexie sync on login/app load
+  useSyncData();
   const location = useLocation();
   const isMobile = useIsMobile();
 
