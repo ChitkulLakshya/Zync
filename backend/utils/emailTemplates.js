@@ -156,6 +156,33 @@ const getNewUserRegistrationTemplate = ({ name, email, uid }) => {
   });
 };
 
+/** Test Execution Report — `email template/test-report.html` */
+const getTestReportEmailHtml = ({
+  passed,
+  failed,
+  duration,
+  testOutput,
+  repoUrl = 'https://github.com/zync-meet/Zync/actions',
+  logoUrl = 'https://zync-meet.vercel.app/zync-dark.webp',
+}) => {
+  const date = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+
+  return renderEmailTemplate('test-report.html', {
+    date,
+    passed: String(passed),
+    failed: String(failed),
+    duration: String(duration),
+    testOutput: escapeHtml(testOutput || 'No output available'),
+    repoUrl,
+    logoUrl,
+  });
+};
+
 module.exports = {
   getMeetingEmailHtml,
   getMeetingInviteTextVersion,
@@ -165,4 +192,5 @@ module.exports = {
   getChatRequestEmailHtml,
   getAccountDeletionCodeEmailHtml,
   getTaskAssignmentEmailHtml,
+  getTestReportEmailHtml,
 };
