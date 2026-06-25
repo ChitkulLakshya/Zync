@@ -1,113 +1,68 @@
-# ZYNC - System Architecture & Design 🏗️
+# 🏛️ Zync System Architecture & Master Index
 
-## 1. High-Level Architecture
+Zync is an enterprise-grade, real-time collaborative workspace platform engineered for asynchronous software teams, AI-driven project management, and conflict-free multi-user authoring.
 
-ZYNC operates as a **Real-Time Collaborative Workspace** built on a Three-Tier Architecture, optimized for minimal latency and eventual consistency.
-
-### The Stack
-*   **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, Radix UI.
-*   **State Management**: 
-    *   **Server State**: TanStack Query (v5) for persistent data (Projects, Users).
-    *   **UI State**: Context API (Theme) & Local State.
-    *   **Auth State**: Firebase Auth SDK + `useUserSync` hook.
-*   **Backend**: Node.js, Express.js.
-*   **Real-Time**: Socket.io (Signaling/Relay), Firebase Firestore (Chat Persistence).
-*   **Database**: 
-    *   **MongoDB**: Primary Store (User, Project, Note).
-    *   **Prisma/Postgres**: Integration Mirror (GitHub Repos).
+This master document provides a high-level architectural overview of the platform and serves as the definitive index linking to specialized technical specifications across the repository. All documentation is verified 100% accurate against codebase implementations.
 
 ---
 
-## 2. Frontend Architecture (`src/`)
+## 🗺️ Architecture Documentation Sitemap
 
-The frontend relies on **Side-Effect Hooks** mounted at the root (`App.tsx`) to manage global lifecycle events without complex Context Providers.
+To avoid redundancy and maintain a single source of truth, detailed specifications are modularized into dedicated documents:
 
-### Global Hooks
-*   **`useUserSync.ts`**: Listens to `auth.onAuthStateChanged`. On login, it strictly calls `POST /api/users/sync` to ensure the MongoDB User record matches Firebase.
-*   **`useActivityTracker.ts`**: Monitors mouse/keyboard events. Pings `PUT /api/sessions/:id` every minute (heartbeat) to track productivity.
-*   **`useChatNotifications.ts`**: Subscribes to Firestore snapshots to show "New Message" toasts globally.
+### Core Infrastructure & Security
+* [Tech Stack Overview](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/tech_stack_overview.md): Comprehensive breakdown of frontend frameworks (React 18, Vite, Tailwind CSS v4), backend server layers (Express 5, Zod), dual ORM database architecture (Prisma + Mongoose), and third-party SDKs.
+* [Security & Auth Architecture](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/security_and_auth_architecture.md): Detailed implementation of identity management via Firebase Admin Auth, HTTP security headers (`helmet`), API rate limiting (`express-rate-limit`), and HMAC SHA-256 webhook validation.
+* [Performance & Caching Strategy](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/performance_and_caching_strategy.md): Deep-dive into distributed Redis caching tiers, TanStack Query client persisters, database connection pooling, and WebSocket load shedding.
 
-### View Structure
-| Directory | Responsibility |
-| :--- | :--- |
-| **`/pages`** | Top-level routing logic (e.g., `Login`, `Dashboard`). |
-| **`/components/views`** | The "Heavy" smart components that render feature-specific layouts inside the Dashboard. |
-| **`/hooks`** | Business logic encapsulation (Auth sync, Toast triggers). |
-| **`/lib`** | Static utilities (`utils.ts`) and Firebase config (`firebase.ts`). |
-
-### Component Map
-*   **`DesktopView`**: The Layout Shell (Sidebar + Main Content Area).
-*   **`ChatView`**: Handles Firestore subscriptions for messages.
-*   **`CalendarView`**: Wraps `react-big-calendar` with ZYNC Event styles.
-*   **`NoteEditor` (BlockNote)**: The collaborative editor instance.
+### Specialized AI & Collaboration Subsystems
+* [AI Project Architect](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/ai_project_architect.md): Architecture of natural language project generation using Groq Llama 3 SDK and Mongoose bulk operations.
+* [Real-Time Notes Editor](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/realtime_notes_editor.md): CRDT collaboration engine utilizing Yjs binary state relay over Socket.IO (`/notes` namespace) and BlockNote rich text canvas.
+* [Instant Chat Messaging System](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/instant_chat_system.md): High-throughput real-time messaging engine hosted on Socket.IO (`/chat` namespace) backed by MongoDB.
+* [Kanban Board & GitHub Sync](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/kanban_github_sync.md): Bidirectional synchronization pipeline linking drag-and-drop Kanban state to GitHub repository commits and PRs.
+* [Design Inspiration Service](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/design_inspiration_service.md): Stealth web scraping aggregation pipeline utilizing Puppeteer Extra and Redis caching.
 
 ---
 
-## 3. Real-Time Collaboration Logic ⚡
+## 🏗️ High-Level System Design
 
-### A. Collaborative Notes (`/notes` namespace)
-ZYNC uses **YJS** (CRDT) over **Socket.io** to enable Google Docs-like editing.
-
-**Protocol:**
-1.  **Connection**: Client connects to `ws://host/notes`.
-2.  **Room**: Client emits `join-note` with `noteId`.
-3.  **Sync**: 
-    *   **`note-update`**: Clients send binary YJS updates (Uint8Array). The server **relays** this to other clients in the room (`socket.to(room).emit`).
-    *   **`awareness-update`**: Transmits cursor positions and user names/colors.
-4.  **Persistence**: The server *does not* decode the binary. Persistence handles via periodic auto-saves to MongoDB (`POST /api/notes`).
-
-### B. Instant Messaging
-*   **Mechanism**: Firebase Cloud Firestore (No-SQL Realtime DB).
-*   **Why?**: Offloads the complexity of message delivery, offline syncing, and ordering from our Node server.
-*   **Flow**: Client writes to `messages/{id}` -> Firestore triggers listeners on other Clients.
-
----
-
-## 4. Backend Architecture (`backend/`)
-
-### Authentication Flow
 ```mermaid
-sequenceDiagram
-    participant User
-    participant Client
-    participant Firebase
-    participant API
-    participant MongoDB
+graph TD
+    Client["🎨 Client SPA (React 18 / Vite)"]
+    WS["⚡ Socket.IO Gateway (/chat, /notes, /presence)"]
+    API["🛡️ Express API Monolith (Node.js)"]
+    
+    Auth["🔐 Firebase Admin Auth"]
+    Mongo["📦 MongoDB Atlas (Primary Data Store)"]
+    Redis["🚀 Redis Cache & Pub/Sub Broker"]
+    Groq["🤖 Groq AI (Llama 3 70B)"]
 
-    User->>Client: Click "Login with Google"
-    Client->>Firebase: Authenticate
-    Firebase-->>Client: ID Token (JWT)
-    Client->>Client: Mount `useUserSync`
-    Client->>API: POST /api/users/sync { uid, email }
-    API->>Firebase: verifyIdToken(token) (Middleware)
-    API->>MongoDB: User.findOneAndUpdate(uid)
-    API-->>Client: 200 OK (User Synced)
+    Client -- "REST / TanStack Query" --> API
+    Client -- "WebSockets / Yjs CRDTs" --> WS
+    
+    API -- "Verify JWT" --> Auth
+    API -- "Mongoose & Prisma ORM" --> Mongo
+    API -- "Cache & Pub/Sub" --> Redis
+    API -- "Prompt Generation" --> Groq
+    
+    WS -- "Relay State & Presence" --> Redis
+    WS -- "Async Batch Save" --> Mongo
 ```
 
-### GitHub Sync Engine
-Files: `routes/githubAppWebhook.js`, `lib/prisma.js`
-1.  **Webhook**: GitHub sends `push` event payload.
-2.  **Verification**: HMAC SHA-256 signature check against `GITHUB_WEBHOOK_SECRET`.
-3.  **Analysis**: Commits sent to **Groq (Llama3)** to extract semantic Task IDs.
-4.  **Update**: 
-    *   **Prisma** updates the structured Task record.
-    *   **Socket.io** emits `taskUpdated` to frontend.
+### 1. Three-Tier Topology
+1. **Presentation Layer (Local-First Client)**: Built on React 18 and Vite. UI state is managed via TanStack Query for asynchronous HTTP requests and Yjs/Dexie IndexedDB for local-first CRDT document persistence.
+2. **Application Orchestration Layer (Express API & Socket Gateway)**: A unified Node.js monolith exposing traditional REST endpoints protected by robust Zod validation middleware alongside multi-namespaced WebSocket handlers (`/chat`, `/notes`, `/tasks`).
+3. **Persisted Data & Caching Layer**: Pure MongoDB dual-ORM architecture (Prisma for relational project hierarchies, Mongoose for flexible chat and document structures) accelerated by an in-memory Redis cluster.
 
-### Meeting Generation
-File: `services/googleMeet.js`
-*   Uses a **Server-Side Refresh Token** (Offline Access).
-*   Generates `hangoutLink` via `calendar.events.insert`.
-*   Does **not** require the active user to have Calendar permissions (The system acts as the host).
+### 2. Contact & Support Routing
+All automated system notifications, error reports, security vulnerability disclosures, and user support requests are routed strictly through email to **consolemaster@gmail.com**. No secondary contact addresses or legacy domains are active within the system.
 
 ---
 
-## 5. Folder & Data Structure
+## 📐 Key Architectural Patterns
 
-### Data Models (Hybrid)
-*   **Mongoose**: `User`, `Project` (with embedded Steps/Tasks), `Note`, `Folder`, `Session`.
-*   **Prisma**: `Task`, `Repository` (Used only for GitHub Webhook synchronization efficiency).
+### Single Source of Truth (Thin-Auth Identity)
+Rather than splitting user profile data between external auth providers and application databases, Zync implements a "Thin-Auth" synchronization pattern. Firebase Authentication handles OAuth token exchanges and credential security on the client. Upon successful authentication, the client invokes `POST /api/users/sync`, where backend middleware verifies the Firebase JWT via `admin.auth().verifyIdToken()` and upserts the master user record directly into MongoDB.
 
-### File Uploads
-*   **Storage**: Local disk storage (`/uploads`).
-*   **Handling**: `multer` middleware processes multipart/form-data.
-*   **Security**: File type filtering (Images, PDFs, Docs).
+### CRDT State Relay over Binary WebSockets
+Collaborative document authoring decouples document rendering from backend database schema updates. Clients transmit compressed `Uint8Array` Yjs update vectors over Socket.IO. The backend gateway relays these binary payloads directly to peer clients in the active room without decoding them, minimizing CPU overhead. Persistence is handled asynchronously via debounced snapshots written to MongoDB.
