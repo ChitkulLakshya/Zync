@@ -35,7 +35,7 @@ export const ProjectSetupWalkthrough = () => {
     let isActive = true;
 
     const runSequence = async () => {
-      // 1. Initial State
+
       if (!isActive) {
         return;
       }
@@ -46,7 +46,7 @@ export const ProjectSetupWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 800));
 
-      // 2. Move to text area
+
       if (!isActive) {
         return;
       }
@@ -56,7 +56,7 @@ export const ProjectSetupWalkthrough = () => {
       await new Promise((r) => setTimeout(r, 150));
       setIsClicking(false);
 
-      // 3. Type
+
       if (!isActive) {
         return;
       }
@@ -72,11 +72,11 @@ export const ProjectSetupWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 600));
 
-      // 4. Move to Generate button
+
       if (!isActive) {
         return;
       }
-      // Slightly different target based on screen size so it perfectly hits the button
+
       setCursorPos({ x: isMobile ? '50%' : '77%', y: isMobile ? '85%' : '89%' });
       setPhase('clicking');
       await new Promise((r) => setTimeout(r, 700));
@@ -84,16 +84,16 @@ export const ProjectSetupWalkthrough = () => {
       await new Promise((r) => setTimeout(r, 150));
       setIsClicking(false);
 
-      // 5. Generating state
+
       if (!isActive) {
         return;
       }
       setPhase('generating');
-      // Prevent cursor from overlapping the section below by keeping it inside the card
+
       setCursorPos({ x: isMobile ? '60%' : '85%', y: isMobile ? '92%' : '95%' });
       await new Promise((r) => setTimeout(r, 2000));
 
-      // 6. Success state
+
       if (!isActive) {
         return;
       }

@@ -34,7 +34,7 @@ export const MultiplayerWalkthrough = () => {
         return;
       }
 
-      // Reset
+
       setAlexPhase('idle');
       setAlexText('');
       setAlexPos({ x: '-40%', y: '40%' });
@@ -46,20 +46,20 @@ export const MultiplayerWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 1200));
 
-      // 1. Alex moves in to type
+
       if (!isActive) {
         return;
       }
       setAlexPos({ x: isMobile ? '10%' : '13%', y: isMobile ? '63%' : '69%' });
       setAlexPhase('typing');
 
-      // Sarah moves in right after
+
       setSarahPos({ x: isMobile ? '10%' : '13%', y: isMobile ? '74%' : '81%' });
       setMikePos({ x: isMobile ? '65%' : '60%', y: isMobile ? '88%' : '94%' });
 
       await new Promise((r) => setTimeout(r, 800));
 
-      // Alex types
+
       if (!isActive) {
         return;
       }
@@ -69,14 +69,14 @@ export const MultiplayerWalkthrough = () => {
           break;
         }
         setAlexText(fullText.slice(0, i));
-        // Slowly move Alex cursor to the right as they type
+
         setAlexPos((prev) => ({ ...prev, x: `${(isMobile ? 10 : 13) + i * 1.8}%` }));
         await new Promise((r) => setTimeout(r, 40 + Math.random() * 40));
       }
 
       await new Promise((r) => setTimeout(r, 400));
 
-      // 2. Sarah opens task slash menu
+
       if (!isActive) {
         return;
       }
@@ -88,7 +88,7 @@ export const MultiplayerWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 700));
 
-      // 3. Sarah moves down to click a task
+
       if (!isActive) {
         return;
       }
@@ -104,13 +104,13 @@ export const MultiplayerWalkthrough = () => {
       setShowTaskMenu(false);
       setSarahPhase('inserted');
 
-      // Move Sarah cursor away slightly to the end of the tag
+
       setSarahPos({ x: isMobile ? '80%' : '73%', y: isMobile ? '74%' : '79%' });
       setAlexPos({ x: isMobile ? '85%' : '77%', y: isMobile ? '63%' : '69%' });
 
       await new Promise((r) => setTimeout(r, 2000));
 
-      // Exit
+
       setAlexPos({ x: '-40%', y: '40%' });
       setSarahPos({ x: '120%', y: '60%' });
       setMikePos({ x: '50%', y: '120%' });
