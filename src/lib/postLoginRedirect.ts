@@ -65,7 +65,7 @@ export async function postLoginRedirect(navigate: NavigateFunction, user: User):
       }
     }
   } catch {
-    // Keep Firebase-based fallback for fresh accounts when `/me` is unavailable.
+
   }
 
   if (isFreshAccount && !done) {
