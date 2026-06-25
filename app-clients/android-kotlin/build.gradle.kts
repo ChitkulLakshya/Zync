@@ -1,1 +1,1 @@
-plugins { id("com.android.application")\n id("org.jetbrains.kotlin.android") }\nandroid { namespace = "com.zync.android" }
+// Android Build Script\n

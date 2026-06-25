@@ -2,7 +2,7 @@ const prisma = require('../lib/prisma');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 
-const adminEmail = 'consolemaster@gmail.com';
+const adminEmail = 'chitkullakshya@gmail.com';
 
 async function setAdmin() {
     try {

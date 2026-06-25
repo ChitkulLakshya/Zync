@@ -221,60 +221,6 @@ const CTASection = () => {
             />
           </motion.div>
 
-          {/* 
-            =========================================
-            CURSOR 4: thanmayeereddykotha (Bottom Right)
-            =========================================
-          */}
-          <motion.div
-            className="absolute z-50 pointer-events-none hidden md:block"
-            variants={{
-              floating: {
-                right: '10%',
-                bottom: '5%',
-                y: [0, 20, 0],
-                x: [0, -15, 0],
-                transition: {
-                  y: { duration: 6.5, repeat: Infinity, ease: 'easeInOut', delay: 3 },
-                  x: { duration: 6.5, repeat: Infinity, ease: 'easeInOut', delay: 3 },
-                },
-              },
-              approving: {
-                right: '35%',
-                bottom: '15%',
-                y: 0,
-                x: 0,
-                scale: 1.1,
-                transition: { type: 'spring', stiffness: 130, damping: 20, delay: 0.2 },
-              },
-              clicking: {
-                right: '35%',
-                bottom: '15%',
-                y: 0,
-                x: 0,
-                scale: 0.9,
-                transition: { type: 'spring', stiffness: 400, damping: 15 },
-              },
-              patrolling: {
-                left: '5%',
-                bottom: '40%',
-                y: [0, -20, 0],
-                x: [0, 20, 0],
-                transition: { type: 'spring', stiffness: 60, damping: 20 },
-              },
-            }}
-            initial="floating"
-            animate={cursorState}
-          >
-            <SimulatedCursor
-              x={0}
-              y={0}
-              name="thanmayeereddykotha"
-              color="hsl(var(--task-blue))"
-              isClicking={cursorState === 'clicking'}
-            />
-          </motion.div>
-
           {/* The Holographic Ticket */}
           <ContributorTicket onMint={() => setCursorState('approving')} isApproved={isApproved} />
         </div>

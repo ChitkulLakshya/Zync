@@ -1,1 +1,0 @@
-package com.zync.android.models\n\ndata class LoginRequest(val email: String, val pass: String)\ndata class AuthResponse(val token: String)
