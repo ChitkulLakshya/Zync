@@ -11,16 +11,16 @@ This master document provides a high-level architectural overview of the platfor
 To avoid redundancy and maintain a single source of truth, detailed specifications are modularized into dedicated documents:
 
 ### Core Infrastructure & Security
-* [Tech Stack Overview](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/tech_stack_overview.md): Comprehensive breakdown of frontend frameworks (React 18, Vite, Tailwind CSS v4), backend server layers (Express 5, Zod), dual ORM database architecture (Prisma + Mongoose), and third-party SDKs.
-* [Security & Auth Architecture](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/security_and_auth_architecture.md): Detailed implementation of identity management via Firebase Admin Auth, HTTP security headers (`helmet`), API rate limiting (`express-rate-limit`), and HMAC SHA-256 webhook validation.
-* [Performance & Caching Strategy](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/performance_and_caching_strategy.md): Deep-dive into distributed Redis caching tiers, TanStack Query client persisters, database connection pooling, and WebSocket load shedding.
+* [Tech Stack Overview](./tech_stack_overview.md): Comprehensive breakdown of frontend frameworks (React 18, Vite, Tailwind CSS v4), backend server layers (Express 5, Zod), dual ORM database architecture (Prisma + Mongoose), and third-party SDKs.
+* [Security & Auth Architecture](./security_and_auth_architecture.md): Detailed implementation of identity management via Firebase Admin Auth, HTTP security headers (`helmet`), API rate limiting (`express-rate-limit`), and HMAC SHA-256 webhook validation.
+* [Performance & Caching Strategy](./performance_and_caching_strategy.md): Deep-dive into distributed Redis caching tiers, TanStack Query client persisters, database connection pooling, and WebSocket load shedding.
 
 ### Specialized AI & Collaboration Subsystems
-* [AI Project Architect](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/ai_project_architect.md): Architecture of natural language project generation using Groq Llama 3 SDK and Mongoose bulk operations.
-* [Real-Time Notes Editor](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/realtime_notes_editor.md): CRDT collaboration engine utilizing Yjs binary state relay over Socket.IO (`/notes` namespace) and BlockNote rich text canvas.
-* [Instant Chat Messaging System](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/instant_chat_system.md): High-throughput real-time messaging engine hosted on Socket.IO (`/chat` namespace) backed by MongoDB.
-* [Kanban Board & GitHub Sync](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/kanban_github_sync.md): Bidirectional synchronization pipeline linking drag-and-drop Kanban state to GitHub repository commits and PRs.
-* [Design Inspiration Service](file:///home/premsaik/Desktop/Projects/Zync/docs/architecture/design_inspiration_service.md): Stealth web scraping aggregation pipeline utilizing Puppeteer Extra and Redis caching.
+* [AI Project Architect](./ai_project_architect.md): Architecture of natural language project generation using Groq Llama 3 SDK and Mongoose bulk operations.
+* [Real-Time Notes Editor](./realtime_notes_editor.md): CRDT collaboration engine utilizing Yjs binary state relay over Socket.IO (`/notes` namespace) and BlockNote rich text canvas.
+* [Instant Chat Messaging System](./instant_chat_system.md): High-throughput real-time messaging engine hosted on Socket.IO (`/chat` namespace) backed by MongoDB.
+* [Kanban Board & GitHub Sync](./kanban_github_sync.md): Bidirectional synchronization pipeline linking drag-and-drop Kanban state to GitHub repository commits and PRs.
+* [Design Inspiration Service](./design_inspiration_service.md): Stealth web scraping aggregation pipeline utilizing Puppeteer Extra and Redis caching.
 
 ---
 
