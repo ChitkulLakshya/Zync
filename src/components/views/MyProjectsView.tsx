@@ -114,7 +114,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
 
         toast({ title: 'GitHub Connected!', description: 'Your repositories are now linked.' });
 
-        // Invalidate queries to refresh data
+
         queryClient.invalidateQueries({ queryKey: ['me'] });
         queryClient.invalidateQueries({ queryKey: ['github'] });
       }
