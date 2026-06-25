@@ -82,7 +82,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
       return;
     }
 
-    // Fetch teams where user is leader OR member
+
     const q = query(collection(db, 'teams'), where('members', 'array-contains', userId));
 
     const unsubscribe = onSnapshot(
@@ -205,7 +205,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
           return;
         }
 
-        // One-time read for invite code lookup.
+
         const q = query(collection(db, 'teams'), where('inviteCode', '==', inviteCode));
         const snapshot = await getDocs(q);
         for (const teamDoc of snapshot.docs) {
