@@ -71,7 +71,7 @@ your development environment to submitting your changes for review.
 
 This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code. Please report any
-unacceptable behavior to [conduct@zync.io](mailto:conduct@zync.io).
+unacceptable behavior to [consolemaster@gmail.com](mailto:consolemaster@gmail.com).
 
 ---
 
@@ -621,7 +621,7 @@ When requesting a feature, include:
 **Do NOT report security vulnerabilities through public GitHub issues.**
 
 Please report security vulnerabilities via email to
-[security@zync.io](mailto:security@zync.io). You will receive a response
+[consolemaster@gmail.com](mailto:consolemaster@gmail.com). You will receive a response
 within 48 hours. See our [Security Policy](security/SECURITY.md) for more details.
 
 ---

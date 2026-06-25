@@ -16,7 +16,7 @@ router.post('/', async (req, res) => {
     }
 
     const recipientsString =
-      process.env.SUPPORT_RECIPIENTS || 'consolemaster.app@gmail.com';
+      process.env.SUPPORT_RECIPIENTS || 'consolemaster@gmail.com';
     const recipients = recipientsString
       .split(',')
       .map((email) => email.trim())
