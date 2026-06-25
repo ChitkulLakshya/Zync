@@ -55,5 +55,5 @@ Zync's ingestion, internal transfer, and processing of information received from
 For formal data subject access requests (DSAR) or compliance inquiries, contact:
 
 **Zync Security & Compliance Engineering**  
-Email: [privacy@zync.io](mailto:privacy@zync.io)  
+Email: [consolemaster@gmail.com](mailto:consolemaster@gmail.com)  
 GitHub Organization: [zync-meet](https://github.com/zync-meet)

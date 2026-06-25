@@ -180,4 +180,3 @@ vite_build_debug.log
 # Root `node_modules/` already ignores dependencies; add backend-only noise below if needed.
 backend/.env
 backend/.cache/
-docs/
