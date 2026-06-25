@@ -54,19 +54,13 @@ jobs:
       - name: Build Vite frontend
         run: npm run build
 
-      - name: Build and publish Electron app
-        run: npm run electron:build
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Package web app bundle
+        run: zip -r dist.zip dist/
 
       - name: Upload release assets
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            dist_electron/*.exe
-            dist_electron/*.dmg
-            dist_electron/*.AppImage
-            dist_electron/*.deb
+          files: dist.zip
           draft: true
           generate_release_notes: true
         env:
