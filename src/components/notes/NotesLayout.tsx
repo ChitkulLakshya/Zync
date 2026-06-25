@@ -229,7 +229,7 @@ const NoteListItem: React.FC<{
   );
 };
 
-// Folder Item Component
+
 const FolderListItem: React.FC<{
   folder: Folder;
   notes: Note[];
@@ -343,7 +343,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // DnD Sensors
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -370,20 +370,20 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     const activeNoteId = active.id as string;
     const overId = over.id as string;
 
-    // Helper to find note by ID
+
     const activeNote = notes.find((n) => n.id === activeNoteId);
     if (!activeNote) {
       return;
     }
 
-    // Case 1: Drop onto a Folder (Move)
+
     if (over.data.current?.type === 'folder') {
       const targetFolderId = overId;
       if (activeNote.folderId !== targetFolderId) {
-        // Update local state temporarily for smooth UI
-        // (Real update happens via subscription, but this prevents jumpiness)
+
+
         try {
-          // Optimistic update
+
           setNotes((prev) =>
             prev.map((n) => (n.id === activeNoteId ? { ...n, folderId: targetFolderId } : n))
           );
@@ -396,7 +396,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
       return;
     }
 
-    // Case 2: Drop onto Unorganized area (Move to root)
+
     if (overId === 'unorganized-notes') {
       if (activeNote.folderId) {
         try {
@@ -412,24 +412,24 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
       return;
     }
 
-    // Case 3: Reordering or sorting
+
     if (active.id !== over.id) {
-      // Check if we are moving between folders via list sorting
+
       const overNote = notes.find((n) => n.id === overId);
 
       if (overNote && activeNote.folderId !== overNote.folderId) {
-        // Moving to a new folder by dropping onto a note in that folder
+
         try {
           setNotes((prev) =>
             prev.map((n) => (n.id === activeNoteId ? { ...n, folderId: overNote.folderId } : n))
           );
           await updateNote(activeNoteId, { folderId: overNote.folderId });
-          // toast.success("Note moved");
+
         } catch (error) {
           console.error(error);
         }
       } else {
-        // Just reordering within same context
+
         setNotes((items) => {
           const oldIndex = items.findIndex((item) => item.id === active.id);
           const newIndex = items.findIndex((item) => item.id === over.id);
@@ -439,12 +439,12 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     }
   };
 
-  // Context Menu States
+
   const [renameDialogOpen, setRenameDialogOpen] = useState(false);
   const [noteToRename, setNoteToRename] = useState<Note | null>(null);
   const [newNoteTitle, setNewNoteTitle] = useState('');
 
-  // Top Bar Inline Editing
+
   const [editingTitle, setEditingTitle] = useState('');
   const titleDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -478,18 +478,18 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     }, 1000);
   };
 
-  // Collaborative Presence - track users viewing the selected note
+
   const { activeUsers, isConnected } = useNotePresence(
     selectedNote?.id,
     user ? { uid: user.uid, displayName: user.displayName, photoURL: user.photoURL } : undefined
   );
 
-  // Share Dialog
+
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [folderToShare, setFolderToShare] = useState<Folder | null>(null);
   const [selectedUserId, setSelectedUserId] = useState('');
 
-  // Subscriptions
+
   useEffect(() => {
     if (isPreview) {
       setFolders(mockFolders || []);
@@ -534,7 +534,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     mockNotes,
   ]);
 
-  // Sync selected note with updates
+
   useEffect(() => {
     if (selectedNote) {
       const updated = notes.find((n) => n.id === selectedNote.id);
@@ -544,7 +544,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     }
   }, [notes, selectedNote?.id]);
 
-  // Handle initial note selection
+
   useEffect(() => {
     if (initialNoteId && notes.length > 0) {
       const target = notes.find((n) => n.id === initialNoteId || n._id === initialNoteId);
@@ -554,7 +554,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     }
   }, [initialNoteId, notes]);
 
-  // Filtered notes
+
   const filteredNotes = useMemo(() => {
     const safeNotes = Array.isArray(notes) ? notes : [];
     if (!searchQuery.trim()) {
@@ -575,7 +575,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     (n) => !n.folderId && n.ownerId === user?.uid
   );
 
-  // Handlers
+
   const handleCreateNote = async (folderId?: string) => {
     if (!user?.uid) {
       return;
@@ -661,8 +661,8 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
   };
 
   const handleDeleteNote = async (id: string) => {
-    // Confirm dialog is a bit aggressive, maybe just do it? Or use a custom dialog.
-    // Standard confirm is fine for now/MVP.
+
+
     if (!window.confirm('Are you sure you want to delete this note?')) {
       return;
     }
@@ -713,7 +713,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
     });
   };
 
-  // Breadcrumb path
+
   const breadcrumb = useMemo(() => {
     if (!selectedNote) {
       return [];
@@ -911,7 +911,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
                 {activeUsers.length > 0 && (
                   <div className="flex items-center mr-4">
                     {activeUsers.slice(0, 5).map((activeUser, index) => {
-                      // Generate initials from name (e.g., "Prem Sai K" -> "PK")
+
                       const initials = (activeUser.name || 'A')
                         .split(' ')
                         .map((part) => part.charAt(0).toUpperCase())

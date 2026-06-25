@@ -36,14 +36,14 @@ export const GithubSyncWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 1000));
 
-      // Move to Copy Button
+
       if (!isActive) {
         return;
       }
       setCursorPos({ x: isMobile ? '82%' : '85%', y: isMobile ? '63%' : '61%' });
       await new Promise((r) => setTimeout(r, 800));
 
-      // Click Copy
+
       if (!isActive) {
         return;
       }
@@ -54,23 +54,23 @@ export const GithubSyncWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 600));
 
-      // Move mouse away after copying
+
       if (!isActive) {
         return;
       }
       setCursorPos({ x: isMobile ? '85%' : '90%', y: isMobile ? '75%' : '80%' });
       await new Promise((r) => setTimeout(r, 500));
 
-      // Show Terminal
+
       if (!isActive) {
         return;
       }
       setPhase('terminal');
-      // Prevent cursor from overlapping surrounding content outside the card by constraining y on mobile
+
       setCursorPos({ x: isMobile ? '85%' : '95%', y: isMobile ? '94%' : '110%' });
       await new Promise((r) => setTimeout(r, 600));
 
-      // Type in terminal
+
       if (!isActive) {
         return;
       }
@@ -86,7 +86,7 @@ export const GithubSyncWalkthrough = () => {
 
       await new Promise((r) => setTimeout(r, 400));
 
-      // Push and Success
+
       if (!isActive) {
         return;
       }

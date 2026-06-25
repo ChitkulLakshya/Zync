@@ -146,7 +146,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
     }
   }, [currentUser]);
 
-  // Real-time task updates via socket
+
   const loadTasksRef = useRef(loadTasks);
   loadTasksRef.current = loadTasks;
 

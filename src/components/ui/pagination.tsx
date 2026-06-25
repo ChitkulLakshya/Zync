@@ -1,4 +1,4 @@
-// Refactored for Liquid Glass: relies on button.tsx which has been refactored
+
 import * as React from 'react';
 import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
 

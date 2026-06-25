@@ -37,7 +37,7 @@ const checkPassword = async (password) => {
     return { isCompromised: false, count: 0 };
   } catch (error) {
     console.error('HIBP password check failed:', error.message);
-    // Fail open — don't block signup on network errors
+
     return { isCompromised: false, count: 0 };
   }
 };

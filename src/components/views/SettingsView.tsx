@@ -1074,7 +1074,7 @@ function TeamTabContent({
 
   const selectedTeam = teamsData.find((t: any) => (t.id || t._id) === selectedTeamId);
 
-  // Auto-select first team when data loads
+
   useEffect(() => {
     if (teamsData.length > 0 && !selectedTeamId) {
       setSelectedTeamId(teamsData[0].id || teamsData[0]._id);
@@ -1137,7 +1137,7 @@ function TeamTabContent({
       try {
         const token = await currentUser.getIdToken();
 
-        // Fetch all teams the user belongs to
+
         const mineRes = await fetch(`${API_BASE_URL}/api/teams/mine`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -1155,7 +1155,7 @@ function TeamTabContent({
           return;
         }
 
-        // Fetch details for each team in parallel
+
         const detailPromises = teams.map(async (team: any) => {
           const teamId = team.id || team._id;
           try {
@@ -1338,7 +1338,7 @@ function TeamTabContent({
         description: 'Successfully updated the team leader.',
       });
 
-      // Update local state
+
       setTeamsData((prev: any[]) =>
         prev.map((t) =>
           t.id === teamId

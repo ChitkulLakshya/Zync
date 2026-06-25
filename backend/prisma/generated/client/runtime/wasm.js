@@ -456,7 +456,7 @@ var y,
         if (r === 'base64' || r === 'base64url') {
           let o = btoa(this.reduce((s, a) => s + hr(a), ''));
           return r === 'base64url'
-            ? o.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+            ? o.replace(/\+/g, '-').replace(/\
             : o;
         }
         if (
@@ -7386,4 +7386,4 @@ l();
     warnEnvConflicts,
     warnOnce,
   });
-//# sourceMappingURL=wasm.js.map
+

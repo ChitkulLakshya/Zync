@@ -33,7 +33,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
-  // --- 3D Physics State ---
+
   const ref = useRef<HTMLDivElement>(null);
 
   const x = useMotionValue(0);
@@ -45,7 +45,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
   const rotateX = useTransform(mouseYSpring, [-0.5, 0.5], ['15deg', '-15deg']);
   const rotateY = useTransform(mouseXSpring, [-0.5, 0.5], ['-15deg', '15deg']);
 
-  // Glare position
+
   const glareX = useTransform(mouseXSpring, [-0.5, 0.5], ['100%', '0%']);
   const glareY = useTransform(mouseYSpring, [-0.5, 0.5], ['100%', '0%']);
   const background = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255,255,255,0.1) 0%, transparent 60%)`;
@@ -102,7 +102,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
 
   const handleUsernameKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault(); // Prevent main form submission
+      e.preventDefault();
       handleFetchGithubUser();
     }
   };
@@ -134,7 +134,7 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
       setIsSuccess(true);
     } catch (error) {
       console.error('Submission error:', error);
-      // Fallback for demo purposes if backend isn't up
+
       setIsSuccess(true);
     } finally {
       setIsSubmitting(false);

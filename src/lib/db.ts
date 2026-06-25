@@ -1,7 +1,7 @@
 import Dexie, { type Table } from 'dexie';
 
 export interface UserData {
-  id: string; // usually maps to userId / uid
+  id: string;
   email?: string;
   [key: string]: any;
 }

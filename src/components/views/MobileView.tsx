@@ -134,7 +134,7 @@ const MobileView = () => {
         setSessionStartTime(new Date(parsed.startTime));
       }
     } catch {
-      // Ignore invalid local session payloads.
+
     }
   }, []);
 

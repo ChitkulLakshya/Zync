@@ -119,9 +119,9 @@ const ContributionGraphCalendar = ({ children }: ContributionGraphCalendarProps)
     const firstDayOfWeek = parseLocalDate(week[0].date);
     const month = firstDayOfWeek.getMonth();
     if (month !== lastMonth) {
-      // Skip labels for week columns that only exist for Sunday alignment before the
-      // dataset starts (e.g. late Dec). Otherwise "Dec" sits on top of "Jan" (~15px apart)
-      // and reads as a merged "Dedan".
+
+
+
       if (firstDayOfWeek < startDate) {
         lastMonth = month;
         return;

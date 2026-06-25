@@ -76,7 +76,7 @@ const Signup = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Check if password appears in known data breaches
+
       const breachRes = await fetch(`${API_BASE_URL}/api/users/check-breached-password`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

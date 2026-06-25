@@ -62,7 +62,7 @@ describe('Team delete route', () => {
     );
     Team.findByIdAndDelete.mockResolvedValue({ _id: teamId });
 
-    // Include object-like IDs to ensure String(id) !== String(teamId) filtering is exercised.
+
     User.findOne.mockImplementation(({ uid }) => {
       if (uid === ownerUid) {
         return createLeanChain({

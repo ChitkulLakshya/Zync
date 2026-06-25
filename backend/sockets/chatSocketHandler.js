@@ -24,10 +24,10 @@ module.exports = (io) => {
     10
   );
 
-  // userId → Set<socket.id>  (a user may have several tabs open)
+
   const userSockets = new Map();
 
-  // ── helpers ───────────────────────────────────────────────────────
+
   const addSocket = (userId, socketId) => {
     if (!userSockets.has(userId)) userSockets.set(userId, new Set());
     userSockets.get(userId).add(socketId);
@@ -49,7 +49,7 @@ module.exports = (io) => {
     }
   };
 
-  // ── connection ────────────────────────────────────────────────────
+
   chatNamespace.on('connection', async (socket) => {
     const userId = socket.handshake.query.userId;
     if (!userId) {
@@ -60,7 +60,7 @@ module.exports = (io) => {
     addSocket(userId, socket.id);
     logger.log(`[ChatSocket] ✅ ${userId} connected (${socket.id})`);
 
-    // ── delivery-catchup (mark queued messages as delivered) ─────────
+
     if (isDbReady()) {
       try {
         for (
@@ -85,7 +85,7 @@ module.exports = (io) => {
             { $set: { delivered: true, deliveredAt: new Date() } }
           );
 
-          // Notify senders about delivery
+
           const senderIds = [...new Set(undelivered.map((m) => m.senderId))];
           for (const sid of senderIds) {
             const msgIds = undelivered
@@ -101,7 +101,7 @@ module.exports = (io) => {
       }
     }
 
-    // ── send-message ────────────────────────────────────────────────
+
     socket.on('send-message', async (payload) => {
       if (!isDbReady()) {
         socket.emit('chat-error', { error: 'Database not available' });
@@ -142,12 +142,12 @@ module.exports = (io) => {
         });
 
         const msgObj = msg.toObject();
-        msgObj.id = String(msgObj._id); // normalize for frontend
+        msgObj.id = String(msgObj._id);
 
-        // Echo back to the sender (all tabs)
+
         emitToUser(userId, 'new-message', msgObj);
 
-        // Deliver to the receiver
+
         emitToUser(receiverId, 'new-message', msgObj);
 
         if (userSockets.has(receiverId)) {
@@ -159,7 +159,7 @@ module.exports = (io) => {
       }
     });
 
-    // ── mark-seen ───────────────────────────────────────────────────
+
     socket.on('mark-seen', async ({ messageIds, senderId }) => {
       if (!isDbReady()) return;
       try {
@@ -170,19 +170,19 @@ module.exports = (io) => {
           { $set: { seen: true, seenAt: new Date() } }
         );
 
-        // Notify the original sender
+
         emitToUser(senderId, 'message-seen', { messageIds });
       } catch (err) {
         logger.error('[ChatSocket] mark-seen error:', err);
       }
     });
 
-    // ── typing indicator ────────────────────────────────────────────
+
     socket.on('typing', ({ chatId, receiverId, isTyping }) => {
       emitToUser(receiverId, 'user-typing', { chatId, userId, isTyping });
     });
 
-    // ── clear-chat ──────────────────────────────────────────────────
+
     socket.on('clear-chat', async ({ chatId, otherUserId }) => {
       if (!isDbReady()) {
         socket.emit('chat-error', { error: 'Database not available' });
@@ -197,7 +197,7 @@ module.exports = (io) => {
       }
     });
 
-    // ── disconnect ──────────────────────────────────────────────────
+
     socket.on('disconnect', () => {
       removeSocket(userId, socket.id);
       logger.log(`[ChatSocket] ❌ ${userId} disconnected (${socket.id})`);

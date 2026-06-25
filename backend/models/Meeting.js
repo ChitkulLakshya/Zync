@@ -16,7 +16,7 @@ const meetingSchema = new mongoose.Schema(
     startTime: { type: Date, default: Date.now },
     endTime: { type: Date, default: null },
 
-    // Participants JSON array
+
     participants: { type: mongoose.Schema.Types.Mixed, default: [] },
   },
   {

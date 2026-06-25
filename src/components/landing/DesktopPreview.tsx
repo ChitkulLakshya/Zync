@@ -152,35 +152,35 @@ const DesktopPreview = () => {
 
   useEffect(() => {
     const sequence = async () => {
-      // Wait for the user to scroll down to this section
+
       await new Promise((r) => setTimeout(r, 2000));
       if (hasInteractedRef.current) {
         return;
       }
       setGhostState('entering');
 
-      // Wait for it to travel to "My Workspace"
+
       await new Promise((r) => setTimeout(r, 1000));
       if (hasInteractedRef.current) {
         return;
       }
       setGhostState('clicking');
 
-      // Trigger click
+
       await new Promise((r) => setTimeout(r, 200));
       if (hasInteractedRef.current) {
         return;
       }
       setActiveSection('My Workspace');
 
-      // Leave
+
       await new Promise((r) => setTimeout(r, 400));
       if (hasInteractedRef.current) {
         return;
       }
       setGhostState('leaving');
 
-      // Done
+
       await new Promise((r) => setTimeout(r, 800));
       if (!hasInteractedRef.current) {
         setGhostState('done');
@@ -199,8 +199,8 @@ const DesktopPreview = () => {
 
     if (e && containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
-      // Calculate exact unscaled pixels to use hardware-accelerated 'x' and 'y' translates
-      // This prevents layout thrashing (flickering) that 'left' and 'top' cause.
+
+
       const scaleX = rect.width / containerRef.current.offsetWidth;
       const scaleY = rect.height / containerRef.current.offsetHeight;
       const x = (e.clientX - rect.left) / scaleX;
@@ -209,7 +209,7 @@ const DesktopPreview = () => {
     }
   };
 
-  // Fully faked user profile with pixel art avatar
+
   const mockName = 'Alex Designer';
   const mockEmail = 'alex@demo.zync.app';
   const mockLogin = 'alexdesigner';
@@ -232,7 +232,7 @@ const DesktopPreview = () => {
   const yearEnd = new Date(2026, 11, 31);
   const days = eachDayOfInterval({ start: yearStart, end: yearEnd });
 
-  // Pixel-art demo users
+
   const dummyUsers = [
     {
       uid: '1',

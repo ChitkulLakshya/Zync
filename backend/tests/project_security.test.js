@@ -1,4 +1,4 @@
-// import { describe, it, expect, mock, beforeAll, beforeEach } from "bun:test";
+
 import express from 'express';
 import request from 'supertest';
 import mongoose from 'mongoose';
@@ -28,8 +28,8 @@ jest.mock('../middleware/authMiddleware.js', () => {
   return mockTracker;
 });
 
-// Since we need to access it in the tests, we should export it or get it from the mock.
-// Actually, it's easier to just use jest.requireMock() in the tests.
+
+
 import mockAuthMiddlewareTracker from '../middleware/authMiddleware.js';
 
 jest.mock('../services/mailer.js', () => ({
@@ -104,7 +104,7 @@ describe('Project Routes Security', () => {
   });
 
   beforeEach(() => {
-    // Reset auth middleware tracker between tests
+
     mockAuthMiddlewareTracker.mockClear();
   });
 

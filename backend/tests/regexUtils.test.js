@@ -1,5 +1,5 @@
-// const { describe, it } = require("node:test");
-// const assert = require("node:assert");
+
+
 const { escapeRegExp } = require('../utils/regexUtils');
 
 describe('escapeRegExp', () => {

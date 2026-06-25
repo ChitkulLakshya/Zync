@@ -197,7 +197,7 @@ router.post('/sync', verifyToken, async (req, res) => {
       console.log(
         `[SYNC] Sending welcome notifications for newly inserted user: ${uid} (${email})`
       );
-      // Fire-and-forget: don't block response on external notifications
+
       dispatchNewUserNotifications({
         displayName: finalDisplayName,
         email: safeEmail,
@@ -205,7 +205,7 @@ router.post('/sync', verifyToken, async (req, res) => {
       });
     }
 
-    // Fire-and-forget: enrich location from IP if country is missing
+
     if (!user.country) {
       const clientIp =
         req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
@@ -288,7 +288,7 @@ router.post('/sync-github', verifyToken, async (req, res) => {
   }
 });
 
-// Detect location from client IP via GeoJS
+
 router.get('/detect-location', verifyToken, async (req, res) => {
   try {
     const clientIp =
@@ -304,7 +304,7 @@ router.get('/detect-location', verifyToken, async (req, res) => {
       });
     }
 
-    // Persist to user profile
+
     const uid = req.user.uid;
     await User.updateOne(
       { uid },
@@ -681,7 +681,7 @@ router.post('/delete/confirm', verifyToken, async (req, res) => {
     }
     console.log(`[DELETE] Removed user ${uid} from teams`);
 
-    // Delete profile photo from Cloudinary if it exists
+
     if (user.photoURL) {
       try {
         await deleteCloudinaryAsset(user.photoURL);

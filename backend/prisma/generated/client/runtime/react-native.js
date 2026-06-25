@@ -8166,12 +8166,12 @@ ${l}
 
 ## Client Snippet
 \`\`\`ts
-// PLEASE FILL YOUR CODE SNIPPET HERE
+
 \`\`\`
 
 ## Schema
 \`\`\`prisma
-// PLEASE ADD YOUR SCHEMA HERE IF POSSIBLE
+
 \`\`\`
 
 ## Prisma Engine Query
@@ -10189,4 +10189,4 @@ f();
     warnEnvConflicts,
     warnOnce,
   });
-//# sourceMappingURL=react-native.js.map
+

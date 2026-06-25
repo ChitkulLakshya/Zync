@@ -25,7 +25,7 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
   const onTaskChangeRef = useRef(onTaskChange);
   onTaskChangeRef.current = onTaskChange;
 
-  // Connect socket when user is available
+
   useEffect(() => {
     if (!userId) {
       return;
@@ -38,7 +38,7 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
     };
   }, [userId]);
 
-  // Join/leave project rooms
+
   const prevProjectIdsRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
@@ -49,14 +49,14 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
     const currentIds = new Set(projectIds);
     const prevIds = prevProjectIdsRef.current;
 
-    // Join new projects
+
     for (const id of currentIds) {
       if (!prevIds.has(id)) {
         joinProject(id);
       }
     }
 
-    // Leave removed projects
+
     for (const id of prevIds) {
       if (!currentIds.has(id)) {
         leaveProject(id);
@@ -72,7 +72,7 @@ export function useTaskUpdates({ userId, projectIds, onTaskChange }: UseTaskUpda
     };
   }, [userId, projectIds]);
 
-  // Subscribe to task events
+
   useEffect(() => {
     if (!userId) {
       return;

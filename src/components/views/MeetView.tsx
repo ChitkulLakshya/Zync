@@ -763,7 +763,7 @@ export default function MeetView({
                             newWindow.closed ||
                             typeof newWindow.closed === 'undefined'
                           ) {
-                            // Popup was blocked, copy link instead
+
                             navigator.clipboard.writeText(meeting.meetLink);
                             toast({
                               title: 'Popup Blocked',

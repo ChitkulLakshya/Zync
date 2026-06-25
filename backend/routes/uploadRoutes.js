@@ -13,13 +13,13 @@ const User = require('../models/User');
 const { normalizeDoc } = require('../utils/normalize');
 const mime = require('mime-types');
 
-// Ensure uploads directory exists
+
 const uploadDir = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Blocked MIME types (security)
+
 const BLOCKED_MIME_TYPES = [
   'image/svg+xml',
   'text/html',
@@ -28,7 +28,7 @@ const BLOCKED_MIME_TYPES = [
   'text/javascript',
 ];
 
-// Safe extension mapping based on MIME type
+
 const SAFE_EXTENSIONS = {
   'text/plain': '.txt',
   'image/png': '.png',
@@ -41,14 +41,14 @@ const SAFE_EXTENSIONS = {
   'text/csv': '.csv',
 };
 
-// Multer storage config
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = crypto.randomBytes(16).toString('hex');
-    // Derive extension from content type for safety instead of original filename
+
     const contentType = file.mimetype;
     const safeExt =
       SAFE_EXTENSIONS[contentType] || mime.extension(contentType)
@@ -60,7 +60,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (BLOCKED_MIME_TYPES.includes(file.mimetype)) {
       return cb(new Error('File type not allowed'), false);
@@ -69,7 +69,7 @@ const upload = multer({
   },
 });
 
-// POST /api/upload — general file upload (chat attachments, etc.)
+
 router.post('/', upload.single('file'), async (req, res) => {
   try {
     if (!req.file) {
@@ -88,7 +88,7 @@ router.post('/', upload.single('file'), async (req, res) => {
   }
 });
 
-// POST /api/upload/profile-photo — upload profile photo to Cloudinary
+
 router.post(
   '/profile-photo',
   authMiddleware,
@@ -101,7 +101,7 @@ router.post(
 
       const uid = req.user.uid;
 
-      // Fetch existing user to check for old photo
+
       const currentUser = await User.findOne({ uid }).lean();
       if (currentUser?.photoURL) {
         try {
@@ -112,14 +112,14 @@ router.post(
             'Failed to delete old photo from Cloudinary:',
             deleteError.message
           );
-          // We continue anyway even if deletion fails
+
         }
       }
 
-      // Upload to Cloudinary with unique ID via service
+
       const result = await uploadProfilePhoto(req.file.path, uid);
 
-      // Remove local temp file
+
       try {
         fs.unlinkSync(req.file.path);
       } catch (e) {
@@ -128,13 +128,13 @@ router.post(
 
       const photoURL = result.secure_url;
 
-      // Update user record
+
       await User.updateOne({ uid }, { $set: { photoURL } });
 
       res.json({ photoURL });
     } catch (error) {
       console.error('Error uploading profile photo:', error);
-      // Clean up temp file on error
+
       if (req.file?.path) {
         try {
           fs.unlinkSync(req.file.path);
@@ -147,7 +147,7 @@ router.post(
   }
 );
 
-// Error handler for multer errors
+
 router.use((err, req, res, next) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ message: err.message });

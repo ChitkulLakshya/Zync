@@ -13,7 +13,7 @@ const { loadSheddingMiddleware } = require('./middleware/loadShedding');
 
 const app = express();
 
-// Render/Reverse proxy support: required for correct client IP detection with express-rate-limit.
+
 app.set('trust proxy', 1);
 
 app.get('/favicon.ico', (req, res) => res.status(204).end());
@@ -21,7 +21,7 @@ app.get('/favicon.ico', (req, res) => res.status(204).end());
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:8080',
-  'http://localhost:8081', // Vite dev server (see vite.config.ts; Electron loads this URL)
+  'http://localhost:8081',
   'http://127.0.0.1:8081',
   'http://localhost:3000',
   ...(process.env.ALLOWED_ORIGINS
@@ -32,7 +32,7 @@ const allowedOrigins = [
 
 const corsOptions = {
   origin: (origin, callback) => {
-    // allow requests with no origin (like mobile apps or curl requests)
+
     if (!origin) {
       return callback(null, true);
     }
@@ -151,8 +151,8 @@ const isProduction = process.env.NODE_ENV === 'production';
 const limiter = rateLimit({
   windowMs: isProduction ? 15 * 60 * 1000 : 60 * 1000,
   max: isProduction ? 100 : 600,
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  standardHeaders: true,
+  legacyHeaders: false,
   message: {
     message:
       'Too many requests from this IP, please try again after 15 minutes',
@@ -160,11 +160,11 @@ const limiter = rateLimit({
   },
 });
 
-// Apply rate limiting to all requests
+
 app.use('/api/', limiter);
 app.use('/api/', loadSheddingMiddleware);
 
-// Keep raw body only for webhook signature verification routes.
+
 const webhookJsonParser = express.json({
   verify: (req, res, buf) => {
     req.rawBody = buf;
@@ -173,7 +173,7 @@ const webhookJsonParser = express.json({
 app.use('/api/webhooks', webhookJsonParser);
 app.use('/api/github-app', webhookJsonParser);
 
-// Use plain JSON parser for all other routes to avoid buffering raw payloads globally.
+
 app.use(express.json());
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
@@ -202,12 +202,12 @@ app.use('/api/collaborator', collaboratorRoutes);
 app.use('/api/cache/sample', require('./routes/redisCacheSampleRoutes'));
 app.use('/internal', internalMetricsRoutes);
 
-// Production / Render: serve Vite build from repo `dist/` (single process, low memory).
+
 const distPath = path.join(__dirname, '..', 'dist');
 const distIndexHtml = path.join(distPath, 'index.html');
 if (fs.existsSync(distIndexHtml)) {
   app.use(express.static(distPath));
-  // Express 5 / path-to-regexp v8: bare "*" is invalid; use named splat (see Express 5 migration guide).
+
   app.get('/{*splat}', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/internal')) {
       return next();
@@ -223,12 +223,12 @@ if (fs.existsSync(distIndexHtml)) {
   });
 }
 
-// ── Database connection with automatic retry ──────────────────────────
+
 const MONGO_OPTIONS = {
-  dbName: 'ZYNC_USER', // Oracle schema name = database name
-  retryWrites: false, // Oracle does not support retryable writes
+  dbName: 'ZYNC_USER',
+  retryWrites: false,
   tls: true,
-  tlsAllowInvalidCertificates: true, // Oracle ADB uses certs not in default CA bundle
+  tlsAllowInvalidCertificates: true,
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 60000,
   connectTimeoutMS: 30000,
@@ -271,7 +271,7 @@ connectWithRetry().catch((err) => {
   console.error('[MongoDB] Unexpected connection bootstrap error:', err);
 });
 
-// ── Redis connection (non-blocking) ────────────────────────────────────
+
 const { connectRedis } = require('./utils/redisClient');
 connectRedis();
 

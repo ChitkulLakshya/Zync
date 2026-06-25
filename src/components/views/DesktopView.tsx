@@ -287,7 +287,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             variant: 'destructive',
           });
         } finally {
-          // Redirect the user perfectly back to the "Add Project" popup in the workspace
+
           navigate('/dashboard/workspace?action=create_project', { replace: true });
         }
       };
@@ -434,7 +434,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
     const fetchData = async () => {
       const now = Date.now();
-      // Prevent burst re-fetches when dependent state updates rapidly.
+
       if (now - activityFetchLastRunRef.current < 20_000) {
         return;
       }
@@ -443,7 +443,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       try {
         const token = await currentUser.getIdToken();
 
-        // Use batching/parallelism for initial load
+
         const [sessionsRes, projectsRes, ownedTeamsRes, myTeamsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, {
             headers: { Authorization: `Bearer ${token}` },
@@ -488,7 +488,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           const normalizedMyTeams = Array.isArray(myTeamsData) ? myTeamsData : [];
           setMyTeams(normalizedMyTeams);
 
-          // Fallback for rate-limited /owned endpoint: derive owner teams from /mine.
+
           if (!ownedTeamsRes.ok) {
             const ownerTeamsFromMine = normalizedMyTeams.filter((team: any) => {
               const owner =
@@ -503,7 +503,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           }
         }
 
-        // Fetch team-member specific sessions if needed
+
         if (usersList.length > 0) {
           const teamSessionsRes = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
             method: 'POST',
@@ -523,7 +523,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     };
 
     fetchData();
-    const intervalId = setInterval(fetchData, 30000); // Throttled to 30s instead of 10s
+    const intervalId = setInterval(fetchData, 30000);
 
     return () => {
       cancelled = true;
@@ -575,7 +575,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     }
   };
 
-  // Connect to WebSocket chat when user is authenticated
+
   useEffect(() => {
     if (!currentUser || isPreview) {
       return;
@@ -588,11 +588,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     };
   }, [currentUser, isPreview]);
 
-  // Real-time task updates — refresh activity logs when tasks change
+
   useTaskUpdates({
     userId: currentUser?.uid,
     onTaskChange: (event) => {
-      // Refresh activity logs when any task event occurs
+
       if (activeSection === 'Activity log' && currentUser && !isPreview) {
         const refreshLogs = async () => {
           try {
@@ -949,7 +949,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
           className={cn(
             'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none',
             isCollapsed && 'min-w-[70px]',
-            // Animation logic: Hidden during landing, slides in when landing finishes
+
             isLanding ? 'opacity-0 invisible' : ''
           )}
         >
@@ -1084,7 +1084,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                         return;
                       }
                       localStorage.removeItem('ZYNC-active-section');
-                      localStorage.removeItem('ZYNC_HAS_SEEN_LANDING'); // Reset landing page state
+                      localStorage.removeItem('ZYNC_HAS_SEEN_LANDING');
                       await signOutAndClearState(auth);
                       navigate('/');
                     }}

@@ -24,7 +24,7 @@ function readTemplateRaw(filename) {
 }
 
 function replaceBracketFirstName(html, firstName) {
-  // Some templates use `[First Name]` style placeholders (not `{{firstName}}`).
+
   return html.replaceAll('[First Name]', firstName);
 }
 
@@ -97,7 +97,7 @@ function renderDemoByFilename(filename) {
     }
 
     default:
-      // Fallback: return as-is (still writes a demo file).
+
       return readTemplateRaw(filename);
   }
 }
@@ -119,7 +119,7 @@ function main() {
     written.push(file);
   }
 
-  // eslint-disable-next-line no-console
+
   console.log(
     `[Email template demos] Wrote ${written.length} file(s) to: ${OUT_DIR}`
   );

@@ -48,7 +48,7 @@ const analyzeArchitectureImpact = async (commits = []) => {
     };
   }
 
-  // Skip expensive remote LLM calls if no key is configured.
+
   if (!process.env.GROQ_API_KEY) {
     const taskReferenceMentions = commitMessages.filter((message) =>
       TASK_REF_REGEX.test(message)

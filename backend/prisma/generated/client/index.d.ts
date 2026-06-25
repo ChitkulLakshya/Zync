@@ -3,7 +3,7 @@
  **/
 
 import * as runtime from './runtime/library.js';
-import $Types = runtime.Types; // general types
+import $Types = runtime.Types;
 import $Public = runtime.Types.Public;
 import $Utils = runtime.Types.Utils;
 import $Extensions = runtime.Types.Extensions;
@@ -74,7 +74,7 @@ export type Team = $Result.DefaultSelection<Prisma.$TeamPayload>;
  * @example
  * ```
  * const prisma = new PrismaClient()
- * // Fetch zero or more Users
+ *
  * const users = await prisma.user.findMany()
  * ```
  *
@@ -99,7 +99,7 @@ export class PrismaClient<
    * @example
    * ```
    * const prisma = new PrismaClient()
-   * // Fetch zero or more Users
+   *
    * const users = await prisma.user.findMany()
    * ```
    *
@@ -181,7 +181,7 @@ export class PrismaClient<
    * `prisma.user`: Exposes CRUD operations for the **User** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Users
+   *
    * const users = await prisma.user.findMany()
    * ```
    */
@@ -191,7 +191,7 @@ export class PrismaClient<
    * `prisma.project`: Exposes CRUD operations for the **Project** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Projects
+   *
    * const projects = await prisma.project.findMany()
    * ```
    */
@@ -201,7 +201,7 @@ export class PrismaClient<
    * `prisma.step`: Exposes CRUD operations for the **Step** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Steps
+   *
    * const steps = await prisma.step.findMany()
    * ```
    */
@@ -211,7 +211,7 @@ export class PrismaClient<
    * `prisma.projectTask`: Exposes CRUD operations for the **ProjectTask** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more ProjectTasks
+   *
    * const projectTasks = await prisma.projectTask.findMany()
    * ```
    */
@@ -221,7 +221,7 @@ export class PrismaClient<
    * `prisma.repository`: Exposes CRUD operations for the **Repository** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Repositories
+   *
    * const repositories = await prisma.repository.findMany()
    * ```
    */
@@ -231,7 +231,7 @@ export class PrismaClient<
    * `prisma.note`: Exposes CRUD operations for the **Note** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Notes
+   *
    * const notes = await prisma.note.findMany()
    * ```
    */
@@ -241,7 +241,7 @@ export class PrismaClient<
    * `prisma.folder`: Exposes CRUD operations for the **Folder** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Folders
+   *
    * const folders = await prisma.folder.findMany()
    * ```
    */
@@ -251,7 +251,7 @@ export class PrismaClient<
    * `prisma.meeting`: Exposes CRUD operations for the **Meeting** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Meetings
+   *
    * const meetings = await prisma.meeting.findMany()
    * ```
    */
@@ -261,7 +261,7 @@ export class PrismaClient<
    * `prisma.session`: Exposes CRUD operations for the **Session** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Sessions
+   *
    * const sessions = await prisma.session.findMany()
    * ```
    */
@@ -271,7 +271,7 @@ export class PrismaClient<
    * `prisma.message`: Exposes CRUD operations for the **Message** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Messages
+   *
    * const messages = await prisma.message.findMany()
    * ```
    */
@@ -281,7 +281,7 @@ export class PrismaClient<
    * `prisma.team`: Exposes CRUD operations for the **Team** model.
    * Example usage:
    * ```ts
-   * // Fetch zero or more Teams
+   *
    * const teams = await prisma.team.findMany()
    * ```
    */
@@ -537,8 +537,8 @@ export namespace Prisma {
 
   type __Either<O extends object, K extends Key> = Omit<O, K> &
     {
-      // Merge all but K
-      [P in K]: Prisma__Pick<O, P & keyof O>; // With K possibilities
+
+      [P in K]: Prisma__Pick<O, P & keyof O>;
     }[K];
 
   type EitherStrict<O extends object, K extends Key> = Strict<__Either<O, K>>;
@@ -615,10 +615,10 @@ export namespace Prisma {
     [P in K]: T;
   };
 
-  // cause typescript not to expand types and preserve names
+
   type NoExpand<T> = T extends unknown ? T : never;
 
-  // this type assumes the passed object is entirely optional
+
   type AtLeast<O extends object, K extends string> = NoExpand<
     O extends unknown
       ?
@@ -641,9 +641,9 @@ export namespace Prisma {
   */
   export type Boolean = True | False;
 
-  // /**
-  // 1
-  // */
+
+
+
   export type True = 1;
 
   /**
@@ -657,7 +657,7 @@ export namespace Prisma {
   }[B];
 
   export type Extends<A1 extends any, A2 extends any> = [A1] extends [never]
-    ? 0 // anything `never` is false
+    ? 0
     : A1 extends A2
       ? 1
       : 0;
@@ -703,9 +703,9 @@ export namespace Prisma {
       Or<Extends<'OR', K>, Extends<'AND', K>>,
       Extends<'NOT', K>
     > extends True
-      ? // infer is only needed to not hit TS limit
-        // based on the brilliant idea of Pierre-Antoine Mills
-        // https://github.com/microsoft/TypeScript/issues/30188#issuecomment-478938437
+      ?
+
+
         T[K] extends infer TK
         ? GetHavingFields<
             UnEnumerate<TK> extends object ? Merge<UnEnumerate<TK>> : never
@@ -1647,10 +1647,10 @@ export namespace Prisma {
     /**
      * @example
      * ```
-     * // Defaults to stdout
+     *
      * log: ['query', 'info', 'warn', 'error']
      *
-     * // Emit as events
+     *
      * log: [
      *   { emit: 'stdout', level: 'query' },
      *   { emit: 'stdout', level: 'info' },
@@ -1750,7 +1750,7 @@ export namespace Prisma {
     next: (params: MiddlewareParams) => $Utils.JsPromise<T>
   ) => $Utils.JsPromise<T>;
 
-  // tested in getLogLevel.test.ts
+
   export function getLogLevel(
     log: Array<LogLevel | LogDefinition>
   ): LogLevel | undefined;
@@ -1785,7 +1785,7 @@ export namespace Prisma {
     ownedProjects?: boolean | UserCountOutputTypeCountOwnedProjectsArgs;
   };
 
-  // Custom InputTypes
+
   /**
    * UserCountOutputType without action
    */
@@ -1821,7 +1821,7 @@ export namespace Prisma {
     steps?: boolean | ProjectCountOutputTypeCountStepsArgs;
   };
 
-  // Custom InputTypes
+
   /**
    * ProjectCountOutputType without action
    */
@@ -1857,7 +1857,7 @@ export namespace Prisma {
     tasks?: boolean | StepCountOutputTypeCountTasksArgs;
   };
 
-  // Custom InputTypes
+
   /**
    * StepCountOutputType without action
    */
@@ -2277,10 +2277,10 @@ export namespace Prisma {
      * Find zero or one User that matches the filter.
      * @param {UserFindUniqueArgs} args - Arguments to find a User
      * @example
-     * // Get one User
+     *
      * const user = await prisma.user.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -2297,10 +2297,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
      * @example
-     * // Get one User
+     *
      * const user = await prisma.user.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -2318,10 +2318,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindFirstArgs} args - Arguments to find a User
      * @example
-     * // Get one User
+     *
      * const user = await prisma.user.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -2340,10 +2340,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindFirstOrThrowArgs} args - Arguments to find a User
      * @example
-     * // Get one User
+     *
      * const user = await prisma.user.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -2361,13 +2361,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Users
+     *
      * const users = await prisma.user.findMany()
      *
-     * // Get first 10 Users
+     *
      * const users = await prisma.user.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
      *
      */
@@ -2381,10 +2381,10 @@ export namespace Prisma {
      * Create a User.
      * @param {UserCreateArgs} args - Arguments to create a User.
      * @example
-     * // Create one User
+     *
      * const User = await prisma.user.create({
      *   data: {
-     *     // ... data to create a User
+     *
      *   }
      * })
      *
@@ -2401,10 +2401,10 @@ export namespace Prisma {
      * Create many Users.
      * @param {UserCreateManyArgs} args - Arguments to create many Users.
      * @example
-     * // Create many Users
+     *
      * const user = await prisma.user.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -2417,10 +2417,10 @@ export namespace Prisma {
      * Delete a User.
      * @param {UserDeleteArgs} args - Arguments to delete one User.
      * @example
-     * // Delete one User
+     *
      * const User = await prisma.user.delete({
      *   where: {
-     *     // ... filter to delete one User
+     *
      *   }
      * })
      *
@@ -2437,13 +2437,13 @@ export namespace Prisma {
      * Update one User.
      * @param {UserUpdateArgs} args - Arguments to update one User.
      * @example
-     * // Update one User
+     *
      * const user = await prisma.user.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -2460,10 +2460,10 @@ export namespace Prisma {
      * Delete zero or more Users.
      * @param {UserDeleteManyArgs} args - Arguments to filter Users to delete.
      * @example
-     * // Delete a few Users
+     *
      * const { count } = await prisma.user.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -2478,13 +2478,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Users
+     *
      * const user = await prisma.user.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -2497,16 +2497,16 @@ export namespace Prisma {
      * Create or update one User.
      * @param {UserUpsertArgs} args - Arguments to update or create a User.
      * @example
-     * // Update or create a User
+     *
      * const user = await prisma.user.upsert({
      *   create: {
-     *     // ... data to create a User
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the User we want to update
+     *
      *   }
      * })
      */
@@ -2547,10 +2547,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserCountArgs} args - Arguments to filter Users to count.
      * @example
-     * // Count the number of Users
+     *
      * const count = await prisma.user.count({
      *   where: {
-     *     // ... the filter for the Users we want to count
+     *
      *   }
      * })
      **/
@@ -2570,9 +2570,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -2598,7 +2598,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -2763,7 +2763,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'User', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * User findUnique
    */
@@ -3466,10 +3466,10 @@ export namespace Prisma {
      * Find zero or one Project that matches the filter.
      * @param {ProjectFindUniqueArgs} args - Arguments to find a Project
      * @example
-     * // Get one Project
+     *
      * const project = await prisma.project.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -3490,10 +3490,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {ProjectFindUniqueOrThrowArgs} args - Arguments to find a Project
      * @example
-     * // Get one Project
+     *
      * const project = await prisma.project.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -3515,10 +3515,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectFindFirstArgs} args - Arguments to find a Project
      * @example
-     * // Get one Project
+     *
      * const project = await prisma.project.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -3537,10 +3537,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectFindFirstOrThrowArgs} args - Arguments to find a Project
      * @example
-     * // Get one Project
+     *
      * const project = await prisma.project.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -3558,13 +3558,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Projects
+     *
      * const projects = await prisma.project.findMany()
      *
-     * // Get first 10 Projects
+     *
      * const projects = await prisma.project.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const projectWithIdOnly = await prisma.project.findMany({ select: { id: true } })
      *
      */
@@ -3578,10 +3578,10 @@ export namespace Prisma {
      * Create a Project.
      * @param {ProjectCreateArgs} args - Arguments to create a Project.
      * @example
-     * // Create one Project
+     *
      * const Project = await prisma.project.create({
      *   data: {
-     *     // ... data to create a Project
+     *
      *   }
      * })
      *
@@ -3598,10 +3598,10 @@ export namespace Prisma {
      * Create many Projects.
      * @param {ProjectCreateManyArgs} args - Arguments to create many Projects.
      * @example
-     * // Create many Projects
+     *
      * const project = await prisma.project.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -3614,10 +3614,10 @@ export namespace Prisma {
      * Delete a Project.
      * @param {ProjectDeleteArgs} args - Arguments to delete one Project.
      * @example
-     * // Delete one Project
+     *
      * const Project = await prisma.project.delete({
      *   where: {
-     *     // ... filter to delete one Project
+     *
      *   }
      * })
      *
@@ -3634,13 +3634,13 @@ export namespace Prisma {
      * Update one Project.
      * @param {ProjectUpdateArgs} args - Arguments to update one Project.
      * @example
-     * // Update one Project
+     *
      * const project = await prisma.project.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -3657,10 +3657,10 @@ export namespace Prisma {
      * Delete zero or more Projects.
      * @param {ProjectDeleteManyArgs} args - Arguments to filter Projects to delete.
      * @example
-     * // Delete a few Projects
+     *
      * const { count } = await prisma.project.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -3675,13 +3675,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Projects
+     *
      * const project = await prisma.project.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -3694,16 +3694,16 @@ export namespace Prisma {
      * Create or update one Project.
      * @param {ProjectUpsertArgs} args - Arguments to update or create a Project.
      * @example
-     * // Update or create a Project
+     *
      * const project = await prisma.project.upsert({
      *   create: {
-     *     // ... data to create a Project
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Project we want to update
+     *
      *   }
      * })
      */
@@ -3746,10 +3746,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectCountArgs} args - Arguments to filter Projects to count.
      * @example
-     * // Count the number of Projects
+     *
      * const count = await prisma.project.count({
      *   where: {
-     *     // ... the filter for the Projects we want to count
+     *
      *   }
      * })
      **/
@@ -3769,9 +3769,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -3797,7 +3797,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -3960,7 +3960,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Project', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Project findUnique
    */
@@ -4679,10 +4679,10 @@ export namespace Prisma {
      * Find zero or one Step that matches the filter.
      * @param {StepFindUniqueArgs} args - Arguments to find a Step
      * @example
-     * // Get one Step
+     *
      * const step = await prisma.step.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -4699,10 +4699,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {StepFindUniqueOrThrowArgs} args - Arguments to find a Step
      * @example
-     * // Get one Step
+     *
      * const step = await prisma.step.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -4720,10 +4720,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepFindFirstArgs} args - Arguments to find a Step
      * @example
-     * // Get one Step
+     *
      * const step = await prisma.step.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -4742,10 +4742,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepFindFirstOrThrowArgs} args - Arguments to find a Step
      * @example
-     * // Get one Step
+     *
      * const step = await prisma.step.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -4763,13 +4763,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Steps
+     *
      * const steps = await prisma.step.findMany()
      *
-     * // Get first 10 Steps
+     *
      * const steps = await prisma.step.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const stepWithIdOnly = await prisma.step.findMany({ select: { id: true } })
      *
      */
@@ -4783,10 +4783,10 @@ export namespace Prisma {
      * Create a Step.
      * @param {StepCreateArgs} args - Arguments to create a Step.
      * @example
-     * // Create one Step
+     *
      * const Step = await prisma.step.create({
      *   data: {
-     *     // ... data to create a Step
+     *
      *   }
      * })
      *
@@ -4803,10 +4803,10 @@ export namespace Prisma {
      * Create many Steps.
      * @param {StepCreateManyArgs} args - Arguments to create many Steps.
      * @example
-     * // Create many Steps
+     *
      * const step = await prisma.step.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -4819,10 +4819,10 @@ export namespace Prisma {
      * Delete a Step.
      * @param {StepDeleteArgs} args - Arguments to delete one Step.
      * @example
-     * // Delete one Step
+     *
      * const Step = await prisma.step.delete({
      *   where: {
-     *     // ... filter to delete one Step
+     *
      *   }
      * })
      *
@@ -4839,13 +4839,13 @@ export namespace Prisma {
      * Update one Step.
      * @param {StepUpdateArgs} args - Arguments to update one Step.
      * @example
-     * // Update one Step
+     *
      * const step = await prisma.step.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -4862,10 +4862,10 @@ export namespace Prisma {
      * Delete zero or more Steps.
      * @param {StepDeleteManyArgs} args - Arguments to filter Steps to delete.
      * @example
-     * // Delete a few Steps
+     *
      * const { count } = await prisma.step.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -4880,13 +4880,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Steps
+     *
      * const step = await prisma.step.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -4899,16 +4899,16 @@ export namespace Prisma {
      * Create or update one Step.
      * @param {StepUpsertArgs} args - Arguments to update or create a Step.
      * @example
-     * // Update or create a Step
+     *
      * const step = await prisma.step.upsert({
      *   create: {
-     *     // ... data to create a Step
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Step we want to update
+     *
      *   }
      * })
      */
@@ -4949,10 +4949,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepCountArgs} args - Arguments to filter Steps to count.
      * @example
-     * // Count the number of Steps
+     *
      * const count = await prisma.step.count({
      *   where: {
-     *     // ... the filter for the Steps we want to count
+     *
      *   }
      * })
      **/
@@ -4972,9 +4972,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -5000,7 +5000,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {StepGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -5165,7 +5165,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Step', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Step findUnique
    */
@@ -5903,10 +5903,10 @@ export namespace Prisma {
      * Find zero or one ProjectTask that matches the filter.
      * @param {ProjectTaskFindUniqueArgs} args - Arguments to find a ProjectTask
      * @example
-     * // Get one ProjectTask
+     *
      * const projectTask = await prisma.projectTask.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -5927,10 +5927,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {ProjectTaskFindUniqueOrThrowArgs} args - Arguments to find a ProjectTask
      * @example
-     * // Get one ProjectTask
+     *
      * const projectTask = await prisma.projectTask.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -5952,10 +5952,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskFindFirstArgs} args - Arguments to find a ProjectTask
      * @example
-     * // Get one ProjectTask
+     *
      * const projectTask = await prisma.projectTask.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -5978,10 +5978,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskFindFirstOrThrowArgs} args - Arguments to find a ProjectTask
      * @example
-     * // Get one ProjectTask
+     *
      * const projectTask = await prisma.projectTask.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -6003,13 +6003,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all ProjectTasks
+     *
      * const projectTasks = await prisma.projectTask.findMany()
      *
-     * // Get first 10 ProjectTasks
+     *
      * const projectTasks = await prisma.projectTask.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const projectTaskWithIdOnly = await prisma.projectTask.findMany({ select: { id: true } })
      *
      */
@@ -6023,10 +6023,10 @@ export namespace Prisma {
      * Create a ProjectTask.
      * @param {ProjectTaskCreateArgs} args - Arguments to create a ProjectTask.
      * @example
-     * // Create one ProjectTask
+     *
      * const ProjectTask = await prisma.projectTask.create({
      *   data: {
-     *     // ... data to create a ProjectTask
+     *
      *   }
      * })
      *
@@ -6043,10 +6043,10 @@ export namespace Prisma {
      * Create many ProjectTasks.
      * @param {ProjectTaskCreateManyArgs} args - Arguments to create many ProjectTasks.
      * @example
-     * // Create many ProjectTasks
+     *
      * const projectTask = await prisma.projectTask.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -6059,10 +6059,10 @@ export namespace Prisma {
      * Delete a ProjectTask.
      * @param {ProjectTaskDeleteArgs} args - Arguments to delete one ProjectTask.
      * @example
-     * // Delete one ProjectTask
+     *
      * const ProjectTask = await prisma.projectTask.delete({
      *   where: {
-     *     // ... filter to delete one ProjectTask
+     *
      *   }
      * })
      *
@@ -6079,13 +6079,13 @@ export namespace Prisma {
      * Update one ProjectTask.
      * @param {ProjectTaskUpdateArgs} args - Arguments to update one ProjectTask.
      * @example
-     * // Update one ProjectTask
+     *
      * const projectTask = await prisma.projectTask.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -6102,10 +6102,10 @@ export namespace Prisma {
      * Delete zero or more ProjectTasks.
      * @param {ProjectTaskDeleteManyArgs} args - Arguments to filter ProjectTasks to delete.
      * @example
-     * // Delete a few ProjectTasks
+     *
      * const { count } = await prisma.projectTask.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -6120,13 +6120,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many ProjectTasks
+     *
      * const projectTask = await prisma.projectTask.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -6139,16 +6139,16 @@ export namespace Prisma {
      * Create or update one ProjectTask.
      * @param {ProjectTaskUpsertArgs} args - Arguments to update or create a ProjectTask.
      * @example
-     * // Update or create a ProjectTask
+     *
      * const projectTask = await prisma.projectTask.upsert({
      *   create: {
-     *     // ... data to create a ProjectTask
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the ProjectTask we want to update
+     *
      *   }
      * })
      */
@@ -6191,10 +6191,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskCountArgs} args - Arguments to filter ProjectTasks to count.
      * @example
-     * // Count the number of ProjectTasks
+     *
      * const count = await prisma.projectTask.count({
      *   where: {
-     *     // ... the filter for the ProjectTasks we want to count
+     *
      *   }
      * })
      **/
@@ -6214,9 +6214,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -6242,7 +6242,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ProjectTaskGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -6404,7 +6404,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'ProjectTask', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * ProjectTask findUnique
    */
@@ -7000,10 +7000,10 @@ export namespace Prisma {
      * Find zero or one Repository that matches the filter.
      * @param {RepositoryFindUniqueArgs} args - Arguments to find a Repository
      * @example
-     * // Get one Repository
+     *
      * const repository = await prisma.repository.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -7024,10 +7024,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {RepositoryFindUniqueOrThrowArgs} args - Arguments to find a Repository
      * @example
-     * // Get one Repository
+     *
      * const repository = await prisma.repository.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -7049,10 +7049,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryFindFirstArgs} args - Arguments to find a Repository
      * @example
-     * // Get one Repository
+     *
      * const repository = await prisma.repository.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -7075,10 +7075,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryFindFirstOrThrowArgs} args - Arguments to find a Repository
      * @example
-     * // Get one Repository
+     *
      * const repository = await prisma.repository.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -7100,13 +7100,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Repositories
+     *
      * const repositories = await prisma.repository.findMany()
      *
-     * // Get first 10 Repositories
+     *
      * const repositories = await prisma.repository.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const repositoryWithIdOnly = await prisma.repository.findMany({ select: { id: true } })
      *
      */
@@ -7120,10 +7120,10 @@ export namespace Prisma {
      * Create a Repository.
      * @param {RepositoryCreateArgs} args - Arguments to create a Repository.
      * @example
-     * // Create one Repository
+     *
      * const Repository = await prisma.repository.create({
      *   data: {
-     *     // ... data to create a Repository
+     *
      *   }
      * })
      *
@@ -7140,10 +7140,10 @@ export namespace Prisma {
      * Create many Repositories.
      * @param {RepositoryCreateManyArgs} args - Arguments to create many Repositories.
      * @example
-     * // Create many Repositories
+     *
      * const repository = await prisma.repository.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -7156,10 +7156,10 @@ export namespace Prisma {
      * Delete a Repository.
      * @param {RepositoryDeleteArgs} args - Arguments to delete one Repository.
      * @example
-     * // Delete one Repository
+     *
      * const Repository = await prisma.repository.delete({
      *   where: {
-     *     // ... filter to delete one Repository
+     *
      *   }
      * })
      *
@@ -7176,13 +7176,13 @@ export namespace Prisma {
      * Update one Repository.
      * @param {RepositoryUpdateArgs} args - Arguments to update one Repository.
      * @example
-     * // Update one Repository
+     *
      * const repository = await prisma.repository.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -7199,10 +7199,10 @@ export namespace Prisma {
      * Delete zero or more Repositories.
      * @param {RepositoryDeleteManyArgs} args - Arguments to filter Repositories to delete.
      * @example
-     * // Delete a few Repositories
+     *
      * const { count } = await prisma.repository.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -7217,13 +7217,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Repositories
+     *
      * const repository = await prisma.repository.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -7236,16 +7236,16 @@ export namespace Prisma {
      * Create or update one Repository.
      * @param {RepositoryUpsertArgs} args - Arguments to update or create a Repository.
      * @example
-     * // Update or create a Repository
+     *
      * const repository = await prisma.repository.upsert({
      *   create: {
-     *     // ... data to create a Repository
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Repository we want to update
+     *
      *   }
      * })
      */
@@ -7288,10 +7288,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryCountArgs} args - Arguments to filter Repositories to count.
      * @example
-     * // Count the number of Repositories
+     *
      * const count = await prisma.repository.count({
      *   where: {
-     *     // ... the filter for the Repositories we want to count
+     *
      *   }
      * })
      **/
@@ -7311,9 +7311,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -7339,7 +7339,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {RepositoryGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -7481,7 +7481,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Repository', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Repository findUnique
    */
@@ -8075,10 +8075,10 @@ export namespace Prisma {
      * Find zero or one Note that matches the filter.
      * @param {NoteFindUniqueArgs} args - Arguments to find a Note
      * @example
-     * // Get one Note
+     *
      * const note = await prisma.note.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -8095,10 +8095,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {NoteFindUniqueOrThrowArgs} args - Arguments to find a Note
      * @example
-     * // Get one Note
+     *
      * const note = await prisma.note.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -8116,10 +8116,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteFindFirstArgs} args - Arguments to find a Note
      * @example
-     * // Get one Note
+     *
      * const note = await prisma.note.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -8138,10 +8138,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteFindFirstOrThrowArgs} args - Arguments to find a Note
      * @example
-     * // Get one Note
+     *
      * const note = await prisma.note.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -8159,13 +8159,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Notes
+     *
      * const notes = await prisma.note.findMany()
      *
-     * // Get first 10 Notes
+     *
      * const notes = await prisma.note.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const noteWithIdOnly = await prisma.note.findMany({ select: { id: true } })
      *
      */
@@ -8179,10 +8179,10 @@ export namespace Prisma {
      * Create a Note.
      * @param {NoteCreateArgs} args - Arguments to create a Note.
      * @example
-     * // Create one Note
+     *
      * const Note = await prisma.note.create({
      *   data: {
-     *     // ... data to create a Note
+     *
      *   }
      * })
      *
@@ -8199,10 +8199,10 @@ export namespace Prisma {
      * Create many Notes.
      * @param {NoteCreateManyArgs} args - Arguments to create many Notes.
      * @example
-     * // Create many Notes
+     *
      * const note = await prisma.note.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -8215,10 +8215,10 @@ export namespace Prisma {
      * Delete a Note.
      * @param {NoteDeleteArgs} args - Arguments to delete one Note.
      * @example
-     * // Delete one Note
+     *
      * const Note = await prisma.note.delete({
      *   where: {
-     *     // ... filter to delete one Note
+     *
      *   }
      * })
      *
@@ -8235,13 +8235,13 @@ export namespace Prisma {
      * Update one Note.
      * @param {NoteUpdateArgs} args - Arguments to update one Note.
      * @example
-     * // Update one Note
+     *
      * const note = await prisma.note.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -8258,10 +8258,10 @@ export namespace Prisma {
      * Delete zero or more Notes.
      * @param {NoteDeleteManyArgs} args - Arguments to filter Notes to delete.
      * @example
-     * // Delete a few Notes
+     *
      * const { count } = await prisma.note.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -8276,13 +8276,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Notes
+     *
      * const note = await prisma.note.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -8295,16 +8295,16 @@ export namespace Prisma {
      * Create or update one Note.
      * @param {NoteUpsertArgs} args - Arguments to update or create a Note.
      * @example
-     * // Update or create a Note
+     *
      * const note = await prisma.note.upsert({
      *   create: {
-     *     // ... data to create a Note
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Note we want to update
+     *
      *   }
      * })
      */
@@ -8345,10 +8345,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteCountArgs} args - Arguments to filter Notes to count.
      * @example
-     * // Count the number of Notes
+     *
      * const count = await prisma.note.count({
      *   where: {
-     *     // ... the filter for the Notes we want to count
+     *
      *   }
      * })
      **/
@@ -8368,9 +8368,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -8396,7 +8396,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NoteGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -8542,7 +8542,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Note', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Note findUnique
    */
@@ -9133,10 +9133,10 @@ export namespace Prisma {
      * Find zero or one Folder that matches the filter.
      * @param {FolderFindUniqueArgs} args - Arguments to find a Folder
      * @example
-     * // Get one Folder
+     *
      * const folder = await prisma.folder.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -9153,10 +9153,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {FolderFindUniqueOrThrowArgs} args - Arguments to find a Folder
      * @example
-     * // Get one Folder
+     *
      * const folder = await prisma.folder.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -9174,10 +9174,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderFindFirstArgs} args - Arguments to find a Folder
      * @example
-     * // Get one Folder
+     *
      * const folder = await prisma.folder.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -9196,10 +9196,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderFindFirstOrThrowArgs} args - Arguments to find a Folder
      * @example
-     * // Get one Folder
+     *
      * const folder = await prisma.folder.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -9217,13 +9217,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Folders
+     *
      * const folders = await prisma.folder.findMany()
      *
-     * // Get first 10 Folders
+     *
      * const folders = await prisma.folder.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const folderWithIdOnly = await prisma.folder.findMany({ select: { id: true } })
      *
      */
@@ -9237,10 +9237,10 @@ export namespace Prisma {
      * Create a Folder.
      * @param {FolderCreateArgs} args - Arguments to create a Folder.
      * @example
-     * // Create one Folder
+     *
      * const Folder = await prisma.folder.create({
      *   data: {
-     *     // ... data to create a Folder
+     *
      *   }
      * })
      *
@@ -9257,10 +9257,10 @@ export namespace Prisma {
      * Create many Folders.
      * @param {FolderCreateManyArgs} args - Arguments to create many Folders.
      * @example
-     * // Create many Folders
+     *
      * const folder = await prisma.folder.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -9273,10 +9273,10 @@ export namespace Prisma {
      * Delete a Folder.
      * @param {FolderDeleteArgs} args - Arguments to delete one Folder.
      * @example
-     * // Delete one Folder
+     *
      * const Folder = await prisma.folder.delete({
      *   where: {
-     *     // ... filter to delete one Folder
+     *
      *   }
      * })
      *
@@ -9293,13 +9293,13 @@ export namespace Prisma {
      * Update one Folder.
      * @param {FolderUpdateArgs} args - Arguments to update one Folder.
      * @example
-     * // Update one Folder
+     *
      * const folder = await prisma.folder.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -9316,10 +9316,10 @@ export namespace Prisma {
      * Delete zero or more Folders.
      * @param {FolderDeleteManyArgs} args - Arguments to filter Folders to delete.
      * @example
-     * // Delete a few Folders
+     *
      * const { count } = await prisma.folder.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -9334,13 +9334,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Folders
+     *
      * const folder = await prisma.folder.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -9353,16 +9353,16 @@ export namespace Prisma {
      * Create or update one Folder.
      * @param {FolderUpsertArgs} args - Arguments to update or create a Folder.
      * @example
-     * // Update or create a Folder
+     *
      * const folder = await prisma.folder.upsert({
      *   create: {
-     *     // ... data to create a Folder
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Folder we want to update
+     *
      *   }
      * })
      */
@@ -9405,10 +9405,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderCountArgs} args - Arguments to filter Folders to count.
      * @example
-     * // Count the number of Folders
+     *
      * const count = await prisma.folder.count({
      *   where: {
-     *     // ... the filter for the Folders we want to count
+     *
      *   }
      * })
      **/
@@ -9428,9 +9428,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -9456,7 +9456,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {FolderGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -9602,7 +9602,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Folder', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Folder findUnique
    */
@@ -10225,10 +10225,10 @@ export namespace Prisma {
      * Find zero or one Meeting that matches the filter.
      * @param {MeetingFindUniqueArgs} args - Arguments to find a Meeting
      * @example
-     * // Get one Meeting
+     *
      * const meeting = await prisma.meeting.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -10249,10 +10249,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {MeetingFindUniqueOrThrowArgs} args - Arguments to find a Meeting
      * @example
-     * // Get one Meeting
+     *
      * const meeting = await prisma.meeting.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -10274,10 +10274,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingFindFirstArgs} args - Arguments to find a Meeting
      * @example
-     * // Get one Meeting
+     *
      * const meeting = await prisma.meeting.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -10296,10 +10296,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingFindFirstOrThrowArgs} args - Arguments to find a Meeting
      * @example
-     * // Get one Meeting
+     *
      * const meeting = await prisma.meeting.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -10317,13 +10317,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Meetings
+     *
      * const meetings = await prisma.meeting.findMany()
      *
-     * // Get first 10 Meetings
+     *
      * const meetings = await prisma.meeting.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const meetingWithIdOnly = await prisma.meeting.findMany({ select: { id: true } })
      *
      */
@@ -10337,10 +10337,10 @@ export namespace Prisma {
      * Create a Meeting.
      * @param {MeetingCreateArgs} args - Arguments to create a Meeting.
      * @example
-     * // Create one Meeting
+     *
      * const Meeting = await prisma.meeting.create({
      *   data: {
-     *     // ... data to create a Meeting
+     *
      *   }
      * })
      *
@@ -10357,10 +10357,10 @@ export namespace Prisma {
      * Create many Meetings.
      * @param {MeetingCreateManyArgs} args - Arguments to create many Meetings.
      * @example
-     * // Create many Meetings
+     *
      * const meeting = await prisma.meeting.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -10373,10 +10373,10 @@ export namespace Prisma {
      * Delete a Meeting.
      * @param {MeetingDeleteArgs} args - Arguments to delete one Meeting.
      * @example
-     * // Delete one Meeting
+     *
      * const Meeting = await prisma.meeting.delete({
      *   where: {
-     *     // ... filter to delete one Meeting
+     *
      *   }
      * })
      *
@@ -10393,13 +10393,13 @@ export namespace Prisma {
      * Update one Meeting.
      * @param {MeetingUpdateArgs} args - Arguments to update one Meeting.
      * @example
-     * // Update one Meeting
+     *
      * const meeting = await prisma.meeting.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -10416,10 +10416,10 @@ export namespace Prisma {
      * Delete zero or more Meetings.
      * @param {MeetingDeleteManyArgs} args - Arguments to filter Meetings to delete.
      * @example
-     * // Delete a few Meetings
+     *
      * const { count } = await prisma.meeting.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -10434,13 +10434,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Meetings
+     *
      * const meeting = await prisma.meeting.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -10453,16 +10453,16 @@ export namespace Prisma {
      * Create or update one Meeting.
      * @param {MeetingUpsertArgs} args - Arguments to update or create a Meeting.
      * @example
-     * // Update or create a Meeting
+     *
      * const meeting = await prisma.meeting.upsert({
      *   create: {
-     *     // ... data to create a Meeting
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Meeting we want to update
+     *
      *   }
      * })
      */
@@ -10505,10 +10505,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingCountArgs} args - Arguments to filter Meetings to count.
      * @example
-     * // Count the number of Meetings
+     *
      * const count = await prisma.meeting.count({
      *   where: {
-     *     // ... the filter for the Meetings we want to count
+     *
      *   }
      * })
      **/
@@ -10528,9 +10528,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -10556,7 +10556,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MeetingGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -10705,7 +10705,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Meeting', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Meeting findUnique
    */
@@ -11346,10 +11346,10 @@ export namespace Prisma {
      * Find zero or one Session that matches the filter.
      * @param {SessionFindUniqueArgs} args - Arguments to find a Session
      * @example
-     * // Get one Session
+     *
      * const session = await prisma.session.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -11370,10 +11370,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {SessionFindUniqueOrThrowArgs} args - Arguments to find a Session
      * @example
-     * // Get one Session
+     *
      * const session = await prisma.session.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -11395,10 +11395,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionFindFirstArgs} args - Arguments to find a Session
      * @example
-     * // Get one Session
+     *
      * const session = await prisma.session.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -11417,10 +11417,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionFindFirstOrThrowArgs} args - Arguments to find a Session
      * @example
-     * // Get one Session
+     *
      * const session = await prisma.session.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -11438,13 +11438,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Sessions
+     *
      * const sessions = await prisma.session.findMany()
      *
-     * // Get first 10 Sessions
+     *
      * const sessions = await prisma.session.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const sessionWithIdOnly = await prisma.session.findMany({ select: { id: true } })
      *
      */
@@ -11458,10 +11458,10 @@ export namespace Prisma {
      * Create a Session.
      * @param {SessionCreateArgs} args - Arguments to create a Session.
      * @example
-     * // Create one Session
+     *
      * const Session = await prisma.session.create({
      *   data: {
-     *     // ... data to create a Session
+     *
      *   }
      * })
      *
@@ -11478,10 +11478,10 @@ export namespace Prisma {
      * Create many Sessions.
      * @param {SessionCreateManyArgs} args - Arguments to create many Sessions.
      * @example
-     * // Create many Sessions
+     *
      * const session = await prisma.session.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -11494,10 +11494,10 @@ export namespace Prisma {
      * Delete a Session.
      * @param {SessionDeleteArgs} args - Arguments to delete one Session.
      * @example
-     * // Delete one Session
+     *
      * const Session = await prisma.session.delete({
      *   where: {
-     *     // ... filter to delete one Session
+     *
      *   }
      * })
      *
@@ -11514,13 +11514,13 @@ export namespace Prisma {
      * Update one Session.
      * @param {SessionUpdateArgs} args - Arguments to update one Session.
      * @example
-     * // Update one Session
+     *
      * const session = await prisma.session.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -11537,10 +11537,10 @@ export namespace Prisma {
      * Delete zero or more Sessions.
      * @param {SessionDeleteManyArgs} args - Arguments to filter Sessions to delete.
      * @example
-     * // Delete a few Sessions
+     *
      * const { count } = await prisma.session.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -11555,13 +11555,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Sessions
+     *
      * const session = await prisma.session.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -11574,16 +11574,16 @@ export namespace Prisma {
      * Create or update one Session.
      * @param {SessionUpsertArgs} args - Arguments to update or create a Session.
      * @example
-     * // Update or create a Session
+     *
      * const session = await prisma.session.upsert({
      *   create: {
-     *     // ... data to create a Session
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Session we want to update
+     *
      *   }
      * })
      */
@@ -11626,10 +11626,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionCountArgs} args - Arguments to filter Sessions to count.
      * @example
-     * // Count the number of Sessions
+     *
      * const count = await prisma.session.count({
      *   where: {
-     *     // ... the filter for the Sessions we want to count
+     *
      *   }
      * })
      **/
@@ -11649,9 +11649,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -11677,7 +11677,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {SessionGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -11823,7 +11823,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<'Session', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Session findUnique
    */
@@ -12550,10 +12550,10 @@ export namespace Prisma {
      * Find zero or one Message that matches the filter.
      * @param {MessageFindUniqueArgs} args - Arguments to find a Message
      * @example
-     * // Get one Message
+     *
      * const message = await prisma.message.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -12574,10 +12574,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {MessageFindUniqueOrThrowArgs} args - Arguments to find a Message
      * @example
-     * // Get one Message
+     *
      * const message = await prisma.message.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -12599,10 +12599,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageFindFirstArgs} args - Arguments to find a Message
      * @example
-     * // Get one Message
+     *
      * const message = await prisma.message.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -12621,10 +12621,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageFindFirstOrThrowArgs} args - Arguments to find a Message
      * @example
-     * // Get one Message
+     *
      * const message = await prisma.message.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -12642,13 +12642,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Messages
+     *
      * const messages = await prisma.message.findMany()
      *
-     * // Get first 10 Messages
+     *
      * const messages = await prisma.message.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const messageWithIdOnly = await prisma.message.findMany({ select: { id: true } })
      *
      */
@@ -12662,10 +12662,10 @@ export namespace Prisma {
      * Create a Message.
      * @param {MessageCreateArgs} args - Arguments to create a Message.
      * @example
-     * // Create one Message
+     *
      * const Message = await prisma.message.create({
      *   data: {
-     *     // ... data to create a Message
+     *
      *   }
      * })
      *
@@ -12682,10 +12682,10 @@ export namespace Prisma {
      * Create many Messages.
      * @param {MessageCreateManyArgs} args - Arguments to create many Messages.
      * @example
-     * // Create many Messages
+     *
      * const message = await prisma.message.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -12698,10 +12698,10 @@ export namespace Prisma {
      * Delete a Message.
      * @param {MessageDeleteArgs} args - Arguments to delete one Message.
      * @example
-     * // Delete one Message
+     *
      * const Message = await prisma.message.delete({
      *   where: {
-     *     // ... filter to delete one Message
+     *
      *   }
      * })
      *
@@ -12718,13 +12718,13 @@ export namespace Prisma {
      * Update one Message.
      * @param {MessageUpdateArgs} args - Arguments to update one Message.
      * @example
-     * // Update one Message
+     *
      * const message = await prisma.message.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -12741,10 +12741,10 @@ export namespace Prisma {
      * Delete zero or more Messages.
      * @param {MessageDeleteManyArgs} args - Arguments to filter Messages to delete.
      * @example
-     * // Delete a few Messages
+     *
      * const { count } = await prisma.message.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -12759,13 +12759,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Messages
+     *
      * const message = await prisma.message.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -12778,16 +12778,16 @@ export namespace Prisma {
      * Create or update one Message.
      * @param {MessageUpsertArgs} args - Arguments to update or create a Message.
      * @example
-     * // Update or create a Message
+     *
      * const message = await prisma.message.upsert({
      *   create: {
-     *     // ... data to create a Message
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Message we want to update
+     *
      *   }
      * })
      */
@@ -12830,10 +12830,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageCountArgs} args - Arguments to filter Messages to count.
      * @example
-     * // Count the number of Messages
+     *
      * const count = await prisma.message.count({
      *   where: {
-     *     // ... the filter for the Messages we want to count
+     *
      *   }
      * })
      **/
@@ -12853,9 +12853,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -12881,7 +12881,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MessageGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -13036,7 +13036,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<'Message', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Message findUnique
    */
@@ -13611,10 +13611,10 @@ export namespace Prisma {
      * Find zero or one Team that matches the filter.
      * @param {TeamFindUniqueArgs} args - Arguments to find a Team
      * @example
-     * // Get one Team
+     *
      * const team = await prisma.team.findUnique({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -13631,10 +13631,10 @@ export namespace Prisma {
      * if no matches were found.
      * @param {TeamFindUniqueOrThrowArgs} args - Arguments to find a Team
      * @example
-     * // Get one Team
+     *
      * const team = await prisma.team.findUniqueOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -13652,10 +13652,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamFindFirstArgs} args - Arguments to find a Team
      * @example
-     * // Get one Team
+     *
      * const team = await prisma.team.findFirst({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -13674,10 +13674,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamFindFirstOrThrowArgs} args - Arguments to find a Team
      * @example
-     * // Get one Team
+     *
      * const team = await prisma.team.findFirstOrThrow({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      */
@@ -13695,13 +13695,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamFindManyArgs} args - Arguments to filter and select certain fields only.
      * @example
-     * // Get all Teams
+     *
      * const teams = await prisma.team.findMany()
      *
-     * // Get first 10 Teams
+     *
      * const teams = await prisma.team.findMany({ take: 10 })
      *
-     * // Only select the `id`
+     *
      * const teamWithIdOnly = await prisma.team.findMany({ select: { id: true } })
      *
      */
@@ -13715,10 +13715,10 @@ export namespace Prisma {
      * Create a Team.
      * @param {TeamCreateArgs} args - Arguments to create a Team.
      * @example
-     * // Create one Team
+     *
      * const Team = await prisma.team.create({
      *   data: {
-     *     // ... data to create a Team
+     *
      *   }
      * })
      *
@@ -13735,10 +13735,10 @@ export namespace Prisma {
      * Create many Teams.
      * @param {TeamCreateManyArgs} args - Arguments to create many Teams.
      * @example
-     * // Create many Teams
+     *
      * const team = await prisma.team.createMany({
      *   data: [
-     *     // ... provide data here
+     *
      *   ]
      * })
      *
@@ -13751,10 +13751,10 @@ export namespace Prisma {
      * Delete a Team.
      * @param {TeamDeleteArgs} args - Arguments to delete one Team.
      * @example
-     * // Delete one Team
+     *
      * const Team = await prisma.team.delete({
      *   where: {
-     *     // ... filter to delete one Team
+     *
      *   }
      * })
      *
@@ -13771,13 +13771,13 @@ export namespace Prisma {
      * Update one Team.
      * @param {TeamUpdateArgs} args - Arguments to update one Team.
      * @example
-     * // Update one Team
+     *
      * const team = await prisma.team.update({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -13794,10 +13794,10 @@ export namespace Prisma {
      * Delete zero or more Teams.
      * @param {TeamDeleteManyArgs} args - Arguments to filter Teams to delete.
      * @example
-     * // Delete a few Teams
+     *
      * const { count } = await prisma.team.deleteMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   }
      * })
      *
@@ -13812,13 +13812,13 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
-     * // Update many Teams
+     *
      * const team = await prisma.team.updateMany({
      *   where: {
-     *     // ... provide filter here
+     *
      *   },
      *   data: {
-     *     // ... provide data here
+     *
      *   }
      * })
      *
@@ -13831,16 +13831,16 @@ export namespace Prisma {
      * Create or update one Team.
      * @param {TeamUpsertArgs} args - Arguments to update or create a Team.
      * @example
-     * // Update or create a Team
+     *
      * const team = await prisma.team.upsert({
      *   create: {
-     *     // ... data to create a Team
+     *
      *   },
      *   update: {
-     *     // ... in case it already exists, update
+     *
      *   },
      *   where: {
-     *     // ... the filter for the Team we want to update
+     *
      *   }
      * })
      */
@@ -13881,10 +13881,10 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamCountArgs} args - Arguments to filter Teams to count.
      * @example
-     * // Count the number of Teams
+     *
      * const count = await prisma.team.count({
      *   where: {
-     *     // ... the filter for the Teams we want to count
+     *
      *   }
      * })
      **/
@@ -13904,9 +13904,9 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
      * @example
-     * // Ordered by age ascending
-     * // Where email contains prisma.io
-     * // Limited to the 10 users
+     *
+     *
+     *
      * const aggregations = await prisma.user.aggregate({
      *   _avg: {
      *     age: true,
@@ -13932,7 +13932,7 @@ export namespace Prisma {
      * Read more here: https://pris.ly/d/null-undefined
      * @param {TeamGroupByArgs} args - Group by arguments.
      * @example
-     * // Group by city, order by createdAt, get count
+     *
      * const result = await prisma.user.groupBy({
      *   by: ['city', 'createdAt'],
      *   orderBy: {
@@ -14076,7 +14076,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<'Team', 'DateTime'>;
   }
 
-  // Custom InputTypes
+
   /**
    * Team findUnique
    */

@@ -10,28 +10,28 @@ const projectSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    ownerUid: { type: String, required: true }, // Denormalized Firebase UID for auth checks
+    ownerUid: { type: String, required: true },
 
-    team: { type: [String], default: [] }, // Firebase UIDs
+    team: { type: [String], default: [] },
 
-    // GitHub link
+
     githubRepo: { type: String, default: null },
     githubRepoName: { type: String, default: null },
     githubRepoOwner: { type: String, default: null },
     githubRepoIds: { type: [String], default: [] },
 
-    // AI-generated architecture
+
     architecture: { type: mongoose.Schema.Types.Mixed, default: null },
     architectureCacheKey: { type: String, default: null },
     architectureAnalyzedAt: { type: Date, default: null },
 
-    // Google Meet
+
     meetLink: { type: String, default: null },
 
-    // Tracking
+
     isTrackingActive: { type: Boolean, default: false },
 
-    // Webhook aggregation snapshot (used to reduce per-commit fanout/write load)
+
     lastWebhookEventAt: { type: Date, default: null },
     lastWebhookCommitCount: { type: Number, default: 0 },
     lastWebhookCommitShas: { type: [String], default: [] },

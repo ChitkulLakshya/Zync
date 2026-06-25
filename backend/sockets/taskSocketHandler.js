@@ -11,13 +11,13 @@ const logger = console;
 module.exports = (io) => {
   const taskNamespace = io.of('/tasks');
 
-  // userId → Set<socket.id>
+
   const userSockets = new Map();
 
-  // projectId → Set<userId>
+
   const projectUsers = new Map();
 
-  // ── helpers ───────────────────────────────────────────────────────
+
   const addSocket = (userId, socketId) => {
     if (!userSockets.has(userId)) userSockets.set(userId, new Set());
     userSockets.get(userId).add(socketId);
@@ -51,7 +51,7 @@ module.exports = (io) => {
     }
   };
 
-  // ── exposed helpers for routes ────────────────────────────────────
+
 
   /**
    * Emit a task event to all connected members of a project.
@@ -73,7 +73,7 @@ module.exports = (io) => {
     emitToUser(userId, event, data);
   };
 
-  // ── connection ────────────────────────────────────────────────────
+
   taskNamespace.on('connection', (socket) => {
     const userId = socket.handshake.query.userId;
     if (!userId) {
@@ -84,7 +84,7 @@ module.exports = (io) => {
     addSocket(userId, socket.id);
     logger.log(`[TaskSocket] ✅ ${userId} connected (${socket.id})`);
 
-    // ── join-project ────────────────────────────────────────────────
+
     socket.on('join-project', (projectId) => {
       if (!projectId) return;
       addProjectUser(String(projectId), userId);
@@ -92,7 +92,7 @@ module.exports = (io) => {
       logger.log(`[TaskSocket] ${userId} joined project ${projectId}`);
     });
 
-    // ── leave-project ───────────────────────────────────────────────
+
     socket.on('leave-project', (projectId) => {
       if (!projectId) return;
       removeProjectUser(String(projectId), userId);
@@ -100,11 +100,11 @@ module.exports = (io) => {
       logger.log(`[TaskSocket] ${userId} left project ${projectId}`);
     });
 
-    // ── disconnect ──────────────────────────────────────────────────
+
     socket.on('disconnect', () => {
       removeSocket(userId, socket.id);
 
-      // Clean up all project rooms this socket was in
+
       const rooms = [...socket.rooms];
       for (const room of rooms) {
         if (room.startsWith('project:')) {

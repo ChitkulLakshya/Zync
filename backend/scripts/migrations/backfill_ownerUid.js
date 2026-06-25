@@ -33,7 +33,7 @@ async function backfill() {
     return;
   }
 
-  // Build a map of ownerId -> uid
+
   const ownerIds = [...new Set(projects.map((p) => p.ownerId.toString()))];
   const owners = await User.find({ _id: { $in: ownerIds } })
     .select('_id uid')

@@ -78,7 +78,7 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
     onSuccess: (data) => {
       toast.success('Team created successfully!');
 
-      // Sync to Firestore for persistent analytics
+
       if (data && auth.currentUser) {
         createTeamSync(
           data.id || data._id,
@@ -89,7 +89,7 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
         );
       }
 
-      // Invalidate queries to refresh UI
+
       queryClient.invalidateQueries({ queryKey: ['me', auth.currentUser?.uid] });
       queryClient.invalidateQueries({ queryKey: ['myTeams', auth.currentUser?.uid] });
 

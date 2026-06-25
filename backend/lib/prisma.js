@@ -8,9 +8,9 @@ if (!globalForPrisma.prisma) {
 
 const prisma = globalForPrisma.prisma;
 
-// ── DB readiness flag ─────────────────────────────────────────────────
-// Prisma connects lazily; this flag tracks whether the first $connect()
-// succeeded so that socket handlers can skip DB work gracefully.
+
+
+
 let _dbReady = false;
 
 async function ensureConnected(retries = 5, delayMs = 5000) {

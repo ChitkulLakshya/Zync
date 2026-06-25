@@ -23,13 +23,13 @@ export const useUserSync = () => {
         const firstName = parts[0] || '';
         const lastName = parts.slice(1).join(' ') || '';
 
-        // Detect timezone from browser (instant, no API needed)
+
         const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
         try {
           const token = await user.getIdToken();
 
-          // Sync user data with backend (includes timezone)
+
           const syncRes = await fetch(`${API_BASE_URL}/api/users/sync`, {
             method: 'POST',
             headers: {
@@ -50,10 +50,10 @@ export const useUserSync = () => {
             throw new Error(`User sync failed: ${syncRes.status}`);
           }
 
-          // Fire-and-forget: enrich location from IP (non-blocking)
+
           detectLocation().catch(() => {});
 
-          // Prefetch essential data (same query key as useMe)
+
           await queryClient.prefetchQuery({
             queryKey: ['me', user.uid],
             queryFn: async () => {
@@ -74,10 +74,10 @@ export const useUserSync = () => {
             },
           });
 
-          // Do not invalidate here — that would force an immediate refetch and defeat local cache.
+
         } catch {
-          // Backend can be temporarily unavailable in local/dev setups.
-          // Keep UI functional and avoid noisy console errors.
+
+
         } finally {
           syncInProgress.current = false;
         }

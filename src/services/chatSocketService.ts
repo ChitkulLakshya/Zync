@@ -87,7 +87,7 @@ export function getSocket(): Socket | null {
   return socket;
 }
 
-// ── Emit helpers ─────────────────────────────────────────────────────
+
 
 export function sendMessage(payload: {
   chatId: string;
@@ -118,7 +118,7 @@ export function clearChat(chatId: string, otherUserId: string) {
   socket?.emit('clear-chat', { chatId, otherUserId });
 }
 
-// ── Subscribe / unsubscribe ──────────────────────────────────────────
+
 
 export function onMessage(cb: MessageCallback) {
   messageListeners.add(cb);

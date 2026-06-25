@@ -10,7 +10,7 @@ const noteSchema = new mongoose.Schema(
     projectId: { type: String, default: null },
     sharedWith: { type: [String], default: [] },
 
-    // Yjs collaborative state
+
     yjsState: { type: Buffer, default: null },
   },
   {

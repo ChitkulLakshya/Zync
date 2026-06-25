@@ -13,14 +13,14 @@ const projectTaskSchema = new mongoose.Schema(
     createdBy: { type: String, default: null },
     assignedBy: { type: String, default: null },
 
-    // GitHub commit linkage
+
     commitCode: { type: String, default: null },
     commitMessage: { type: String, default: null },
     commitUrl: { type: String, default: null },
     commitAuthor: { type: String, default: null },
     commitTimestamp: { type: Date, default: null },
 
-    // GitHub repo link
+
     repoIds: { type: [String], default: [] },
 
     stepId: {

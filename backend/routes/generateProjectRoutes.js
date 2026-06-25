@@ -13,7 +13,7 @@ const groq = process.env.GROQ_API_KEY
   ? new Groq({ apiKey: process.env.GROQ_API_KEY })
   : null;
 
-// POST /api/generate-project — AI-generate project with architecture/steps/tasks
+
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { name, description, ownerId } = req.body;
@@ -34,7 +34,7 @@ router.post('/', authMiddleware, async (req, res) => {
         });
     }
 
-    // Find or verify user
+
     let user = await User.findOne({ uid }).lean();
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -110,7 +110,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
         .json({ message: 'Failed to parse AI response', error: e.message });
     }
 
-    // Create project
+
     const newProject = await Project.create({
       name,
       description,
@@ -119,7 +119,7 @@ Return ONLY a valid JSON object (no markdown, no explanation) with this exact st
       team: [],
     });
 
-    // Create steps and tasks (bulk insert)
+
     const stepsData = (generatedData.steps || []).map((stepData, idx) => ({
       title: stepData.title,
       description: stepData.description || '',

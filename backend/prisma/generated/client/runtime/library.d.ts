@@ -404,7 +404,7 @@ export declare namespace Decimal {
   export type Modulo = Rounding | 9;
   export type Value = string | number | Decimal;
 
-  // http://mikemcl.github.io/decimal.js/#constructor-properties
+
   export interface Config {
     precision?: number;
     rounding?: Rounding;
@@ -632,7 +632,7 @@ export declare class Decimal {
   static min(...n: Decimal.Value[]): Decimal;
   static mod(x: Decimal.Value, y: Decimal.Value): Decimal;
   static mul(x: Decimal.Value, y: Decimal.Value): Decimal;
-  static noConflict(): Decimal.Constructor; // Browser only
+  static noConflict(): Decimal.Constructor;
   static pow(base: Decimal.Value, exponent: Decimal.Value): Decimal;
   static random(significantDigits?: number): Decimal;
   static round(n: Decimal.Value): Decimal;
@@ -979,7 +979,7 @@ export declare namespace DMMF {
     delete = 'delete',
     deleteMany = 'deleteMany',
     groupBy = 'groupBy',
-    count = 'count', // TODO: count does not actually exist, why?
+    count = 'count',
     aggregate = 'aggregate',
     findRaw = 'findRaw',
     aggregateRaw = 'aggregateRaw',
@@ -3150,10 +3150,10 @@ export declare type PrismaClientOptions = {
   /**
    * @example
    * \`\`\`
-   * // Defaults to stdout
+   *
    * log: ['query', 'info', 'warn']
    *
-   * // Emit as events
+   *
    * log: [
    *  { emit: 'stdout', level: 'query' },
    *  { emit: 'stdout', level: 'info' },

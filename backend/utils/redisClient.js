@@ -21,8 +21,8 @@ function getRedisClient() {
       ? ['1', 'true', 'yes', 'on'].includes(rejectUnauthorizedEnv)
       : false;
     const redisUrl = useTls
-      ? rawRedisUrl.replace(/^redis:\/\//i, 'rediss://')
-      : rawRedisUrl.replace(/^rediss:\/\//i, 'redis://');
+      ? rawRedisUrl.replace(/^redis:\/\
+      : rawRedisUrl.replace(/^rediss:\/\
 
     client = createClient({
       url: redisUrl,
@@ -38,7 +38,7 @@ function getRedisClient() {
             console.error('[Redis] Max reconnection attempts reached');
             return new Error('Max reconnection attempts');
           }
-          // Exponential backoff capped at 3 seconds
+
           const delay = Math.min(retries * 100, 3000);
           console.warn(
             `[Redis] Reconnecting in ${delay}ms (attempt ${retries})`
@@ -88,7 +88,7 @@ async function disconnectRedis() {
     try {
       await client.quit();
     } catch {
-      // Ignore errors on shutdown
+
     }
     client = null;
     ready = false;

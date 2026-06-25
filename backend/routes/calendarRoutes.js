@@ -2,9 +2,9 @@ const express = require('express');
 const router = express.Router();
 const verifyToken = require('../middleware/authMiddleware');
 
-// In-memory cache: key = `${year}-${countryCode}`, value = { timestamp, data }
+
 const holidayCache = new Map();
-const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
 
 router.get('/holidays', verifyToken, async (req, res) => {
   const year = parseInt(req.query.year, 10) || new Date().getFullYear();
@@ -71,7 +71,7 @@ router.get('/holidays', verifyToken, async (req, res) => {
   }
 });
 
-// Available countries from Nager.Date (cached for 7 days)
+
 let countriesCache = null;
 const COUNTRIES_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 

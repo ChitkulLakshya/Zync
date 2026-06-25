@@ -46,19 +46,19 @@ const CalendarView = () => {
     return localStorage.getItem(STORAGE_KEY) || 'US';
   });
 
-  // Fetch available countries once
+
   useEffect(() => {
     fetchCountries()
       .then(setCountries)
       .catch(() => {});
   }, []);
 
-  // Persist country selection
+
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, selectedCountry);
   }, [selectedCountry]);
 
-  // Load holidays + projects when country or year changes
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -94,7 +94,7 @@ const CalendarView = () => {
     loadData();
   }, [selectedCountry]);
 
-  // Sorted countries for the dropdown
+
   const sortedCountries = useMemo(
     () => [...countries].sort((a, b) => a.name.localeCompare(b.name)),
     [countries]

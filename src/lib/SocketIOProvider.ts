@@ -36,7 +36,7 @@ export class SocketIOProvider extends Observable<string> {
       this.emit('status', [{ status: 'connected' }]);
       this.socket.emit('join-note', noteId);
 
-      // Send our initial state so others receive our document
+
       setTimeout(() => {
         try {
           const stateUpdate = Y.encodeStateAsUpdate(this.doc);
@@ -59,7 +59,7 @@ export class SocketIOProvider extends Observable<string> {
     });
 
     this.socket.on('user-joined-yjs', () => {
-      // Someone joined! Send them our current state.
+
       try {
         const stateUpdate = Y.encodeStateAsUpdate(this.doc);
         this.socket.emit('note-update', { noteId, update: Array.from(stateUpdate) });

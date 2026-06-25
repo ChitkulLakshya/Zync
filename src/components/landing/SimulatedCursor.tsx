@@ -6,7 +6,7 @@ interface SimulatedCursorProps {
   y: number | string;
   isClicking?: boolean;
   name?: string;
-  color?: string; // Tailwind color class or hex, fallback to foreground
+  color?: string;
 }
 
 export const SimulatedCursor = ({
@@ -24,7 +24,7 @@ export const SimulatedCursor = ({
       transition={{
         type: 'spring',
         stiffness: 260,
-        damping: 28, // Using motion.spring.smooth
+        damping: 28,
         mass: 0.5,
       }}
     >

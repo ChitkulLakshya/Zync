@@ -336,7 +336,7 @@ const MessagesPage = ({
                       displayName: req.senderName,
                       email: req.senderEmail,
                       photoURL: req.senderPhoto,
-                      isRequest: true, // Marker
+                      isRequest: true,
                       requestMessage: req.message,
                     })
                   }
@@ -482,7 +482,7 @@ const MessagesPage = ({
               />
             </div>
           ) : selectedUser.isRequest ? (
-            // REQUEST ACCEPTANCE UI
+
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
               <Avatar className="w-24 h-24 mb-4 ring-4 ring-border/10">
                 <AvatarImage
@@ -523,7 +523,7 @@ const MessagesPage = ({
               </div>
             </div>
           ) : (
-            // SEND Request UI (existing)
+
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center space-y-6 animate-in fade-in zoom-in-95 duration-300">
               <div className="w-24 h-24 rounded-full bg-card/50 flex items-center justify-center mb-2 ring-1 ring-border/10">
                 <UserPlus className="w-10 h-10 text-muted-foreground" />

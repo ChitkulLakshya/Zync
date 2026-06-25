@@ -11,12 +11,12 @@ const Index = () => {
   const [phase, setPhase] = useState<'loading' | 'snapping' | 'done'>('loading');
 
   useEffect(() => {
-    // Hold the loading shimmer for a brief moment to establish the calm aesthetic
+
     const timer1 = setTimeout(() => {
       setPhase('snapping');
     }, 1200);
 
-    // After the snap/blur effect, reveal the main page
+
     const timer2 = setTimeout(() => {
       setPhase('done');
     }, 1500);

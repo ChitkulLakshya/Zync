@@ -55,7 +55,7 @@ function searchCache(query) {
   return items;
 }
 
-// Returns cached results instantly
+
 async function getInspiration(req, res) {
   const query = (req.query.q || '').toLowerCase().trim();
 
@@ -77,7 +77,7 @@ async function getInspiration(req, res) {
   }
 }
 
-// Scrapes Dribbble and returns live results
+
 async function getLiveScrape(req, res) {
   const query = (req.query.q || '').toLowerCase().trim();
 

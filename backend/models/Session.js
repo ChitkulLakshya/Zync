@@ -10,10 +10,10 @@ const sessionSchema = new mongoose.Schema(
     activeDuration: { type: Number, default: 0 },
     lastAction: { type: Date, default: Date.now },
 
-    date: { type: String, required: true }, // YYYY-MM-DD
+    date: { type: String, required: true },
     deviceInfo: { type: String, default: null },
 
-    // Optional event log fields for activity feed (e.g., task assigned).
+
     eventType: { type: String, default: 'session' },
     title: { type: String, default: null },
     source: { type: String, default: null },

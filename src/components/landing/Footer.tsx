@@ -12,7 +12,7 @@ const Footer = () => {
     if (element) {
       let top = element.getBoundingClientRect().top + window.scrollY;
       if (sectionId !== 'home') {
-        top -= 80; // account for navbar
+        top -= 80;
       }
       if (sectionId === 'mobile' && window.innerWidth >= 1024) {
         top =

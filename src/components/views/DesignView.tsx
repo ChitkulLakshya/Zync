@@ -95,7 +95,7 @@ const DesignView = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Fetch initial results on mount
+
   useEffect(() => {
     search('web design');
     setHasSearched(true);

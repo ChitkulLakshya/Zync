@@ -25,7 +25,7 @@ export interface Note {
   permissions?: Record<string, 'viewer' | 'editor' | 'owner'>;
 }
 
-// ── Folders ──────────────────────────────────────────────────────────
+
 
 /**
  * Replaces Firestore onSnapshot subscription with a one-shot fetch + polling.

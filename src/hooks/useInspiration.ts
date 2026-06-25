@@ -58,7 +58,7 @@ export const useInspiration = (): UseInspirationReturn => {
       reset();
 
       try {
-        // 1) Return cached results instantly
+
         const cacheRes = await fetch(
           `${API_BASE_URL}/api/inspiration?q=${encodeURIComponent(query)}`
         );
@@ -73,7 +73,7 @@ export const useInspiration = (): UseInspirationReturn => {
         }
         setLoading(false);
 
-        // 2) Scrape live results in the background
+
         setScraping(true);
         const scrapeRes = await fetch(
           `${API_BASE_URL}/api/inspiration/scrape?q=${encodeURIComponent(query)}`
