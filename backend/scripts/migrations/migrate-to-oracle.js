@@ -9,17 +9,17 @@
 
 const { MongoClient } = require('mongodb');
 
-// ── Source: MongoDB Atlas ──────────────────────────────────────────────
+
 const SOURCE_URI =
   'mongodb+srv://chitkullakshya_db_user:GAJbowG2cvz59ub0@zync.qgvjh6f.mongodb.net/?appName=Zync';
 const SOURCE_DB = 'zync-production';
 
-// ── Target: Oracle Autonomous DB 26ai ──────────────────────────────────
+
 const TARGET_URI =
   'mongodb://ZYNC_USER:Zync_Backend_Pass_2026%21@G76E39710C3F23C-ZYNCDB.adb.ap-hyderabad-1.oraclecloudapps.com:27017/ZYNC_USER?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true';
 const TARGET_DB = 'ZYNC_USER';
 
-// How many documents to insert at once (lower = safer for Oracle API)
+
 const BATCH_SIZE = 100;
 
 async function migrate() {
@@ -27,7 +27,7 @@ async function migrate() {
   const targetClient = new MongoClient(TARGET_URI);
 
   try {
-    // ── Connect ────────────────────────────────────────────────────────
+
     console.log('🔗 Connecting to Atlas (source)...');
     await sourceClient.connect();
     const sourceDb = sourceClient.db(SOURCE_DB);
@@ -38,7 +38,7 @@ async function migrate() {
     const targetDb = targetClient.db(TARGET_DB);
     console.log('✅ Oracle ADB connected.\n');
 
-    // ── List source collections ────────────────────────────────────────
+
     const collections = await sourceDb.listCollections().toArray();
     console.log(`Found ${collections.length} collections to migrate:\n`);
     for (const col of collections) {
@@ -47,7 +47,7 @@ async function migrate() {
     }
     console.log('');
 
-    // ── Migrate each collection ────────────────────────────────────────
+
     let totalDocs = 0;
     const results = [];
 
@@ -77,7 +77,7 @@ async function migrate() {
           try {
             await targetCol.insertMany(batch, { ordered: false });
           } catch (err) {
-            // Duplicate key errors are OK (re-running the script)
+
             if (err.code !== 11000) {
               console.error(
                 `   ⚠️  Batch insert error in "${name}": ${err.message}`
@@ -90,7 +90,7 @@ async function migrate() {
         }
       }
 
-      // flush remaining
+
       if (batch.length > 0) {
         try {
           await targetCol.insertMany(batch, { ordered: false });
@@ -109,7 +109,7 @@ async function migrate() {
       results.push({ collection: name, status: 'migrated', count: migrated });
     }
 
-    // ── Summary ────────────────────────────────────────────────────────
+
     console.log('\n══════════════════════════════════════════════');
     console.log('  MIGRATION COMPLETE');
     console.log('══════════════════════════════════════════════');
