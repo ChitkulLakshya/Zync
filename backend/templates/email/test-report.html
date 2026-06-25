@@ -1,0 +1,228 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Zync Test Execution Report</title>
+  </head>
+  <body
+    style="
+      font-family:
+        'Inter',
+        -apple-system,
+        BlinkMacSystemFont,
+        'Segoe UI',
+        Roboto,
+        sans-serif;
+      background-color: #000000;
+      margin: 0;
+      padding: 0;
+      color: #e5e7eb;
+      -webkit-font-smoothing: antialiased;
+    "
+  >
+    <table
+      role="presentation"
+      width="100%"
+      cellpadding="0"
+      cellspacing="0"
+      style="
+        background: linear-gradient(
+          180deg,
+          #000000 0%,
+          #050505 50%,
+          #000000 100%
+        );
+        background-color: #000000;
+      "
+    >
+      <tr>
+        <td align="center" style="padding: 48px 16px 64px">
+          <table
+            role="presentation"
+            width="540"
+            cellpadding="0"
+            cellspacing="0"
+            style="
+              max-width: 540px;
+              width: 100%;
+              background: linear-gradient(145deg, #0b0f19 0%, #05070a 100%);
+              border: 1px solid rgba(14, 165, 233, 0.15);
+              border-radius: 20px;
+              overflow: hidden;
+              box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.4),
+                0 0 60px rgba(14, 165, 233, 0.08);
+            "
+          >
+            <!-- Glow accent bar at top -->
+            <tr>
+              <td
+                style="
+                  height: 3px;
+                  background: linear-gradient(
+                    90deg,
+                    #0ea5e9 0%,
+                    #38bdf8 50%,
+                    #0ea5e9 100%
+                  );
+                "
+              ></td>
+            </tr>
+
+            <!-- Header with Logo -->
+            <tr>
+              <td align="center" style="padding: 36px 40px 20px">
+                <img
+                  src="{{logoUrl}}"
+                  alt="ZYNC"
+                  width="85"
+                  height="auto"
+                  style="display: block; width: 85px; height: auto"
+                />
+              </td>
+            </tr>
+
+            <!-- Main Content -->
+            <tr>
+              <td style="padding: 0 40px 44px">
+                <h1
+                  style="
+                    font-size: 26px;
+                    font-weight: 700;
+                    margin: 0 0 14px;
+                    color: #ffffff;
+                    text-align: center;
+                    letter-spacing: -0.02em;
+                  "
+                >
+                  Weekly Test Execution Report
+                </h1>
+
+                <p
+                  style="
+                    color: #94a3b8;
+                    line-height: 1.75;
+                    font-size: 15px;
+                    margin: 0 0 36px;
+                    text-align: center;
+                  "
+                >
+                  Here is the summary of the latest automated end-to-end testing run for Zync.<br/>
+                  Executed on <strong style="color: #ffffff; font-weight: 600">{{date}}</strong>
+                </p>
+
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellpadding="0"
+                  cellspacing="0"
+                  style="
+                    background: rgba(15, 23, 42, 0.6);
+                    border: 1px solid rgba(14, 165, 233, 0.2);
+                    border-radius: 14px;
+                    margin-bottom: 32px;
+                    box-shadow: 0 0 20px rgba(14, 165, 233, 0.06);
+                  "
+                >
+                  <tr>
+                    <td style="padding: 24px 28px">
+                      <table
+                        role="presentation"
+                        width="100%"
+                        cellpadding="0"
+                        cellspacing="0"
+                      >
+                        <tr>
+                          <td style="padding-bottom: 14px">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                              <tr>
+                                <td style="color: #64748b; font-size: 13px; font-weight: 500;">
+                                  🧪 Total Tests Passed
+                                </td>
+                                <td align="right" style="color: #22c55e; font-weight: 700; font-size: 16px;">
+                                  {{passed}}
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding-bottom: 16px">
+                            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.3), transparent);"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding-bottom: 14px">
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                              <tr>
+                                <td style="color: #64748b; font-size: 13px; font-weight: 500;">
+                                  ❌ Total Tests Failed
+                                </td>
+                                <td align="right" style="color: #ef4444; font-weight: 700; font-size: 16px;">
+                                  {{failed}}
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding-bottom: 16px">
+                            <div style="height: 1px; background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.3), transparent);"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                              <tr>
+                                <td style="color: #64748b; font-size: 13px; font-weight: 500;">
+                                  ⏱ Execution Time
+                                </td>
+                                <td align="right" style="color: #f1f5f9; font-weight: 600; font-size: 14px;">
+                                  {{duration}}
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Detailed Test Results Container -->
+                <div style="margin-top: 24px; padding: 20px; background: rgba(0, 0, 0, 0.3); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.05);">
+                  <h3 style="color: #ffffff; margin-top: 0; font-size: 16px; margin-bottom: 12px;">Execution Output:</h3>
+                  <div style="font-family: monospace; font-size: 12px; color: #a1a1aa; white-space: pre-wrap; background: #000; padding: 12px; border-radius: 6px; overflow-x: auto; max-height: 250px;">{{testOutput}}</div>
+                </div>
+
+                <div style="margin-top: 32px; text-align: center;">
+                  <a href="{{repoUrl}}" style="background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 25px; font-weight: 700; font-size: 14px; display: inline-block; box-shadow: 0 4px 16px rgba(14, 165, 233, 0.4);">
+                    View CI Logs
+                  </a>
+                </div>
+
+              </td>
+            </tr>
+          </table>
+
+          <table
+            role="presentation"
+            width="540"
+            cellpadding="0"
+            cellspacing="0"
+            style="max-width: 540px; width: 100%"
+          >
+            <tr>
+              <td align="center" style="padding: 36px 40px">
+                <p style="font-size: 12px; color: #475569; margin: 0 0 10px">
+                  Generated by <strong style="color: #0ea5e9">Zync Automated Testing</strong>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
