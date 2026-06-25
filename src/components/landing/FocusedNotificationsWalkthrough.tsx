@@ -25,27 +25,27 @@ export const FocusedNotificationsWalkthrough = () => {
       if (!active) {
         return;
       }
-      setStep(1); // Cursor moves to bell
+      setStep(1);
       await new Promise((r) => setTimeout(r, 800));
       if (!active) {
         return;
       }
-      setStep(2); // Clicks bell
+      setStep(2);
       await new Promise((r) => setTimeout(r, 1500));
       if (!active) {
         return;
       }
-      setStep(3); // Moves to notification
+      setStep(3);
       await new Promise((r) => setTimeout(r, 800));
       if (!active) {
         return;
       }
-      setStep(4); // Clicks notification
+      setStep(4);
       await new Promise((r) => setTimeout(r, 3000));
       if (!active) {
         return;
       }
-      sequence(); // Loop
+      sequence();
     };
     sequence();
     return () => {
@@ -188,13 +188,13 @@ export const FocusedNotificationsWalkthrough = () => {
           step === 0
             ? { x: '50%', y: '60%' }
             : step === 1
-              ? { x: '95%', y: '10%' } // Move to bell
+              ? { x: '95%', y: '10%' }
               : step === 2
-                ? { x: '95%', y: '10%' } // Click bell
+                ? { x: '95%', y: '10%' }
                 : step === 3
-                  ? { x: isMobile ? '80%' : '75%', y: '40%' } // Move to notification
+                  ? { x: isMobile ? '80%' : '75%', y: '40%' }
                   : step === 4
-                    ? { x: isMobile ? '80%' : '75%', y: '40%' } // Click notification
+                    ? { x: isMobile ? '80%' : '75%', y: '40%' }
                     : { x: '50%', y: '60%' };
         return (
           <SimulatedCursor x={cursorPos.x} y={cursorPos.y} isClicking={step === 2 || step === 4} />
