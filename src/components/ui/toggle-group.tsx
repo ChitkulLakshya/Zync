@@ -1,4 +1,4 @@
-// Refactored for Liquid Glass: relies on toggle.tsx which has been refactored
+
 import * as React from 'react';
 import * as ToggleGroupPrimitive from '@radix-ui/react-toggle-group';
 import { type VariantProps } from 'class-variance-authority';
