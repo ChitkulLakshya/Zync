@@ -96,7 +96,7 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: 📥 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
       # Step 2: Validate YAML Structure
@@ -257,7 +257,7 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: 📥 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
       # Step 2: Transform Config Format
@@ -344,7 +344,7 @@ jobs:
       # -----------------------------------------------------------------------
 
       - name: 📥 Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       # -----------------------------------------------------------------------
       # Step 2: Compare Labels
