@@ -55,7 +55,7 @@ const WelcomeToZync = () => {
         navigate('/login', { replace: true });
         return;
       }
-      // Guard route: existing users should not stay on /welcome.
+
       void postLoginRedirect(navigate, u);
     });
   }, [navigate]);
