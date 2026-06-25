@@ -59,7 +59,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Mark unseen messages as seen when the chat is loaded/viewed
+
   useEffect(() => {
     if (messages.length > 0 && currentUser) {
       const unseenIds = messages
@@ -67,7 +67,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
         .map((m) => m.id);
 
       if (unseenIds.length > 0) {
-        // Simple grouped approach
+
         const senderIds = [
           ...new Set(messages.filter((m) => unseenIds.includes(m.id)).map((m) => m.senderId)),
         ];

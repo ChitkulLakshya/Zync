@@ -117,7 +117,7 @@ function extractOwnerUid(team: any): string {
 
 function isCompletedTask(t: any): boolean {
   const s = normStatus(t?.status);
-  // Auto-ticked implies status is 'done' or 'complete'
+
   return s.includes('complete') || s === 'done';
 }
 
@@ -130,7 +130,7 @@ function isInProgressTask(t: any): boolean {
     t?.commitUrl || t?.commitMessage || t?.commitTimestamp || t?.commitInfo?.message
   );
 
-  // Only count tasks that have a real commit attached.
+
   if (!hasCommitEvidence) {
     return false;
   }
@@ -145,7 +145,7 @@ function isOverdueTask(t: any): boolean {
   const d = t?.dueDate || t?.deadline;
   const hasCommits = !!(t?.commitUrl || t?.commitMessage);
 
-  // Task opened and made some commits but wasn't completed via Zync's last commit logic
+
   if (hasCommits && (!d || new Date(d).getTime() < Date.now())) {
     return true;
   }
@@ -237,7 +237,7 @@ export default function ActivityLogView({
     if (!normalizedCurrentUserId) {
       return;
     }
-    // Keep Firestore teams aligned with backend source of truth to avoid owner/member mismatch.
+
     syncTeamsFromApi(
       [
         ...(Array.isArray(ownedTeams) ? ownedTeams : []),
@@ -281,7 +281,7 @@ export default function ActivityLogView({
     return Array.from(map.values());
   }, [myTeamsFromApi, myTeamsFromHook]);
 
-  // Merge API teams and Firestore teams
+
   const allTeams = useMemo(() => {
     const map = new Map<string, any>();
 
@@ -319,7 +319,7 @@ export default function ActivityLogView({
       });
     });
 
-    // Fallback: inject currently selected team from /users/me payload when team APIs fail.
+
     if (currentTeamId && !map.has(currentTeamId)) {
       map.set(currentTeamId, {
         id: currentTeamId,
@@ -459,7 +459,7 @@ export default function ActivityLogView({
     if (selectedTeamId === 'all') {
       return;
     }
-    // Keep current selection during transient reload/rate-limit gaps.
+
     if (normalizedTeamFilterOptions.length === 0) {
       return;
     }
@@ -469,7 +469,7 @@ export default function ActivityLogView({
     }
   }, [selectedTeamId, normalizedTeamFilterOptions, currentUserId]);
 
-  // Persistence for task progress
+
   const { stats: persistedStats, saveStats } = useTaskPersistence(
     selectedUserId === 'all' ? undefined : selectedUserId
   );
@@ -491,7 +491,7 @@ export default function ActivityLogView({
       return found;
     }
     if (selectedUserId === currentUserId) {
-      // Fallback to current authenticated user info if not in users list
+
       return {
         uid: currentUserId,
         displayName: currentUserDisplayName || currentUserEmail?.split('@')[0] || 'You',
@@ -499,7 +499,7 @@ export default function ActivityLogView({
         photoURL: currentUserPhotoURL || null,
       };
     }
-    // Secondary fallback: resolve from selected team's embedded member objects.
+
     const selectedTeam = allTeams.find((t: any) => t.id === selectedTeamId);
     const rawMember = (selectedTeam?.members || []).find((m: any) => {
       if (!m) {
@@ -557,7 +557,7 @@ export default function ActivityLogView({
       }
     });
 
-    // Prefer enriched user profiles when available.
+
     const fromUsers = users
       .filter((u: any) => {
         const hasMembership =
@@ -575,7 +575,7 @@ export default function ActivityLogView({
       map.set(u.uid, u)
     );
 
-    // Include embedded member objects (when API sends rich member entries on team payload).
+
     (team.members || []).forEach((member: any) => {
       if (!member || typeof member === 'string') {
         return;
@@ -591,7 +591,7 @@ export default function ActivityLogView({
       });
     });
 
-    // Fallback when /api/users is rate-limited: show UID-based options so filtering still works.
+
     teamUids.forEach((uid) => {
       if (!map.has(uid)) {
         map.set(uid, { uid, label: uid === currentUserId ? 'You' : uid, photoURL: null });
@@ -643,7 +643,7 @@ export default function ActivityLogView({
         return false;
       }
 
-      // Always honor explicit user selection first (including default self view)
+
       if (selectedUserId !== 'all') {
         const assignedTo = task?.assignedTo;
         const assignedUserIds = Array.isArray(task?.assignedUserIds) ? task.assignedUserIds : [];
@@ -651,14 +651,14 @@ export default function ActivityLogView({
       }
 
       if (selectedTeamId !== 'all') {
-        // Check if the user is a member of the selected team
+
         const isMemberOfSelectedTeam =
-          users.find((u) => u.uid === selectedUserId)?.teamId === selectedTeamId; // Fallback
+          users.find((u) => u.uid === selectedUserId)?.teamId === selectedTeamId;
 
         const assignedTo = task?.assignedTo;
         const assignedUserIds = Array.isArray(task?.assignedUserIds) ? task.assignedUserIds : [];
 
-        // If filtering by specific team, check if assigned users are in that team
+
         const isUserInTeam = (uid: string) => {
           const u = users.find((usr) => usr.uid === uid);
           return u?.teamMemberships?.includes(selectedTeamId);
@@ -667,7 +667,7 @@ export default function ActivityLogView({
         return isUserInTeam(assignedTo) || assignedUserIds.some(isUserInTeam);
       }
 
-      // Default (no filter or current user only if not leader)
+
       if (!isLeader) {
         const assignedTo = task?.assignedTo;
         const assignedUserIds = Array.isArray(task?.assignedUserIds) ? task.assignedUserIds : [];
@@ -704,7 +704,7 @@ export default function ActivityLogView({
   }, [selectedUserId, selectedTeamId, teamSessions, users, allTeams]);
 
   const taskStats = useMemo(() => {
-    // If we have persisted stats for a selected member, use those (since we might not have their full task list)
+
     if (selectedUserId !== 'all' && selectedUserId !== currentUserId && persistedStats) {
       return persistedStats;
     }
@@ -742,7 +742,7 @@ export default function ActivityLogView({
 
     let total = list.reduce((acc, s) => acc + (s.activeDuration || 0), 0);
 
-    // Add current elapsed time if viewing self or a team which self is a member of
+
     const isSelfInSelection =
       selectedUserId === currentUserId ||
       (selectedUserId === 'all' &&
@@ -756,7 +756,7 @@ export default function ActivityLogView({
     return total;
   }, [selectedUserId, selectedTeamId, teamSessions, users, allTeams, currentUserId, elapsedTime]);
 
-  // Sync stats to Firestore for current user
+
   useEffect(() => {
     if (selectedUserId !== 'all' && selectedUserId === currentUserId) {
       saveStats({
@@ -910,14 +910,14 @@ export default function ActivityLogView({
       });
     });
 
-    // If leader, add team sessions to the feed
+
     if (isLeader && Array.isArray(teamSessions)) {
       teamSessions.forEach((session, idx) => {
         if (selectedUserId !== 'all' && session.userId !== selectedUserId) {
           return;
         }
 
-        // Skip if session is already in activityLogs (though unlikely to overlap perfectly)
+
         if (
           activityLogs.some(
             (al) => al.startTime === session.startTime && al.userId === session.userId
@@ -931,7 +931,7 @@ export default function ActivityLogView({
         const dur = session.activeDuration ?? Math.round((end.getTime() - start.getTime()) / 1000);
         const member = users.find((u) => u.uid === session.userId);
 
-        // Get logo from team
+
         const team = allTeams.find((t) => t.id === selectedTeamId);
         const logoId = team?.logoId || getDeterministicLogoId(selectedTeamId || 'default');
 
