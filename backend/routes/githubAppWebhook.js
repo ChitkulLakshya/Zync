@@ -19,7 +19,7 @@ const debugWebhookLog = (...args) => {
 
 registerWebhookProcessor(processGithubWebhookJob);
 
-// POST /api/github-app/webhook — enqueue webhook for async processing
+
 router.post('/webhook', verifyGithub, async (req, res) => {
   try {
     const event = req.headers['x-github-event'];
@@ -59,7 +59,7 @@ router.post('/webhook', verifyGithub, async (req, res) => {
   }
 });
 
-// GET /api/github-app/webhook/jobs/:deliveryId — lightweight internal async status endpoint
+
 router.get('/webhook/jobs/:deliveryId', (req, res) => {
   const { deliveryId } = req.params;
   const job = getWebhookJobStatus(deliveryId);

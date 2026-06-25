@@ -6,7 +6,7 @@ const Repository = require('../models/Repository');
 const { normalizeDoc } = require('../utils/normalize');
 const { getProjectWithSteps } = require('../utils/projectHelper');
 
-// POST /api/link/link-repo — link a GitHub repo to a project
+
 router.post('/link-repo', authMiddleware, async (req, res) => {
   try {
     const { projectId, githubRepoId } = req.body;
@@ -25,7 +25,7 @@ router.post('/link-repo', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    // Upsert repository record
+
     let repo = await Repository.findOne({ githubRepoId }).lean();
     if (!repo) {
       repo = (
@@ -33,7 +33,7 @@ router.post('/link-repo', authMiddleware, async (req, res) => {
       ).toObject();
     }
 
-    // Add githubRepoId to project if not already present
+
     const currentIds = project.githubRepoIds || [];
     if (!currentIds.includes(githubRepoId)) {
       const newIds = [...currentIds, githubRepoId];
@@ -51,7 +51,7 @@ router.post('/link-repo', authMiddleware, async (req, res) => {
   }
 });
 
-// POST /api/link/unlink-repo — remove a GitHub repo from a project
+
 router.post('/unlink-repo', authMiddleware, async (req, res) => {
   try {
     const { projectId, githubRepoId } = req.body;
