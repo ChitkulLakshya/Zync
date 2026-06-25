@@ -79,7 +79,7 @@ const Login = () => {
         title: 'Login Error',
         description: decodeURIComponent(authError),
       });
-      navigate('/login', { replace: true }); // clear URL
+      navigate('/login', { replace: true });
     } else if (customToken) {
       signInWithCustomToken(auth, customToken)
         .then(async (cred) => {

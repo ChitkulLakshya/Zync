@@ -354,7 +354,7 @@ const ProjectDetails = () => {
     };
   }, [id]);
 
-  // Real-time task updates via dedicated task socket
+
   const fetchProjectRef = useRef(fetchProject);
   fetchProjectRef.current = fetchProject;
 
@@ -362,7 +362,7 @@ const ProjectDetails = () => {
     userId: currentUser?.uid,
     projectIds: id ? [id] : [],
     onTaskChange: useCallback((_event: 'created' | 'updated' | 'deleted' | 'assigned') => {
-      // Refetch the full project to get latest task data
+
       fetchProjectRef.current();
     }, []),
   });
