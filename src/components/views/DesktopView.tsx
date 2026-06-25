@@ -83,12 +83,6 @@ import ProjectDetails from '@/pages/ProjectDetails';
 import TeamGateway from './TeamGateway';
 import MeetView from './MeetView';
 import { usePresence } from '@/hooks/usePresence';
-import {
-  Separator as PanelResizeHandle,
-  Panel,
-  Group as PanelGroup,
-  PanelImperativeHandle as ImperativePanelHandle,
-} from 'react-resizable-panels';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useSectionTransitionLoader } from '@/loading/useSectionTransitionLoader';
@@ -120,31 +114,23 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   });
   const { beginTransition, showCompactSpinner } = useSectionTransitionLoader('desktop');
 
-  const sidebarRef = useRef<ImperativePanelHandle>(null);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
   const [usersList, setUsersList] = useState<any[]>([]);
 
   const toggleSidebar = () => {
-    const panel = sidebarRef.current;
-    if (panel) {
-      if (panel.isCollapsed()) {
-        panel.expand();
-      } else {
-        panel.collapse();
-      }
-    }
+    setIsCollapsed(prev => !prev);
   };
 
   const handleMouseEnter = () => {
-    if (!isLocked) {
-      sidebarRef.current?.expand();
+    if (!isLocked && isCollapsed) {
+      setIsCollapsed(false);
     }
   };
 
   const handleMouseLeave = () => {
-    if (!isLocked) {
-      sidebarRef.current?.collapse();
+    if (!isLocked && !isCollapsed) {
+      setIsCollapsed(true);
     }
   };
 
@@ -917,24 +903,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     <div className="h-screen w-full flex flex-col overflow-hidden bg-sidebar">
       {/* Top Banner (if any) */}
 
-      <PanelGroup
-        orientation="horizontal"
-        id="zync-desktop-main-layout-v10"
-        className="relative z-[1] h-full w-full bg-sidebar"
-      >
+      <div className="relative z-[1] flex h-full w-full bg-sidebar overflow-hidden">
         {/* Sidebar Panel - The Base Tray */}
-        <Panel
-          panelRef={sidebarRef}
-          id="zync-sidebar-v10"
-          defaultSize={16}
-          minSize={12}
-          maxSize={22}
-          collapsible={true}
-          collapsedSize={5}
-          onResize={(size) => setIsCollapsed(size.asPercentage <= 6)}
+        <div
           className={cn(
-            'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full border-none',
-            isCollapsed && 'min-w-[70px]'
+            'relative bg-transparent flex flex-col transition-all duration-300 ease-in-out h-full shrink-0 border-none select-none z-10 overflow-hidden',
+            isCollapsed ? 'w-[76px]' : 'w-[260px]'
           )}
         >
           {/* Sidebar Content */}
@@ -1080,13 +1054,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </DropdownMenu>
             </div>
           </div>
-        </Panel>
-
-        <PanelResizeHandle className="w-1.5 bg-transparent hover:bg-foreground/10 transition-colors cursor-col-resize z-30" />
+        </div>
 
         {/* Main Content Panel - The Floating Canvas */}
-        <Panel id="zync-canvas-v10" defaultSize={84} className="min-h-0 bg-transparent py-2 pr-2">
-          <div className="h-full w-full p-0 bg-transparent">
+        <div className="flex-1 min-w-0 h-full bg-transparent py-2 pr-2 relative z-20 overflow-hidden flex flex-col">
+          <div className="h-full w-full p-0 bg-transparent flex flex-col min-h-0">
             <div className="h-full w-full bg-background border border-sidebar-border/40 shadow-elevation4 rounded-[32px] overflow-hidden relative flex flex-col">
               {/* Header - Always show for main app content */}
               <div className="flex items-center justify-between px-8 py-5 bg-transparent backdrop-blur-none sticky top-0 z-20">
@@ -1216,8 +1188,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
               </div>
             </div>
           </div>
-        </Panel>
-      </PanelGroup>
+        </div>
+      </div>
     </div>
   );
 };
