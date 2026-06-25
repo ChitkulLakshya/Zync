@@ -340,7 +340,7 @@ router.post('/', authMiddleware, async (req, res) => {
       isTrackingActive: !!(githubRepoName && githubRepoOwner),
     });
 
-    // Create default steps (bulk insert)
+
     await Step.insertMany(
       defaultSteps.map((s) => ({ ...s, projectId: newProject._id }))
     );
@@ -570,7 +570,7 @@ router.post('/generate', authMiddleware, async (req, res) => {
       team: [],
     });
 
-    // Create steps and tasks (bulk insert)
+
     const stepsData = (generatedData.steps || []).map((stepData, idx) => ({
       title: stepData.title,
       description: stepData.description || '',
@@ -617,7 +617,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const cached = await cache.getJson(cacheKey);
     if (cached) return res.json(cached);
 
-    // Fetch owned/team projects and assigned tasks in parallel
+
     const [projects, assignedTasks] = await Promise.all([
       getProjectsWithSteps({
         $or: [{ ownerUid }, { team: ownerUid }],
@@ -644,7 +644,7 @@ router.get('/', authMiddleware, async (req, res) => {
       }
     }
 
-    // Merge and deduplicate
+
     const projectMap = new Map();
     [...projects, ...assignedProjects].forEach((p) => projectMap.set(p.id, p));
     const allProjects = Array.from(projectMap.values());
@@ -758,7 +758,7 @@ router.delete('/:id', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
-    // Delete tasks, steps, then project
+
     const steps = await Step.find({ projectId: project._id })
       .select('_id')
       .lean();
@@ -846,7 +846,7 @@ router.post(
       }).lean();
       if (!step) return res.status(404).json({ message: 'Step not found' });
 
-      // Send assignment email
+
       if (assignedTo) {
         const assigneeUser = await User.findOne({ uid: assignedTo }).lean();
         if (assigneeUser && assigneeUser.email) {
@@ -1026,7 +1026,7 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
 
     if (!query) return res.json([]);
 
-    // Get all projects user has access to
+
     const ownedProjects = await Project.find({ ownerUid: userId })
       .select('_id name')
       .lean();
@@ -1034,7 +1034,7 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
       .select('_id name')
       .lean();
 
-    // Get projects via task assignment
+
     const assignedTasks = await ProjectTask.find({ assignedTo: userId })
       .select('stepId')
       .lean();
@@ -1063,14 +1063,14 @@ router.get('/tasks/search', authMiddleware, async (req, res) => {
 
     if (projectIds.length === 0) return res.json([]);
 
-    // Get steps for these projects
+
     const steps = await Step.find({ projectId: { $in: projectIds } }).lean();
     const stepMap = new Map();
     steps.forEach((s) => stepMap.set(s._id.toString(), s));
 
     const stepIds = steps.map((s) => s._id);
 
-    // Search tasks using MongoDB $regex instead of in-memory filtering
+
     const matchedTasks = await ProjectTask.find({
       stepId: { $in: stepIds },
       title: { $regex: query, $options: 'i' },

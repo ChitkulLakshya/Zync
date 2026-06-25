@@ -251,7 +251,7 @@ router.get('/:id', verifyToken, async (req, res) => {
             (folder.collaborators &&
               folder.collaborators.includes(req.user.uid)))
         ) {
-          // Access via folder collaboration — allowed
+
         } else {
           return res.status(403).json({ error: 'Access denied' });
         }

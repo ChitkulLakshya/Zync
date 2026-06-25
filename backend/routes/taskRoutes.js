@@ -226,7 +226,7 @@ router.post('/assign', verifyToken, async (req, res) => {
 
     const createdTasks = await ProjectTask.insertMany(createdTasksPayload);
 
-    // Send assignment notification emails using centralized email templates.
+
     await Promise.all(
       normalizedAssigneeIds.map(async (uid) => {
         const assignee = assigneeMap.get(uid);
@@ -294,7 +294,7 @@ router.post('/assign', verifyToken, async (req, res) => {
       `projects:${resolvedAssigneeId}`
     );
 
-    // Emit real-time task event
+
     const taskIO = req.app.get('taskIO');
     if (taskIO) {
       const normalizedTasks = normalizeDocs(
