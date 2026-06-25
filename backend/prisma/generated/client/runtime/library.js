@@ -1373,7 +1373,7 @@ async function $u(e) {
   }
   te('Falling back to "ldconfig" and other generic paths');
   let n = await Qr(
-    `ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort | ${t}`
+    `ldconfig -p | sed "s/.*=>s*
   );
   if ((n || (n = await Do(['/lib64', '/usr/lib64', '/lib'])), n)) {
     te(`Found libssl.so file using "ldconfig" or other generic paths: ${n}`);
@@ -7167,7 +7167,7 @@ Please help us by answering a few questions: https://pris.ly/${e}`;
 }
 function Dn(e) {
   let { errorStack: t } = e;
-  return t?.match(/\/\.next|\/next@|\/next\//)
+  return t?.match(/\/\.next|\/next@|\/next\
     ? `
 
 We detected that you are using Next.js, learn how to fix this: https://pris.ly/d/engine-not-found-nextjs.`
@@ -7337,12 +7337,12 @@ ${l}
 
 ## Client Snippet
 \`\`\`ts
-// PLEASE FILL YOUR CODE SNIPPET HERE
+
 \`\`\`
 
 ## Schema
 \`\`\`prisma
-// PLEASE ADD YOUR SCHEMA HERE IF POSSIBLE
+
 \`\`\`
 
 ## Prisma Engine Query
@@ -10061,4 +10061,4 @@ decimal.js/decimal.mjs:
    *  MIT Licence
    *)
 */
-//# sourceMappingURL=library.js.map
+
