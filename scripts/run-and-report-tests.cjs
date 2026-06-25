@@ -1,6 +1,7 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../backend/.env') });
 const { sendEmail } = require('../backend/utils/emailService');
 const { getTestReportEmailHtml } = require('../backend/utils/emailTemplates');
 

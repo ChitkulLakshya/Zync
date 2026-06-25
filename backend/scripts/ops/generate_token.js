@@ -21,8 +21,7 @@ const oauth2Client = new google.auth.OAuth2(
 
 const SCOPES = [
   'https://www.googleapis.com/auth/meetings.space.created',
-  'https://www.googleapis.com/auth/gmail.send',
-  'https://www.googleapis.com/auth/gmail.compose',
+  'https://mail.google.com/', // Required for Nodemailer SMTP XOAUTH2
 ];
 
 const authUrl = oauth2Client.generateAuthUrl({
