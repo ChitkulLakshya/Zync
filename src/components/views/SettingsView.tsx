@@ -23,23 +23,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
 import { DelayedLoaderGate } from '@/loading/DelayedLoaderGate';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  Camera,
-  Github,
-  AlertTriangle,
-  Check,
-  ChevronsUpDown,
-  Mail,
-  Headphones,
-  MessageSquare,
-  Newspaper,
-  UserMinus,
-  Trash2,
-  Copy,
-  LogOut,
-  Crown,
-  Users,
-} from 'lucide-react';
+import { Camera, AlertTriangle, Check, ChevronsUpDown, Mail, Headphones, MessageSquare, Newspaper, UserMinus, Trash2, Copy, LogOut, Crown, Users,  } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { cn, API_BASE_URL, getFullUrl } from '@/lib/utils';
 import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
 import {

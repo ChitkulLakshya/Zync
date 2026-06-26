@@ -1,17 +1,6 @@
 import { useState } from "react";
-import {
-    Home,
-    Users,
-    Calendar as CalendarIcon,
-    FileText,
-    CheckSquare,
-    Video,
-    Plus,
-    FolderKanban,
-    ArrowRight,
-    Github,
-    User
-} from "lucide-react";
+import { Home, Users, Calendar as CalendarIcon, FileText, CheckSquare, Video, Plus, FolderKanban, ArrowRight, User } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { motion, AnimatePresence } from "framer-motion";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";

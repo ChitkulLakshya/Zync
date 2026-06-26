@@ -1,41 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SimulatedCursor } from '@/components/landing/SimulatedCursor';
-import {
-  Home,
-  FolderKanban,
-  Calendar as CalendarIcon,
-  CheckSquare,
-  FileText,
-  Clock,
-  Users,
-  Video,
-  Settings,
-  Star,
-  Search,
-  Bell,
-  Plus,
-  ChevronDown,
-  ArrowRight,
-  Github,
-  User,
-  Terminal,
-  Layout,
-  ExternalLink,
-  GitCommit,
-  Kanban,
-  BookMarked,
-  MessageSquare,
-  CalendarDays,
-  StickyNote,
-  GitPullRequest,
-  GitFork,
-  AlertCircle,
-  Pin,
-  FolderGit2,
-  Trash2,
-  ArrowUpRight,
-} from 'lucide-react';
+import { Home, FolderKanban, Calendar as CalendarIcon, CheckSquare, FileText, Clock, Users, Video, Settings, Star, Search, Bell, Plus, ChevronDown, ArrowRight, User, Terminal, Layout, ExternalLink, GitCommit, Kanban, BookMarked, MessageSquare, CalendarDays, StickyNote, GitPullRequest, GitFork, AlertCircle, Pin, FolderGit2, Trash2, ArrowUpRight,  } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

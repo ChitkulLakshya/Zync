@@ -1,5 +1,6 @@
 import { eachDayOfInterval, formatISO } from "date-fns";
-import { Github, Users, GitFork } from "lucide-react";
+import { Users, GitFork } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {

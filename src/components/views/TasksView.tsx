@@ -1,16 +1,7 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { fetchProjects, Project } from '@/api/projects';
-import {
-  CheckSquare,
-  Terminal,
-  Layout,
-  Github,
-  ExternalLink,
-  Inbox,
-  ArrowUpCircle,
-  MinusCircle,
-  ArrowDownCircle,
-} from 'lucide-react';
+import { CheckSquare, Terminal, Layout, ExternalLink, Inbox, ArrowUpCircle, MinusCircle, ArrowDownCircle,  } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';

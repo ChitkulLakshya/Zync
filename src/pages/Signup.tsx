@@ -10,7 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Github } from "lucide-react";
+import { Github } from '@/components/ui/GithubIcon';
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/lib/utils";
 import { postLoginRedirect } from "@/lib/postLoginRedirect";
