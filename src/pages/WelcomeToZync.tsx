@@ -47,30 +47,48 @@ const features = [
  * First-time user landing (after OAuth / sign-up). Shown when account is new and welcome not completed.
  */
 const WelcomeToZync = () => {
+  // What: Hook to access the React Router navigation function.
+  // Why: We need this to programmatically navigate the user after they complete the welcome flow.
   const navigate = useNavigate();
 
+  // What: Effect that subscribes to Firebase authentication state changes.
+  // Why: Ensures that only authenticated users can view this page, redirecting them appropriately.
   useEffect(() => {
+    // What: Listener for authentication state.
+    // Why: When the auth state resolves, we check if the user is present.
     return onAuthStateChanged(auth, (u) => {
       if (!u) {
+        // What: Redirects unauthenticated users to the login page.
+        // Why: Protects this route from unauthorized access.
         navigate('/login', { replace: true });
         return;
       }
 
+      // What: Handles post-login logic for the authenticated user.
+      // Why: Routes the user to the correct page based on their onboarding status.
       void postLoginRedirect(navigate, u);
     });
   }, [navigate]);
 
+  // What: Handler for the "Explore the dashboard" button.
+  // Why: Completes the welcome flow and navigates the user to their main dashboard.
   const goDashboard = () => {
     const u = auth.currentUser;
     if (u) {
+      // What: Marks the user's welcome step as complete in the database.
+      // Why: Ensures they won't be redirected back to this welcome screen in the future.
       markWelcomeComplete(u.uid);
     }
     navigate('/dashboard', { replace: true });
   };
 
+  // What: Handler for the "Create your first project" button.
+  // Why: Completes the welcome flow and directs the user straight into the project creation form.
   const goCreateProject = () => {
     const u = auth.currentUser;
     if (u) {
+      // What: Marks the user's welcome step as complete in the database.
+      // Why: Similar to the dashboard handler, ensures the onboarding state is updated.
       markWelcomeComplete(u.uid);
     }
     navigate('/new-project', { replace: true });

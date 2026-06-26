@@ -16,10 +16,18 @@ import { API_BASE_URL } from "@/lib/utils";
 import { postLoginRedirect } from "@/lib/postLoginRedirect";
 
 const Signup = () => {
+  // What: State variables for user inputs (email, password, phone).
+  // Why: Manages the form data typed by the user before submission.
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
+
+  // What: State to track loading status during authentication.
+  // Why: Prevents double-submission and allows the UI to show a loading spinner.
   const [loading, setLoading] = useState(false);
+
+  // What: State and callbacks for a custom confirmation dialog.
+  // Why: Provides a better user experience than native browser alerts when linking accounts.
   const [confirmState, setConfirmState] = useState<{ message: string; resolve: (v: boolean) => void } | null>(null);
 
   const showConfirm = useCallback((message: string): Promise<boolean> => {
@@ -32,16 +40,23 @@ const Signup = () => {
     confirmState?.resolve(value);
     setConfirmState(null);
   }, [confirmState]);
+
+  // What: Router hooks for navigation and accessing URL state.
+  // Why: Used to redirect after signup and to pre-fill the email if passed from another page.
   const navigate = useNavigate();
   const location = useLocation();
   const { toast } = useToast();
 
+  // What: Effect to pre-fill email field.
+  // Why: If a user started signing up elsewhere and was redirected here, this saves them from retyping their email.
   useEffect(() => {
     if (location.state?.email) {
       setEmail(location.state.email);
     }
   }, [location.state]);
 
+  // What: Effect to check if user is already logged in.
+  // Why: Redirects authenticated users away from the signup page to their dashboard.
   useEffect(() => {
     if (auth.currentUser) {
       void postLoginRedirect(navigate, auth.currentUser);

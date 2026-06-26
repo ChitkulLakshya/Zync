@@ -1,38 +1,38 @@
-// Defines a custom logger object that acts as a wrapper around the standard console methods to suppress output during automated testing.
-const logger = {
-  // Defines the info method which accepts any number of arguments using the rest operator.
-  info: (...args) => {
-    // Checks the NODE_ENV environment variable; if the application is not running in 'test' mode, it proceeds to log.
-    if (process.env.NODE_ENV !== 'test') {
-      // Calls the native console.log with the spread arguments to print informational messages to standard output.
-      console.log(...args);
+// WHAT: Defines a custom logger object. WHY: Acts as a wrapper around standard console methods to suppress output during automated testing.
+const logger = { // WHAT: Create logger object. WHY: To group logging functions.
+  // WHAT: Defines info method. WHY: To log general information.
+  info: (...args) => { // WHAT: Accept arguments via rest operator. WHY: To allow flexible number of arguments.
+    // WHAT: Check if environment is not 'test'. WHY: To avoid cluttering test output with logs.
+    if (process.env.NODE_ENV !== 'test') { // WHAT: Evaluate environment variable. WHY: Test environment shouldn't show info logs.
+      // WHAT: Call console.log. WHY: To print the actual informational messages.
+      console.log(...args); // WHAT: Spread arguments. WHY: To pass all received arguments to console.log.
     }
   },
-  // Defines the warn method which accepts any number of arguments to log non-fatal warnings.
-  warn: (...args) => {
-    // Suppresses the warning output entirely if the current environment is 'test' to keep test runner output clean.
-    if (process.env.NODE_ENV !== 'test') {
-      // Calls the native console.warn to print the arguments to the standard error stream with warning formatting.
-      console.warn(...args);
+  // WHAT: Defines warn method. WHY: To log non-fatal warnings.
+  warn: (...args) => { // WHAT: Accept arguments for warn. WHY: Flexible arguments.
+    // WHAT: Suppress warning output if environment is 'test'. WHY: Keep test runner output clean.
+    if (process.env.NODE_ENV !== 'test') { // WHAT: Check environment variable. WHY: Conditional logging.
+      // WHAT: Call console.warn. WHY: To print standard error stream with warning formatting.
+      console.warn(...args); // WHAT: Spread arguments. WHY: Pass all warning details.
     }
   },
-  // Defines the error method which accepts any number of arguments to log critical failures and exceptions.
-  error: (...args) => {
-    // Suppresses error output during tests unless explicitly disabled by the developer, preventing expected errors from cluttering the test logs.
-    if (process.env.NODE_ENV !== 'test') {
-      // Calls the native console.error to print the arguments to the standard error stream.
-      console.error(...args);
+  // WHAT: Defines error method. WHY: To log critical failures and exceptions.
+  error: (...args) => { // WHAT: Accept arguments for error. WHY: Capture all error details.
+    // WHAT: Check environment against 'test'. WHY: Prevent expected errors from cluttering test logs.
+    if (process.env.NODE_ENV !== 'test') { // WHAT: Conditional check. WHY: Testing doesn't need to see console errors if they are expected.
+      // WHAT: Call console.error. WHY: Print arguments to standard error stream.
+      console.error(...args); // WHAT: Spread arguments. WHY: Correct formatting of errors.
     }
   },
-  // Defines the debug method which is intended for highly verbose, development-only logging.
-  debug: (...args) => {
-    // Ensures debug logs are ONLY printed if the environment is neither 'production' (for performance/security) nor 'test' (for cleanliness).
-    if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') {
-      // Calls the native console.log to print the debug information to standard output.
-      console.log(...args);
+  // WHAT: Defines debug method. WHY: Intended for highly verbose, development-only logging.
+  debug: (...args) => { // WHAT: Accept arguments for debug. WHY: Debugging might need multiple data points.
+    // WHAT: Check environment against production and test. WHY: Performance/security in prod, cleanliness in test.
+    if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'test') { // WHAT: Evaluate NODE_ENV. WHY: Ensure debug logs only show in development/local environments.
+      // WHAT: Call console.log. WHY: Print debug info to standard output.
+      console.log(...args); // WHAT: Spread arguments. WHY: Accurately dump all debug data.
     }
   }
 };
 
-// Exports the customized logger object so that other backend files can use it instead of directly calling console methods.
-module.exports = logger;
+// WHAT: Exports the logger object. WHY: Allow other files to use it instead of direct console calls.
+module.exports = logger; // WHAT: Assign to module.exports. WHY: Expose the object for CommonJS imports.

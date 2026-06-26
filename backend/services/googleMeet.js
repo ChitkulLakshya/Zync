@@ -3,8 +3,10 @@
  * What: Manages Google APIs integration to programmatically create Google Meet spaces and send emails via Gmail.
  * Why: By using an authenticated OAuth2 client to interface with Google Services, we can automate real-time communication features like instant meetings and notification emails seamlessly within our app's flows.
  */
+// WHAT: Import Google API. WHY: Access Google services.
 const { google } = require('googleapis');
 
+// WHAT: Instantiate OAuth2 client. WHY: Authenticate requests.
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
@@ -12,22 +14,27 @@ const oauth2Client = new google.auth.OAuth2(
 );
 
 
+// WHAT: Check refresh token. WHY: Needed for long-lived server auth.
 if (process.env.GOOGLE_REFRESH_TOKEN) {
     oauth2Client.setCredentials({ refresh_token: process.env.GOOGLE_REFRESH_TOKEN.trim() });
 }
 
+// WHAT: Create Meet space. WHY: Generates on-demand meeting links.
 const create_meeting = async () => {
     try {
         console.log('Creating Google Meet space with Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 10) + '...');
 
 
+        // WHAT: Verify refresh token. WHY: Will fail without it.
         if (!process.env.GOOGLE_REFRESH_TOKEN) {
             throw new Error('GOOGLE_REFRESH_TOKEN is missing');
         }
 
+        // WHAT: Init Meet client. WHY: Prepare service requests.
         const meet = google.meet({ version: 'v2', auth: oauth2Client });
 
 
+        // WHAT: Request space creation. WHY: Creates a meeting room.
         const response = await meet.spaces.create({
             requestBody: {
                 config: {
@@ -37,6 +44,7 @@ const create_meeting = async () => {
             }
         });
 
+        // WHAT: Extract space data. WHY: Contains meeting details.
         const space = response.data;
         if (space.meetingUri) {
             console.log('Generated Meet Space:', space.meetingUri);
@@ -56,6 +64,7 @@ const create_meeting = async () => {
     }
 };
 
+// WHAT: Send email via Gmail. WHY: Automates notifications.
 const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
     try {
         console.log(`Sending email to ${to}...`);
@@ -64,13 +73,17 @@ const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
             throw new Error('GOOGLE_REFRESH_TOKEN is missing');
         }
 
+        // WHAT: Init Gmail client. WHY: Interface to send messages.
         const gmail = google.gmail({ version: 'v1', auth: oauth2Client });
 
+        // WHAT: Encode subject. WHY: Ensures correct rendering in clients.
         const utf8Subject = `=?utf-8?B?${Buffer.from(subject).toString('base64')}?=`;
         const boundary = `boundary_${Date.now().toString(36)}`;
 
+        // WHAT: Store message parts. WHY: Construct raw email array.
         let messageParts;
 
+        // WHAT: Check if plain text provided. WHY: Needs multipart email if so.
         if (bodyText) {
 
             const boundary = `boundary_${Date.now().toString(36)}`;
@@ -111,15 +124,18 @@ const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
             ];
         }
 
+        // WHAT: Join parts. WHY: Creates raw email string.
         const message = messageParts.join('\n');
 
 
+        // WHAT: Base64 encode message. WHY: Gmail API expects base64url.
         const encodedMessage = Buffer.from(message)
             .toString('base64')
             .replace(/\+/g, '-')
             .replace(/\//g, '_')
             .replace(/=+$/, '');
 
+        // WHAT: Send message via API. WHY: Dispatches email.
         const res = await gmail.users.messages.send({
             userId: 'me',
             requestBody: {
@@ -135,6 +151,7 @@ const send_ZYNC_email = async (to, subject, bodyHtml, bodyText = null) => {
     }
 };
 
+// WHAT: Export functions. WHY: Available to other parts of app.
 module.exports = {
     create_meeting,
     send_ZYNC_email,
