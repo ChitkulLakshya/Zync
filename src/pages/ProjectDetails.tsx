@@ -127,14 +127,28 @@ const ProjectDetails = () => {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
 
+  // What: State to track if an architecture analysis is currently running.
+  // Why: Disables the "Analyze Architecture" button to prevent redundant requests and displays a loading state.
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 
+  // What: Async function to request an AI-driven architecture analysis for the project.
+  // Why: Allows the user to dynamically generate or update the project's technical architecture based on its current state.
   const handleAnalyzeArchitecture = async () => {
+    // What: Guard clause ensuring both a project and an authenticated user exist.
+    // Why: Prevents execution if the required context is missing, avoiding runtime errors.
     if (!project || !auth.currentUser) {return;}
+    
+    // What: Sets the analyzing state to true.
+    // Why: Triggers the loading UI in the component.
     setIsAnalyzing(true);
     try {
+      // What: Retrieves the current user's Firebase ID token.
+      // Why: Needed to authenticate the API request on the backend.
       const token = await auth.currentUser.getIdToken();
+      
+      // What: Sends a POST request to the analyze-architecture endpoint.
+      // Why: Instructs the backend to perform the heavy lifting of analyzing the project.
       const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`, {
         method: 'POST',
         headers: {
@@ -143,17 +157,31 @@ const ProjectDetails = () => {
         },
       });
 
+      // What: Checks if the response status is not OK (e.g., 400 or 500).
+      // Why: Throws an error to be caught by the catch block below if the server request failed.
       if (!response.ok) {
         throw new Error('Analysis failed');
       }
 
+      // What: Parses the JSON response to get the updated project data.
+      // Why: We need the newly analyzed architecture to display in the UI.
       const updatedProject = await response.json();
+      
+      // What: Updates the local project state.
+      // Why: Causes the component to re-render with the new architecture details.
       setProject(updatedProject);
+      
+      // What: Shows a success toast notification.
+      // Why: Provides positive feedback to the user that the analysis succeeded.
       toast.success("Architecture analysis complete!");
     } catch (error) {
+      // What: Logs the error to the console and shows an error toast.
+      // Why: Helps developers debug and informs the user that something went wrong.
       console.error("Analysis Error:", error);
       toast.error("Failed to analyze architecture. Please try again.");
     } finally {
+      // What: Resets the analyzing state to false, regardless of success or failure.
+      // Why: Ensures the UI returns to an interactive state after the operation finishes.
       setIsAnalyzing(false);
     }
   };

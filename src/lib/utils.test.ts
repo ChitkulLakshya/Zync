@@ -1,7 +1,9 @@
+// Imports the necessary testing utilities from vitest to define the test suites, assert outcomes, and create mocks.
 import { describe, expect, test, vi } from "vitest";
 
-
+// Mocks the external 'clsx' library globally before any internal code is evaluated during the test run.
 vi.mock("clsx", () => ({
+  // Provides a simplified mock implementation of the clsx function that flattens inputs and extracts keys from true boolean values.
   clsx: (...inputs: any[]) => {
     return inputs
       .flat()
@@ -20,11 +22,13 @@ vi.mock("clsx", () => ({
   },
 }));
 
+// Mocks the external 'tailwind-merge' library to prevent complex internal logic from running during simple unit tests.
 vi.mock("tailwind-merge", () => ({
+  // Provides a passthrough mock implementation of twMerge that just returns exactly what it receives.
   twMerge: (input: string) => input,
 }));
 
-
+// Dynamically imports the functions to be tested from the utils module *after* the mocks have been established above.
 const { cn, getFullUrl, getUserName, getUserInitials, pickUserForDisplay } = await import("./utils");
 
 describe("utils.ts", () => {

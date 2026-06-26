@@ -1,59 +1,59 @@
-const { describe, test, expect } = require("bun:test");
-const { encrypt, decrypt } = require("./encryption");
+const { describe, test, expect } = require("bun:test"); // WHAT: Imports testing utilities from the bun test runner. WHY: Required to define test suites, write assertions, and structure tests.
+const { encrypt, decrypt } = require("./encryption"); // WHAT: Imports the encrypt and decrypt functions to be tested. WHY: Provides the actual implementation that needs verification.
 
-describe("Encryption Utils", () => {
-  const originalText = "Hello, World!";
+describe("Encryption Utils", () => { // WHAT: Groups related tests under the "Encryption Utils" suite. WHY: Organizes the test output and scopes variables logically.
+  const originalText = "Hello, World!"; // WHAT: Defines a constant sample string for testing. WHY: Provides a reusable, known plaintext input for the encryption functions.
 
 
-  test("should return null if input is null, undefined, or empty", () => {
-    expect(encrypt(null)).toBeNull();
-    expect(encrypt(undefined)).toBeNull();
-    expect(encrypt("")).toBeNull();
+  test("should return null if input is null, undefined, or empty", () => { // WHAT: Defines a test case for falsy inputs. WHY: Ensures the functions handle edge cases gracefully without throwing errors.
+    expect(encrypt(null)).toBeNull(); // WHAT: Asserts that encrypting null returns null. WHY: Verifies the early return guard clause in the encrypt function.
+    expect(encrypt(undefined)).toBeNull(); // WHAT: Asserts that encrypting undefined returns null. WHY: Ensures robustness against missing parameters.
+    expect(encrypt("")).toBeNull(); // WHAT: Asserts that encrypting an empty string returns null. WHY: No point in encrypting empty data.
 
-    expect(decrypt(null)).toBeNull();
-    expect(decrypt(undefined)).toBeNull();
-    expect(decrypt("")).toBeNull();
+    expect(decrypt(null)).toBeNull(); // WHAT: Asserts that decrypting null returns null. WHY: Verifies the early return guard clause in the decrypt function.
+    expect(decrypt(undefined)).toBeNull(); // WHAT: Asserts that decrypting undefined returns null. WHY: Ensures robustness against missing parameters.
+    expect(decrypt("")).toBeNull(); // WHAT: Asserts that decrypting an empty string returns null. WHY: Cannot decrypt empty ciphertext.
   });
 
-  test("should encrypt a string", () => {
-    const encrypted = encrypt(originalText);
-    expect(encrypted).not.toBeNull();
-    expect(typeof encrypted).toBe("string");
-    expect(encrypted).not.toEqual(originalText);
+  test("should encrypt a string", () => { // WHAT: Defines a test case for basic string encryption. WHY: Validates the core functionality of turning plaintext into ciphertext.
+    const encrypted = encrypt(originalText); // WHAT: Calls the encrypt function with the sample text. WHY: Executes the function to obtain its output for assertions.
+    expect(encrypted).not.toBeNull(); // WHAT: Asserts the output is not null. WHY: Ensures the function actually produced a result.
+    expect(typeof encrypted).toBe("string"); // WHAT: Asserts the output is a string. WHY: The expected format of the ciphertext is a hex string.
+    expect(encrypted).not.toEqual(originalText); // WHAT: Asserts the ciphertext is different from the plaintext. WHY: Fundamental requirement of encryption is data transformation.
 
-    expect(encrypted).toMatch(/^[0-9a-f]+:[0-9a-f]+$/);
+    expect(encrypted).toMatch(/^[0-9a-f]+:[0-9a-f]+$/); // WHAT: Asserts the ciphertext matches the expected 'IV:encryptedData' format. WHY: Verifies that the custom string concatenation logic works.
   });
 
-  test("should decrypt an encrypted string back to original", () => {
-    const encrypted = encrypt(originalText);
-    const decrypted = decrypt(encrypted);
-    expect(decrypted).toEqual(originalText);
+  test("should decrypt an encrypted string back to original", () => { // WHAT: Defines a test case for reversing encryption. WHY: Verifies that the encryption process is perfectly invertible.
+    const encrypted = encrypt(originalText); // WHAT: Encrypts the sample text first. WHY: Needed to generate a valid ciphertext for the decryption test.
+    const decrypted = decrypt(encrypted); // WHAT: Decrypts the previously generated ciphertext. WHY: Tests the decrypt function's ability to parse and reverse the encryption.
+    expect(decrypted).toEqual(originalText); // WHAT: Asserts the decrypted text perfectly matches the original plaintext. WHY: This is the definitive proof that the cipher system works end-to-end.
   });
 
-  test("should produce different ciphertexts for same input (IV randomness)", () => {
-    const encrypted1 = encrypt(originalText);
-    const encrypted2 = encrypt(originalText);
-    expect(encrypted1).not.toEqual(encrypted2);
+  test("should produce different ciphertexts for same input (IV randomness)", () => { // WHAT: Defines a test case to check Initialization Vector randomness. WHY: Ensures the cipher is semantically secure and doesn't produce identical outputs for identical inputs.
+    const encrypted1 = encrypt(originalText); // WHAT: Encrypts the sample text the first time. WHY: Generates the first baseline ciphertext.
+    const encrypted2 = encrypt(originalText); // WHAT: Encrypts the exact same sample text a second time. WHY: Generates a second ciphertext for comparison.
+    expect(encrypted1).not.toEqual(encrypted2); // WHAT: Asserts the two ciphertexts are strictly not equal. WHY: Proves that the random IV is functioning correctly to salt the encryption.
   });
 
-  test("should handle longer strings", () => {
-    const longText = "a".repeat(1000);
-    const encrypted = encrypt(longText);
-    const decrypted = decrypt(encrypted);
-    expect(decrypted).toEqual(longText);
+  test("should handle longer strings", () => { // WHAT: Defines a test case for encrypting a large payload. WHY: Ensures the encryption logic handles data larger than a single block size correctly (padding/streaming).
+    const longText = "a".repeat(1000); // WHAT: Generates a string of 1000 'a' characters. WHY: Creates a realistically large input string for testing performance and correctness.
+    const encrypted = encrypt(longText); // WHAT: Encrypts the long string. WHY: Triggers the multi-block processing in the cipher.
+    const decrypted = decrypt(encrypted); // WHAT: Decrypts the long ciphertext back. WHY: Completes the round-trip process for the large payload.
+    expect(decrypted).toEqual(longText); // WHAT: Asserts the long decrypted text matches the original long input. WHY: Verifies there is no data loss or corruption with larger payloads.
   });
 
-  test("should handle special characters", () => {
-    const specialText = "!@#$%^&*()_+{}[]|:;<>,.?/~`";
-    const encrypted = encrypt(specialText);
-    const decrypted = decrypt(encrypted);
-    expect(decrypted).toEqual(specialText);
+  test("should handle special characters", () => { // WHAT: Defines a test case for ASCII special characters. WHY: Ensures symbols and non-alphanumeric characters do not break the cipher or encoding.
+    const specialText = "!@#$%^&*()_+{}[]|:;<>,.?/~`"; // WHAT: Defines a string packed with special punctuation. WHY: Provides an edge-case input known to sometimes cause encoding issues.
+    const encrypted = encrypt(specialText); // WHAT: Encrypts the special character string. WHY: Passes the string through the crypto pipeline.
+    const decrypted = decrypt(encrypted); // WHAT: Decrypts the resulting ciphertext. WHY: Reverses the process to check for data integrity.
+    expect(decrypted).toEqual(specialText); // WHAT: Asserts the decrypted string perfectly matches the input string. WHY: Proves special characters are safely preserved.
   });
 
-  test("should handle unicode characters", () => {
-      const unicodeText = "Hello 🌍";
-      const encrypted = encrypt(unicodeText);
-      const decrypted = decrypt(encrypted);
-      expect(decrypted).toEqual(unicodeText);
+  test("should handle unicode characters", () => { // WHAT: Defines a test case for multi-byte Unicode characters (e.g., emojis). WHY: Crucial to ensure UTF-8 strings are buffered and processed correctly without byte truncation.
+      const unicodeText = "Hello 🌍"; // WHAT: Defines a string containing an emoji. WHY: Provides a payload requiring proper multi-byte encoding handling.
+      const encrypted = encrypt(unicodeText); // WHAT: Encrypts the Unicode string. WHY: Tests the cipher's ability to handle non-ASCII byte sequences.
+      const decrypted = decrypt(encrypted); // WHAT: Decrypts the ciphertext. WHY: Retrieves the string to verify Unicode preservation.
+      expect(decrypted).toEqual(unicodeText); // WHAT: Asserts the decrypted string matches the Unicode input. WHY: Verifies that emojis and international text survive the encryption round-trip.
   });
 });

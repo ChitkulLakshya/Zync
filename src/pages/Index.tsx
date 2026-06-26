@@ -8,19 +8,29 @@ import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 
 const Index = () => {
+  // What: State to manage the initialization phases ("loading", "snapping", "done").
+  // Why: Gives us fine-grained control over the loading animation sequence.
   const [phase, setPhase] = useState<"loading" | "snapping" | "done">("loading");
 
+  // What: Effect hook that runs once on component mount to trigger phase transitions.
+  // Why: We need to transition from "loading" to "snapping", then finally to "done" using timed intervals to orchestrate the animation.
   useEffect(() => {
 
+    // What: First timer transitions state to "snapping" after 1200ms.
+    // Why: Creates a brief delay before the initial animation snap effect begins.
     const timer1 = setTimeout(() => {
       setPhase("snapping");
     }, 1200);
 
 
+    // What: Second timer completes the loading sequence by setting state to "done" after 1500ms.
+    // Why: Ensures the snapping animation has time to run before we reveal the main page content.
     const timer2 = setTimeout(() => {
       setPhase("done");
     }, 1500);
 
+    // What: Cleanup function for our timeouts.
+    // Why: If the component unmounts before timeouts fire, clearing them prevents memory leaks and state updates on unmounted components.
     return () => {
       clearTimeout(timer1);
       clearTimeout(timer2);

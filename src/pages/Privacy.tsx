@@ -5,8 +5,14 @@ import { Separator } from "@/components/ui/separator";
 
 const Privacy = () => {
   return (
+    // What: Main container with minimum full viewport height and theme background.
+    // Why: Ensures the page spans the screen and maintains visual consistency.
     <div className="min-h-screen bg-background flex flex-col">
+      {/* What: The site's top navigation bar.
+          Why: Allows users to navigate to other parts of the site from the privacy page. */}
       <Navbar />
+      {/* What: Main content area with padding and constrained maximum width.
+          Why: Provides a clean, readable layout for text-heavy content like a privacy policy. */}
       <main className="flex-1 container mx-auto px-6 pt-32 pb-20 max-w-3xl">
         <div className="space-y-8">
           <div className="space-y-2">

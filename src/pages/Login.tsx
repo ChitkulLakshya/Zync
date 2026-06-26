@@ -42,21 +42,36 @@ import { LinkedinSignInButton } from '@/components/auth/LinkedinSignInButton';
 import { InstallPromptView, useAppInstallStatus } from '@/features/install-wall';
 
 const Login = () => {
+  // What: State variables for user input fields (email and password).
+  // Why: React state is used to track the values typed into the input forms in real-time.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // What: State to track if an authentication operation is currently in progress.
+  // Why: Used to disable buttons and show loading spinners, preventing duplicate submissions.
   const [loading, setLoading] = useState(false);
+
+  // What: State to store the currently authenticated Firebase user object.
+  // Why: Allows the component to know if someone is already logged in (e.g. to show 'Continue as User' UI).
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  // What: State to manage the visibility and promise resolution of a custom confirmation dialog.
+  // Why: We use a custom dialog instead of the browser's native window.confirm() for a better UX.
   const [confirmState, setConfirmState] = useState<{
     message: string;
     resolve: (v: boolean) => void;
   } | null>(null);
 
+  // What: Callback function to trigger the custom confirmation dialog.
+  // Why: Returns a Promise that resolves when the user clicks 'Confirm' or 'Cancel', allowing asynchronous flow control.
   const showConfirm = useCallback((message: string): Promise<boolean> => {
     return new Promise((resolve) => {
       setConfirmState({ message, resolve });
     });
   }, []);
 
+  // What: Callback function to handle the result of the confirmation dialog.
+  // Why: Resolves the pending Promise with the user's choice and hides the dialog by clearing the state.
   const handleConfirm = useCallback(
     (value: boolean) => {
       confirmState?.resolve(value);
@@ -64,9 +79,21 @@ const Login = () => {
     },
     [confirmState]
   );
+
+  // What: Hook to programmatically navigate the user.
+  // Why: Required to redirect the user to the dashboard or other pages upon successful login.
   const navigate = useNavigate();
+
+  // What: Hook to access the current URL location and query parameters.
+  // Why: Needed to check for custom authentication tokens or error messages passed via URL.
   const location = useLocation();
+
+  // What: Hook to trigger toast notifications.
+  // Why: Provides non-intrusive feedback to the user on success or error during authentication.
   const { toast } = useToast();
+
+  // What: Hook to determine if the user is using the app within an installed context (PWA/standalone).
+  // Why: Some login flows (like Google/GitHub) may require different handling or warnings if the app is installed.
   const { hasCheckedStatus, requiresInstallWall, isIOS, isAndroid } = useAppInstallStatus();
 
   useEffect(() => {
