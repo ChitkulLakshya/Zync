@@ -30,7 +30,7 @@ export const LinkedinSignInButton = ({ disabled }: LinkedinSignInButtonProps) =>
           fill="currentColor" // Sets the fill color of the SVG paths to the current text color. This makes the icon's color inherit from its parent's text color, allowing for easy theming.
           className="w-5 h-5 mr-1 animate-pulse text-[#0077B5] dark:text-foreground" // Applies Tailwind CSS classes to style the SVG icon. These classes control its width, height, right margin, apply a pulsing animation, and set specific colors for light and dark modes, indicating a loading state.
         >
-          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /> // Defines the path data for the SVG icon, which draws the shape of the LinkedIn logo. This is the actual visual representation of the icon.
+          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /> {/* Defines the path data for the SVG icon, which draws the shape of the LinkedIn logo. This is the actual visual representation of the icon. */}
         </svg> // Closes the SVG element.
       ) : ( // If 'isLoading' is false, the standard LinkedIn icon SVG is displayed.
         <svg // Renders an SVG (Scalable Vector Graphics) element, which is used to display a vector-based icon. This specific SVG represents the LinkedIn logo.
@@ -39,10 +39,10 @@ export const LinkedinSignInButton = ({ disabled }: LinkedinSignInButtonProps) =>
           fill="currentColor" // Sets the fill color of the SVG paths to the current text color. This makes the icon's color inherit from its parent's text color, allowing for easy theming.
           className="w-5 h-5 mr-1 text-[#0077B5] dark:text-foreground" // Applies Tailwind CSS classes to style the SVG icon. These classes control its width, height, right margin, and set specific colors for light and dark modes, ensuring it matches the application's design.
         >
-          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /> // Defines the path data for the SVG icon, which draws the shape of the LinkedIn logo. This is the actual visual representation of the icon.
+          <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /> {/* Defines the path data for the SVG icon, which draws the shape of the LinkedIn logo. This is the actual visual representation of the icon. */}
         </svg> // Closes the SVG element.
       )}
       LinkedIn {/* Renders the text "LinkedIn" next to the icon inside the button. This provides a clear label for the button's action. */}
-    </Button> {/* Closes the 'Button' component. */}
+    </Button>
   ); // Closes the return statement for the component's JSX.
 }; // Closes the 'LinkedinSignInButton' functional component definition.
