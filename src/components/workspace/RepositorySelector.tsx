@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Github } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { API_BASE_URL } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 

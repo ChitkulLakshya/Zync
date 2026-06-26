@@ -7,11 +7,11 @@ import {
   ArrowRight,
   LayoutDashboard,
   Kanban,
-  Github,
   MessageSquare,
   CalendarDays,
   StickyNote,
 } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';
 import { auth } from '@/lib/firebase';
 import { markWelcomeComplete, postLoginRedirect } from '@/lib/postLoginRedirect';
 

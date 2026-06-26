@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckSquare, Loader2, UserPlus, Github } from "lucide-react";
+import { CheckSquare, Loader2, UserPlus } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getFullUrl } from "@/lib/utils";
 

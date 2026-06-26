@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SimulatedCursor } from './SimulatedCursor';
-import { Copy, Check, Github, CheckCircle2 } from 'lucide-react';
+import { Copy, Check, CheckCircle2 } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { Button } from '@/components/ui/button';
 
 type WalkthroughState = 'idle' | 'copying' | 'terminal' | 'typing' | 'pushing' | 'success';

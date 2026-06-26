@@ -1,19 +1,15 @@
-import * as React from "react";
+import * as React from "react"; // Imports all React library components and assigns them to the 'React' namespace so they can be used in this file.
+const MOBILE_BREAKPOINT = 768; // Defines a constant variable 'MOBILE_BREAKPOINT' and assigns it the value 768, which represents the maximum width in pixels for a mobile device.
 
-const MOBILE_BREAKPOINT = 768;
-
-export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined);
-
-  React.useEffect(() => {
-    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-    const onChange = () => {
-      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+export function useIsMobile() { // Defines and exports a custom React hook function named 'useIsMobile' that can be used in other components to determine if the device is mobile.
+  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined); // Initializes a state variable 'isMobile' with an initial value of 'undefined' using the 'useState' hook, and a function 'setIsMobile' to update this state, so the component can track whether the device is mobile or not.
+  React.useEffect(() => { // Uses the 'useEffect' hook to execute a side effect function after the component has rendered, which is necessary for setting up event listeners and handling changes in the device's width.
+    const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`); // Creates a media query list object 'mql' using the 'matchMedia' method, which monitors the device's width and triggers a change event when it crosses the specified threshold, so the component can respond to changes in the device's width.
+    const onChange = () => { // Defines a callback function 'onChange' that will be executed when the media query list object 'mql' detects a change in the device's width.
+      setIsMobile(window.innerWidth < MOBILE_BREAKPOINT); // Updates the 'isMobile' state variable by calling 'setIsMobile' with a boolean value indicating whether the device's width is less than the 'MOBILE_BREAKPOINT', so the component can update its state accordingly.
     };
-    mql.addEventListener("change", onChange);
-    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-    return () => mql.removeEventListener("change", onChange);
-  }, []);
-
-  return !!isMobile;
-}
+    mql.addEventListener("change", onChange); // Adds an event listener to the media query list object 'mql' that listens for 'change' events and executes the 'onChange' callback function when triggered, so the component can respond to changes in the device's width.
+    setIsMobile(window.innerWidth < MOBILE_BREAKPOINT); // Initializes the 'isMobile' state variable by calling 'setIsMobile' with a boolean value indicating whether the device's width is less than the 'MOBILE_BREAKPOINT', so the component has an initial state.
+    return () => mql.removeEventListener("change", onChange); // Returns a cleanup function that removes the event listener from the media query list object 'mql' when the component is unmounted, which is necessary for preventing memory leaks and ensuring the component can be safely removed from the DOM.
+  }, []); // Passes an empty dependency array to the 'useEffect' hook, which means the side effect function will only be executed once when the component mounts, and not on subsequent renders.
+  return !!isMobile; // Returns the boolean value of the 'isMobile' state variable, which indicates whether the device is mobile or not, so the component can use this value to make decisions about its behavior.
