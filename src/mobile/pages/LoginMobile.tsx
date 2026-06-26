@@ -1,5 +1,8 @@
+// Imports React hooks to manage component state and lifecycle side effects.
 import { useCallback, useEffect, useState } from "react";
+// Imports React Router components for navigation and routing within the mobile app.
 import { Link, useLocation, useNavigate } from "react-router-dom";
+// Imports Firebase Auth methods to authenticate users and manage their session state securely.
 import {
   GithubAuthProvider,
   GoogleAuthProvider,
@@ -9,99 +12,158 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
-import { ArrowRight, Github } from "lucide-react";
+// Imports UI icons for visual enhancement on the login page.
+import { ArrowRight } from "lucide-react";
+// Imports the local Github SVG component to bypass the missing export issue in lucide-react.
+import { Github } from '@/components/ui/GithubIcon';
+// Imports the configured Firebase auth instance to ensure all auth calls point to the correct project.
 import { auth } from "@/lib/firebase";
+// Imports utility functions like the API base URL and avatar generators to fetch backend data and display initials.
 import { API_BASE_URL, getFullUrl, getUserInitials } from "@/lib/utils";
+// Imports the postLoginRedirect utility to dynamically route users to their dashboard or welcome page after login.
 import { postLoginRedirect } from "@/lib/postLoginRedirect";
+// Imports the signout utility to clear local state and safely log the user out if they switch accounts.
 import { signOutAndClearState } from "@/lib/auth-signout";
+// Imports the toast hook to trigger non-intrusive notifications (like errors or success messages) on screen.
 import { useToast } from "@/hooks/use-toast";
+// Imports the standard button component from our UI library for consistent interactive elements.
 import { Button } from "@/components/ui/button";
+// Imports the input field component to capture the user's email and password.
 import { Input } from "@/components/ui/input";
+// Imports the label component to ensure accessibility for screen readers on the input fields.
 import { Label } from "@/components/ui/label";
+// Imports Card components to wrap the login form in a visually distinct, elevated container.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+// Imports Avatar components to display the user's profile picture if they are already logged in.
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+// Imports the specialized LinkedIn button to provide a third-party OAuth login option.
 import { LinkedinSignInButton } from "@/components/auth/LinkedinSignInButton";
 
+// Defines the main React component for the mobile-specific login view.
 const LoginMobile = () => {
+  // Initializes state to store the user's typed email address.
   const [email, setEmail] = useState("");
+  // Initializes state to store the user's typed password securely.
   const [password, setPassword] = useState("");
+  // Initializes state to track if an authentication request is in progress to disable buttons and show loading spinners.
   const [loading, setLoading] = useState(false);
+  // Initializes state to hold the Firebase User object if a session already exists.
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  // Initializes the navigate function to programmatically route the user to different pages.
   const navigate = useNavigate();
+  // Initializes the location object to read URL parameters (like custom tokens from email links).
   const location = useLocation();
+  // Destructures the toast function to easily trigger UI notifications.
   const { toast } = useToast();
 
+  // Runs a side effect on mount to listen for changes in the user's authentication state.
   useEffect(() => {
+    // Subscribes to Firebase auth state changes to detect if a user is already signed in.
     const unsubscribe = onAuthStateChanged(auth, (user) => setCurrentUser(user));
+    // Cleans up the listener when the component unmounts to prevent memory leaks.
     return () => unsubscribe();
   }, []);
 
+  // Runs a side effect when the location or navigate changes to handle custom authentication tokens in the URL.
   useEffect(() => {
+    // Parses the URL query parameters to extract data like 'customToken' or 'error'.
     const params = new URLSearchParams(location.search);
+    // Retrieves the custom token (usually sent via magic link or a backend OAuth redirect).
     const customToken = params.get("customToken");
+    // Retrieves any error messages passed through the URL.
     const authError = params.get("error");
 
+    // If an error exists in the URL, display it to the user.
     if (authError) {
+      // Triggers a destructive toast notification showing the decoded error message.
       toast({ variant: "destructive", title: "Login Error", description: decodeURIComponent(authError) });
+      // Replaces the current URL with the clean login route to remove the error parameters.
       navigate("/login", { replace: true });
+      // Exits the effect early since an error occurred.
       return;
     }
 
+    // If a custom token exists, attempt to log the user in with it.
     if (customToken) {
+      // Calls Firebase to authenticate using the backend-generated custom token.
       signInWithCustomToken(auth, customToken)
         .then(async (cred) => {
+          // On success, shows a positive toast notification.
           toast({ title: "Success", description: "Logged in successfully" });
+          // Redirects the user to the appropriate post-login destination using their credentials.
           await postLoginRedirect(navigate, cred.user);
         })
         .catch((error: any) => {
+          // On failure, shows a destructive toast with the Firebase error message.
           toast({ variant: "destructive", title: "Login Error", description: error.message });
         });
     }
   }, [location.search, navigate, toast]);
 
+  // Defines a handler for users who are already logged in and simply want to proceed to the app.
   const handleContinue = async () => {
+    // Checks if the user is actually loaded into state.
     if (currentUser) {
+      // Redirects them to the dashboard or welcome flow based on their account age.
       await postLoginRedirect(navigate, currentUser);
     }
   };
 
+  // Defines a handler to log out the current user and allow them to sign in with a different account.
   const handleSwitchAccount = async () => {
     try {
+      // Sets the loading state to true to prevent multiple rapid clicks.
       setLoading(true);
+      // Calls the global sign-out utility to clear caches, indexedDB, and log out from Firebase.
       await signOutAndClearState(auth);
+      // Clears the local state so the standard login form renders instead of the "Welcome Back" screen.
       setCurrentUser(null);
     } finally {
+      // Resets the loading state regardless of success or failure.
       setLoading(false);
     }
   };
 
+  // Defines the handler for the standard email/password form submission.
   const handleEmailLogin = async (event: React.FormEvent) => {
+    // Prevents the browser from performing a full page reload on form submit.
     event.preventDefault();
+    // Sets loading to true to disable the form fields.
     setLoading(true);
     try {
+      // Calls Firebase to authenticate with the provided email and password.
       const cred = await signInWithEmailAndPassword(auth, email, password);
+      // Shows a success toast to assure the user.
       toast({ title: "Success", description: "Logged in successfully" });
+      // Redirects them into the application seamlessly.
       await postLoginRedirect(navigate, cred.user);
     } catch (error: any) {
+      // If auth fails (wrong password, etc.), shows the error message in a red toast.
       toast({ variant: "destructive", title: "Error", description: error.message });
     } finally {
+      // Stops the loading spinner.
       setLoading(false);
     }
   };
 
+  // Defines a helper to handle the edge case where a user tries to sign in with Google but their email was already registered via GitHub (or vice versa).
   const handleAccountLinking = useCallback(
     async (error: any) => {
+      // If the error is not related to credential conflicts, just show a standard error.
       if (error.code !== "auth/account-exists-with-different-credential") {
         toast({ variant: "destructive", title: "Error", description: error.message });
         return;
       }
 
+      // Extracts the email address that caused the conflict from the error object.
       const emailFromError = error.customData?.email;
+      // If the email is missing, we cannot assist them further, so we fail gracefully.
       if (!emailFromError) {
         toast({ variant: "destructive", title: "Error", description: "Account linking failed." });
         return;
       }
 
+      // Instructs the user to log in with their original provider (Google/GitHub/LinkedIn).
       toast({
         variant: "destructive",
         title: "Account Exists",
@@ -111,51 +173,79 @@ const LoginMobile = () => {
     [toast],
   );
 
+  // Defines the handler for the GitHub OAuth login button.
   const handleGithubLogin = async () => {
+    // Sets loading state to true.
     setLoading(true);
     try {
+      // Initializes the GitHub OAuth provider configuration object.
       const provider = new GithubAuthProvider();
+      // Requests access to the user's private and public repositories so Zync can fetch their architecture data.
       provider.addScope("repo");
+      // Requests access to their profile data to fetch their avatar and username.
       provider.addScope("read:user");
+      // Forces the consent screen to appear so the user explicitly authorizes Zync.
       provider.setCustomParameters({ prompt: "consent" });
+      // Triggers the popup window for GitHub authentication.
       const result = await signInWithPopup(auth, provider);
 
+      // Extracts the raw GitHub access token from the authentication result.
       const credential = GithubAuthProvider.credentialFromResult(result);
+      // Safely retrieves the token string.
       const githubToken = credential?.accessToken;
+      // If a GitHub token was returned along with a valid user object:
       if (githubToken && result.user) {
+        // Retrieves the Firebase JWT token to securely authenticate the backend request.
         const firebaseToken = await result.user.getIdToken();
+        // Sends the GitHub access token to the Zync backend so it can be securely stored for background repository syncing.
         await fetch(`${API_BASE_URL}/api/github/connect`, {
           method: "POST",
           headers: { "Content-Type": "application/json", Authorization: `Bearer ${firebaseToken}` },
+          // Sends the token and the user's display name as a JSON payload.
           body: JSON.stringify({ accessToken: githubToken, username: result.user.displayName || "unknown" }),
         });
       }
 
+      // Shows a success message that GitHub login worked.
       toast({ title: "Success", description: "Logged in with GitHub successfully" });
+      // Routes the user to the app.
       await postLoginRedirect(navigate, result.user);
     } catch (error: any) {
+      // If the GitHub login failed because the email belongs to a Google account, triggers the linking handler.
       await handleAccountLinking(error);
     } finally {
+      // Resets loading state.
       setLoading(false);
     }
   };
 
+  // Defines the handler for the Google OAuth login button.
   const handleGoogleLogin = async () => {
+    // Sets loading state to true.
     setLoading(true);
     try {
+      // Initializes the Google OAuth provider configuration object.
       const provider = new GoogleAuthProvider();
+      // Forces the account selection screen to appear so users with multiple Google accounts can choose the right one.
       provider.setCustomParameters({ prompt: "select_account" });
+      // Triggers the popup window for Google authentication.
       const result = await signInWithPopup(auth, provider);
+      // Shows a success message.
       toast({ title: "Success", description: "Logged in with Google successfully" });
+      // Routes the user to the app.
       await postLoginRedirect(navigate, result.user);
     } catch (error: any) {
+      // If the Google login failed because the email belongs to a GitHub account, triggers the linking handler.
       await handleAccountLinking(error);
     } finally {
+      // Resets loading state.
       setLoading(false);
     }
   };
 
+  // Checks if a user session is already active (i.e. they closed the tab without logging out).
   if (currentUser) {
+    // Renders a simplified "Welcome Back" screen instead of the full login form.
     return (
       <div className="min-h-screen bg-transparent px-4 flex items-center justify-center">
         <div className="w-full max-w-sm">
@@ -185,9 +275,11 @@ const LoginMobile = () => {
     );
   }
 
+  // Renders the main login form if no active user session exists.
   return (
     <div className="min-h-screen bg-transparent px-4 flex items-center justify-center">
       <div className="w-full max-w-sm space-y-4">
+        {/* Header section with branding and back button */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <>
@@ -205,6 +297,7 @@ const LoginMobile = () => {
             <CardDescription>Access your account on mobile.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* The primary email and password form block */}
             <form onSubmit={handleEmailLogin} className="space-y-3">
               <div className="space-y-1.5">
                 <Label htmlFor="mobile-email">Email</Label>
@@ -232,6 +325,7 @@ const LoginMobile = () => {
               </Button>
             </form>
 
+            {/* The third-party OAuth social login buttons block */}
             <div className="grid grid-cols-1 gap-2">
               <Button variant="outline" onClick={handleGithubLogin} disabled={loading} className="w-full">
                 <Github className="mr-2 h-4 w-4" />
@@ -243,6 +337,7 @@ const LoginMobile = () => {
               <LinkedinSignInButton auth={auth} disabled={loading} />
             </div>
 
+            {/* A small link redirecting to the signup page for new users */}
             <p className="text-center text-xs text-muted-foreground">
               Don&apos;t have an account?{" "}
               <Link to="/signup" className="text-foreground hover:underline">
@@ -256,4 +351,5 @@ const LoginMobile = () => {
   );
 };
 
+// Exports the mobile login page component for routing.
 export default LoginMobile;
