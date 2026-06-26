@@ -6,7 +6,7 @@ const express = require('express');
 const router = express.Router();
 // Declares a constant variable 'verifyToken' and assigns it the module exported from '../middleware/authMiddleware.js'.
 // This imports a custom middleware function responsible for authenticating requests, ensuring that only authorized users can access the protected API endpoints.
-
+const verifyToken = require('../middleware/authMiddleware');
 
 // Declares a constant variable 'holidayCache' and initializes it as a new Map object. A Map is a collection of key-value pairs.
 // This Map will be used to store fetched holiday data in memory, acting as a cache to reduce redundant API calls to the external holiday service and improve response times.
