@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Initializes and provides access to the Firebase Admin SDK and Firestore database instance.
+ * Why: Ensures that Firebase is initialized exactly once per backend lifecycle (singleton pattern) using secure credentials, avoiding initialization errors during hot reloads or multiple invocations.
+ */
 const { initializeApp, cert, getApps } = require('firebase-admin/app');
 const { getFirestore } = require('firebase-admin/firestore');
 

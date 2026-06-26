@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: An in-memory queue designed to handle incoming webhooks, deduplicate deliveries, and process jobs sequentially.
+ * Why: Prevents our backend from being overwhelmed during massive traffic spikes (like batch webhook deliveries). It ensures idempotent processing by tracking delivery IDs and provides metrics on queue depth.
+ */
 const { getSafeEnvInt } = require('../utils/safeEnv');
 
 const MAX_STORED_JOBS = getSafeEnvInt('WEBHOOK_QUEUE_MAX_STORED_JOBS', 100, 5000, 1000);

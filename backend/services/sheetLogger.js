@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Appends data rows to a specified Google Sheet using the Google Sheets API and a service account.
+ * Why: Allows for quick, structured logging of events (like waitlist signups or metrics) into a highly accessible format for non-technical team members without requiring complex admin dashboards.
+ */
 require('dotenv').config();
 const { google } = require('googleapis');
 

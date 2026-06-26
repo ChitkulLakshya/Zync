@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Processes incoming GitHub webhooks (specifically push events) to update project states, extract commit metadata, and optionally analyze commit intent using AI.
+ * Why: Decoupling webhook processing from the raw endpoint logic allows us to handle large commit payloads, rate limit gracefully, and analyze architecture impact asynchronously without blocking GitHub's delivery.
+ */
 const Project = require('../models/Project');
 const { analyzeCommit } = require('../utils/commitAnalysisService');
 const {

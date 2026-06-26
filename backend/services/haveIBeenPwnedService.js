@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Checks if a user's password has been compromised using the Have I Been Pwned API via k-anonymity (sending only a 5-character SHA-1 prefix).
+ * Why: Enhances security by warning users against using breached passwords. K-anonymity ensures we never transmit the actual password or even the full hash, preserving complete user privacy.
+ */
 const crypto = require('crypto');
 const axios = require('axios');
 

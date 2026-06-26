@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Handles synchronization of team and user membership states to Firestore, managing team creation, member additions, removals, and ownership transfers.
+ * Why: Keeps the external NoSQL datastore (Firestore) strictly consistent with our internal business logic, allowing fast client-side querying and real-time updates for collaborative team features.
+ */
 const { admin, getFirestoreAdmin } = require('./firebaseAdmin');
 
 const normalizeUid = (value) => {
