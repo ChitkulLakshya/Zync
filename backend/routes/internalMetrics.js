@@ -52,6 +52,7 @@ router.get('/metrics', (_req, res) => {
       processing: queueMetrics.processing,
       // Assigns the 'trackedJobs' metric from the queueMetrics object.
       // This provides the total number of jobs that the queue system is currently aware of or tracking, useful for overall system monitoring.
+      trackedJobs: queueMetrics.trackedJobs,
     },
     // Creates a new Date object for the current time and converts it to an ISO 8601 string, assigning it to the 'timestamp' property.
     // This provides a precise timestamp for when the metrics were collected, essential for monitoring, logging, and understanding data freshness.
