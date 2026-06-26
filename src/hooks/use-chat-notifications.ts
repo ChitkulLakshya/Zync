@@ -70,3 +70,4 @@ export const useChatNotifications = () => { // Defines a custom hook called useC
 
     return () => unsubscribeAuth(); // Returns a function that is called when the component unmounts, which unsubscribes from the onAuthStateChanged event listener.
   }, [navigate]); // Specifies that the navigate function is a dependency of the useEffect hook, which means the effect will be re-run if the navigate function changes.
+}; // Closes the useChatNotifications hook.

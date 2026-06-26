@@ -13,3 +13,4 @@ export function useIsMobile() { // Defines and exports a custom React hook funct
     return () => mql.removeEventListener("change", onChange); // Returns a cleanup function that removes the event listener from the media query list object 'mql' when the component is unmounted, which is necessary for preventing memory leaks and ensuring the component can be safely removed from the DOM.
   }, []); // Passes an empty dependency array to the 'useEffect' hook, which means the side effect function will only be executed once when the component mounts, and not on subsequent renders.
   return !!isMobile; // Returns the boolean value of the 'isMobile' state variable, which indicates whether the device is mobile or not, so the component can use this value to make decisions about its behavior.
+}
