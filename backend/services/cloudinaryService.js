@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: This service integrates with Cloudinary for managing media assets, such as uploading profile photos and extracting public IDs from URLs for asset deletion.
+ * Why: Abstracting Cloudinary logic into a dedicated service allows centralized configuration and reusable methods across the backend, keeping route handlers clean and focused on HTTP concerns.
+ */
 const cloudinary = require('cloudinary').v2;
 
 

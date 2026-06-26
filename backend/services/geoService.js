@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Provides IP-to-geolocation resolution using the external GeoJS API.
+ * Why: Adding location awareness (like timezone or country) helps tailor user experiences or enforce region-based logic. It uses timeout signals to fail fast, ensuring the core app remains responsive if the API is slow.
+ */
 const GEOJS_URL = 'https://get.geojs.io/v1/ip/geo.json';
 
 /**

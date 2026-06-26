@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: Manages Google APIs integration to programmatically create Google Meet spaces and send emails via Gmail.
+ * Why: By using an authenticated OAuth2 client to interface with Google Services, we can automate real-time communication features like instant meetings and notification emails seamlessly within our app's flows.
+ */
 const { google } = require('googleapis');
 
 const oauth2Client = new google.auth.OAuth2(

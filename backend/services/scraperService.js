@@ -1,3 +1,8 @@
+/**
+ * EDUCATIONAL COMMENT: What and Why
+ * What: A web scraping service using Puppeteer and Stealth plugins to extract design inspiration and content from sites like Lapa Ninja, Godly, SiteInspire, Dribbble, and Awwwards.
+ * Why: Consolidates browser automation logic and manages a shared browser instance lifecycle. This heavily optimizes resource usage and prevents zombie Chrome processes while bypassing anti-bot measures.
+ */
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
