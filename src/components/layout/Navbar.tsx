@@ -4,7 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { Menu, X, Github } from "lucide-react";
+import { Menu, X } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);

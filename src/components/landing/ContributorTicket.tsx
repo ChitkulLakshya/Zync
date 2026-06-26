@@ -7,7 +7,8 @@ import {
   useTransform,
   useMotionTemplate,
 } from 'framer-motion';
-import { Github, Mail, Loader2, ArrowRight, Check } from 'lucide-react';
+import { Mail, Loader2, ArrowRight, Check } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 

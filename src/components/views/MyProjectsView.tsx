@@ -4,7 +4,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitBranch, GitCommit, Github, Search, ExternalLink, Calendar, GitPullRequest, Box, RefreshCw, Star, GitFork, Link as LinkIcon } from "lucide-react";
+import { GitBranch, GitCommit, Search, ExternalLink, Calendar, GitPullRequest, Box, RefreshCw, Star, GitFork, Link as LinkIcon } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { format, parseISO } from "date-fns";
 import { API_BASE_URL } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";

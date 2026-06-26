@@ -22,13 +22,13 @@ import {
   WifiOff,
   RefreshCw,
   Star,
-  Github,
   Trash2,
   Send,
   ChevronsLeft,
   ChevronsRight,
   PanelLeft,
 } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';
 import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
 import { NotesView } from '@/components/notes/NotesView';
 import TasksView from './TasksView';
