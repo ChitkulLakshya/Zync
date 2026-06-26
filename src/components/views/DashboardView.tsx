@@ -26,25 +26,8 @@ import {
   ContributionGraphTotalCount,
 } from '@/components/kibo-ui/contribution-graph';
 import { eachDayOfInterval, formatISO } from 'date-fns';
-import {
-  Github,
-  Users,
-  GitFork,
-  Star,
-  GitCommit,
-  GitPullRequest,
-  Clock,
-  ExternalLink,
-  AlertCircle,
-  ChevronDown,
-  BookMarked,
-  LogOut,
-  Kanban,
-  StickyNote,
-  CalendarDays,
-  MessageSquare,
-  ArrowRight,
-} from 'lucide-react';
+import { Users, GitFork, Star, GitCommit, GitPullRequest, Clock, ExternalLink, AlertCircle, ChevronDown, BookMarked, LogOut, Kanban, StickyNote, CalendarDays, MessageSquare, ArrowRight,  } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 
 import { useGitHubStats, useGitHubEvents, useGitHubContributions } from '@/hooks/useGitHubData';
 import { useProjects } from '@/hooks/useProjects';

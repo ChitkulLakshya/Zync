@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Copy, Check, Github } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
