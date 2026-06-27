@@ -9,3 +9,8 @@ local offline_db = require("utils.offline_db")
 function state.cacheBoard()
     offline_db.save("active_board", state.activeBoard)
 end
+
+local socket = require("api.socket_client")
+socket.on("board_update", function(data)
+    print("Received real-time board update!")
+end)
