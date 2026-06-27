@@ -4,3 +4,7 @@ function DashboardView.render()
     print("[1] Teams  [2] Kanban  [3] Meetings")
 end
 return DashboardView
+
+function DashboardView.renderOfflineBanner()
+    print("[OFFLINE MODE - Changes will sync when reconnected]")
+end

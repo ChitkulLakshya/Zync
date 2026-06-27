@@ -10,7 +10,7 @@ class DashboardViewModel : ViewModel() {
     private val _uiState = MutableStateFlow("Loading")
     val uiState: StateFlow<String> = _uiState
 
-    fun loadDashboard(token: String) {
+    fun initSocket() { println("Socket Initialized") }\n    fun loadDashboard(token: String) {
         viewModelScope.launch {
             try {
                 val teams = repository.getTeams(token)
