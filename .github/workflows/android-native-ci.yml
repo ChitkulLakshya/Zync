@@ -24,6 +24,6 @@ jobs:
         distribution: 'temurin'
         cache: gradle
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew || echo "No gradlew yet, skipping"
+      run: chmod +x ./gradlew || echo "Skipping"
     - name: Build with Gradle (Dry Run)
       run: echo "Simulating Android Build..." # ./gradlew assembleDebug
