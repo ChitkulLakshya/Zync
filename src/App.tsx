@@ -199,8 +199,8 @@ const AppContent = () => {
           // Applies Tailwind CSS classes 'h-full w-full' to ensure the animated wrapper takes up 100% of the parent container's height and width.
           className="h-full w-full"
         >
-          {/* Wraps the routing layer in a Suspense boundary to catch lazy-loaded components and display a loading spinner while their chunks are downloaded. */}
-          <Suspense fallback={<div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
+          {/* Wraps the routing layer in a Suspense boundary to catch lazy-loaded components. Uses clean background fallback to prevent dual loading text artifacts. */}
+          <Suspense fallback={<div className="min-h-screen w-full bg-background" />}>
             {/* Initializes the React Router Routes container and binds it to the current location object to determine which Route to render. */}
             <Routes location={location}>
               {/* Defines the root '/' route and renders the Index component when the user visits the homepage. */}
