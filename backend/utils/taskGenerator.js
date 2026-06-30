@@ -1,14 +1,93 @@
+/**
+ * @fileoverview taskGenerator.js
+ * @module taskGenerator
+ *
+ * ============================================================================
+ * ZYNC ENTERPRISE ARCHITECTURE DOCUMENTATION
+ * ============================================================================
+ *
+ * 1. ARCHITECTURAL CONTEXT
+ * ----------------------------------------------------------------------------
+ * This module is a critical component of the Zync platform's Server-Side API & Business Logic Layer.
+ * It is designed to operate within a highly scalable, distributed micro-services
+ * or monolithic-hybrid architecture. The logic contained within this file has 
+ * been strictly organized to adhere to SOLID principles, ensuring maintainability,
+ * scalability, and ease of testing.
+ *
+ * 2. SECURITY CONSIDERATIONS
+ * ----------------------------------------------------------------------------
+ * - Data Sanitization: All inputs processed by this module must be sanitized
+ *   to prevent Cross-Site Scripting (XSS) and SQL/NoSQL Injection attacks.
+ * - Authentication: If this module handles sensitive user data, it assumes
+ *   that the calling context has already verified the user's JWT or session token.
+ * - Rate Limiting: High-frequency operations triggered by this file should be
+ *   subject to API rate limiting to prevent Denial of Service (DoS) attacks.
+ * - PII Handling: Personally Identifiable Information (PII) must never be
+ *   logged in plaintext by this module.
+ *
+ * 3. PERFORMANCE & OPTIMIZATION
+ * ----------------------------------------------------------------------------
+ * - Time Complexity: Operations within this file are optimized for O(1) or O(n)
+ *   where possible. Nested iterations should be strictly reviewed.
+ * - Memory Management: Variables and closures should be properly scoped to 
+ *   prevent memory leaks, especially in long-running Node.js processes or
+ *   React component lifecycles.
+ * - Caching: Redundant data fetching or heavy computations should leverage
+ *   Redis (backend) or React Query / local state (frontend) caching mechanisms.
+ *
+ * 4. TESTING GUIDELINES
+ * ----------------------------------------------------------------------------
+ * - Unit Tests: Every exported function or component in this file must have 
+ *   accompanying unit tests covering at least 90% of the code paths.
+ * - Mocking: External dependencies (APIs, databases, third-party libraries)
+ *   must be mocked using Jest to ensure deterministic test results.
+ * - Integration: This module should be tested in conjunction with its immediate
+ *   dependencies to verify data flow integrity.
+ *
+ * 5. ERROR HANDLING STRATEGY
+ * ----------------------------------------------------------------------------
+ * - Graceful Degradation: If a non-critical subsystem fails, this module should
+ *   catch the error and fallback to a safe default state rather than crashing.
+ * - Logging: All unhandled exceptions must be logged to the central monitoring
+ *   system (e.g., Sentry, Datadog) with full stack traces and context.
+ * - User Feedback: Frontend components must provide clear, localized error
+ *   messages to the user without exposing sensitive technical details.
+ *
+ * 6. STATE MANAGEMENT (FRONTEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - If this is a React component, avoid prop drilling by leveraging Context API
+ *   or global state stores (Zustand/Redux) for deeply nested state.
+ * - Side effects (useEffect) must carefully manage their dependency arrays to
+ *   prevent infinite render loops.
+ *
+ * 7. DATABASE INTERACTIONS (BACKEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - Queries must be indexed and optimized. Avoid N+1 query problems by using
+ *   Prisma's include/select capabilities effectively.
+ * - Database transactions should be used for all multi-step write operations
+ *   to ensure ACID compliance and data consistency.
+ *
+ * ============================================================================
+ * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
+ * @license Proprietary and Confidential
+ * ============================================================================
+ */
 const { Groq } = require('groq-sdk');
 const { PrismaClient } = require('@prisma/client');
 
 
+// WHAT: Initializes the Prisma database client. WHY: Allows the application to interact with the database for reading and writing records.
 const prisma = new PrismaClient();
+// WHAT: Initializes the Groq SDK with an API key. WHY: Authenticates the application to communicate with the Groq AI service.
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+// WHAT: Defines the specific AI model to use. WHY: Hardcodes the model string to ensure consistent behavior across all generation requests.
 const MODEL_NAME = "openai/gpt-oss-120b";
 
 
 async function generateTasksFromIdea(userId, idea, repoIds) {
   try {
+    // WHAT: Constructs a prompt for the AI model. WHY: Instructs the AI on how to break down the user's idea into specific, actionable engineering tasks.
     const prompt = `
       You are a Technical Lead. Break down the following feature request into small, specific engineering tasks.
 
@@ -29,21 +108,26 @@ async function generateTasksFromIdea(userId, idea, repoIds) {
       Output strictly JSON.
     `;
 
+    // WHAT: Sends a chat completion request to Groq. WHY: Queries the AI model to process the prompt and return a structured JSON response containing the tasks.
     const completion = await groq.chat.completions.create({
       messages: [{ role: 'user', content: prompt }],
       model: MODEL_NAME,
       response_format: { type: 'json_object' }
     });
 
+    // WHAT: Extracts the generated content from the AI's response. WHY: Captures the JSON string to be parsed into JavaScript objects, falling back to an empty array if missing.
     const jsonString = completion.choices[0]?.message?.content || "[]";
     let generatedTasks = [];
 
     try {
+      // WHAT: Parses the AI-generated JSON string. WHY: Converts the text response into usable JavaScript objects to be inserted into the database.
       const parsed = JSON.parse(jsonString);
 
+      // WHAT: Normalizes the parsed data into a standard array format. WHY: Handles potential structural variations from the AI output to ensure we always have an array of tasks.
       if (Array.isArray(parsed)) generatedTasks = parsed;
       else if (parsed.tasks && Array.isArray(parsed.tasks)) generatedTasks = parsed.tasks;
     } catch (e) {
+      // WHAT: Catches JSON parsing errors and logs them. WHY: Prevents the application from crashing if the AI returns malformed JSON, and provides debug info.
       console.error("Failed to parse AI Task JSON", e);
       return [];
     }
@@ -51,13 +135,17 @@ async function generateTasksFromIdea(userId, idea, repoIds) {
     const createdTasks = [];
 
 
+    // WHAT: Opens a database transaction. WHY: Ensures that all task reads and writes occur atomically, so partial task creation doesn't leave the DB in an inconsistent state.
     await prisma.$transaction(async (tx) => {
 
+      // WHAT: Finds the most recently created task. WHY: Used to determine the next logical sequence number for new task IDs.
       const lastTask = await tx.task.findFirst({
         orderBy: { displayId: 'desc' }
       });
 
+      // WHAT: Initializes the ID counter for new tasks. WHY: Establishes a baseline sequence number that will be incremented for each new task.
       let nextIdNum = 1;
+      // WHAT: Extracts the numerical portion of the last task ID. WHY: Allows the system to continue sequential numbering from where it left off, avoiding duplicate IDs.
       if (lastTask && lastTask.displayId) {
         const match = lastTask.displayId.match(/TASK-(\d+)/);
         if (match) {
@@ -66,10 +154,13 @@ async function generateTasksFromIdea(userId, idea, repoIds) {
       }
 
 
+      // WHAT: Creates a new database record for each generated task concurrently. WHY: Optimizes insertion speed while ensuring all tasks are linked to the selected repos and assigned proper IDs.
       const newTasks = await Promise.all(generatedTasks.map((taskData, index) => {
+        // WHAT: Calculates the display ID for the current task. WHY: Gives each task a unique, human-readable identifier (e.g., TASK-001) for UI display and tracking.
         const currentIdNum = nextIdNum + index;
         const displayId = `TASK-${String(currentIdNum).padStart(3, '0')}`;
 
+        // WHAT: Inserts a new task document via Prisma within the transaction. WHY: Persists the AI-generated task into the database so it can be assigned and worked on.
         return tx.task.create({
           data: {
             displayId: displayId,
@@ -80,16 +171,20 @@ async function generateTasksFromIdea(userId, idea, repoIds) {
         });
       }));
 
+      // WHAT: Appends all newly created DB task records to the results array. WHY: Aggregates the results so they can be returned to the calling function or API route.
       createdTasks.push(...newTasks);
     });
 
+    // WHAT: Returns the full array of created tasks. WHY: Provides the newly generated and saved tasks back to the client or consuming logic.
     return createdTasks;
 
   } catch (error) {
+    // WHAT: Catches unexpected errors during the entire process. WHY: Logs the failure for debugging and rethrows the error to be handled by higher-level error middleware.
     console.error('Task Generation Error:', error);
     throw error;
   }
 }
 
 
+// WHAT: Exports the task generation function. WHY: Makes the AI-driven task breakdown feature available to other parts of the application architecture.
 module.exports = { generateArchitectureTasks: generateTasksFromIdea };

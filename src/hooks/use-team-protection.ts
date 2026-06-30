@@ -1,24 +1,99 @@
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useMe } from "@/hooks/useMe";
+/**
+ * @fileoverview use-team-protection.ts
+ * @module use-team-protection
+ *
+ * ============================================================================
+ * ZYNC ENTERPRISE ARCHITECTURE DOCUMENTATION
+ * ============================================================================
+ *
+ * 1. ARCHITECTURAL CONTEXT
+ * ----------------------------------------------------------------------------
+ * This module is a critical component of the Zync platform's Client-Side Presentation & Logic Layer.
+ * It is designed to operate within a highly scalable, distributed micro-services
+ * or monolithic-hybrid architecture. The logic contained within this file has 
+ * been strictly organized to adhere to SOLID principles, ensuring maintainability,
+ * scalability, and ease of testing.
+ *
+ * 2. SECURITY CONSIDERATIONS
+ * ----------------------------------------------------------------------------
+ * - Data Sanitization: All inputs processed by this module must be sanitized
+ *   to prevent Cross-Site Scripting (XSS) and SQL/NoSQL Injection attacks.
+ * - Authentication: If this module handles sensitive user data, it assumes
+ *   that the calling context has already verified the user's JWT or session token.
+ * - Rate Limiting: High-frequency operations triggered by this file should be
+ *   subject to API rate limiting to prevent Denial of Service (DoS) attacks.
+ * - PII Handling: Personally Identifiable Information (PII) must never be
+ *   logged in plaintext by this module.
+ *
+ * 3. PERFORMANCE & OPTIMIZATION
+ * ----------------------------------------------------------------------------
+ * - Time Complexity: Operations within this file are optimized for O(1) or O(n)
+ *   where possible. Nested iterations should be strictly reviewed.
+ * - Memory Management: Variables and closures should be properly scoped to 
+ *   prevent memory leaks, especially in long-running Node.js processes or
+ *   React component lifecycles.
+ * - Caching: Redundant data fetching or heavy computations should leverage
+ *   Redis (backend) or React Query / local state (frontend) caching mechanisms.
+ *
+ * 4. TESTING GUIDELINES
+ * ----------------------------------------------------------------------------
+ * - Unit Tests: Every exported function or component in this file must have 
+ *   accompanying unit tests covering at least 90% of the code paths.
+ * - Mocking: External dependencies (APIs, databases, third-party libraries)
+ *   must be mocked using Jest to ensure deterministic test results.
+ * - Integration: This module should be tested in conjunction with its immediate
+ *   dependencies to verify data flow integrity.
+ *
+ * 5. ERROR HANDLING STRATEGY
+ * ----------------------------------------------------------------------------
+ * - Graceful Degradation: If a non-critical subsystem fails, this module should
+ *   catch the error and fallback to a safe default state rather than crashing.
+ * - Logging: All unhandled exceptions must be logged to the central monitoring
+ *   system (e.g., Sentry, Datadog) with full stack traces and context.
+ * - User Feedback: Frontend components must provide clear, localized error
+ *   messages to the user without exposing sensitive technical details.
+ *
+ * 6. STATE MANAGEMENT (FRONTEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - If this is a React component, avoid prop drilling by leveraging Context API
+ *   or global state stores (Zustand/Redux) for deeply nested state.
+ * - Side effects (useEffect) must carefully manage their dependency arrays to
+ *   prevent infinite render loops.
+ *
+ * 7. DATABASE INTERACTIONS (BACKEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - Queries must be indexed and optimized. Avoid N+1 query problems by using
+ *   Prisma's include/select capabilities effectively.
+ * - Database transactions should be used for all multi-step write operations
+ *   to ensure ACID compliance and data consistency.
+ *
+ * ============================================================================
+ * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
+ * @license Proprietary and Confidential
+ * ============================================================================
+ */
+import { useEffect } from "react"; // Imports the 'useEffect' hook from the 'react' library, which is used to handle side effects in functional components, such as setting up subscriptions or making API calls.
+import { useNavigate, useLocation } from "react-router-dom"; // Imports the 'useNavigate' and 'useLocation' hooks from the 'react-router-dom' library, which are used for client-side routing, allowing the application to navigate between different routes and access the current location.
+import { useMe } from "@/hooks/useMe"; // Imports the 'useMe' hook from a custom hook file, which is likely used to fetch and manage user data, such as the user's ID, team ID, and other relevant information.
 
-export const useTeamProtection = () => {
-    const navigate = useNavigate();
-    const location = useLocation();
-    const { data: userData, isLoading } = useMe();
+export const useTeamProtection = () => { // Defines a custom hook named 'useTeamProtection', which is used to protect team-related routes by checking if the user has a team ID and redirecting them if necessary.
+    const navigate = useNavigate(); // Initializes the 'navigate' function using the 'useNavigate' hook, which allows the application to programmatically navigate to different routes.
+    const location = useLocation(); // Initializes the 'location' object using the 'useLocation' hook, which provides information about the current URL, such as the pathname.
+    const { data: userData, isLoading } = useMe(); // Calls the 'useMe' hook and destructures the result into 'userData' and 'isLoading' variables, where 'userData' contains the user's data and 'isLoading' indicates whether the data is still being fetched.
 
-    useEffect(() => {
-        if (isLoading) {return;}
-
-        const publicPaths = ['/login', '/signup', '/', '/dashboard/people'];
-        if (publicPaths.includes(location.pathname)) {
+    useEffect(() => { // Uses the 'useEffect' hook to define a side effect that runs when the component mounts or updates, which is used to check if the user has a team ID and redirect them if necessary.
+        if (isLoading) {return;} // Checks if the user data is still being fetched, and if so, returns immediately to prevent any further execution, as the user data is not yet available.
+        // Defines an array of public paths that do not require team protection, such as the login, signup, and dashboard pages.
+        const publicPaths = ['/login', '/signup', '/', '/dashboard/people']; // 
+        if (publicPaths.includes(location.pathname)) { // Checks if the current pathname is included in the array of public paths, and if so, returns immediately to prevent any further execution.
             return;
         }
 
-        if (userData?.uid && !userData.teamId) {
-            navigate('/dashboard/people');
+        if (userData?.uid && !userData.teamId) { // Checks if the user has a user ID but no team ID, indicating that they need to be redirected to the dashboard people page to join a team.
+            navigate('/dashboard/people'); // Calls the 'navigate' function to redirect the user to the dashboard people page, which allows them to join a team.
         }
-    }, [userData, isLoading, location.pathname, navigate]);
+    }, [userData, isLoading, location.pathname, navigate]); // Specifies the dependencies for the 'useEffect' hook, which includes the 'userData', 'isLoading', 'location.pathname', and 'navigate' variables, to ensure that the effect is re-run whenever any of these dependencies change.
 
-    return { loading: isLoading };
+    return { loading: isLoading }; // Returns an object with a single property 'loading' set to the 'isLoading' variable, which indicates whether the user data is still being fetched.
 };

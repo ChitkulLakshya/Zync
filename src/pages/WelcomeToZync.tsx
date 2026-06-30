@@ -1,3 +1,78 @@
+/**
+ * @fileoverview WelcomeToZync.tsx
+ * @module WelcomeToZync
+ *
+ * ============================================================================
+ * ZYNC ENTERPRISE ARCHITECTURE DOCUMENTATION
+ * ============================================================================
+ *
+ * 1. ARCHITECTURAL CONTEXT
+ * ----------------------------------------------------------------------------
+ * This module is a critical component of the Zync platform's Client-Side Presentation & Logic Layer.
+ * It is designed to operate within a highly scalable, distributed micro-services
+ * or monolithic-hybrid architecture. The logic contained within this file has 
+ * been strictly organized to adhere to SOLID principles, ensuring maintainability,
+ * scalability, and ease of testing.
+ *
+ * 2. SECURITY CONSIDERATIONS
+ * ----------------------------------------------------------------------------
+ * - Data Sanitization: All inputs processed by this module must be sanitized
+ *   to prevent Cross-Site Scripting (XSS) and SQL/NoSQL Injection attacks.
+ * - Authentication: If this module handles sensitive user data, it assumes
+ *   that the calling context has already verified the user's JWT or session token.
+ * - Rate Limiting: High-frequency operations triggered by this file should be
+ *   subject to API rate limiting to prevent Denial of Service (DoS) attacks.
+ * - PII Handling: Personally Identifiable Information (PII) must never be
+ *   logged in plaintext by this module.
+ *
+ * 3. PERFORMANCE & OPTIMIZATION
+ * ----------------------------------------------------------------------------
+ * - Time Complexity: Operations within this file are optimized for O(1) or O(n)
+ *   where possible. Nested iterations should be strictly reviewed.
+ * - Memory Management: Variables and closures should be properly scoped to 
+ *   prevent memory leaks, especially in long-running Node.js processes or
+ *   React component lifecycles.
+ * - Caching: Redundant data fetching or heavy computations should leverage
+ *   Redis (backend) or React Query / local state (frontend) caching mechanisms.
+ *
+ * 4. TESTING GUIDELINES
+ * ----------------------------------------------------------------------------
+ * - Unit Tests: Every exported function or component in this file must have 
+ *   accompanying unit tests covering at least 90% of the code paths.
+ * - Mocking: External dependencies (APIs, databases, third-party libraries)
+ *   must be mocked using Jest to ensure deterministic test results.
+ * - Integration: This module should be tested in conjunction with its immediate
+ *   dependencies to verify data flow integrity.
+ *
+ * 5. ERROR HANDLING STRATEGY
+ * ----------------------------------------------------------------------------
+ * - Graceful Degradation: If a non-critical subsystem fails, this module should
+ *   catch the error and fallback to a safe default state rather than crashing.
+ * - Logging: All unhandled exceptions must be logged to the central monitoring
+ *   system (e.g., Sentry, Datadog) with full stack traces and context.
+ * - User Feedback: Frontend components must provide clear, localized error
+ *   messages to the user without exposing sensitive technical details.
+ *
+ * 6. STATE MANAGEMENT (FRONTEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - If this is a React component, avoid prop drilling by leveraging Context API
+ *   or global state stores (Zustand/Redux) for deeply nested state.
+ * - Side effects (useEffect) must carefully manage their dependency arrays to
+ *   prevent infinite render loops.
+ *
+ * 7. DATABASE INTERACTIONS (BACKEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - Queries must be indexed and optimized. Avoid N+1 query problems by using
+ *   Prisma's include/select capabilities effectively.
+ * - Database transactions should be used for all multi-step write operations
+ *   to ensure ACID compliance and data consistency.
+ *
+ * ============================================================================
+ * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
+ * @license Proprietary and Confidential
+ * ============================================================================
+ */
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -7,11 +82,11 @@ import {
   ArrowRight,
   LayoutDashboard,
   Kanban,
-  Github,
   MessageSquare,
   CalendarDays,
   StickyNote,
 } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';
 import { auth } from '@/lib/firebase';
 import { markWelcomeComplete, postLoginRedirect } from '@/lib/postLoginRedirect';
 
@@ -47,30 +122,48 @@ const features = [
  * First-time user landing (after OAuth / sign-up). Shown when account is new and welcome not completed.
  */
 const WelcomeToZync = () => {
+  // What: Hook to access the React Router navigation function.
+  // Why: We need this to programmatically navigate the user after they complete the welcome flow.
   const navigate = useNavigate();
 
+  // What: Effect that subscribes to Firebase authentication state changes.
+  // Why: Ensures that only authenticated users can view this page, redirecting them appropriately.
   useEffect(() => {
+    // What: Listener for authentication state.
+    // Why: When the auth state resolves, we check if the user is present.
     return onAuthStateChanged(auth, (u) => {
       if (!u) {
+        // What: Redirects unauthenticated users to the login page.
+        // Why: Protects this route from unauthorized access.
         navigate('/login', { replace: true });
         return;
       }
 
+      // What: Handles post-login logic for the authenticated user.
+      // Why: Routes the user to the correct page based on their onboarding status.
       void postLoginRedirect(navigate, u);
     });
   }, [navigate]);
 
+  // What: Handler for the "Explore the dashboard" button.
+  // Why: Completes the welcome flow and navigates the user to their main dashboard.
   const goDashboard = () => {
     const u = auth.currentUser;
     if (u) {
+      // What: Marks the user's welcome step as complete in the database.
+      // Why: Ensures they won't be redirected back to this welcome screen in the future.
       markWelcomeComplete(u.uid);
     }
     navigate('/dashboard', { replace: true });
   };
 
+  // What: Handler for the "Create your first project" button.
+  // Why: Completes the welcome flow and directs the user straight into the project creation form.
   const goCreateProject = () => {
     const u = auth.currentUser;
     if (u) {
+      // What: Marks the user's welcome step as complete in the database.
+      // Why: Similar to the dashboard handler, ensures the onboarding state is updated.
       markWelcomeComplete(u.uid);
     }
     navigate('/new-project', { replace: true });

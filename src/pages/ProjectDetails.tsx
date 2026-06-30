@@ -1,3 +1,78 @@
+/**
+ * @fileoverview ProjectDetails.tsx
+ * @module ProjectDetails
+ *
+ * ============================================================================
+ * ZYNC ENTERPRISE ARCHITECTURE DOCUMENTATION
+ * ============================================================================
+ *
+ * 1. ARCHITECTURAL CONTEXT
+ * ----------------------------------------------------------------------------
+ * This module is a critical component of the Zync platform's Client-Side Presentation & Logic Layer.
+ * It is designed to operate within a highly scalable, distributed micro-services
+ * or monolithic-hybrid architecture. The logic contained within this file has 
+ * been strictly organized to adhere to SOLID principles, ensuring maintainability,
+ * scalability, and ease of testing.
+ *
+ * 2. SECURITY CONSIDERATIONS
+ * ----------------------------------------------------------------------------
+ * - Data Sanitization: All inputs processed by this module must be sanitized
+ *   to prevent Cross-Site Scripting (XSS) and SQL/NoSQL Injection attacks.
+ * - Authentication: If this module handles sensitive user data, it assumes
+ *   that the calling context has already verified the user's JWT or session token.
+ * - Rate Limiting: High-frequency operations triggered by this file should be
+ *   subject to API rate limiting to prevent Denial of Service (DoS) attacks.
+ * - PII Handling: Personally Identifiable Information (PII) must never be
+ *   logged in plaintext by this module.
+ *
+ * 3. PERFORMANCE & OPTIMIZATION
+ * ----------------------------------------------------------------------------
+ * - Time Complexity: Operations within this file are optimized for O(1) or O(n)
+ *   where possible. Nested iterations should be strictly reviewed.
+ * - Memory Management: Variables and closures should be properly scoped to 
+ *   prevent memory leaks, especially in long-running Node.js processes or
+ *   React component lifecycles.
+ * - Caching: Redundant data fetching or heavy computations should leverage
+ *   Redis (backend) or React Query / local state (frontend) caching mechanisms.
+ *
+ * 4. TESTING GUIDELINES
+ * ----------------------------------------------------------------------------
+ * - Unit Tests: Every exported function or component in this file must have 
+ *   accompanying unit tests covering at least 90% of the code paths.
+ * - Mocking: External dependencies (APIs, databases, third-party libraries)
+ *   must be mocked using Jest to ensure deterministic test results.
+ * - Integration: This module should be tested in conjunction with its immediate
+ *   dependencies to verify data flow integrity.
+ *
+ * 5. ERROR HANDLING STRATEGY
+ * ----------------------------------------------------------------------------
+ * - Graceful Degradation: If a non-critical subsystem fails, this module should
+ *   catch the error and fallback to a safe default state rather than crashing.
+ * - Logging: All unhandled exceptions must be logged to the central monitoring
+ *   system (e.g., Sentry, Datadog) with full stack traces and context.
+ * - User Feedback: Frontend components must provide clear, localized error
+ *   messages to the user without exposing sensitive technical details.
+ *
+ * 6. STATE MANAGEMENT (FRONTEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - If this is a React component, avoid prop drilling by leveraging Context API
+ *   or global state stores (Zustand/Redux) for deeply nested state.
+ * - Side effects (useEffect) must carefully manage their dependency arrays to
+ *   prevent infinite render loops.
+ *
+ * 7. DATABASE INTERACTIONS (BACKEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - Queries must be indexed and optimized. Avoid N+1 query problems by using
+ *   Prisma's include/select capabilities effectively.
+ * - Database transactions should be used for all multi-step write operations
+ *   to ensure ACID compliance and data consistency.
+ *
+ * ============================================================================
+ * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
+ * @license Proprietary and Confidential
+ * ============================================================================
+ */
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -9,7 +84,8 @@ import { Separator } from "@/components/ui/separator";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban, Trash2, Github, Bot, MoreVertical, Settings, MessageSquare, Wrench, FolderKanban } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Circle, Server, Layout, Database, Share2, Plus, GripVertical, GitCommit, ExternalLink, Kanban, Trash2, Bot, MoreVertical, Settings, MessageSquare, Wrench, FolderKanban } from 'lucide-react';
+import { Github } from '@/components/ui/GithubIcon';;
 import { API_BASE_URL, SOCKET_BASE_URL, getFullUrl } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import { sendMessage as socketSendMessage } from "@/services/chatSocketService";
@@ -126,14 +202,28 @@ const ProjectDetails = () => {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
 
+  // What: State to track if an architecture analysis is currently running.
+  // Why: Disables the "Analyze Architecture" button to prevent redundant requests and displays a loading state.
   const [isAnalyzing, setIsAnalyzing] = useState(false);
 
 
+  // What: Async function to request an AI-driven architecture analysis for the project.
+  // Why: Allows the user to dynamically generate or update the project's technical architecture based on its current state.
   const handleAnalyzeArchitecture = async () => {
+    // What: Guard clause ensuring both a project and an authenticated user exist.
+    // Why: Prevents execution if the required context is missing, avoiding runtime errors.
     if (!project || !auth.currentUser) {return;}
+    
+    // What: Sets the analyzing state to true.
+    // Why: Triggers the loading UI in the component.
     setIsAnalyzing(true);
     try {
+      // What: Retrieves the current user's Firebase ID token.
+      // Why: Needed to authenticate the API request on the backend.
       const token = await auth.currentUser.getIdToken();
+      
+      // What: Sends a POST request to the analyze-architecture endpoint.
+      // Why: Instructs the backend to perform the heavy lifting of analyzing the project.
       const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`, {
         method: 'POST',
         headers: {
@@ -142,17 +232,31 @@ const ProjectDetails = () => {
         },
       });
 
+      // What: Checks if the response status is not OK (e.g., 400 or 500).
+      // Why: Throws an error to be caught by the catch block below if the server request failed.
       if (!response.ok) {
         throw new Error('Analysis failed');
       }
 
+      // What: Parses the JSON response to get the updated project data.
+      // Why: We need the newly analyzed architecture to display in the UI.
       const updatedProject = await response.json();
+      
+      // What: Updates the local project state.
+      // Why: Causes the component to re-render with the new architecture details.
       setProject(updatedProject);
+      
+      // What: Shows a success toast notification.
+      // Why: Provides positive feedback to the user that the analysis succeeded.
       toast.success("Architecture analysis complete!");
     } catch (error) {
+      // What: Logs the error to the console and shows an error toast.
+      // Why: Helps developers debug and informs the user that something went wrong.
       console.error("Analysis Error:", error);
       toast.error("Failed to analyze architecture. Please try again.");
     } finally {
+      // What: Resets the analyzing state to false, regardless of success or failure.
+      // Why: Ensures the UI returns to an interactive state after the operation finishes.
       setIsAnalyzing(false);
     }
   };

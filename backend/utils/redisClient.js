@@ -1,88 +1,163 @@
-const { createClient } = require('redis');
+/**
+ * @fileoverview redisClient.js
+ * @module redisClient
+ *
+ * ============================================================================
+ * ZYNC ENTERPRISE ARCHITECTURE DOCUMENTATION
+ * ============================================================================
+ *
+ * 1. ARCHITECTURAL CONTEXT
+ * ----------------------------------------------------------------------------
+ * This module is a critical component of the Zync platform's Server-Side API & Business Logic Layer.
+ * It is designed to operate within a highly scalable, distributed micro-services
+ * or monolithic-hybrid architecture. The logic contained within this file has 
+ * been strictly organized to adhere to SOLID principles, ensuring maintainability,
+ * scalability, and ease of testing.
+ *
+ * 2. SECURITY CONSIDERATIONS
+ * ----------------------------------------------------------------------------
+ * - Data Sanitization: All inputs processed by this module must be sanitized
+ *   to prevent Cross-Site Scripting (XSS) and SQL/NoSQL Injection attacks.
+ * - Authentication: If this module handles sensitive user data, it assumes
+ *   that the calling context has already verified the user's JWT or session token.
+ * - Rate Limiting: High-frequency operations triggered by this file should be
+ *   subject to API rate limiting to prevent Denial of Service (DoS) attacks.
+ * - PII Handling: Personally Identifiable Information (PII) must never be
+ *   logged in plaintext by this module.
+ *
+ * 3. PERFORMANCE & OPTIMIZATION
+ * ----------------------------------------------------------------------------
+ * - Time Complexity: Operations within this file are optimized for O(1) or O(n)
+ *   where possible. Nested iterations should be strictly reviewed.
+ * - Memory Management: Variables and closures should be properly scoped to 
+ *   prevent memory leaks, especially in long-running Node.js processes or
+ *   React component lifecycles.
+ * - Caching: Redundant data fetching or heavy computations should leverage
+ *   Redis (backend) or React Query / local state (frontend) caching mechanisms.
+ *
+ * 4. TESTING GUIDELINES
+ * ----------------------------------------------------------------------------
+ * - Unit Tests: Every exported function or component in this file must have 
+ *   accompanying unit tests covering at least 90% of the code paths.
+ * - Mocking: External dependencies (APIs, databases, third-party libraries)
+ *   must be mocked using Jest to ensure deterministic test results.
+ * - Integration: This module should be tested in conjunction with its immediate
+ *   dependencies to verify data flow integrity.
+ *
+ * 5. ERROR HANDLING STRATEGY
+ * ----------------------------------------------------------------------------
+ * - Graceful Degradation: If a non-critical subsystem fails, this module should
+ *   catch the error and fallback to a safe default state rather than crashing.
+ * - Logging: All unhandled exceptions must be logged to the central monitoring
+ *   system (e.g., Sentry, Datadog) with full stack traces and context.
+ * - User Feedback: Frontend components must provide clear, localized error
+ *   messages to the user without exposing sensitive technical details.
+ *
+ * 6. STATE MANAGEMENT (FRONTEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - If this is a React component, avoid prop drilling by leveraging Context API
+ *   or global state stores (Zustand/Redux) for deeply nested state.
+ * - Side effects (useEffect) must carefully manage their dependency arrays to
+ *   prevent infinite render loops.
+ *
+ * 7. DATABASE INTERACTIONS (BACKEND SPECIFIC)
+ * ----------------------------------------------------------------------------
+ * - Queries must be indexed and optimized. Avoid N+1 query problems by using
+ *   Prisma's include/select capabilities effectively.
+ * - Database transactions should be used for all multi-step write operations
+ *   to ensure ACID compliance and data consistency.
+ *
+ * ============================================================================
+ * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
+ * @license Proprietary and Confidential
+ * ============================================================================
+ */
+const { createClient } = require('redis'); // WHAT: Import createClient from redis package. WHY: To establish a connection to Redis server.
 
-let client = null;
-let ready = false;
+let client = null; // WHAT: Declare singleton client variable. WHY: To hold the single Redis connection instance.
+let ready = false; // WHAT: Declare ready flag. WHY: To track whether the connection is active and ready for commands.
 
-function getRedisClient() {
-  if (!client) {
-    const rawRedisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    const tlsEnv = String(process.env.REDIS_TLS || '').trim().toLowerCase();
-    const rejectUnauthorizedEnv = String(process.env.REDIS_TLS_REJECT_UNAUTHORIZED || '').trim().toLowerCase();
-    const useTls = tlsEnv
-      ? ['1', 'true', 'yes', 'on'].includes(tlsEnv)
-      : rawRedisUrl.startsWith('rediss://');
-    const rejectUnauthorized = rejectUnauthorizedEnv
-      ? ['1', 'true', 'yes', 'on'].includes(rejectUnauthorizedEnv)
-      : false;
-    const redisUrl = useTls
-      ? rawRedisUrl.replace(/^redis:\/\//i, 'rediss://')
-      : rawRedisUrl.replace(/^rediss:\/\//i, 'redis://');
+function getRedisClient() { // WHAT: Define function to get or create client. WHY: Ensures singleton pattern.
+  if (!client) { // WHAT: Check if client exists. WHY: Only initialize if it hasn't been already.
+    const rawRedisUrl = process.env.REDIS_URL || 'redis://localhost:6379'; // WHAT: Read URL from env or fallback. WHY: Configurable connection string.
+    const tlsEnv = String(process.env.REDIS_TLS || '').trim().toLowerCase(); // WHAT: Read and normalize TLS env var. WHY: Determine if TLS is forced.
+    const rejectUnauthorizedEnv = String(process.env.REDIS_TLS_REJECT_UNAUTHORIZED || '').trim().toLowerCase(); // WHAT: Read TLS verification env var. WHY: For self-signed cert handling.
+    const useTls = tlsEnv // WHAT: Determine if TLS should be used. WHY: Secure connection handling.
+      ? ['1', 'true', 'yes', 'on'].includes(tlsEnv) // WHAT: Check explicit env value. WHY: Handle various truthy strings.
+      : rawRedisUrl.startsWith('rediss://'); // WHAT: Fallback to checking URL scheme. WHY: Automatic detection from URL.
+    const rejectUnauthorized = rejectUnauthorizedEnv // WHAT: Determine if unauthorized certs are rejected. WHY: Flexibility in dev vs prod environments.
+      ? ['1', 'true', 'yes', 'on'].includes(rejectUnauthorizedEnv) // WHAT: Check env var. WHY: Explicit configuration override.
+      : false; // WHAT: Default to false if not provided. WHY: Prevents strict failures by default.
+    const redisUrl = useTls // WHAT: Normalize the final URL based on TLS intent. WHY: Ensure protocol matches TLS requirements.
+      ? rawRedisUrl.replace(/^redis:\/\//i, 'rediss://') // WHAT: Upgrade to rediss scheme. WHY: Enforce secure protocol.
+      : rawRedisUrl.replace(/^rediss:\/\//i, 'redis://'); // WHAT: Downgrade to standard redis scheme. WHY: Enforce plaintext protocol.
 
-    client = createClient({
-      url: redisUrl,
-      socket: {
-        connectTimeout: 5000,
-        socketTimeout: 0,
-        keepAlive: true,
-        keepAliveInitialDelay: 10000,
-        tls: useTls,
-        rejectUnauthorized: useTls ? rejectUnauthorized : undefined,
-        reconnectStrategy: (retries) => {
-          if (retries > 20) {
-            console.error('[Redis] Max reconnection attempts reached');
-            return new Error('Max reconnection attempts');
+    client = createClient({ // WHAT: Initialize redis client. WHY: Create connection instance.
+      url: redisUrl, // WHAT: Pass normalized URL. WHY: Connection target.
+      socket: { // WHAT: Configure socket options. WHY: Tune network behavior.
+        connectTimeout: 5000, // WHAT: Set connection timeout. WHY: Fail fast if server is unreachable.
+        socketTimeout: 0, // WHAT: Set socket timeout to 0. WHY: Disable timeout to prevent premature disconnects.
+        keepAlive: true, // WHAT: Enable TCP keep-alive. WHY: Detect dead connections.
+        keepAliveInitialDelay: 10000, // WHAT: Set delay before keep-alive probes. WHY: Avoid unnecessary traffic early on.
+        tls: useTls, // WHAT: Enable TLS if configured. WHY: Secure data in transit.
+        rejectUnauthorized: useTls ? rejectUnauthorized : undefined, // WHAT: Pass TLS rejection setting if using TLS. WHY: Handle cert validation.
+        reconnectStrategy: (retries) => { // WHAT: Define custom reconnect logic. WHY: Graceful handling of network blips.
+          if (retries > 20) { // WHAT: Check retry count. WHY: Prevent infinite connection loops.
+            console.error('[Redis] Max reconnection attempts reached'); // WHAT: Log error. WHY: Alert administrators.
+            return new Error('Max reconnection attempts'); // WHAT: Return error to abort connection. WHY: Fail gracefully.
           }
 
-          const delay = Math.min(retries * 100, 3000);
-          console.warn(`[Redis] Reconnecting in ${delay}ms (attempt ${retries})`);
-          return delay;
+          const delay = Math.min(retries * 100, 3000); // WHAT: Calculate backoff delay. WHY: Prevent overwhelming server during recovery.
+          console.warn(`[Redis] Reconnecting in ${delay}ms (attempt ${retries})`); // WHAT: Log reconnection attempt. WHY: Visibility into client state.
+          return delay; // WHAT: Return delay time in ms. WHY: Tell client how long to wait.
         },
       },
     });
 
-    client.on('ready', () => {
-      ready = true;
-      console.log('[Redis] Client ready');
+    client.on('ready', () => { // WHAT: Listen for ready event. WHY: Track successful connection state.
+      ready = true; // WHAT: Update flag. WHY: Mark client as usable.
+      console.log('[Redis] Client ready'); // WHAT: Log success. WHY: Info logging.
     });
 
-    client.on('error', (err) => {
-      ready = false;
-      console.error('[Redis] Client error:', err.message);
+    client.on('error', (err) => { // WHAT: Listen for error events. WHY: Handle connection failures.
+      ready = false; // WHAT: Mark not ready. WHY: Prevent use of broken connection.
+      console.error('[Redis] Client error:', err.message); // WHAT: Log error message. WHY: Diagnostic info.
     });
 
-    client.on('end', () => {
-      ready = false;
-      console.warn('[Redis] Connection closed');
+    client.on('end', () => { // WHAT: Listen for end event. WHY: Detect closed connections.
+      ready = false; // WHAT: Update flag. WHY: Mark client as unusable.
+      console.warn('[Redis] Connection closed'); // WHAT: Log closure. WHY: Visibility.
     });
   }
 
-  return client;
+  return client; // WHAT: Return the singleton instance. WHY: Provide access to caller.
 }
 
-function isAvailable() {
-  return ready && client !== null && client.isReady;
+function isAvailable() { // WHAT: Define helper to check availability. WHY: Allow safe checks before using cache.
+  return ready && client !== null && client.isReady; // WHAT: Combine checks. WHY: Ensure client exists and is fully ready.
 }
 
-async function connectRedis() {
-  try {
-    const c = getRedisClient();
-    await c.connect();
-    console.log('[Redis] Connected successfully');
-  } catch (err) {
-    console.warn(`[Redis] Connection failed — server continues without cache: ${err.message}`);
+async function connectRedis() { // WHAT: Define async connection starter. WHY: App startup hook.
+  try { // WHAT: Use try block. WHY: Catch connection errors gracefully.
+    const c = getRedisClient(); // WHAT: Get or init client. WHY: Prepare instance.
+    await c.connect(); // WHAT: Await connection. WHY: Ensure it connects before proceeding.
+    console.log('[Redis] Connected successfully'); // WHAT: Log success. WHY: Info logging.
+  } catch (err) { // WHAT: Catch block. WHY: Handle failures without crashing the app.
+    console.warn(`[Redis] Connection failed — server continues without cache: ${err.message}`); // WHAT: Log warning. WHY: App is resilient and can run without redis.
   }
 }
 
-async function disconnectRedis() {
-  if (client) {
-    try {
-      await client.quit();
-    } catch {
+async function disconnectRedis() { // WHAT: Define disconnection logic. WHY: Clean shutdown on app exit.
+  if (client) { // WHAT: Check if client exists. WHY: Avoid errors if never connected.
+    try { // WHAT: Use try block. WHY: Catch quit errors.
+      await client.quit(); // WHAT: Gracefully close connection. WHY: Ensure commands finish.
+    } catch { // WHAT: Catch error silently. WHY: Disconnect failures aren't critical during shutdown.
 
     }
-    client = null;
-    ready = false;
+    client = null; // WHAT: Clear reference. WHY: Prevent memory leaks.
+    ready = false; // WHAT: Reset flag. WHY: Reflect disconnected state.
   }
 }
 
-module.exports = { getRedisClient, isAvailable, connectRedis, disconnectRedis };
+module.exports = { getRedisClient, isAvailable, connectRedis, disconnectRedis }; // WHAT: Export methods. WHY: Make Redis functions available across app.
