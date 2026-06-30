@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import ContributorTicket from '@/components/landing/ContributorTicket';
 import { SimulatedCursor } from '@/components/landing/SimulatedCursor';
+import { IsometricMatrix } from '@/components/landing/IsometricMatrix';
 
 const CTASection = () => {
   const [cursorState, setCursorState] = useState<
@@ -11,21 +12,17 @@ const CTASection = () => {
 
   useEffect(() => {
     if (cursorState === 'approving') {
-
       const arriveTimer = setTimeout(() => {
         setCursorState('clicking');
-      }, 800);
+      }, 1500);
       return () => clearTimeout(arriveTimer);
     }
 
     if (cursorState === 'clicking') {
-
       setIsApproved(true);
-
-
       const flyAwayTimer = setTimeout(() => {
         setCursorState('patrolling');
-      }, 400);
+      }, 600);
       return () => clearTimeout(flyAwayTimer);
     }
   }, [cursorState]);
@@ -35,14 +32,8 @@ const CTASection = () => {
       id="cta"
       className="py-20 md:py-32 relative overflow-hidden bg-background border-t border-black/5 dark:border-white/5"
     >
-      {/* Brutalist Grid Lines */}
-      <div
-        className="absolute inset-0 z-0 opacity-[0.03]"
-        style={{
-          backgroundImage: `linear-gradient(hsl(var(--foreground) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground) / 0.5) 1px, transparent 1px)`,
-          backgroundSize: '40px 40px',
-        }}
-      />
+      {/* Isometric Architectural Matrix */}
+      <IsometricMatrix />
 
       <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
         {/* Massive Typography */}
@@ -68,37 +59,35 @@ const CTASection = () => {
             className="absolute z-50 pointer-events-none hidden md:block"
             variants={{
               floating: {
-                left: '0%',
-                top: '10%',
-                y: [0, -20, 0],
-                x: [0, 15, 0],
-                transition: {
-                  y: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-                  x: { duration: 5, repeat: Infinity, ease: 'easeInOut' },
-                },
+                opacity: 0,
+                scale: 0.2,
+                left: '10%',
+                top: '20%',
               },
               approving: {
+                opacity: 1,
                 left: '25%',
                 top: '40%',
                 y: 0,
                 x: 0,
                 scale: 1.1,
-                transition: { type: 'spring', stiffness: 120, damping: 20 },
+                transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1] },
               },
               clicking: {
+                opacity: 1,
                 left: '25%',
                 top: '40%',
                 y: 0,
                 x: 0,
                 scale: 0.9,
-                transition: { type: 'spring', stiffness: 400, damping: 15 },
+                transition: { duration: 0.3, ease: 'easeInOut' },
               },
               patrolling: {
+                opacity: 0,
+                scale: 0.2,
                 left: '-15%',
                 top: '10%',
-                y: [0, 20, 0],
-                x: [0, -15, 0],
-                transition: { type: 'spring', stiffness: 60, damping: 20 },
+                transition: { duration: 1.2, ease: 'easeInOut' },
               },
             }}
             initial="floating"
@@ -122,37 +111,35 @@ const CTASection = () => {
             className="absolute z-50 pointer-events-none hidden md:block"
             variants={{
               floating: {
-                right: '5%',
-                top: '20%',
-                y: [0, 25, 0],
-                x: [0, -10, 0],
-                transition: {
-                  y: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 },
-                  x: { duration: 6, repeat: Infinity, ease: 'easeInOut', delay: 1 },
-                },
+                opacity: 0,
+                scale: 0.2,
+                right: '15%',
+                top: '25%',
               },
               approving: {
+                opacity: 1,
                 right: '25%',
                 top: '45%',
                 y: 0,
                 x: 0,
                 scale: 1.1,
-                transition: { type: 'spring', stiffness: 100, damping: 18, delay: 0.1 },
+                transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.15 },
               },
               clicking: {
+                opacity: 1,
                 right: '25%',
                 top: '45%',
                 y: 0,
                 x: 0,
                 scale: 0.9,
-                transition: { type: 'spring', stiffness: 400, damping: 15 },
+                transition: { duration: 0.3, ease: 'easeInOut' },
               },
               patrolling: {
+                opacity: 0,
+                scale: 0.2,
                 right: '0%',
                 top: '55%',
-                y: [0, -25, 0],
-                x: [0, 20, 0],
-                transition: { type: 'spring', stiffness: 60, damping: 20 },
+                transition: { duration: 1.2, ease: 'easeInOut', delay: 0.15 },
               },
             }}
             initial="floating"
@@ -176,37 +163,35 @@ const CTASection = () => {
             className="absolute z-50 pointer-events-none hidden md:block"
             variants={{
               floating: {
-                left: '10%',
-                bottom: '0%',
-                y: [0, -15, 0],
-                x: [0, -20, 0],
-                transition: {
-                  y: { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 },
-                  x: { duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 },
-                },
+                opacity: 0,
+                scale: 0.2,
+                left: '25%',
+                bottom: '10%',
               },
               approving: {
+                opacity: 1,
                 left: '40%',
                 bottom: '10%',
                 y: 0,
                 x: 0,
                 scale: 1.1,
-                transition: { type: 'spring', stiffness: 140, damping: 22, delay: 0.15 },
+                transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.3 },
               },
               clicking: {
+                opacity: 1,
                 left: '40%',
                 bottom: '10%',
                 y: 0,
                 x: 0,
                 scale: 0.9,
-                transition: { type: 'spring', stiffness: 400, damping: 15 },
+                transition: { duration: 0.3, ease: 'easeInOut' },
               },
               patrolling: {
+                opacity: 0,
+                scale: 0.2,
                 right: '10%',
                 bottom: '30%',
-                y: [0, 15, 0],
-                x: [0, -25, 0],
-                transition: { type: 'spring', stiffness: 60, damping: 20 },
+                transition: { duration: 1.2, ease: 'easeInOut', delay: 0.3 },
               },
             }}
             initial="floating"
