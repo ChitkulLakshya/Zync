@@ -66,7 +66,7 @@ const AppContent = () => {
           transition={{ duration: 0.2, ease: "easeOut" }}
           className="h-full w-full"
         >
-          <Suspense fallback={<div className="h-full w-full flex items-center justify-center text-sm text-muted-foreground">Loading…</div>}>
+          <Suspense fallback={<div className="min-h-screen w-full bg-background" />}>
             <Routes location={location}>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={isMobile ? <LoginMobile /> : <Login />} />
