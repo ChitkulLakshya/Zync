@@ -1,5 +1,14 @@
 package com.zync.android.ui.screens
-// Placeholder for Meetings
-class MeetingsScreen {
-    fun render() { println("Rendering Meetings List") }
+
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+
+@Composable
+fun MeetingsScreen() {
+    Column {
+        Text("Upcoming Meetings", style = MaterialTheme.typography.headlineMedium)
+        Button(onClick = { /* Join Call */ }) {
+            Text("Join Current Call")
+        }
+    }
 }

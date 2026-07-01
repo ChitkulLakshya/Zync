@@ -1,5 +1,17 @@
 package com.zync.android.ui.screens
-// Placeholder for Teams View
-class TeamsScreen {
-    fun render() { println("Rendering Teams") }
+
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+
+@Composable
+fun TeamsScreen(teams: List<String>) {
+    LazyColumn {
+        items(teams) { team ->
+            Card {
+                Text(text = team, style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
 }

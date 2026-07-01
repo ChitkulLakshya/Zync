@@ -1,10 +1,13 @@
+local Theme = require("ui.theme")
 local DashboardView = {}
-function DashboardView.render()
-    print("--- Zync Desktop Dashboard ---")
-    print("[1] Teams  [2] Kanban  [3] Meetings")
-end
-return DashboardView
 
-function DashboardView.renderOfflineBanner()
-    print("[OFFLINE MODE - Changes will sync when reconnected]")
+function DashboardView.draw()
+    love.graphics.clear(Theme.colors.background)
+    love.graphics.setColor(Theme.colors.primary)
+    love.graphics.rectangle("fill", 0, 0, 200, 600) -- Sidebar
+    
+    love.graphics.setColor(Theme.colors.text)
+    love.graphics.print("Zync Teams", 50, 50)
 end
+
+return DashboardView
