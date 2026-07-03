@@ -68,7 +68,7 @@
  *   to ensure ACID compliance and data consistency.
  *
  * ============================================================================
- * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
  * @license Proprietary and Confidential
  * ============================================================================
@@ -183,7 +183,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="mailto:support@zync.meet"
+                  href="mailto:consolemaster.app@gmail.com"
                   className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
                 >
                   Support
@@ -254,7 +254,7 @@ const Footer = () => {
               TWITTER / X
             </a>
             <a
-              href="https://www.linkedin.com/in/zync-meet"
+              href="https://www.linkedin.com/company/zync-meet/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

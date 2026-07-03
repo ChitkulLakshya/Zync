@@ -12,7 +12,8 @@
     <a href="https://zync-meet.vercel.app">Live App</a> •
     <a href="https://github.com/zync-meet/Zync/discussions">Discussions</a> •
     <a href="https://github.com/zync-meet/Zync/tree/main/docs">Documentation</a> •
-    <a href="mailto:consolemaster@gmail.com">Contact</a>
+    <a href="https://www.linkedin.com/company/zync-meet/">LinkedIn</a> •
+    <a href="mailto:consolemaster.app@gmail.com">Contact</a>
   </p>
 
   <p>
@@ -170,9 +171,9 @@ Dive deeper into Zync's internals by exploring our comprehensive documentation i
 
 Zync is proudly built and maintained by:
 
-| [<img src="https://github.com/chitkullakshya.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/chitkullakshya) | [<img src="https://github.com/prem22k.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/prem22k) | [<img src="https://github.com/eesha264.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/eesha264) |
-|:---:|:---:|:---:|
-| **[Lakshya Chitkul](https://github.com/chitkullakshya)** | **[Prem Sai Kota](https://github.com/prem22k)** | **[Eeshitha Gone](https://github.com/eesha264)** |
+| [<img src="https://github.com/chitkullakshya.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/chitkullakshya) | [<img src="https://github.com/prem22k.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/prem22k) | [<img src="https://github.com/eesha264.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/eesha264) | [<img src="https://github.com/thanmayeereddykotha.png" width="100" style="border-radius:50%; box-shadow: 0 4px 6px rgba(0,0,0,0.1);" />](https://github.com/thanmayeereddykotha) |
+|:---:|:---:|:---:|:---:|
+| **[Lakshya Chitkul](https://github.com/chitkullakshya)** | **[Prem Sai Kota](https://github.com/prem22k)** | **[Eeshitha Gone](https://github.com/eesha264)** | **[Thanmayee Reddy Kotha](https://github.com/thanmayeereddykotha)** |
 
 ---
 
@@ -183,7 +184,7 @@ We are building a vibrant, open-source community and we'd love for you to join u
 1. Read our [Contributing Guide](docs/CONTRIBUTING.md) to understand our workflow.
 2. Review our [Contribution Workflow](docs/guides/contribution_workflow.md).
 3. Check out our [Issues Board](https://github.com/zync-meet/Zync/issues) and look for issues labeled `good first issue`.
-4. Reach out via email at [consolemaster@gmail.com](mailto:consolemaster@gmail.com) or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
+4. Connect with us on [LinkedIn](https://www.linkedin.com/company/zync-meet/), reach out via email at [consolemaster.app@gmail.com](mailto:consolemaster.app@gmail.com), or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
 
 ---
 

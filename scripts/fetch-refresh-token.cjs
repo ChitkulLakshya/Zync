@@ -31,7 +31,7 @@ console.log('🔐 Zync OAuth2 Token Generator');
 console.log('================================================================\n');
 console.log('1. Open this URL in your browser:');
 console.log('\n', authUrl, '\n');
-console.log('2. Log in with zync.meet@gmail.com and click "Allow".');
+console.log('2. Log in with consolemaster.app@gmail.com and click "Allow".');
 console.log('3. You will be redirected to the Zync production app (https://zync-meet.vercel.app/?code=...).');
 console.log('4. Look at the URL bar in your browser. Copy the long code that appears after "code=".\n');
 
