@@ -68,7 +68,7 @@
  *   to ensure ACID compliance and data consistency.
  *
  * ============================================================================
- * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
  * @license Proprietary and Confidential
  * ============================================================================
@@ -448,6 +448,11 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
                 src="https://github.com/eesha264.png"
                 className="w-6 h-6 rounded-full border border-background"
                 alt="eesha264"
+              />
+              <img
+                src="https://github.com/thanmayeereddykotha.png"
+                className="w-6 h-6 rounded-full border border-background"
+                alt="thanmayeereddykotha"
               />
             </div>
             <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">

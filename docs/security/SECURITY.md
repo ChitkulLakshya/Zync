@@ -19,7 +19,7 @@ We take the security of our enterprise workspace platform seriously. If you disc
 
 ### Submission Guidelines
 
-1. **Email Contact**: Send encrypted or detailed reports to [consolemaster@gmail.com](mailto:consolemaster@gmail.com)
+1. **Email Contact**: Send encrypted or detailed reports to [consolemaster.app@gmail.com](mailto:consolemaster.app@gmail.com)
 2. **Subject Line**: Use prefix `[VULNERABILITY] <Brief Description>`
 3. **Required Information**:
    - Detailed step-by-step reproduction guide.

@@ -68,7 +68,7 @@
  *   to ensure ACID compliance and data consistency.
  *
  * ============================================================================
- * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
  * @license Proprietary and Confidential
  * ============================================================================
@@ -277,6 +277,58 @@ const CTASection = () => {
               y={0}
               name="eesha264"
               color="hsl(var(--task-purple))"
+              isClicking={cursorState === 'clicking'}
+            />
+          </motion.div>
+
+          {/* 
+            =========================================
+            CURSOR 4: thanmayeereddykotha (Bottom Right)
+            =========================================
+          */}
+          <motion.div
+            className="absolute z-50 pointer-events-none hidden md:block"
+            variants={{
+              floating: {
+                opacity: 0,
+                scale: 0.2,
+                right: '25%',
+                bottom: '15%',
+              },
+              approving: {
+                opacity: 1,
+                right: '40%',
+                bottom: '10%',
+                y: 0,
+                x: 0,
+                scale: 1.1,
+                transition: { duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.45 },
+              },
+              clicking: {
+                opacity: 1,
+                right: '40%',
+                bottom: '10%',
+                y: 0,
+                x: 0,
+                scale: 0.9,
+                transition: { duration: 0.3, ease: 'easeInOut' },
+              },
+              patrolling: {
+                opacity: 0,
+                scale: 0.2,
+                left: '10%',
+                bottom: '25%',
+                transition: { duration: 1.2, ease: 'easeInOut', delay: 0.45 },
+              },
+            }}
+            initial="floating"
+            animate={cursorState}
+          >
+            <SimulatedCursor
+              x={0}
+              y={0}
+              name="thanmayeereddykotha"
+              color="hsl(var(--task-orange))"
               isClicking={cursorState === 'clicking'}
             />
           </motion.div>

@@ -68,7 +68,7 @@
  *   to ensure ACID compliance and data consistency.
  *
  * ============================================================================
- * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
  * @license Proprietary and Confidential
  * ============================================================================
@@ -119,10 +119,10 @@ router.post('/', async (req, res) => {
     }
 
     // Declares a constant variable 'recipientsString' and assigns it the value of the 'SUPPORT_RECIPIENTS' environment variable.
-    // If the environment variable is not set (falsy), it defaults to 'consolemaster@gmail.com'. 'process.env' is a Node.js object containing user environment variables.
+    // If the environment variable is not set (falsy), it defaults to 'consolemaster.app@gmail.com'. 'process.env' is a Node.js object containing user environment variables.
     // This retrieves the configured email addresses for support notifications, allowing the application to be easily configured for different environments without code changes, while providing a fallback.
     const recipientsString =
-      process.env.SUPPORT_RECIPIENTS || 'consolemaster@gmail.com';
+      process.env.SUPPORT_RECIPIENTS || 'consolemaster.app@gmail.com';
     // Declares a constant variable 'recipients' and processes the 'recipientsString'.
     // '.split(',')' divides the string into an array of substrings using the comma as a delimiter.
     // '.map((email) => email.trim())' iterates over each email string and removes leading/trailing whitespace.
