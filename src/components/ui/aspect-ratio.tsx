@@ -68,7 +68,7 @@
  *   to ensure ACID compliance and data consistency.
  *
  * ============================================================================
- * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
  * @license Proprietary and Confidential
  * ============================================================================

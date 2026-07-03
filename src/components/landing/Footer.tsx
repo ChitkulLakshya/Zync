@@ -68,7 +68,7 @@
  *   to ensure ACID compliance and data consistency.
  *
  * ============================================================================
- * @author Chitkul Lakshya <chitkullakshya@gmail.com>
+ * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
  * @license Proprietary and Confidential
  * ============================================================================
@@ -183,7 +183,7 @@ const Footer = () => {
             <ul className="space-y-4">
               <li>
                 <a
-                  href="mailto:support@zync.meet"
+                  href="mailto:consolemaster.app@gmail.com"
                   className="text-sm font-medium text-foreground/70 hover:text-foreground transition-colors"
                 >
                   Support

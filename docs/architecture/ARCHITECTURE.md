@@ -59,7 +59,7 @@ graph TD
 3. **Persisted Data & Caching Layer**: Pure MongoDB dual-ORM architecture (Prisma for relational project hierarchies, Mongoose for flexible chat and document structures) accelerated by an in-memory Redis cluster.
 
 ### 2. Contact & Support Routing
-All automated system notifications, error reports, security vulnerability disclosures, and user support requests are routed strictly through email to **consolemaster@gmail.com**. No secondary contact addresses or legacy domains are active within the system.
+All automated system notifications, error reports, security vulnerability disclosures, and user support requests are routed strictly through email to **consolemaster.app@gmail.com**. No secondary contact addresses or legacy domains are active within the system.
 
 ---
 
