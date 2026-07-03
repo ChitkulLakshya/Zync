@@ -110,25 +110,7 @@ const getRepoCollaboratorLogins = async (octokit, owner, repo) => {
     affiliation: 'all',
   });
 
-  const logins = new Set((response.data || []).map((collab) => String(collab.login || '').toLowerCase()));
-
-  try {
-    const invitesResponse = await octokit.request('GET /repos/{owner}/{repo}/invitations', {
-      owner,
-      repo,
-      per_page: 100,
-    });
-    
-    (invitesResponse.data || []).forEach(invite => {
-      if (invite.invitee && invite.invitee.login) {
-        logins.add(String(invite.invitee.login).toLowerCase());
-      }
-    });
-  } catch (err) {
-    console.warn('[GitHub] Could not fetch pending invitations:', err.message);
-  }
-
-  return logins;
+  return new Set((response.data || []).map((collab) => String(collab.login || '').toLowerCase()));
 };
 
 const generateUniqueCommitCode = async () => {
