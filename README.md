@@ -25,7 +25,7 @@
   </p>
 
   <br />
-  <a href="https://zync-meet.vercel.app"><img src="public/macbook.png" width="900" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync UI Workspace" /></a>
+  <a href="https://zync-meet.vercel.app"><img src="public/workspace-overview.png" width="900" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync AI Workspace Overview" /></a>
 </div>
 
 <br/>
@@ -45,6 +45,12 @@ Your data, your servers, your workflow. Zync is built to be a better, open-sourc
 ### 📝 The Hyper-Fused Editor
 Many productivity apps claim to be a canvas, but Zync actually merges the doc and the whiteboard. Our flexible block-based architecture allows you to drop rich text, sticky notes, embedded web pages, multi-view databases, and shapes onto a limitless, edgeless canvas.
 
+<br/>
+<div align="center">
+  <a href="https://zync-meet.vercel.app"><img src="public/notes-editor.png" width="800" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync Real-Time Notes & Editor" /></a>
+</div>
+<br/>
+
 ### 🤖 Multimodal AI Partner
 Zync integrates deeply with **Google Gemini** and **Groq** to act as your AI co-pilot. 
 - **Project Architect:** Instantly turn a rough outline into a structured project plan with tasks and deliverables.
@@ -56,6 +62,12 @@ We love the "local-first" philosophy. Zync utilizes **Yjs** (a high-performance 
 
 ### 🔄 Kanban & GitHub Sync
 Don't duplicate your work. Zync features a built-in Kanban board that bidirectionally syncs with GitHub Issues and Projects. Move a card in Zync, and watch the issue update on GitHub.
+
+<br/>
+<div align="center">
+  <a href="https://zync-meet.vercel.app"><img src="public/kanban-board.png" width="800" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" alt="Zync Kanban & GitHub Task Board" /></a>
+</div>
+<br/>
 
 ### 💬 Embedded Instant Chat
 Stop context-switching to Slack or Discord. Zync features low-latency WebSockets communication embedded directly into your workspace, allowing teams to chat contextually right next to the canvas they are editing.
