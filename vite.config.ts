@@ -45,7 +45,7 @@ export default defineConfig(({ mode: _mode }) => ({
   plugins: [
     react(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: _mode === 'development' ? 'prompt' : 'autoUpdate',
       injectRegister: 'auto',
       includeAssets: ['pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
       manifestFilename: 'manifest.json',
@@ -84,7 +84,7 @@ export default defineConfig(({ mode: _mode }) => ({
         maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
       },
       devOptions: {
-        enabled: false,
+        enabled: true,
         suppressWarnings: true,
       },
     }),
