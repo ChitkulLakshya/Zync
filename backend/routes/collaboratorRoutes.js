@@ -81,6 +81,9 @@ const express = require('express');
 const router = express.Router();
 // Declares a constant variable named 'nodemailer' and assigns it the Nodemailer module. `require()` is a Node.js function used to import modules.
 // This line imports the Nodemailer library, which is used to send emails from Node.js applications, specifically for notifying an admin about new beta signups.
+const nodemailer = require('nodemailer');
+// Imports the Octokit class.
+const { Octokit } = require('octokit');
 
 // Defines a new route handler for HTTP POST requests to the root path ('/') relative to where this router is mounted.
 // The `async` keyword indicates that this function will perform asynchronous operations, allowing `await` to be used inside.
@@ -105,6 +108,38 @@ router.post('/', async (req, res) => {
   // Starts a `try` block, which encloses code that might throw an error.
   // This block is used to safely execute the email sending logic, allowing any potential errors during the process to be caught and handled gracefully.
   try {
+    let inviteStatusMessage = "No GitHub invitation sent (GitHub token not configured).";
+    let inviteSuccess = false;
+
+    // Automate the GitHub Repository Invitation using Octokit
+    if (process.env.GITHUB_ADMIN_TOKEN && process.env.GITHUB_REPO_OWNER && process.env.GITHUB_REPO_NAME) {
+      try {
+        const octokit = new Octokit({ auth: process.env.GITHUB_ADMIN_TOKEN });
+        
+        await octokit.request('PUT /repos/{owner}/{repo}/collaborators/{username}', {
+          owner: process.env.GITHUB_REPO_OWNER,
+          repo: process.env.GITHUB_REPO_NAME,
+          username: githubUsername,
+          permission: 'push' // Grants write access. This can be 'pull' or 'triage' if preferred.
+        });
+        
+        inviteStatusMessage = `Successfully sent GitHub repository invitation to @${githubUsername}.`;
+        inviteSuccess = true;
+        console.log(`[BETA SIGNUP] ${inviteStatusMessage}`);
+      } catch (ghError) {
+        // Status 422 generally means validation failed, such as user is already a collaborator
+        if (ghError.status === 422) {
+          inviteStatusMessage = `Invitation to @${githubUsername} was skipped (user is already a collaborator, or invitation is already pending).`;
+          inviteSuccess = true;
+          console.log(`[BETA SIGNUP] ${inviteStatusMessage}`);
+        } else {
+          inviteStatusMessage = `Failed to send GitHub repository invitation to @${githubUsername}. Error: ${ghError.message}`;
+          console.error(`[BETA SIGNUP ERROR] ${inviteStatusMessage}`);
+        }
+      }
+    } else {
+      console.warn('GITHUB_ADMIN_TOKEN, GITHUB_REPO_OWNER, or GITHUB_REPO_NAME missing. Skipping automated GitHub invitation.');
+    }
 
     // Declares a constant variable 'adminEmail'. It attempts to retrieve the 'ADMIN_EMAIL' environment variable.
     // If `process.env.ADMIN_EMAIL` is falsy (e.g., not set), it defaults to the string 'admin@example.com'.
@@ -159,7 +194,8 @@ router.post('/', async (req, res) => {
             <div style="background-color: #f9f9f9; padding: 15px; border-radius: 6px; margin: 20px 0;">
               <p style="margin: 0 0 10px 0;"><strong>GitHub Username:</strong> ${githubUsername}</p>
               <p style="margin: 0 0 10px 0;"><strong>GitHub Profile:</strong> <a href="${githubProfileUrl}" style="color: #0366d6;">${githubProfileUrl}</a></p>
-              <p style="margin: 0;"><strong>Email Address:</strong> <a href="mailto:${email}" style="color: #0366d6;">${email}</a></p>
+              <p style="margin: 0 0 10px 0;"><strong>Email Address:</strong> <a href="mailto:${email}" style="color: #0366d6;">${email}</a></p>
+              <p style="margin: 0; padding-top: 10px; border-top: 1px solid #e0e0e0; color: ${inviteSuccess ? '#28a745' : '#d73a49'};"><strong>Automation Status:</strong> ${inviteStatusMessage}</p>
             </div>
             
             <p style="color: #888; font-size: 12px; margin-top: 30px;">This message was generated automatically by the Zync Onboarding System.</p>
@@ -182,12 +218,12 @@ router.post('/', async (req, res) => {
       console.warn('SMTP credentials not found in .env. Skipping actual email dispatch.');
       // Logs a message to the console, using a template literal to include the 'githubUsername' and 'email' of the applicant.
       // This ensures that even without email dispatch, the essential details of the beta signup are recorded in the server logs, providing a record of applications.
-      console.log(`[BETA SIGNUP] User: ${githubUsername}, Email: ${email}`);
+      console.log(`[BETA SIGNUP] User: ${githubUsername}, Email: ${email}, GitHub Invite: ${inviteSuccess}`);
     }
 
     // Sends an HTTP response with a status code of 200 (OK) and a JSON object indicating success.
     // This informs the client that their beta application was successfully processed (either email sent or logged), providing positive feedback.
-    res.status(200).json({ success: true, message: 'Application received successfully.' });
+    res.status(200).json({ success: true, message: 'Application received and processed successfully.', inviteSent: inviteSuccess });
   // Starts a `catch` block, which executes if any error occurs within the preceding `try` block.
   // The `error` object contains details about the exception that was thrown.
   // This block is essential for handling any unexpected issues during the email sending process, preventing the server from crashing and allowing for graceful error reporting.
