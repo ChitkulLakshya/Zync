@@ -8,6 +8,24 @@ interface HoveredTile {
   points: string;
 }
 
+const tileW = 40; // half width along X
+const tileH = 23.094; // half height along Y (40 * tan(30deg))
+const centerX = 600;
+const centerY = 400;
+
+const getCoord = (u: number, v: number) => ({
+  x: centerX + (u - v) * tileW,
+  y: centerY + (u + v) * tileH,
+});
+
+const getTilePoints = (u: number, v: number) => {
+  const p0 = getCoord(u, v);
+  const p1 = getCoord(u + 1, v);
+  const p2 = getCoord(u + 1, v + 1);
+  const p3 = getCoord(u, v + 1);
+  return `${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
+};
+
 export const IsometricMatrix = () => {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -23,27 +41,11 @@ export const IsometricMatrix = () => {
   const parallaxX = useSpring(mouseX, springConfig);
   const parallaxY = useSpring(mouseY, springConfig);
 
-  const tileW = 40; // half width along X
-  const tileH = 23.094; // half height along Y (40 * tan(30deg))
-  const centerX = 600;
-  const centerY = 400;
-
-  const getCoord = (u: number, v: number) => ({
-    x: centerX + (u - v) * tileW,
-    y: centerY + (u + v) * tileH,
-  });
-
-  const getTilePoints = (u: number, v: number) => {
-    const p0 = getCoord(u, v);
-    const p1 = getCoord(u + 1, v);
-    const p2 = getCoord(u + 1, v + 1);
-    const p3 = getCoord(u, v + 1);
-    return `${p0.x},${p0.y} ${p1.x},${p1.y} ${p2.x},${p2.y} ${p3.x},${p3.y}`;
-  };
-
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      if (!containerRef.current) return;
+      if (!containerRef.current) {
+        return;
+      }
       const rect = containerRef.current.getBoundingClientRect();
       
       // Calculate mouse coordinates relative to SVG viewBox (1200x800)
