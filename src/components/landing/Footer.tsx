@@ -254,7 +254,7 @@ const Footer = () => {
               TWITTER / X
             </a>
             <a
-              href="https://www.linkedin.com/in/zync-meet"
+              href="https://www.linkedin.com/company/zync-meet/"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

@@ -12,6 +12,7 @@
     <a href="https://zync-meet.vercel.app">Live App</a> •
     <a href="https://github.com/zync-meet/Zync/discussions">Discussions</a> •
     <a href="https://github.com/zync-meet/Zync/tree/main/docs">Documentation</a> •
+    <a href="https://www.linkedin.com/company/zync-meet/">LinkedIn</a> •
     <a href="mailto:consolemaster.app@gmail.com">Contact</a>
   </p>
 
@@ -183,7 +184,7 @@ We are building a vibrant, open-source community and we'd love for you to join u
 1. Read our [Contributing Guide](docs/CONTRIBUTING.md) to understand our workflow.
 2. Review our [Contribution Workflow](docs/guides/contribution_workflow.md).
 3. Check out our [Issues Board](https://github.com/zync-meet/Zync/issues) and look for issues labeled `good first issue`.
-4. Reach out via email at [consolemaster.app@gmail.com](mailto:consolemaster.app@gmail.com) or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
+4. Connect with us on [LinkedIn](https://www.linkedin.com/company/zync-meet/), reach out via email at [consolemaster.app@gmail.com](mailto:consolemaster.app@gmail.com), or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
 
 ---
 
