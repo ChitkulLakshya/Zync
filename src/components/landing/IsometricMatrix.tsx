@@ -43,7 +43,9 @@ export const IsometricMatrix = () => {
 
   useEffect(() => {
     const handlePointerMove = (e: PointerEvent) => {
-      if (!containerRef.current) return;
+      if (!containerRef.current) {
+        return;
+      }
       const rect = containerRef.current.getBoundingClientRect();
       
       // Calculate mouse coordinates relative to SVG viewBox (1200x800)
