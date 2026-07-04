@@ -360,6 +360,85 @@ const analyzeWithGemini = async (repoContext, projectName) => {
   }
 };
 
+router.post('/new-repo', authMiddleware, async (req, res) => {
+  try {
+    const { name, description, isPrivate } = req.body;
+    const ownerUid = req.user.uid;
+
+    if (!name) {
+      return res.status(400).json({ message: 'Project name is required' });
+    }
+
+    const owner = await User.findOne({ uid: ownerUid }).lean();
+    if (!owner) return res.status(404).json({ message: 'User not found' });
+
+    const github = owner.githubIntegration;
+    if (!github || !github.connected || !github.accessToken) {
+      return res.status(400).json({ message: 'GitHub account is not connected. Please connect it first.' });
+    }
+
+    const decryptedAccessToken = decryptToken(github.accessToken);
+    if (!decryptedAccessToken) {
+      return res.status(500).json({ message: 'Failed to decrypt GitHub access token' });
+    }
+
+    let githubRepoName = '';
+    let githubRepoOwner = '';
+
+    try {
+      const response = await axios.post(
+        'https://api.github.com/user/repos',
+        {
+          name: name,
+          description: description || '',
+          private: !!isPrivate,
+          auto_init: true
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${decryptedAccessToken}`,
+            Accept: 'application/vnd.github.v3+json',
+          }
+        }
+      );
+      githubRepoName = response.data.name;
+      githubRepoOwner = response.data.owner.login;
+    } catch (ghError) {
+      console.error('Failed to create GitHub repository:', ghError.response?.data || ghError.message);
+      return res.status(400).json({ message: 'Failed to create GitHub repository', error: ghError.response?.data?.message || ghError.message });
+    }
+
+    const defaultSteps = [
+      { title: 'Planning', description: 'Initial requirements and design', type: 'Design', order: 0 },
+      { title: 'Frontend', description: 'Client-side implementation', type: 'Frontend', order: 1 },
+      { title: 'Backend', description: 'Server-side logic and APIs', type: 'Backend', order: 2 },
+      { title: 'Database', description: 'Schema design and data management', type: 'Database', order: 3 },
+      { title: 'Deployment', description: 'CI/CD and hosting setup', type: 'Other', order: 4 },
+    ];
+
+    const newProject = await Project.create({
+      name,
+      description: description || 'No description',
+      ownerId: owner._id,
+      ownerUid: owner.uid,
+      githubRepoName,
+      githubRepoOwner,
+      isTrackingActive: true,
+    });
+
+    await Step.insertMany(
+      defaultSteps.map((s) => ({ ...s, projectId: newProject._id }))
+    );
+
+    const result = await getProjectWithSteps(newProject._id);
+    cache.invalidate(`projects:${ownerUid}`);
+    res.status(201).json(result);
+  } catch (error) {
+    console.error('Error creating project with new repo:', error);
+    res.status(500).json({ message: 'Failed to create project', error: error.message });
+  }
+});
+
 router.post('/', authMiddleware, async (req, res) => {
   try {
     const { name, description, githubRepoName, githubRepoOwner } = req.body;
@@ -681,6 +760,66 @@ router.post('/generate', authMiddleware, async (req, res) => {
     res
       .status(500)
       .json({ message: 'Failed to generate project', error: error.message });
+  }
+});
+
+router.post('/sync', authMiddleware, async (req, res) => {
+  try {
+    const ownerUid = req.user.uid;
+    const user = await User.findOne({ uid: ownerUid }).lean();
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const github = user.githubIntegration;
+    if (!github || !github.connected || !github.accessToken) {
+      return res.json({ updatedCount: 0, deletedCount: 0 });
+    }
+
+    const accessToken = decryptToken(github.accessToken);
+    if (!accessToken) {
+      return res.json({ updatedCount: 0, deletedCount: 0 });
+    }
+
+    const projects = await Project.find({ ownerUid, githubRepoName: { $exists: true, $ne: '' } });
+    if (projects.length === 0) {
+      return res.json({ updatedCount: 0, deletedCount: 0 });
+    }
+
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github.v3+json',
+    };
+
+    let updatedCount = 0;
+    let deletedCount = 0;
+
+    const syncPromises = projects.map(async (p) => {
+      try {
+        const repoRes = await axios.get(`https://api.github.com/repos/${p.githubRepoOwner}/${p.githubRepoName}`, { headers });
+        if (repoRes.data && repoRes.data.name !== p.githubRepoName) {
+          p.githubRepoName = repoRes.data.name;
+          p.name = repoRes.data.name;
+          await p.save();
+          updatedCount++;
+        }
+      } catch (err) {
+        if (err.response && (err.response.status === 404 || err.response.status === 401)) {
+          await Project.deleteOne({ _id: p._id });
+          await Step.deleteMany({ projectId: p._id });
+          deletedCount++;
+        }
+      }
+    });
+
+    await Promise.allSettled(syncPromises);
+
+    if (updatedCount > 0 || deletedCount > 0) {
+      invalidateProjectCache({ ownerUid, team: [] });
+    }
+
+    res.json({ updatedCount, deletedCount });
+  } catch (error) {
+    console.error('Error syncing GitHub repos:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
