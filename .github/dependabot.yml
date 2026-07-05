@@ -31,6 +31,27 @@ updates:
       - 'thanmayeereddykotha'
       
 
+  # Check npm dependencies weekly for backend
+  - package-ecosystem: 'npm'
+    directory: '/backend'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+      timezone: 'Asia/Kolkata'
+    open-pull-requests-limit: 10
+    labels:
+      - 'dependencies'
+      - 'automated'
+      - 'backend'
+    commit-message:
+      prefix: 'chore(backend-deps)'
+    reviewers:
+      - 'prem22k'
+      - 'chitkullakshya'
+      - 'eesha264'
+      - 'thanmayeereddykotha'
+
   # Check GitHub Actions versions weekly
   - package-ecosystem: 'github-actions'
     directory: '/'
