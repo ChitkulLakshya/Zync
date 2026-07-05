@@ -18,7 +18,7 @@
   "dependencies": {
     "@google/genai": "^2.10.0",
     "@google/generative-ai": "^0.24.1",
-    "@prisma/client": "5.22.0",
+    "@prisma/client": "7.8.0",
     "axios": "^1.13.2",
     "cheerio": "^1.0.0-rc.12",
     "cloudinary": "^2.9.0",
