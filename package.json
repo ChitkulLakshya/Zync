@@ -123,7 +123,7 @@
     "@babel/preset-typescript": "^7.24.0",
     "@emnapi/core": "^1.9.1",
     "@emnapi/runtime": "^1.9.1",
-    "@eslint/js": "^9.32.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.49.1",
     "@storybook/react": "^10.3.3",
     "@storybook/react-vite": "^10.3.3",
