@@ -82,6 +82,7 @@ import { Sparkles, ArrowRight } from "lucide-react";
 import { API_BASE_URL } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface CreateProjectProps {
   onProjectCreated: (projectData: any) => void;
@@ -93,6 +94,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
   const [projectDescription, setProjectDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const handleGenerate = async () => {
     if (!projectName || !projectDescription) {return;}
@@ -125,10 +127,12 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
       const data = await response.json();
 
       toast({
-        title: "Project Generated!",
-        description: "Your architecture and tasks are ready.",
+        title: "Project Created!",
+        description: "Your new project and GitHub repository are ready.",
       });
 
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      sessionStorage.setItem('newlyCreatedProjectId', data._id || data.id);
       onProjectCreated(data);
 
     } catch (error: any) {
@@ -195,7 +199,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
               {isGenerating ? "Generating..." : (
                 <>
                   <Sparkles className="mr-2 h-4 w-4" />
-                  Generate Project Plan
+                  Create Project
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </>
               )}
@@ -203,20 +207,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
           </CardFooter>
         </Card>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center text-sm text-muted-foreground mt-8">
-          <div className="p-5 rounded-2xl bg-secondary/20 border border-border/10">
-            <span className="block font-semibold text-foreground mb-1">Architecture</span>
-            Auto-generated tech stack
-          </div>
-          <div className="p-5 rounded-2xl bg-secondary/20 border border-border/10">
-            <span className="block font-semibold text-foreground mb-1">Workflow</span>
-            Step-by-step development plan
-          </div>
-          <div className="p-5 rounded-2xl bg-secondary/20 border border-border/10">
-            <span className="block font-semibold text-foreground mb-1">Tasks</span>
-            Automated task breakdown
-          </div>
-        </div>
+
       </div>
     </div>
   );
