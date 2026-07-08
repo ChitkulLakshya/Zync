@@ -154,6 +154,7 @@ Zync stands on the shoulders of open-source giants. We extend our deepest gratit
 Dive deeper into Zync's internals by exploring our comprehensive documentation in the `docs/` folder:
 
 **Architecture & Design**
+- 🏛️ [Master Architecture & System Design](docs/architecture/ARCHITECTURE.md)
 - 🏗️ [Tech Stack Overview](docs/architecture/tech_stack_overview.md)
 - 🧠 [AI Project Architect](docs/architecture/ai_project_architect.md)
 - 🔒 [Security & Auth Architecture](docs/architecture/security_and_auth_architecture.md)
