@@ -118,9 +118,9 @@
     "yjs": "^13.6.31"
   },
   "devDependencies": {
-    "@babel/core": "^8.0.1",
-    "@babel/preset-env": "^8.0.2",
-    "@babel/preset-typescript": "^8.0.1",
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "@babel/preset-typescript": "^7.24.0",
     "@emnapi/core": "^1.9.1",
     "@emnapi/runtime": "^1.9.1",
     "@eslint/js": "^9.32.0",
