@@ -134,6 +134,35 @@ router.get('/holidays', verifyToken, async (req, res) => {
     // This keyword starts a 'try' block, which encloses code that might throw an error.
     // This allows for robust error handling. If any operation within this block fails (e.g., network issues, API errors), the execution will jump to the 'catch' block, preventing the application from crashing.
     try {
+        // Handle India using Google Calendar API
+        if (countryCode === 'IN') {
+            const googleCalId = encodeURIComponent('en.indian#holiday@group.v.calendar.google.com');
+            const apiKey = process.env.GOOGLE_CALENDAR_API_KEY;
+            const timeMin = `${year}-01-01T00:00:00Z`;
+            const timeMax = `${year}-12-31T23:59:59Z`;
+            const url = `https://www.googleapis.com/calendar/v3/calendars/${googleCalId}/events?key=${apiKey}&timeMin=${timeMin}&timeMax=${timeMax}&singleEvents=true&orderBy=startTime`;
+            
+            const response = await fetch(url);
+            if (!response.ok) {
+                return res.status(502).json({ message: 'Failed to fetch Indian holidays from Google Calendar API.' });
+            }
+            const data = await response.json();
+            const holidays = (data.items || []).map(item => {
+                const date = item.start.date || (item.start.dateTime ? item.start.dateTime.split('T')[0] : '');
+                return {
+                    date: date,
+                    localName: item.summary,
+                    name: item.summary,
+                    countryCode: 'IN',
+                    fixed: true,
+                    global: true,
+                    types: ['Public']
+                };
+            });
+            holidayCache.set(cacheKey, { timestamp: Date.now(), data: holidays });
+            return res.json(holidays);
+        }
+
         // Declares a constant variable 'url' and assigns it a string constructed using template literals, embedding the 'year' and 'countryCode' into the base URL for the Nager.Date API.
         // This dynamically constructs the specific URL needed to fetch public holidays for the requested year and country from the external Nager.Date API.
         const url = `https://date.nager.at/api/v3/PublicHolidays/${year}/${countryCode}`;
@@ -213,50 +242,53 @@ const COUNTRIES_CACHE_TTL = 7 * 24 * 60 * 60 * 1000;
 
 // Defines an HTTP GET route for the '/countries' path using the 'router' object. It specifies 'verifyToken' as middleware and an asynchronous callback function to handle requests. '_req' indicates the request object is not used.
 // This sets up the API endpoint for retrieving a list of available countries. It uses 'verifyToken' for authentication and 'async' because it will perform an asynchronous operation (fetching from an external API).
-router.get('/countries', verifyToken, async (_req, res) => {
-    // This is an if statement that checks two conditions: first, if 'countriesCache' exists (is not null), AND second, if the current time (Date.now()) minus the 'timestamp' stored in 'countriesCache' is less than 'COUNTRIES_CACHE_TTL'.
-    // This checks if valid, non-stale country data exists in the cache, allowing the server to return cached data instead of making a new external API call.
+router.get('/countries', async (_req, res) => {
     if (countriesCache && Date.now() - countriesCache.timestamp < COUNTRIES_CACHE_TTL) {
-        // If the cache hit is valid and not stale, this line sends an HTTP 200 (OK) status code to the client with the 'data' property from the 'countriesCache' object as a JSON response. 'return' stops further execution.
-        // This immediately returns the cached country data to the client, fulfilling the request quickly without needing to contact the external API, thus improving performance.
         return res.json(countriesCache.data);
     }
 
-    // This keyword starts a 'try' block, which encloses code that might throw an error.
-    // This allows for robust error handling. If any operation within this block fails (e.g., network issues, API errors), the execution will jump to the 'catch' block.
+    // Default fallback list in case Nager.Date API is down or rate-limited
+    let data = [
+        { countryCode: 'US', name: 'United States' },
+        { countryCode: 'GB', name: 'United Kingdom' },
+        { countryCode: 'CA', name: 'Canada' },
+        { countryCode: 'AU', name: 'Australia' },
+        { countryCode: 'DE', name: 'Germany' },
+        { countryCode: 'FR', name: 'France' },
+        { countryCode: 'IT', name: 'Italy' },
+        { countryCode: 'ES', name: 'Spain' },
+        { countryCode: 'JP', name: 'Japan' },
+        { countryCode: 'IN', name: 'India' }
+    ];
+
     try {
-        // Declares a constant variable 'response' and assigns it the result of an asynchronous 'fetch' request to the Nager.Date API's 'AvailableCountries' endpoint. 'await' pauses execution until the promise resolves.
-        // This sends an HTTP request to the external Nager.Date API to retrieve the list of available countries, which is an asynchronous operation.
         const response = await fetch('https://date.nager.at/api/v3/AvailableCountries');
 
-        // This is an if statement that checks if the 'ok' property of the 'response' object is 'false'.
-        // This checks if the external API request was unsuccessful (e.g., 5xx server error, 4xx client error), indicating a general failure to retrieve data.
-        if (!response.ok) {
-            // If the 'response.ok' is 'false', this line sends an HTTP 502 (Bad Gateway) status code to the client with a generic JSON error message. 'return' stops further execution.
-            // This indicates that the server, acting as a gateway, received an invalid response from the upstream (Nager.Date) server, informing the client of an issue with the external service.
-            return res.status(502).json({ message: 'Failed to fetch countries from Nager.Date API.' });
+        if (response.ok) {
+            const fetchedData = await response.json();
+            if (Array.isArray(fetchedData) && fetchedData.length > 0) {
+                data = fetchedData;
+            }
+        } else {
+            console.warn('Nager.Date API failed, using fallback country list.');
         }
 
-        // Declares a constant variable 'data' and assigns it the result of asynchronously parsing the 'response' body as JSON. 'await' pauses execution until the JSON parsing is complete.
-        // This extracts the actual country data from the successful HTTP response received from the Nager.Date API, converting it from a raw JSON string into a JavaScript object.
-        const data = await response.json();
+        // Manually add India to the list as it's not supported by Nager.Date but we support it via Google Calendar
+        if (!data.some(c => c.countryCode === 'IN')) {
+            data.push({ countryCode: 'IN', name: 'India' });
+            data.sort((a, b) => a.name.localeCompare(b.name));
+        }
 
-        // Assigns a new object to the 'countriesCache' variable. This object contains the current timestamp (Date.now()) and the fetched 'data'.
-        // This stores the newly fetched country data in the cache, along with a timestamp, so that subsequent requests can be served from the cache, improving performance.
         countriesCache = { timestamp: Date.now(), data };
-
-        // Sends an HTTP 200 (OK) status code to the client with the 'data' (list of countries) as a JSON response.
-        // This sends the fetched country data back to the client, successfully fulfilling the API request.
         res.json(data);
-    // This keyword starts a 'catch' block, which executes if an error occurs in the preceding 'try' block. The 'error' object contains details about the exception.
-    // This provides a mechanism to gracefully handle any unexpected errors that might occur during the API call, preventing the server from crashing.
     } catch (error) {
-        // Calls the 'error()' method of the 'console' object to log an error message to the console, including a descriptive string and the 'error' object itself.
-        // This logs detailed error information to the server's console, which is crucial for debugging and monitoring issues in a production environment.
         console.error('Error fetching countries:', error);
-        // Sends an HTTP 500 (Internal Server Error) status code to the client with a generic JSON error message.
-        // This informs the client that an unexpected server-side error occurred, providing a general error message without exposing sensitive internal details.
-        res.status(500).json({ message: 'Server error fetching countries.' });
+        // Ensure India is in the fallback if we hit a catastrophic error
+        if (!data.some(c => c.countryCode === 'IN')) {
+            data.push({ countryCode: 'IN', name: 'India' });
+        }
+        countriesCache = { timestamp: Date.now(), data };
+        res.json(data);
     }
 });
 

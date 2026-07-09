@@ -121,21 +121,29 @@ const CalendarView = () => {
     return localStorage.getItem(STORAGE_KEY) || 'US';
   });
 
+  const [userAuth, setUserAuth] = useState(auth.currentUser);
 
   useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      setUserAuth(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!userAuth) return;
     fetchCountries()
       .then(setCountries)
       .catch(() => {});
-  }, []);
-
+  }, [userAuth]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, selectedCountry);
   }, [selectedCountry]);
 
-
   useEffect(() => {
     const loadData = async () => {
+      if (!userAuth) return;
       setLoading(true);
       try {
         const year = new Date().getFullYear();
@@ -167,7 +175,7 @@ const CalendarView = () => {
     };
 
     loadData();
-  }, [selectedCountry]);
+  }, [selectedCountry, userAuth]);
 
 
   const sortedCountries = useMemo(
