@@ -136,6 +136,9 @@ router.get('/holidays', verifyToken, async (req, res) => {
     try {
         // Handle India using Google Calendar API
         if (countryCode === 'IN') {
+            if (!process.env.GOOGLE_CALENDAR_API_KEY) {
+                return res.status(500).json({ message: 'Google Calendar API key not configured' });
+            }
             const googleCalId = encodeURIComponent('en.indian#holiday@group.v.calendar.google.com');
             const apiKey = process.env.GOOGLE_CALENDAR_API_KEY;
             const timeMin = `${year}-01-01T00:00:00Z`;

@@ -131,7 +131,9 @@ const CalendarView = () => {
   }, []);
 
   useEffect(() => {
-    if (!userAuth) return;
+    if (!userAuth) {
+      return;
+    }
     fetchCountries()
       .then(setCountries)
       .catch(() => {});
@@ -143,7 +145,9 @@ const CalendarView = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (!userAuth) return;
+      if (!userAuth) {
+        return;
+      }
       setLoading(true);
       try {
         const year = new Date().getFullYear();
