@@ -1,0 +1,27 @@
+name: Desktop Lua CI
+
+on:
+  push:
+    branches: ['main']
+    paths:
+      - 'app-clients/desktop-lua/**'
+  pull_request:
+    paths:
+      - 'app-clients/desktop-lua/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./app-clients/desktop-lua
+    steps:
+      - uses: actions/checkout@v4
+      - name: Syntax Check
+        run: |
+          sudo apt-get install lua5.3
+          luac -p src/**/*.lua && echo "Syntax check passed"
+      - name: Package .love artifact
+        run: |
+          cd src
+          zip -9 -r ../ZyncDesktop.love .

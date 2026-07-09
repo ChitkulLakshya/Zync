@@ -737,33 +737,30 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Username</Label>
-                    <Input
-                      value={profileForm.username}
-                      onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 flex flex-col">
-                      <Label>Country</Label>
+                    <Label>Phone Number</Label>
+                    <div className="flex">
                       <Popover open={openCountry} onOpenChange={setOpenCountry}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
                             aria-expanded={openCountry}
-                            className="w-full justify-between"
+                            className="rounded-r-none border-r-0 px-3 flex items-center"
                           >
                             {profileForm.countryCode
-                              ? countries.find(
-                                  (country) => country.dial_code === profileForm.countryCode
-                                )?.name
-                              : 'Select country...'}
+                              ? (
+                                  <>
+                                    <span className="mr-2 text-lg leading-none">
+                                      {countries.find((c) => c.dial_code === profileForm.countryCode)?.flag}
+                                    </span>
+                                    <span>{profileForm.countryCode}</span>
+                                  </>
+                                )
+                              : '🌐'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[250px] p-0">
+                        <PopoverContent className="w-[300px] p-0">
                           <Command>
                             <CommandInput placeholder="Search country..." />
                             <CommandList>
@@ -790,7 +787,9 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                                           : 'opacity-0'
                                       )}
                                     />
-                                    {country.flag} {country.name}
+                                    <span className="mr-2 text-lg leading-none">{country.flag}</span>
+                                    <span>{country.name}</span>
+                                    <span className="ml-auto text-muted-foreground text-xs">{country.dial_code}</span>
                                   </CommandItem>
                                 ))}
                               </CommandGroup>
@@ -798,25 +797,18 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                           </Command>
                         </PopoverContent>
                       </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Phone Number</Label>
-                      <div className="flex gap-2">
-                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">
-                          {profileForm.countryCode}
-                        </div>
-                        <Input
-                          type="tel"
-                          value={profileForm.phoneNumber}
-                          onChange={(e) =>
-                            setProfileForm({
-                              ...profileForm,
-                              phoneNumber: e.target.value.replace(/\D/g, ''),
-                            })
-                          }
-                        />
-                      </div>
+                      <Input
+                        type="tel"
+                        className="rounded-l-none flex-1"
+                        placeholder="Phone Number"
+                        value={profileForm.phoneNumber}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            phoneNumber: e.target.value.replace(/\D/g, ''),
+                          })
+                        }
+                      />
                     </div>
                   </div>
 
