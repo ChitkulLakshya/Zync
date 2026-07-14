@@ -18,3 +18,22 @@ We updated the frontend UI component to gracefully intercept this specific state
 ### Implementation Details
 We modified `src/components/views/MyProjectsView.tsx` to explicitly check the `userLoading` state alongside the missing `userData`:
 ```typescript
+if (!userData) {
+  if (!userLoading) {
+    // We finished loading, but userData is still falsy (404 Not Found)
+    return (
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center space-y-4">
+         <h2 className="text-xl font-bold">Session Error</h2>
+         <p className="text-muted-foreground">Your user profile could not be found in the database. Please log out and log back in to restore your session.</p>
+      </div>
+    );
+  }
+  return (
+    <div className="p-8 text-sm text-muted-foreground">Loading GitHub projects…</div>
+  );
+}
+```
+
+By adding this conditional check, if a database wipe occurs in the future, the user will now immediately see a "Session Error" prompting them to log out and log back in. The act of logging back in safely hits the `/api/users/sync` endpoint, completely restoring their missing MongoDB document and returning the app to a functional state.
+
+**File Changed:** `src/components/views/MyProjectsView.tsx`
