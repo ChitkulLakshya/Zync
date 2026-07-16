@@ -104,8 +104,12 @@ const MockGroq = class {
 
 jest.mock('groq-sdk', () => MockGroq);
 
+jest.mock('axios', () => ({
+  post: jest.fn(() => Promise.resolve({ data: { name: 'Test Project', owner: { login: 'test-user' } } })),
+}));
+
 jest.mock('../models/User', () => ({
-  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid' }) })),
+  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid', uid: 'test-user-id', githubIntegration: { connected: true, accessToken: 'U2FsdGVkX1+tLv+IlzivHIceTIzAY1tuZmS6x6CQub8DlSbxMTk1gz7RnT3jqSQv' } }) })),
 }));
 jest.mock('../models/Project', () => ({
   create: jest.fn(() => Promise.resolve({ _id: 'project_oid' })),
