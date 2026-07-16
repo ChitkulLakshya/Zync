@@ -509,31 +509,21 @@ router.get('/user-repos', verifyToken, async (req, res) => {
     }
 
     try {
-      const page = parseInt(req.query.page) || 1;
-      const per_page = parseInt(req.query.per_page) || 30;
-      
-      const cacheKey = `user_repos_${uid}_${page}_${per_page}`;
-      const cached = githubCache.get(cacheKey);
-      const headers = cached && cached.etag ? { 'If-None-Match': cached.etag } : {};
+      let allRepos = [];
+      let currentPage = 1;
+      let hasNextPage = true;
+      const per_page = 100;
 
-      let response;
-      try {
-        response = await octokit.request('GET /installation/repositories', { per_page, page, headers });
-        if (response.headers?.etag) {
-          githubCacheSet(cacheKey, { etag: response.headers.etag, data: response.data });
-        }
-      } catch (err) {
-        if (err.status === 304 && cached) {
-          response = { headers: err.response?.headers || {}, data: cached.data };
-        } else {
-          throw err;
-        }
+      while (hasNextPage && currentPage <= 5) {
+        const response = await octokit.request('GET /installation/repositories', { per_page, page: currentPage });
+        allRepos = allRepos.concat(response.data.repositories);
+        
+        const linkHeader = response.headers?.link;
+        hasNextPage = !!(linkHeader && linkHeader.includes('rel="next"'));
+        currentPage++;
       }
 
-      const linkHeader = response.headers?.link;
-      const hasNextPage = !!(linkHeader && linkHeader.includes('rel="next"'));
-
-      const repos = response.data.repositories.map(repo => ({
+      const repos = allRepos.map(repo => ({
         id: repo.id,
         name: repo.name,
         full_name: repo.full_name,
@@ -542,8 +532,8 @@ router.get('/user-repos', verifyToken, async (req, res) => {
         html_url: repo.html_url
       }));
 
-      const userReposResult = { repos, hasNextPage, page };
-      cache.setJson(`gh:user-repos:${uid}:${page}`, userReposResult, 300);
+      const userReposResult = { repos, hasNextPage: false, page: 1 };
+      cache.setJson(`gh:user-repos:${uid}`, userReposResult, 300);
       res.json(userReposResult);
     } catch (requestErr) {
       console.error("Error fetching repositories from GitHub:", requestErr.message);

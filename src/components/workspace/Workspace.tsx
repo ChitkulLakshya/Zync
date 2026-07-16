@@ -73,7 +73,7 @@
  * @license Proprietary and Confidential
  * ============================================================================
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { auth } from "@/lib/firebase";
@@ -81,7 +81,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { FolderGit2, Plus, ArrowRight, Calendar, User, Trash2, Pin, FileText, Search, CheckSquare, Loader2 } from 'lucide-react';
-import { Github } from '@/components/ui/GithubIcon';;
+import { Github } from '@/components/ui/GithubIcon';
+import { useQueryClient } from "@tanstack/react-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -96,6 +97,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
 import { useProjects, useProjectMutations } from "@/hooks/useProjects";
 import { usePinnedNotes } from "@/hooks/useNotes";
 import TaskAssignmentDrawer from "@/components/workspace/TaskAssignmentDrawer";
@@ -136,6 +139,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     deleteProject,
     linkGitHub,
     createProject,
+    createProjectWithNewRepo,
     isCreating: creatingProject,
     isDeleting: deletingProject,
   } = useProjectMutations();
@@ -150,6 +154,9 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedRepos, setSelectedRepos] = useState<any[]>([]);
   const [creatingProjects, setCreatingProjects] = useState(false);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [newProjectDescription, setNewProjectDescription] = useState("");
+  const [newProjectPrivate, setNewProjectPrivate] = useState(true);
   const [taskDrawerOpen, setTaskDrawerOpen] = useState(false);
   const [selectedProjectForTask, setSelectedProjectForTask] = useState<Project | null>(null);
   const [taskName, setTaskName] = useState("");
@@ -160,6 +167,50 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const [loadingAssignableUsers, setLoadingAssignableUsers] = useState(false);
   const [invitingCollaborator, setInvitingCollaborator] = useState(false);
   const [assigningTask, setAssigningTask] = useState(false);
+  const [newProjectId, setNewProjectId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const newId = sessionStorage.getItem('newlyCreatedProjectId');
+    if (newId) {
+      setNewProjectId(newId);
+      sessionStorage.removeItem('newlyCreatedProjectId');
+      const timeout = setTimeout(() => {
+        setNewProjectId(null);
+      }, 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, []);
+
+  const queryClient = useQueryClient();
+
+  const hasSynced = useRef(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    const syncProjects = async () => {
+      if (!currentUser || hasSynced.current) return;
+      hasSynced.current = true;
+      try {
+        const token = await currentUser.getIdToken();
+        const response = await fetch(`${API_BASE_URL}/api/projects/sync`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (isMounted && (data.updatedCount > 0 || data.deletedCount > 0)) {
+            queryClient.invalidateQueries({ queryKey: ["projects"] });
+          }
+        }
+      } catch (err) {
+        console.error("Failed to sync GitHub projects", err);
+      }
+    };
+    syncProjects();
+    return () => { isMounted = false; };
+  }, [queryClient, currentUser]);
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -293,6 +344,30 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       toast({ title: "Success", description: `${selectedRepos.length} project(s) created successfully.` });
     } catch (error) {
       toast({ title: "Error", description: "Failed to create projects.", variant: "destructive" });
+    } finally {
+      setCreatingProjects(false);
+    }
+  };
+
+  const handleCreateNewProject = async () => {
+    if (!newProjectName.trim()) {
+      toast({ title: "Error", description: "Project name is required.", variant: "destructive" });
+      return;
+    }
+    setCreatingProjects(true);
+    try {
+      await createProjectWithNewRepo({
+        name: newProjectName.trim(),
+        description: newProjectDescription.trim(),
+        isPrivate: newProjectPrivate,
+      });
+      setCreateModalOpen(false);
+      setNewProjectName("");
+      setNewProjectDescription("");
+      setNewProjectPrivate(true);
+      toast({ title: "Success", description: `Project ${newProjectName} created successfully.` });
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to create project.", variant: "destructive" });
     } finally {
       setCreatingProjects(false);
     }
@@ -640,8 +715,13 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                       <Badge variant="secondary" className="text-xs">Owner</Badge>
                     )}
                   </div>
-                  <CardTitle className="text-xl line-clamp-1 group-hover:text-foreground transition-colors">
+                  <CardTitle className="text-xl line-clamp-1 group-hover:text-foreground transition-colors flex items-center gap-2">
                     {project.name}
+                    {newProjectId === getProjectId(project) && (
+                      <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20 text-[10px] uppercase px-1.5 py-0">
+                        New
+                      </Badge>
+                    )}
                   </CardTitle>
                   <CardDescription className="line-clamp-2 min-h-[40px]">
                     {project.description}
@@ -786,19 +866,49 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         </DialogContent>
       </Dialog>
 
-      {}
       <Dialog open={createModalOpen} onOpenChange={setCreateModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[85vh] flex flex-col min-h-[500px]">
           <DialogHeader>
-            <DialogTitle>Add Project from GitHub</DialogTitle>
+            <DialogTitle>Add Project</DialogTitle>
             <DialogDescription>
-              Select repositories to import as new projects.
+              Create a new project or import existing GitHub repositories.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="flex flex-col md:flex-row gap-6 py-4 flex-1 min-h-[350px] overflow-hidden">
+          <Tabs defaultValue="create" className="w-full mt-4 flex-1 flex flex-col min-h-0">
+            <TabsList className="grid w-[400px] grid-cols-2 mx-auto">
+              <TabsTrigger value="create">Create New</TabsTrigger>
+              <TabsTrigger value="import">Import Existing</TabsTrigger>
+            </TabsList>
+            
+            <div className="flex-1 relative overflow-hidden mt-4 min-h-0">
+            <TabsContent value="create" className="data-[state=active]:flex flex-col absolute inset-0 m-0 outline-none">
+              <div className="space-y-4 max-w-lg mx-auto w-full pt-4 overflow-y-auto pb-4">
+                <div className="space-y-2">
+                  <Label htmlFor="project-name">Project Name</Label>
+                  <Input id="project-name" placeholder="e.g. My Awesome App" value={newProjectName} onChange={e => setNewProjectName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="project-desc">Description (optional)</Label>
+                  <Input id="project-desc" placeholder="Brief description of your project" value={newProjectDescription} onChange={e => setNewProjectDescription(e.target.value)} />
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <Checkbox id="private-repo" checked={newProjectPrivate} onCheckedChange={(checked) => setNewProjectPrivate(checked as boolean)} />
+                  <Label htmlFor="private-repo" className="cursor-pointer text-sm font-normal">Create as Private Repository on GitHub</Label>
+                </div>
+              </div>
+              <div className="mt-auto pt-4 pb-2 flex justify-end gap-2 border-t z-10 bg-background">
+                <Button variant="outline" onClick={() => setCreateModalOpen(false)}>Cancel</Button>
+                <Button onClick={handleCreateNewProject} disabled={creatingProjects || !newProjectName.trim()}>
+                   {creatingProjects ? "Creating..." : "Create Project"}
+                </Button>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="import" className="data-[state=active]:flex flex-col absolute inset-0 m-0 outline-none">
+              <div className="flex flex-col md:flex-row gap-6 py-4 flex-1 min-h-0 overflow-hidden">
             {/* Left Pane - Repository Selection */}
-            <div className="flex-1 flex flex-col border border-border/10 rounded-xl overflow-hidden bg-background shadow-sm">
+            <div className="flex-1 flex flex-col border border-border/10 rounded-xl overflow-hidden bg-background shadow-sm min-h-0">
               <div className="p-3 border-b border-border/10 bg-secondary/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
                   <Checkbox 
@@ -897,12 +1007,16 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
             </div>
           </div>
 
-          <DialogFooter className="mt-2 border-t pt-4">
+
+          <div className="mt-2 border-t pt-4 pb-2 flex justify-end gap-2 z-10 bg-background">
               <Button variant="outline" onClick={() => setCreateModalOpen(false)}>Cancel</Button>
               <Button onClick={handleCreateMultipleProjects} disabled={selectedRepos.length === 0 || creatingProjects} className="min-w-[100px]">
-                  {creatingProjects ? "Creating..." : "Submit"}
+                  {creatingProjects ? "Creating..." : "Import"}
               </Button>
-          </DialogFooter>
+          </div>
+            </TabsContent>
+            </div>
+          </Tabs>
         </DialogContent>
       </Dialog>
 

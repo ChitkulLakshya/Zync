@@ -102,7 +102,7 @@ export const useUserSync = () => { // Defines a custom hook named 'useUserSync',
         const browserTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone; // Retrieves the user's browser timezone using the 'Intl.DateTimeFormat' API.
 
         try { // Starts a try-catch block to handle any errors that may occur during the execution of the code.
-          const token = await user.getIdToken; // Retrieves the user's ID token using the 'getIdToken' method of the 'user' object.
+          const token = await user.getIdToken(); // Retrieves the user's ID token using the 'getIdToken' method of the 'user' object.
 
           const syncRes = await fetch(`${API_BASE_URL}/api/users/sync`, { // Makes a POST request to the '/api/users/sync' endpoint to synchronize the user's data.
             method: 'POST', // Specifies the request method as 'POST'.
