@@ -1336,22 +1336,27 @@ router.get(
         (u) => u?.githubIntegration?.username
       );
 
-      const octokit = await buildInstallationOctokitFromOwner(requesterUid);
-      const collaboratorsResponse = await octokit.request(
-        'GET /repos/{owner}/{repo}/collaborators',
-        {
-          owner: project.githubRepoOwner,
-          repo: project.githubRepoName,
-          affiliation: 'all',
-          per_page: 100,
-        }
-      );
+      let collaboratorLogins = new Set();
+      try {
+        const octokit = await buildInstallationOctokitFromOwner(requesterUid);
+        const collaboratorsResponse = await octokit.request(
+          'GET /repos/{owner}/{repo}/collaborators',
+          {
+            owner: project.githubRepoOwner,
+            repo: project.githubRepoName,
+            affiliation: 'all',
+            per_page: 100,
+          }
+        );
 
-      const collaboratorLogins = new Set(
-        (collaboratorsResponse.data || []).map((c) =>
-          String(c.login || '').toLowerCase()
-        )
-      );
+        collaboratorLogins = new Set(
+          (collaboratorsResponse.data || []).map((c) =>
+            String(c.login || '').toLowerCase()
+          )
+        );
+      } catch (ghError) {
+        console.warn(`[GitHub] Failed to fetch collaborators for ${project.githubRepoName}:`, ghError.message);
+      }
 
       const activeCollaborators = connectedTeamUsers
         .filter((u) =>
@@ -1479,7 +1484,14 @@ router.post(
           .json({ message: 'Selected user is not connected to GitHub' });
       }
 
-      const octokit = await buildInstallationOctokitFromOwner(requesterUid);
+      let octokit;
+      try {
+        octokit = await buildInstallationOctokitFromOwner(requesterUid);
+      } catch (err) {
+        return res
+          .status(400)
+          .json({ message: 'GitHub App not installed or configured on the repository owner' });
+      }
 
       let alreadyCollaborator = false;
       try {
