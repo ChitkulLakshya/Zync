@@ -188,7 +188,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   useEffect(() => {
     let isMounted = true;
     const syncProjects = async () => {
-      if (!currentUser || hasSynced.current) return;
+      if (!currentUser || hasSynced.current) {return;}
       hasSynced.current = true;
       try {
         const token = await currentUser.getIdToken();
