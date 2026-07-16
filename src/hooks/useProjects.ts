@@ -116,6 +116,31 @@ export const useProjectMutations = () => {
         },
     });
 
+    const createProjectWithNewRepoMutation = useMutation({
+        mutationFn: async (data: any) => {
+            const user = auth.currentUser;
+            const token = await user?.getIdToken();
+            const response = await fetch(`${API_BASE_URL}/api/projects/new-repo`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(data),
+            });
+
+            if (!response.ok) {
+                const errBody = await response.json().catch(() => ({}));
+                throw new Error(errBody?.message || 'Failed to create project with new repo');
+            }
+
+            return response.json();
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['projects'] });
+        },
+    });
+
     const linkGitHubMutation = useMutation({
         mutationFn: async ({ projectId, repoData }: { projectId: string; repoData: any }) => {
             const user = auth.currentUser;
@@ -166,6 +191,7 @@ export const useProjectMutations = () => {
 
     return {
         createProject: createProjectMutation.mutateAsync,
+        createProjectWithNewRepo: createProjectWithNewRepoMutation.mutateAsync,
         linkGitHub: linkGitHubMutation.mutateAsync,
         deleteProject: deleteProjectMutation.mutateAsync,
         isCreating: createProjectMutation.isPending,

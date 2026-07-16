@@ -209,6 +209,14 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   };
 
   if (!userData) {
+    if (!userLoading) {
+      return (
+        <div className="flex h-full flex-col items-center justify-center p-8 text-center space-y-4">
+           <h2 className="text-xl font-bold">Session Error</h2>
+           <p className="text-muted-foreground">Your user profile could not be found in the database. Please log out and log back in to restore your session.</p>
+        </div>
+      );
+    }
     return (
       <div className="p-8 text-sm text-muted-foreground">Loading GitHub projects…</div>
     );
