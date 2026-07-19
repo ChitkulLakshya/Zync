@@ -116,6 +116,7 @@ interface TaskAssignmentDrawerProps {
   isSubmitting?: boolean;
   isLoadingUsers?: boolean;
   isInvitingCollaborator?: boolean;
+  githubAppNotInstalled?: boolean;
 }
 
 const TaskAssignmentDrawer = ({
@@ -135,6 +136,7 @@ const TaskAssignmentDrawer = ({
   isSubmitting = false,
   isLoadingUsers = false,
   isInvitingCollaborator = false,
+  githubAppNotInstalled = false,
 }: TaskAssignmentDrawerProps) => {
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -179,6 +181,10 @@ const TaskAssignmentDrawer = ({
                 <div className="p-4 text-sm text-muted-foreground flex items-center gap-2">
                   <Loader2 className="w-4 h-4 animate-spin" />
                   Loading users...
+                </div>
+              ) : githubAppNotInstalled ? (
+                <div className="p-4 text-sm text-destructive">
+                  Unable to fetch collaborators. Please install the Zync GitHub App or link your GitHub account.
                 </div>
               ) : activeCollaborators.length === 0 ? (
                 <div className="p-4 text-sm text-muted-foreground">

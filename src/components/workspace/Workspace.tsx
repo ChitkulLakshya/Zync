@@ -164,6 +164,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const [selectedAssigneeId, setSelectedAssigneeId] = useState<string | null>(null);
   const [activeCollaborators, setActiveCollaborators] = useState<any[]>([]);
   const [availableTeamMembers, setAvailableTeamMembers] = useState<any[]>([]);
+  const [githubAppNotInstalled, setGithubAppNotInstalled] = useState(false);
   const [loadingAssignableUsers, setLoadingAssignableUsers] = useState(false);
   const [invitingCollaborator, setInvitingCollaborator] = useState(false);
   const [assigningTask, setAssigningTask] = useState(false);
@@ -431,6 +432,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
       const data = await response.json();
       setActiveCollaborators(Array.isArray(data?.activeCollaborators) ? data.activeCollaborators : []);
       setAvailableTeamMembers(Array.isArray(data?.availableTeamMembers) ? data.availableTeamMembers : []);
+      setGithubAppNotInstalled(!!data?.githubAppNotInstalled);
     } catch (error) {
       console.error("Failed to load users for task assignment", error);
       toast({ title: "Error", description: "Failed to load collaborator data.", variant: "destructive" });
@@ -447,6 +449,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     setSelectedAssigneeId(null);
     setActiveCollaborators([]);
     setAvailableTeamMembers([]);
+    setGithubAppNotInstalled(false);
     setTaskDrawerOpen(true);
 
     const projectId = getProjectId(project);
@@ -1037,6 +1040,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
         isSubmitting={assigningTask}
         isLoadingUsers={loadingAssignableUsers}
         isInvitingCollaborator={invitingCollaborator}
+        githubAppNotInstalled={githubAppNotInstalled}
       />
     </div>
   );

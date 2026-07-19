@@ -1476,6 +1476,7 @@ router.get(
       );
 
       let collaboratorLogins = new Set();
+      let githubAppNotInstalled = false;
       try {
         const octokit = await buildInstallationOctokitFromOwner(requesterUid);
         const collaboratorsResponse = await octokit.request(
@@ -1494,7 +1495,38 @@ router.get(
           )
         );
       } catch (ghError) {
-        console.warn(`[GitHub] Failed to fetch collaborators for ${project.githubRepoName}:`, ghError.message);
+        console.warn(`[GitHub] Installation octokit failed for ${project.githubRepoName}:`, ghError.message);
+        // Fallback: use the owner's personal access token to fetch collaborators
+        try {
+          const ownerUser = await User.findOne({ uid: requesterUid }).select('githubIntegration').lean();
+          const ownerGh = ownerUser?.githubIntegration;
+          if (ownerGh?.accessToken) {
+            const personalToken = decryptToken(ownerGh.accessToken);
+            if (personalToken) {
+              const fallbackResponse = await axios.get(
+                `https://api.github.com/repos/${project.githubRepoOwner}/${project.githubRepoName}/collaborators`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${personalToken}`,
+                    Accept: 'application/vnd.github.v3+json',
+                  },
+                  params: { affiliation: 'all', per_page: 100 },
+                }
+              );
+              collaboratorLogins = new Set(
+                (fallbackResponse.data || []).map((c) =>
+                  String(c.login || '').toLowerCase()
+                )
+              );
+            }
+          }
+          if (collaboratorLogins.size === 0) {
+            githubAppNotInstalled = true;
+          }
+        } catch (fallbackError) {
+          console.warn(`[GitHub] Personal token fallback also failed:`, fallbackError.message);
+          githubAppNotInstalled = true;
+        }
       }
 
       const activeCollaborators = connectedTeamUsers
@@ -1531,6 +1563,7 @@ router.get(
       const responsePayload = {
         activeCollaborators,
         availableTeamMembers,
+        githubAppNotInstalled,
       };
 
       try {
