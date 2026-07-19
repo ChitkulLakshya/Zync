@@ -1468,7 +1468,7 @@ router.get(
       const assignableUsers = await User.find({
         uid: { $in: allAssignableUids },
       })
-        .select('uid displayName email photoURL githubIntegration.username')
+        .select('uid displayName email photoURL githubIntegration')
         .lean();
 
       const connectedTeamUsers = assignableUsers.filter(
@@ -1615,7 +1615,7 @@ router.post(
       }
 
       const assignee = await User.findOne({ uid: userId })
-        .select('uid displayName email photoURL githubIntegration.username')
+        .select('uid displayName email photoURL githubIntegration')
         .lean();
       if (!assignee?.githubIntegration?.username) {
         return res

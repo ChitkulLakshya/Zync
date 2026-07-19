@@ -195,7 +195,7 @@ router.post('/assign', verifyToken, async (req, res) => {
     const sameTeamUids = new Set(teams.flatMap((team) => team.members || []));
 
     const assignees = await User.find({ uid: { $in: normalizedAssigneeIds } })
-      .select('uid displayName email githubIntegration.username')
+      .select('uid displayName email githubIntegration')
       .lean();
 
     const assigneeMap = new Map(assignees.map((assignee) => [assignee.uid, assignee]));
