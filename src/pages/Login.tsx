@@ -208,7 +208,12 @@ const Login = () => {
 
   const handleContinue = async () => {
     if (currentUser) {
-      await postLoginRedirect(navigate, currentUser);
+      setLoading(true);
+      try {
+        await postLoginRedirect(navigate, currentUser);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
