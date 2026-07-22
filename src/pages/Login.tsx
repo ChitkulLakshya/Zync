@@ -107,7 +107,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { LogOut, ArrowRight } from 'lucide-react';
+import { LogOut, ArrowRight, RefreshCw } from 'lucide-react';
 import { Github } from '@/components/ui/GithubIcon';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -208,7 +208,12 @@ const Login = () => {
 
   const handleContinue = async () => {
     if (currentUser) {
-      await postLoginRedirect(navigate, currentUser);
+      setLoading(true);
+      try {
+        await postLoginRedirect(navigate, currentUser);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -390,8 +395,17 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleContinue} className="w-full h-12 text-lg">
-              Continue to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+            <Button onClick={handleContinue} className="w-full h-12 text-lg" disabled={loading}>
+              {loading ? (
+                <>
+                  <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  Continue to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+                </>
+              )}
             </Button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
