@@ -395,7 +395,7 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleContinue} className="w-full h-12 text-lg">
+            <Button onClick={handleContinue} className="w-full h-12 text-lg" disabled={loading}>
               Continue to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
             <div className="relative">
