@@ -107,7 +107,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { LogOut, ArrowRight } from 'lucide-react';
+import { LogOut, ArrowRight, RefreshCw } from 'lucide-react';
 import { Github } from '@/components/ui/GithubIcon';
 import { useToast } from '@/hooks/use-toast';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
