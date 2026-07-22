@@ -396,7 +396,16 @@ const Login = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <Button onClick={handleContinue} className="w-full h-12 text-lg" disabled={loading}>
-              Continue to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+              {loading ? (
+                <>
+                  <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                  Connecting...
+                </>
+              ) : (
+                <>
+                  Continue to Dashboard <ArrowRight className="ml-2 w-5 h-5" />
+                </>
+              )}
             </Button>
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
