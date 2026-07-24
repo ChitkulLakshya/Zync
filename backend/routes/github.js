@@ -787,4 +787,80 @@ router.get('/readme', verifyToken, async (req, res) => {
   }
 });
 
+router.patch('/repos/:owner/:repo/settings', verifyToken, async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+    const { description, homepage, topics } = req.body;
+    const uid = req.user.uid;
+
+    const user = await User.findOne({ uid }).lean();
+    const github = user?.githubIntegration;
+
+    if (!user || !github?.connected || !github?.accessToken) {
+      return res.status(400).json({ message: 'GitHub account not connected' });
+    }
+
+    if (github.username !== owner) {
+      return res.status(403).json({ message: 'Unauthorized: You can only edit repositories you own.' });
+    }
+
+    // Validation
+    if (description && description.length > 350) {
+      return res.status(400).json({ message: 'Description must be 350 characters or less' });
+    }
+    if (topics && Array.isArray(topics)) {
+      if (topics.length > 20) {
+        return res.status(400).json({ message: 'A repository can have a maximum of 20 topics' });
+      }
+      for (const topic of topics) {
+        if (topic.length > 50 || !/^[a-z0-9-]+$/.test(topic)) {
+          return res.status(400).json({ message: 'Topics must be lowercase, alphanumeric, hyphens only, and max 50 chars' });
+        }
+      }
+    }
+
+    const accessToken = decryptToken(github.accessToken);
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github.v3+json'
+    };
+
+    if (description !== undefined || homepage !== undefined) {
+      await axios.patch(`https://api.github.com/repos/${owner}/${repo}`, {
+        description,
+        homepage
+      }, { headers });
+    }
+
+    if (topics !== undefined && Array.isArray(topics)) {
+      await axios.put(`https://api.github.com/repos/${owner}/${repo}/topics`, {
+        names: topics
+      }, { headers });
+    }
+
+    // If it's a linked Zync Project, update it as well
+    const Project = require('../models/Project');
+    const linkedProject = await Project.findOne({ githubRepoOwner: owner, githubRepoName: repo });
+    if (linkedProject) {
+      const updateData = {};
+      if (description !== undefined) updateData.description = description;
+      if (homepage !== undefined) updateData.homepage = homepage;
+      if (topics !== undefined) updateData.tags = topics;
+      
+      if (Object.keys(updateData).length > 0) {
+        await Project.updateOne({ _id: linkedProject._id }, { $set: updateData });
+        const { invalidateProjectCache } = require('../controllers/projectController');
+        if (typeof invalidateProjectCache === 'function') {
+          await invalidateProjectCache(linkedProject).catch(() => {});
+        }
+      }
+    }
+
+    res.status(200).json({ message: 'Repository settings updated successfully' });
+  } catch (error) {
+    console.error('Error updating repository settings:', error);
+    res.status(500).json({ message: 'Failed to update repository settings', error: error.message });
+  }
+});
+
 module.exports = router;
