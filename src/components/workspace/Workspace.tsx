@@ -313,13 +313,15 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const handleCreateProjectFromRepo = async (repo: any) => {
     try {
       const ownerLogin = getRepoOwnerLogin(repo);
-      await createProject({
+      const newProject = await createProject({
         name: repo.name,
         description: repo.description,
         ownerId: currentUser?.uid,
         githubRepoName: repo.name,
         githubRepoOwner: ownerLogin
       });
+      setNewProjectId(getProjectId(newProject));
+      setTimeout(() => setNewProjectId(null), 5000);
       setCreateModalOpen(false);
       toast({ title: "Success", description: `Project ${repo.name} created successfully.` });
     } catch (error) {
@@ -331,15 +333,20 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     if (selectedRepos.length === 0) {return;}
     setCreatingProjects(true);
     try {
+      let lastCreatedProject = null;
       for (const repo of selectedRepos) {
         const ownerLogin = getRepoOwnerLogin(repo);
-        await createProject({
+        lastCreatedProject = await createProject({
           name: repo.name,
           description: repo.description,
           ownerId: currentUser?.uid,
           githubRepoName: repo.name,
           githubRepoOwner: ownerLogin
         });
+      }
+      if (lastCreatedProject) {
+        setNewProjectId(getProjectId(lastCreatedProject));
+        setTimeout(() => setNewProjectId(null), 5000);
       }
       setCreateModalOpen(false);
       toast({ title: "Success", description: `${selectedRepos.length} project(s) created successfully.` });
@@ -357,11 +364,13 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     }
     setCreatingProjects(true);
     try {
-      await createProjectWithNewRepo({
+      const newProject = await createProjectWithNewRepo({
         name: newProjectName.trim(),
         description: newProjectDescription.trim(),
         isPrivate: newProjectPrivate,
       });
+      setNewProjectId(getProjectId(newProject));
+      setTimeout(() => setNewProjectId(null), 5000);
       setCreateModalOpen(false);
       setNewProjectName("");
       setNewProjectDescription("");
@@ -714,17 +723,19 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                 <CardHeader className="pb-3">
                   <div className="flex justify-between items-start">
                     <Badge variant="outline" className="mb-2">Project</Badge>
-                    {isProjectOwner(project) && (
-                      <Badge variant="secondary" className="text-xs">Owner</Badge>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {newProjectId === getProjectId(project) && (
+                        <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20 text-[10px] uppercase px-1.5 py-0">
+                          New
+                        </Badge>
+                      )}
+                      {isProjectOwner(project) && (
+                        <Badge variant="secondary" className="text-xs">Owner</Badge>
+                      )}
+                    </div>
                   </div>
                   <CardTitle className="text-xl line-clamp-1 group-hover:text-foreground transition-colors flex items-center gap-2">
                     {project.name}
-                    {newProjectId === getProjectId(project) && (
-                      <Badge className="bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20 text-[10px] uppercase px-1.5 py-0">
-                        New
-                      </Badge>
-                    )}
                   </CardTitle>
                   <CardDescription className="line-clamp-2 min-h-[40px]">
                     {project.description}
