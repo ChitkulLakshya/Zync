@@ -1195,6 +1195,9 @@ router.put(
         taskUpdate.assignedToName = assignedToName;
 
         if (assignedTo && assignedTo !== oldAssignee) {
+          const assignmentUpdate = await handleTaskAssignment(project, task, assignedTo, assignedToName);
+          Object.assign(taskUpdate, assignmentUpdate);
+
           const assigneeUser = await User.findOne({ uid: assignedTo }).lean();
 
           if (assigneeUser && assigneeUser.email) {
