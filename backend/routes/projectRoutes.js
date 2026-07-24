@@ -1931,3 +1931,5 @@ router.post('/tasks/:taskId/merge-pr', authMiddleware, async (req, res) => {
   }
 });
 
+
+module.exports = router;
