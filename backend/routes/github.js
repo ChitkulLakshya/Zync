@@ -537,25 +537,19 @@ router.get('/user-repos', verifyToken, async (req, res) => {
       res.json(userReposResult);
     } catch (requestErr) {
       console.error("Error fetching repositories from GitHub:", requestErr.message);
-      await disconnectGithub(uid, { installationId: null });
       const status = requestErr.status || requestErr.response?.status;
-      if (status === 404) {
-        return res.status(400).json({ message: 'GitHub App installation not found. Please reinstall.', notInstalled: true });
+      if (status === 404 || status === 401) {
+        await disconnectGithub(uid, { installationId: null });
+        return res.status(400).json({ message: 'GitHub App installation not found or unauthorized. Please reinstall.', notInstalled: true });
       }
-      if (status === 401 || status === 403) {
-        return res.status(401).json({ message: 'GitHub App authentication failed.', notInstalled: true });
-      }
-      return res.status(500).json({ message: 'Failed to fetch repositories. Please reinstall.', notInstalled: true });
+      return res.status(500).json({ message: 'Failed to fetch repositories from GitHub.' });
     }
+
 
   } catch (error) {
     console.error('Error fetching installation repos:', error);
-    if (req.user?.uid) {
-      await disconnectGithub(req.user.uid, { installationId: null });
-    }
     res.status(500).json({
-      message: 'Failed to fetch repositories. Please reinstall.',
-      notInstalled: true,
+      message: 'Failed to fetch repositories due to an internal error.',
       error: error.message
     });
   }
@@ -790,6 +784,82 @@ router.get('/readme', verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching README:', error);
     res.status(500).json({ message: 'Failed to fetch README' });
+  }
+});
+
+router.patch('/repos/:owner/:repo/settings', verifyToken, async (req, res) => {
+  try {
+    const { owner, repo } = req.params;
+    const { description, homepage, topics } = req.body;
+    const uid = req.user.uid;
+
+    const user = await User.findOne({ uid }).lean();
+    const github = user?.githubIntegration;
+
+    if (!user || !github?.connected || !github?.accessToken) {
+      return res.status(400).json({ message: 'GitHub account not connected' });
+    }
+
+    if (github.username !== owner) {
+      return res.status(403).json({ message: 'Unauthorized: You can only edit repositories you own.' });
+    }
+
+    // Validation
+    if (description && description.length > 350) {
+      return res.status(400).json({ message: 'Description must be 350 characters or less' });
+    }
+    if (topics && Array.isArray(topics)) {
+      if (topics.length > 20) {
+        return res.status(400).json({ message: 'A repository can have a maximum of 20 topics' });
+      }
+      for (const topic of topics) {
+        if (topic.length > 50 || !/^[a-z0-9-]+$/.test(topic)) {
+          return res.status(400).json({ message: 'Topics must be lowercase, alphanumeric, hyphens only, and max 50 chars' });
+        }
+      }
+    }
+
+    const accessToken = decryptToken(github.accessToken);
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github.v3+json'
+    };
+
+    if (description !== undefined || homepage !== undefined) {
+      await axios.patch(`https://api.github.com/repos/${owner}/${repo}`, {
+        description,
+        homepage
+      }, { headers });
+    }
+
+    if (topics !== undefined && Array.isArray(topics)) {
+      await axios.put(`https://api.github.com/repos/${owner}/${repo}/topics`, {
+        names: topics
+      }, { headers });
+    }
+
+    // If it's a linked Zync Project, update it as well
+    const Project = require('../models/Project');
+    const linkedProject = await Project.findOne({ githubRepoOwner: owner, githubRepoName: repo });
+    if (linkedProject) {
+      const updateData = {};
+      if (description !== undefined) updateData.description = description;
+      if (homepage !== undefined) updateData.homepage = homepage;
+      if (topics !== undefined) updateData.tags = topics;
+      
+      if (Object.keys(updateData).length > 0) {
+        await Project.updateOne({ _id: linkedProject._id }, { $set: updateData });
+        const { invalidateProjectCache } = require('../controllers/projectController');
+        if (typeof invalidateProjectCache === 'function') {
+          await invalidateProjectCache(linkedProject).catch(() => {});
+        }
+      }
+    }
+
+    res.status(200).json({ message: 'Repository settings updated successfully' });
+  } catch (error) {
+    console.error('Error updating repository settings:', error);
+    res.status(500).json({ message: 'Failed to update repository settings', error: error.message });
   }
 });
 

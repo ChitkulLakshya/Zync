@@ -352,15 +352,14 @@ connectWithRetry().catch((err) => {
 const { connectRedis } = require('./utils/redisClient');
 connectRedis();
 
-const startServer = (port, retriesLeft = 10) => {
+const startServer = (port) => {
   const onError = (error) => {
     server.off('error', onError);
 
-    if (error.code === 'EADDRINUSE' && retriesLeft > 0) {
-      const nextPort = Number(port) + 1;
-      console.warn(`⚠️ Port ${port} is in use, trying ${nextPort}...`);
-      setTimeout(() => startServer(nextPort, retriesLeft - 1), 100);
-      return;
+    if (error.code === 'EADDRINUSE') {
+      console.error(`\n❌ ERROR: Port ${port} is already in use!`);
+      console.error(`Please kill the process using it (e.g., zombie Node process) or change PORT in .env\n`);
+      process.exit(1);
     }
 
     console.error(

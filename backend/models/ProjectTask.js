@@ -98,6 +98,11 @@ const projectTaskSchema = new mongoose.Schema(
 
     repoIds: { type: [String], default: [] },
 
+    githubBranchName: { type: String, default: null },
+    completionCommitMessage: { type: String, default: null },
+    githubPrUrl: { type: String, default: null },
+    githubPrNumber: { type: Number, default: null },
+
     stepId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Step',

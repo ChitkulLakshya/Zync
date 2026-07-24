@@ -88,6 +88,10 @@ interface Task {
   status: string;
   assignedTo?: string;
   assignedToName?: string;
+  githubBranchName?: string;
+  completionCommitMessage?: string;
+  githubPrUrl?: string;
+  githubPrNumber?: number;
 }
 
 interface Step {
@@ -112,13 +116,14 @@ const COLUMN_MAPPING: Record<string, string> = {
   'Backlog': 'Ready',
   'Ready': 'Ready',
   'Active': 'Active',
-  'In Review': 'In Progress',
+  'In Review': 'PR Raised',
+  'PR Raised': 'PR Raised',
   'In Progress': 'In Progress',
   'Completed': 'Done',
   'Done': 'Done'
 };
 
-const COLUMNS = ['Ready', 'Active', 'In Progress', 'Done'];
+const COLUMNS = ['Ready', 'Active', 'In Progress', 'PR Raised', 'Done'];
 
 const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnly, onDeleteTask }: KanbanBoardProps) => {
   const [draggedTask, setDraggedTask] = useState<{ task: Task, stepId: string } | null>(null);
@@ -179,6 +184,7 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser, readOnl
     if (draggedTask.task.status !== targetStatus) {
       let schemaStatus = targetStatus;
       if (targetStatus === 'Done') {schemaStatus = 'Completed';}
+      else if (targetStatus === 'PR Raised') {schemaStatus = 'In Review';}
       onUpdateTask(draggedTask.stepId, resolvedTaskId, { status: schemaStatus });
     }
     setDraggedTask(null);
