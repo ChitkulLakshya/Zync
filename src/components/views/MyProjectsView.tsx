@@ -97,6 +97,8 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { useMe } from "@/hooks/useMe";
 import { useGitHubRepos } from "@/hooks/useGitHubData";
+import { useProjects } from "@/hooks/useProjects";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 
 const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   const { toast } = useToast();
@@ -104,6 +106,11 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   
   const { data: userData, isLoading: userLoading } = useMe();
   const isConnected = userData?.githubIntegration?.connected;
+
+  const { data: projects = [] } = useProjects();
+  const [editingRepo, setEditingRepo] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ description: '', homepage: '', topics: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   const [page, setPage] = useState(1);
   const { 
@@ -182,6 +189,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
     let result = repos.filter(repo => {
 
       if (filterType === "all") { return true; }
+      if (filterType === "workspace") { return projects.some((p: any) => p.githubRepoName === repo.name && p.githubRepoOwner === repo.owner.login); }
       if (filterType === "collaborator") { return userData?.githubIntegration?.username && repo.owner.login !== userData.githubIntegration.username; }
       return repo.visibility === filterType;
     });
@@ -289,6 +297,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
         <Tabs defaultValue="all" className="w-full space-y-6">
           <div className="flex items-center justify-between gap-3">
             <TabsList className="bg-card/50 border border-border/10 backdrop-blur-md rounded-xl">
+              <TabsTrigger value="workspace">Workspace</TabsTrigger>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="public">Public</TabsTrigger>
               <TabsTrigger value="private">Private</TabsTrigger>
@@ -325,7 +334,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
             </div>
           </div>
 
-          {["all", "public", "private", "collaborator"].map((filterType) => {
+          {["workspace", "all", "public", "private", "collaborator"].map((filterType) => {
             const displayRepos = getFilteredAndSortedRepos(filterType);
 
             return (
@@ -378,11 +387,23 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                       <CardFooter className="pt-4 border-t border-border/10 bg-transparent">
                         <div className="text-sm text-muted-foreground w-full flex justify-between items-center">
                           <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
-                          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
-                            <a href={repo.html_url} target="_blank" rel="noreferrer">
-                              <ExternalLink className="h-4 w-4" />
-                            </a>
-                          </Button>
+                          <div className="flex gap-2">
+                            {repo.owner.login === userData.githubIntegration.username && (
+                               <Button variant="outline" size="sm" className="h-8 bg-card/50 text-foreground" onClick={() => {
+                                 setEditingRepo(repo);
+                                 setEditForm({
+                                   description: repo.description || '',
+                                   homepage: repo.homepage || '',
+                                   topics: repo.topics?.join(', ') || ''
+                                 });
+                               }}>Edit Settings</Button>
+                            )}
+                            <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
+                              <a href={repo.html_url} target="_blank" rel="noreferrer">
+                                <ExternalLink className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </div>
                         </div>
                       </CardFooter>
                     </Card>
@@ -430,6 +451,86 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
           </Button>
         </div>
       )}
+      <Dialog open={!!editingRepo} onOpenChange={(open) => !open && setEditingRepo(null)}>
+        <DialogContent className="sm:max-w-[425px] bg-card/90 backdrop-blur-xl border-border/10 text-foreground">
+          {editingRepo && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Repository Settings</DialogTitle>
+                <DialogDescription>
+                  Update the settings for {editingRepo.name} on GitHub.
+                </DialogDescription>
+              </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Description (max 350 chars)</label>
+                <textarea
+                  className="flex min-h-[80px] w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  value={editForm.description}
+                  maxLength={350}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  placeholder="Repository description..."
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Website URL</label>
+                <Input
+                  className="bg-background/50"
+                  value={editForm.homepage}
+                  onChange={(e) => setEditForm({ ...editForm, homepage: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              <div className="grid gap-2">
+                <label className="text-sm font-medium">Topics (comma separated, max 20)</label>
+                <Input
+                  className="bg-background/50"
+                  value={editForm.topics}
+                  onChange={(e) => setEditForm({ ...editForm, topics: e.target.value })}
+                  placeholder="react, typescript, frontend"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingRepo(null)} disabled={isSaving}>Cancel</Button>
+              <Button disabled={isSaving} onClick={async () => {
+                setIsSaving(true);
+                try {
+                  const topicsArray = editForm.topics.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+                  const token = await auth.currentUser?.getIdToken();
+                  const res = await fetch(`${API_BASE_URL}/api/github/repos/${editingRepo.owner.login}/${editingRepo.name}/settings`, {
+                    method: 'PATCH',
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                      description: editForm.description,
+                      homepage: editForm.homepage,
+                      topics: topicsArray
+                    })
+                  });
+                  if (!res.ok) {
+                    const errData = await res.json();
+                    throw new Error(errData.message || 'Failed to update settings');
+                  }
+                  toast({ title: 'Success', description: 'Repository settings updated!' });
+                  setEditingRepo(null);
+                  queryClient.invalidateQueries({ queryKey: ['github'] });
+                  queryClient.invalidateQueries({ queryKey: ['projects'] });
+                } catch (err: any) {
+                  toast({ title: 'Error', description: err.message, variant: 'destructive' });
+                } finally {
+                  setIsSaving(false);
+                }
+              }}>
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+            </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
