@@ -537,25 +537,19 @@ router.get('/user-repos', verifyToken, async (req, res) => {
       res.json(userReposResult);
     } catch (requestErr) {
       console.error("Error fetching repositories from GitHub:", requestErr.message);
-      await disconnectGithub(uid, { installationId: null });
       const status = requestErr.status || requestErr.response?.status;
-      if (status === 404) {
-        return res.status(400).json({ message: 'GitHub App installation not found. Please reinstall.', notInstalled: true });
+      if (status === 404 || status === 401) {
+        await disconnectGithub(uid, { installationId: null });
+        return res.status(400).json({ message: 'GitHub App installation not found or unauthorized. Please reinstall.', notInstalled: true });
       }
-      if (status === 401 || status === 403) {
-        return res.status(401).json({ message: 'GitHub App authentication failed.', notInstalled: true });
-      }
-      return res.status(500).json({ message: 'Failed to fetch repositories. Please reinstall.', notInstalled: true });
+      return res.status(500).json({ message: 'Failed to fetch repositories from GitHub.' });
     }
+
 
   } catch (error) {
     console.error('Error fetching installation repos:', error);
-    if (req.user?.uid) {
-      await disconnectGithub(req.user.uid, { installationId: null });
-    }
     res.status(500).json({
-      message: 'Failed to fetch repositories. Please reinstall.',
-      notInstalled: true,
+      message: 'Failed to fetch repositories due to an internal error.',
       error: error.message
     });
   }

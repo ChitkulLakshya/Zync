@@ -80,6 +80,10 @@
  */
 // WHAT: Import Project model. WHY: Query and update projects.
 const Project = require('../models/Project');
+// WHAT: Import User model. WHY: Query user for webhook updates.
+const User = require('../models/User');
+// WHAT: Import cache utility. WHY: Clear caches on GitHub changes.
+const cache = require('../utils/cache');
 // WHAT: Import commit analysis. WHY: Run AI analysis on commits.
 const { analyzeCommit } = require('../utils/commitAnalysisService');
 const {
@@ -191,9 +195,18 @@ const findLinkedProject = async (repository) => {
 
 // WHAT: Process GitHub webhook payload. WHY: Orchestrates update logic.
 const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) => {
-  // WHAT: Ignore installation. WHY: Irrelevant to commits.
+  // WHAT: Handle installation. WHY: Invalidate repo cache.
   if (event === 'installation' || event === 'installation_repositories') {
-    return { ignored: true, reason: 'installation_event' };
+    const installationId = payload.installation?.id;
+    if (installationId) {
+      const user = await User.findOne({ 'githubIntegration.installationId': installationId.toString() }).lean();
+      if (user) {
+        await cache.invalidate(`gh:user-repos:${user.uid}`);
+        debugWebhookLog(`Cleared repo cache for user ${user.uid} upon installation event`);
+        return { processed: true, action: 'cleared_repo_cache' };
+      }
+    }
+    return { ignored: true, reason: 'installation_event_user_not_found' };
   }
 
   // WHAT: Ignore non-push events. WHY: We only track code changes.

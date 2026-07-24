@@ -403,6 +403,7 @@ router.post('/new-repo', authMiddleware, async (req, res) => {
       );
       githubRepoName = response.data.name;
       githubRepoOwner = response.data.owner.login;
+      await cache.invalidate(`gh:user-repos:${ownerUid}`);
     } catch (ghError) {
       console.error('Failed to create GitHub repository:', ghError.response?.data || ghError.message);
       return res.status(400).json({ message: 'Failed to create GitHub repository', error: ghError.response?.data?.message || ghError.message });

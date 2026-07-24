@@ -82,6 +82,7 @@ const Step = require('../models/Step'); // Imports the Mongoose Step model, whic
 const ProjectTask = require('../models/ProjectTask'); // Imports the Mongoose ProjectTask model, which provides an interface to interact with the 'projecttasks' collection in the database.
 const { normalizeDoc } = require('../utils/normalize'); // Imports the 'normalizeDoc' utility function, which is likely used to standardize document structures, though not directly used in this specific route.
 const { getProjectWithSteps } = require('../utils/projectHelper'); // Imports the 'getProjectWithSteps' utility function, which is used to fetch a project along with its associated steps from the database.
+const cache = require('../utils/cache');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
 
@@ -145,6 +146,7 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
       );
       githubRepoName = response.data.name;
       githubRepoOwner = response.data.owner.login;
+      await cache.invalidate(`gh:user-repos:${uid}`);
     } catch (ghError) {
       console.error('Failed to create GitHub repository:', ghError.response?.data || ghError.message);
       return res.status(400).json({ 

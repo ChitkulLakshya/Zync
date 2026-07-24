@@ -877,7 +877,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         );
 
       case 'New Project':
-        return <CreateProject onProjectCreated={(data) => handleSectionChange('Workspace')} />;
+        return <CreateProject onProjectCreated={(data) => handleSectionChange('My Workspace')} />;
 
       case 'Messages':
         return (
