@@ -1778,6 +1778,7 @@ router.post(
         });
     }
   }
+);
 // WHAT: Edit Github Repository Settings. WHY: Feature 1 - allows users to edit description, website, and topics.
 router.patch('/:id/github-settings', authMiddleware, async (req, res) => {
   try {
