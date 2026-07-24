@@ -86,6 +86,8 @@ const User = require('../models/User');
 const cache = require('../utils/cache');
 // WHAT: Import commit analysis. WHY: Run AI analysis on commits.
 const { analyzeCommit } = require('../utils/commitAnalysisService');
+const Step = require('../models/Step');
+const ProjectTask = require('../models/ProjectTask');
 const {
   DELIVERY_CATCHUP_BATCH_SIZE,
   DELIVERY_CATCHUP_MAX_BATCHES,
@@ -209,6 +211,73 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
     return { ignored: true, reason: 'installation_event_user_not_found' };
   }
 
+  // WHAT: Handle repository deletion. WHY: Keeps Zync DB synced with GitHub.
+  if (event === 'repository' && payload.action === 'deleted') {
+    const { repository } = payload;
+    const linkedProject = await findLinkedProject(repository);
+    if (linkedProject) {
+      const steps = await Step.find({ projectId: linkedProject._id }).select('_id').lean();
+      const stepIds = steps.map((s) => s._id);
+      
+      if (stepIds.length > 0) {
+        await ProjectTask.deleteMany({ stepId: { $in: stepIds } });
+      }
+      await Step.deleteMany({ projectId: linkedProject._id });
+      await Project.deleteOne({ _id: linkedProject._id });
+      
+      const uids = [linkedProject.ownerUid, ...(linkedProject.team || [])];
+      const keys = uids.map((uid) => `projects:${uid}`);
+      await cache.invalidate(...keys);
+      await cache.invalidate(`gh:user-repos:${linkedProject.ownerUid}`);
+      
+      debugWebhookLog(`Deleted project ${linkedProject._id} because github repo was deleted`);
+      return { processed: true, action: 'deleted_project' };
+    }
+    return { ignored: true, reason: 'repository_deleted_but_not_linked' };
+  }
+
+  // WHAT: Handle Pull Requests. WHY: Alerts admin when PR is raised for a task.
+  if (event === 'pull_request' && payload.action === 'opened') {
+    const { pull_request, repository } = payload;
+    const branchName = pull_request.head.ref;
+    
+    // Find task linked to this branch
+    const task = await ProjectTask.findOne({ githubBranchName: branchName });
+    if (task) {
+      await ProjectTask.updateOne(
+        { _id: task._id }, 
+        { 
+          $set: { 
+            status: 'PR Raised', 
+            githubPrUrl: pull_request.html_url,
+            githubPrNumber: pull_request.number 
+          } 
+        }
+      );
+      
+      // Optionally alert the admin (owner of the project)
+      const linkedProject = await findLinkedProject(repository);
+      if (linkedProject) {
+        const owner = await User.findOne({ uid: linkedProject.ownerUid }).lean();
+        if (owner && owner.email) {
+          const { sendZyncEmail } = require('../utils/emailTemplates'); // assuming we can import or have a generic mail sender
+          // We can just log it for now if email is complex, or let UI handle it via websocket.
+          if (getIo) {
+            getIo().to(linkedProject.ownerUid).emit('notification', {
+              title: 'PR Raised',
+              message: `A PR has been raised for task "${task.title}"`,
+              type: 'info'
+            });
+          }
+        }
+        await cache.invalidate(`projects:${linkedProject.ownerUid}`);
+      }
+      
+      return { processed: true, action: 'pr_raised_linked_to_task' };
+    }
+    return { ignored: true, reason: 'pr_not_linked_to_task' };
+  }
+
   // WHAT: Ignore non-push events. WHY: We only track code changes.
   if (event !== 'push') {
     return { ignored: true, reason: `event_${event || 'unknown'}_ignored` };
@@ -233,6 +302,31 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
       reason: 'no_linked_project',
       droppedCommits,
     };
+  }
+
+  // CHECK FOR COMPLETION COMMIT
+  const ref = payload.ref; // e.g. refs/heads/task/something
+  if (ref && ref.startsWith('refs/heads/task/')) {
+    const branchName = ref.replace('refs/heads/', '');
+    const task = await ProjectTask.findOne({ githubBranchName: branchName });
+    if (task && task.completionCommitMessage) {
+      const match = commitsToProcess.find(c => c.message.trim() === task.completionCommitMessage.trim());
+      if (match) {
+        await ProjectTask.updateOne(
+          { _id: task._id },
+          { $set: { commitCode: match.id.substring(0, 7), commitMessage: match.message } }
+        );
+        // Note: we don't set status to "Completed" yet, because a PR is required. 
+        // We could set it to "Code Complete" but "PR Raised" handles the next stage.
+        if (getIo) {
+          getIo().to(linkedProject.ownerUid).emit('notification', {
+            title: 'Task Code Complete',
+            message: `Code for task "${task.title}" has been pushed to the branch!`,
+            type: 'info'
+          });
+        }
+      }
+    }
   }
 
   const linkedProjectId = String(linkedProject._id || linkedProject.id);
