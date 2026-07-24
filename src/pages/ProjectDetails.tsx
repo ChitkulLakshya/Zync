@@ -137,6 +137,8 @@ interface Project {
   ownerId: string;
   githubRepoName?: string;
   githubRepoOwner?: string;
+  homepage?: string;
+  tags?: string[];
 }
 
 interface Task {
@@ -192,6 +194,63 @@ const ProjectDetails = () => {
   const [isAssignmentDialogOpen, setIsAssignmentDialogOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [isSubmittingAssignment, setIsSubmittingAssignment] = useState(false);
+
+  // Repository Settings State
+  const [isRepoSettingsOpen, setIsRepoSettingsOpen] = useState(false);
+  const [repoDescription, setRepoDescription] = useState("");
+  const [repoHomepage, setRepoHomepage] = useState("");
+  const [repoTopics, setRepoTopics] = useState<string[]>([]);
+  const [repoTopicInput, setRepoTopicInput] = useState("");
+  const [isSavingRepoSettings, setIsSavingRepoSettings] = useState(false);
+
+  const handleAddTopic = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const val = repoTopicInput.trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+      if (val && !repoTopics.includes(val) && val.length <= 50 && repoTopics.length < 20) {
+        setRepoTopics([...repoTopics, val]);
+      }
+      setRepoTopicInput("");
+    }
+  };
+
+  const removeTopic = (t: string) => {
+    setRepoTopics(repoTopics.filter(topic => topic !== t));
+  };
+
+  const handleSaveRepoSettings = async () => {
+    if (!project || !auth.currentUser) return;
+    setIsSavingRepoSettings(true);
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/github-settings`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description: repoDescription.slice(0, 350),
+          homepage: repoHomepage,
+          topics: repoTopics
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update repository settings');
+      }
+
+      toast.success("Repository settings updated successfully!");
+      setIsRepoSettingsOpen(false);
+      fetchProjectRef.current();
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update repository settings");
+    } finally {
+      setIsSavingRepoSettings(false);
+    }
+  };
+
 
 
   const [isCreateTaskDialogOpen, setIsCreateTaskDialogOpen] = useState(false);
@@ -636,9 +695,21 @@ const ProjectDetails = () => {
           </div>
           <div className="ml-auto flex gap-2">
             {isOwner && (
-              <Button variant="outline" size="sm" onClick={() => setIsShareDialogOpen(true)}>
-                <Share2 className="mr-2 h-4 w-4" /> Share
-              </Button>
+              <>
+                {isGitHubProject && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    setRepoDescription(project.description || "");
+                    setRepoHomepage(project.homepage || "");
+                    setRepoTopics(project.tags || []);
+                    setIsRepoSettingsOpen(true);
+                  }}>
+                    <Github className="mr-2 h-4 w-4" /> Repo Settings
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={() => setIsShareDialogOpen(true)}>
+                  <Share2 className="mr-2 h-4 w-4" /> Share
+                </Button>
+              </>
             )}
           </div>
         </div>
@@ -1150,6 +1221,74 @@ const ProjectDetails = () => {
             </Button>
             <Button onClick={handleShareProject} disabled={isSharing || !selectedShareUser}>
               {isSharing ? "Sending..." : "Send Invite"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Repo Settings Dialog */}
+      <Dialog open={isRepoSettingsOpen} onOpenChange={setIsRepoSettingsOpen}>
+        <DialogContent className="sm:max-w-md border-border/10 bg-card/95 backdrop-blur-xl">
+          <DialogHeader>
+            <DialogTitle>Repository Settings</DialogTitle>
+            <DialogDescription>
+              Update your GitHub repository details directly from Zync.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="repo-desc" className="text-sm font-medium">Description</label>
+              <textarea
+                id="repo-desc"
+                className="flex min-h-[80px] w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Short description of your project..."
+                value={repoDescription}
+                maxLength={350}
+                onChange={(e) => setRepoDescription(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground text-right">{repoDescription.length}/350</p>
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="repo-url" className="text-sm font-medium">Website URL</label>
+              <input
+                id="repo-url"
+                type="url"
+                className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="https://your-website.com"
+                value={repoHomepage}
+                onChange={(e) => setRepoHomepage(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="repo-topics" className="text-sm font-medium">Topics (max 20)</label>
+              <div className="flex flex-wrap gap-2 mb-2">
+                {repoTopics.map((topic) => (
+                  <Badge key={topic} variant="secondary" className="gap-1 bg-secondary/50 hover:bg-secondary/80">
+                    {topic}
+                    <button onClick={() => removeTopic(topic)} className="ml-1 hover:text-destructive focus:outline-none">
+                      &times;
+                    </button>
+                  </Badge>
+                ))}
+              </div>
+              <input
+                id="repo-topics"
+                type="text"
+                className="flex h-10 w-full rounded-md border border-input bg-background/50 px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder={repoTopics.length >= 20 ? "Maximum topics reached" : "Type a topic and press Enter..."}
+                value={repoTopicInput}
+                onChange={(e) => setRepoTopicInput(e.target.value)}
+                onKeyDown={handleAddTopic}
+                disabled={repoTopics.length >= 20}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsRepoSettingsOpen(false)} disabled={isSavingRepoSettings}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveRepoSettings} disabled={isSavingRepoSettings}>
+              {isSavingRepoSettings ? "Saving..." : "Save Settings"}
             </Button>
           </DialogFooter>
         </DialogContent>

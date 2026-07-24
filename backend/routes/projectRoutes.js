@@ -229,6 +229,54 @@ const buildInstallationOctokitFromOwner = async (ownerUid) => {
   return app.getInstallationOctokit(Number.parseInt(installationId, 10));
 };
 
+const slugify = (text) => (text || '').toString().toLowerCase().trim().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '');
+
+const handleTaskAssignment = async (project, task, assignedTo, assignedToName) => {
+  const taskUpdate = {
+    assignedTo,
+    assignedToName
+  };
+
+  // Only create branch if there is a github repo linked and the task doesn't already have one
+  if (project.githubRepoOwner && project.githubRepoName && !task.githubBranchName) {
+    try {
+      const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+      
+      // Fetch default branch SHA
+      const repoRes = await octokit.request('GET /repos/{owner}/{repo}', {
+        owner: project.githubRepoOwner,
+        repo: project.githubRepoName
+      });
+      const defaultBranch = repoRes.data.default_branch;
+      
+      const refRes = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
+        owner: project.githubRepoOwner,
+        repo: project.githubRepoName,
+        ref: `heads/${defaultBranch}`
+      });
+      const sha = refRes.data.object.sha;
+
+      const slug = slugify(task.title).substring(0, 30);
+      const branchName = `task/${slug}-${task._id}`;
+      
+      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+        owner: project.githubRepoOwner,
+        repo: project.githubRepoName,
+        ref: `refs/heads/${branchName}`,
+        sha: sha
+      });
+
+      taskUpdate.githubBranchName = branchName;
+      taskUpdate.completionCommitMessage = `Complete Task: ${task._id}`;
+    } catch (err) {
+      console.error('Failed to create task branch on GitHub:', err.message);
+      // We don't fail the assignment if branch creation fails
+    }
+  }
+
+  return taskUpdate;
+};
+
 const getTeamUidsForUser = async (uid) => {
   const teams = await Team.find({ members: uid }).select('members').lean();
   return [...new Set(teams.flatMap((team) => team.members || []))];
@@ -1084,16 +1132,21 @@ router.post(
         }
       }
 
-      await ProjectTask.create({
+      const newTask = new ProjectTask({
         title,
         description: description || null,
         status: 'Pending',
-        assignedTo,
-        assignedToName,
         assignedBy: assignedBy || 'Admin',
         createdBy: req.user ? req.user.uid : assignedBy || 'Admin',
         stepId,
       });
+
+      if (assignedTo) {
+        const taskUpdate = await handleTaskAssignment(project, newTask, assignedTo, assignedToName);
+        Object.assign(newTask, taskUpdate);
+      }
+      
+      await newTask.save();
 
       const updatedProject = await getProjectWithSteps(projectId);
       invalidateProjectCache(project);
@@ -1722,6 +1775,155 @@ router.post(
         });
     }
   }
-);
+// WHAT: Edit Github Repository Settings. WHY: Feature 1 - allows users to edit description, website, and topics.
+router.patch('/:id/github-settings', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { description, homepage, topics } = req.body;
+    const project = await Project.findById(id).lean();
+    if (!project) return res.status(404).json({ message: 'Project not found' });
 
-module.exports = router;
+    if (project.ownerUid !== req.user.uid) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    if (!project.githubRepoOwner || !project.githubRepoName) {
+      return res.status(400).json({ message: 'Project is not linked to a GitHub repository' });
+    }
+
+    // Validation
+    if (description && description.length > 350) {
+      return res.status(400).json({ message: 'Description must be 350 characters or less' });
+    }
+    if (topics && Array.isArray(topics)) {
+      if (topics.length > 20) {
+        return res.status(400).json({ message: 'A repository can have a maximum of 20 topics' });
+      }
+      for (const topic of topics) {
+        if (topic.length > 50 || !/^[a-z0-9-]+$/.test(topic)) {
+          return res.status(400).json({ message: 'Topics must be lowercase, alphanumeric, hyphens only, and max 50 chars' });
+        }
+      }
+    }
+
+    let octokit;
+    try {
+      octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+    } catch (err) {
+      return res.status(400).json({ message: 'GitHub App not installed or configured on the repository owner' });
+    }
+
+    try {
+      if (description !== undefined || homepage !== undefined) {
+        await octokit.request('PATCH /repos/{owner}/{repo}', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          description: description,
+          homepage: homepage
+        });
+      }
+
+      if (topics !== undefined && Array.isArray(topics)) {
+        await octokit.request('PUT /repos/{owner}/{repo}/topics', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          names: topics
+        });
+      }
+
+      // Also update Zync Project model to match
+      const updateData = {};
+      if (description !== undefined) updateData.description = description;
+      if (homepage !== undefined) updateData.homepage = homepage;
+      if (topics !== undefined) updateData.tags = topics; // Map topics to Zync tags
+
+      if (Object.keys(updateData).length > 0) {
+        await Project.findByIdAndUpdate(id, { $set: updateData });
+        await invalidateProjectCache(project);
+      }
+
+      return res.status(200).json({ message: 'Repository settings updated successfully' });
+    } catch (apiError) {
+      console.error('GitHub API Error:', apiError.response?.data || apiError.message);
+      return res.status(400).json({ 
+        message: 'Failed to update GitHub repository settings. Ensure your GitHub App has "Repository Administration" Read & Write permissions.', 
+        error: apiError.response?.data?.message || apiError.message 
+      });
+    }
+  } catch (error) {
+    console.error('Error updating github settings:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// WHAT: Merge PR and delete branch. WHY: Feature 2 - Automated Task Workflow.
+router.post('/tasks/:taskId/merge-pr', authMiddleware, async (req, res) => {
+  try {
+    const { taskId } = req.params;
+    const task = await ProjectTask.findById(taskId).lean();
+    
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+    if (!task.githubPrNumber || !task.githubBranchName) {
+      return res.status(400).json({ message: 'Task does not have an active PR or GitHub branch linked' });
+    }
+
+    const step = await Step.findById(task.stepId).lean();
+    if (!step) return res.status(404).json({ message: 'Step not found' });
+    const project = await Project.findById(step.projectId).lean();
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    // Ensure the requester is the project owner (Admin)
+    if (project.ownerUid !== req.user.uid) {
+      return res.status(403).json({ message: 'Only the project owner can merge this PR via Zync' });
+    }
+
+    let octokit;
+    try {
+      octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+    } catch (err) {
+      return res.status(400).json({ message: 'GitHub App not installed or configured on the repository owner' });
+    }
+
+    try {
+      // 1. Merge PR
+      await octokit.request('PUT /repos/{owner}/{repo}/pulls/{pull_number}/merge', {
+        owner: project.githubRepoOwner,
+        repo: project.githubRepoName,
+        pull_number: task.githubPrNumber,
+        merge_method: 'squash'
+      });
+
+      // 2. Delete Branch
+      try {
+        await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          ref: `heads/${task.githubBranchName}`
+        });
+      } catch (delError) {
+        console.warn(`Could not delete branch ${task.githubBranchName}:`, delError.message);
+        // We don't fail the request if branch deletion fails, as the merge was successful.
+      }
+
+      // 3. Mark task fully completed in Zync
+      await ProjectTask.findByIdAndUpdate(taskId, {
+        $set: {
+          status: 'Completed',
+          updatedAt: Date.now()
+        }
+      });
+
+      return res.status(200).json({ message: 'PR successfully merged and branch deleted. Task completed.' });
+    } catch (apiError) {
+      console.error('GitHub API Error on Merge PR:', apiError.response?.data || apiError.message);
+      return res.status(400).json({ 
+        message: 'Failed to merge PR. Ensure your GitHub App has "Pull Requests" Read & Write permissions.', 
+        error: apiError.response?.data?.message || apiError.message 
+      });
+    }
+  } catch (error) {
+    console.error('Error merging PR:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
