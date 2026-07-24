@@ -87,12 +87,15 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
-import { CheckSquare, Calendar, FolderKanban, User, Clock, Flag, X } from "lucide-react";
+import { CheckSquare, Calendar, FolderKanban, User, Clock, Flag, X, GitBranch, GitPullRequest, GitMerge, Copy, ExternalLink, Github, GitCommit } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { TaskGitSync } from "./TaskGitSync";
 import { useTaskPersistence } from "@/hooks/useTaskPersistence";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { auth } from "@/lib/firebase";
+import { API_BASE_URL } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 
 export interface TaskDetail {
     id: string;
@@ -107,16 +110,23 @@ export interface TaskDetail {
     assignedTo?: string;
     assignedToName?: string;
     createdAt?: string | Date;
+    githubBranchName?: string;
+    completionCommitMessage?: string;
+    githubPrUrl?: string;
+    githubPrNumber?: number;
 }
 
 interface TaskDetailDrawerProps {
     task: TaskDetail | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
+    isOwner?: boolean;
+    onTaskRefresh?: () => void;
 }
 
-const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) => {
+const TaskDetailDrawer = ({ task, open, onOpenChange, isOwner, onTaskRefresh }: TaskDetailDrawerProps) => {
     const { markTaskOpened } = useTaskPersistence(task?.assignedTo);
+    const { toast } = useToast();
 
     useEffect(() => {
         if (open && task?.id) {
@@ -215,6 +225,108 @@ const TaskDetailDrawer = ({ task, open, onOpenChange }: TaskDetailDrawerProps) =
                         <div className="space-y-3">
                             <TaskGitSync taskId={task.id} />
                         </div>
+
+                        {task.githubBranchName && (
+                            <>
+                                <Separator />
+                                <div className="space-y-3">
+                                    <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                        <Github className="w-4 h-4" /> GitHub Workflow
+                                    </h3>
+                                    <div className="bg-card/50 backdrop-blur-md rounded-lg p-4 space-y-4 border border-border/10">
+                                        <div className="space-y-2">
+                                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                                <GitBranch className="w-3.5 h-3.5" /> Branch Checkout
+                                            </span>
+                                            <div className="flex items-center gap-2 bg-background/50 p-2 rounded-md border border-border/5">
+                                                <code className="text-xs flex-1 truncate text-foreground/80 font-mono">
+                                                    git fetch origin && git checkout -b {task.githubBranchName} origin/{task.githubBranchName}
+                                                </code>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    className="h-6 w-6 shrink-0 hover:bg-background/80"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(`git fetch origin && git checkout -b ${task.githubBranchName} origin/${task.githubBranchName}`);
+                                                        toast({ title: "Command copied to clipboard" });
+                                                    }}
+                                                >
+                                                    <Copy className="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+
+                                        {task.completionCommitMessage && (
+                                            <div className="space-y-2">
+                                                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                                                    <GitCommit className="w-3.5 h-3.5" /> Required Commit Message
+                                                </span>
+                                                <div className="flex items-center gap-2 bg-background/50 p-2 rounded-md border border-border/5">
+                                                    <code className="text-xs flex-1 truncate text-foreground/80 font-mono">
+                                                        {task.completionCommitMessage}
+                                                    </code>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-6 w-6 shrink-0 hover:bg-background/80"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(task.completionCommitMessage || '');
+                                                            toast({ title: "Commit message copied to clipboard" });
+                                                        }}
+                                                    >
+                                                        <Copy className="h-3 w-3" />
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {task.githubPrUrl && (
+                                            <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="w-full gap-2 bg-background/50 hover:bg-background border-border/20"
+                                                    onClick={() => window.open(task.githubPrUrl, '_blank')}
+                                                >
+                                                    <GitPullRequest className="w-4 h-4" />
+                                                    View Pull Request
+                                                    <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+                                                </Button>
+                                                
+                                                {task.githubPrNumber && isOwner && (
+                                                    <Button
+                                                        variant="default"
+                                                        size="sm"
+                                                        className="w-full gap-2 bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
+                                                        onClick={async () => {
+                                                            try {
+                                                                const token = await auth.currentUser?.getIdToken();
+                                                                const res = await fetch(`${API_BASE_URL}/api/projects/tasks/${task._id}/merge-pr`, {
+                                                                    method: 'POST',
+                                                                    headers: { Authorization: `Bearer ${token}` }
+                                                                });
+                                                                if (res.ok) {
+                                                                    toast({ title: "Pull Request merged successfully" });
+                                                                    onTaskRefresh?.();
+                                                                    onOpenChange(false);
+                                                                } else {
+                                                                    toast({ title: "Failed to merge PR", variant: "destructive" });
+                                                                }
+                                                            } catch (error) {
+                                                                toast({ title: "Error merging PR", variant: "destructive" });
+                                                            }
+                                                        }}
+                                                    >
+                                                        <GitMerge className="w-4 h-4" />
+                                                        Merge PR
+                                                    </Button>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </>
+                        )}
 
                         <Separator />
 
