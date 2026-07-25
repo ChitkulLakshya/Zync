@@ -20,6 +20,7 @@
     "@google/generative-ai": "^0.24.1",
     "@prisma/client": "5.22.0",
     "axios": "^1.13.2",
+    "bcryptjs": "^3.0.3",
     "cheerio": "^1.0.0-rc.12",
     "cloudinary": "^2.9.0",
     "cors": "^2.8.5",
@@ -27,7 +28,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
-    "firebase-admin": "^11.11.1",
+    "firebase-admin": "^14.2.0",
     "googleapis": "^169.0.0",
     "groq-sdk": "^0.36.0",
     "helmet": "^8.1.0",
@@ -42,6 +43,7 @@
     "puppeteer-extra-plugin-stealth": "^2.10.4",
     "redis": "^5.10.0",
     "rss-parser": "^3.13.0",
+    "sharp": "^0.35.3",
     "socket.io": "^4.8.3",
     "yjs": "^13.6.29",
     "zod": "^4.3.6"
@@ -49,7 +51,7 @@
   "devDependencies": {
     "@types/node": "^25.0.3",
     "@types/pg": "^8.16.0",
-    "jest": "^30.3.0",
+    "jest": "^25.0.0",
     "mongodb": "^7.3.0",
     "mongodb-memory-server": "^11.2.0",
     "nodemon": "^3.1.9",

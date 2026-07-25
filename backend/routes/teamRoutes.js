@@ -75,8 +75,8 @@
  */
 // Imports the Express.js framework, which is used to build web applications and APIs.
 const express = require('express');
-// Creates a new router object for handling routes. This allows defining routes in a modular way, separate from the main app.
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 // Imports the 'verifyToken' middleware, which is responsible for authenticating requests by validating a JWT.
 const verifyToken = require('../middleware/authMiddleware');
 // Imports the Mongoose User model, allowing interaction with the 'users' collection in the database.
@@ -98,6 +98,7 @@ const {
   deleteTeamSnapshot,
 } = require('../services/teamFirebaseSync');
 
+const { sendEmail } = require('../utils/emailService');
 // Defines an asynchronous utility function 'runSync' to execute a given function and handle potential errors during synchronization operations.
 const runSync = async (label, fn) => {
   // Starts a try block to attempt the execution of the provided function.
@@ -315,6 +316,10 @@ router.post('/join', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'User already in this team' });
     }
 
+    if (team.pendingMembers?.includes(uid)) {
+      return res.status(400).json({ message: 'Join request already pending' });
+    }
+
     // Queries the database to find the user document corresponding to the authenticated 'uid'. '.lean()' optimizes the query.
     const user = await User.findOne({ uid }).lean();
     // Checks if the user was not found.
@@ -322,30 +327,17 @@ router.post('/join', verifyToken, async (req, res) => {
       // If the user is not found, sends a 404 Not Found status and a JSON error message.
       return res.status(404).json({ message: 'User not found' });
 
-    // Creates a new array of members by spreading the existing team members and adding the new user's 'uid'.
-    const newMembers = [...team.members, uid];
-    // Updates the team document in the database by setting its 'members' array to 'newMembers'.
+    // Creates a new array of pending members by spreading the existing pending members and adding the new user's 'uid'.
+    const newPendingMembers = [...(team.pendingMembers || []), uid];
+    // Updates the team document in the database by setting its 'pendingMembers' array to 'newPendingMembers'.
     const updatedTeam = await Team.findByIdAndUpdate(
       // Specifies the team to update by its MongoDB '_id'.
       team._id,
-      // Uses the '$set' operator to update the 'members' field.
-      { $set: { members: newMembers } },
+      // Uses the '$set' operator to update the 'pendingMembers' field.
+      { $set: { pendingMembers: newPendingMembers } },
       // Options: 'returnDocument: 'after'' returns the updated document, and 'lean: true' returns a plain JavaScript object.
       { returnDocument: 'after', lean: true }
     );
-
-    // Converts the MongoDB '_id' of the team to a string for consistent use.
-    const teamId = team._id.toString();
-    // Creates a new array of team memberships for the user, adding the 'teamId' to their existing memberships.
-    const memberships = [...(user.teamMemberships || []), teamId];
-    // Updates the user's document in the database to include the new team's ID in their 'teamMemberships' array.
-    await User.updateOne({ uid }, { $set: { teamMemberships: memberships } });
-    // Invalidates the cache entry for the current user, ensuring fresh data is fetched.
-    await cache.invalidate(`user:me:${uid}`);
-    // Runs an asynchronous synchronization task to add the member to the team in Firebase.
-    await runSync('join-team-add-member', () => addMemberToTeam(teamId, uid));
-    // Runs another asynchronous synchronization task to upsert (update or insert) the updated team's snapshot in Firebase.
-    await runSync('join-team-upsert', () => upsertTeamSnapshot(updatedTeam));
 
     // Sends a 200 OK status and a JSON response containing the normalized updated team object.
     res.status(200).json(normalizeDoc(updatedTeam));
@@ -362,11 +354,19 @@ router.post('/join', verifyToken, async (req, res) => {
 router.delete('/:teamId', verifyToken, async (req, res) => {
   // Destructures 'teamId' from the request parameters.
   const { teamId } = req.params;
+  const { pin } = req.body;
   // Extracts the user ID (uid) from the request object.
   const uid = req.user.uid;
 
   // Starts a try block to handle potential errors.
   try {
+    if (!pin) return res.status(400).json({ message: 'Security PIN is required' });
+    const user = await User.findOne({ uid }).select('+securityPin').lean();
+    if (!user || !user.securityPin) return res.status(400).json({ message: 'Security PIN not set for user' });
+    
+    const isMatch = await bcrypt.compare(pin, user.securityPin);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid Security PIN' });
+
     // Queries the database to find the team by its 'teamId'. '.lean()' optimizes the query.
     const team = await Team.findById(teamId).lean();
     // Checks if the team was not found.
@@ -666,8 +666,8 @@ router.get('/:teamId/details', verifyToken, async (req, res) => {
       // If not found, sends a 404 Not Found status and a JSON error message.
       return res.status(404).json({ message: 'Team not found' });
 
-    // Finds all user documents whose 'uid' is present in the team's 'members' array. '.lean()' optimizes the query.
-    const users = await User.find({ uid: { $in: team.members } }).lean();
+    // Finds all user documents whose 'uid' is present in the team's 'members' or 'pendingMembers' arrays. '.lean()' optimizes the query.
+    const users = await User.find({ uid: { $in: [...team.members, ...(team.pendingMembers || [])] } }).lean();
     // Creates a Map for quick lookup of user details by their 'uid'.
     const userMap = new Map(users.map((u) => [u.uid, u]));
     // Maps over the team's 'members' array to create an array of detailed member objects.
@@ -695,12 +695,30 @@ router.get('/:teamId/details', verifyToken, async (req, res) => {
           };
     });
 
+    const pendingMemberDetails = (team.pendingMembers || []).map((memberUid) => {
+      const user = userMap.get(memberUid);
+      return user
+        ? {
+            uid: user.uid,
+            displayName: user.displayName || user.email?.split('@')[0] || 'Unknown',
+            email: user.email,
+            photoURL: user.photoURL,
+          }
+        : {
+            uid: memberUid,
+            displayName: 'Unknown User',
+            email: '',
+            photoURL: null,
+          };
+    });
+
     // Sends a JSON response containing the normalized team object and the detailed member information.
     res.json({
       // Spreads the properties of the normalized team object.
       ...normalizeDoc(team),
       // Adds the 'memberDetails' array to the response.
       memberDetails,
+      pendingMemberDetails,
     });
   } catch (error) {
     // Catches any errors.
@@ -711,65 +729,46 @@ router.get('/:teamId/details', verifyToken, async (req, res) => {
   }
 });
 
-// Defines a PATCH route for '/:teamId/transfer-ownership' to transfer team ownership. Protected by 'verifyToken'.
-router.patch('/:teamId/transfer-ownership', verifyToken, async (req, res) => {
-  // Destructures 'teamId' from the request parameters.
+// Defines a POST route for '/:teamId/transfer-ownership' to complete team ownership transfer using Security PIN. Protected by 'verifyToken'.
+router.post('/:teamId/transfer-ownership', verifyToken, async (req, res) => {
   const { teamId } = req.params;
-  // Destructures 'newOwnerId' from the request body.
-  const { newOwnerId } = req.body;
-  // Extracts the user ID (uid) of the authenticated user (the current owner).
+  const { newOwnerId, pin } = req.body;
   const uid = req.user.uid;
 
-  // Checks if 'newOwnerId' is missing from the request body.
-  if (!newOwnerId)
-    // If missing, sends a 400 Bad Request status and a JSON error message.
-    return res.status(400).json({ message: 'New owner ID is required' });
+  if (!newOwnerId || !pin) {
+    return res.status(400).json({ message: 'New owner ID and Security PIN are required' });
+  }
 
-  // Starts a try block to handle potential errors.
   try {
-    // Finds the team document by 'teamId'. '.lean()' optimizes the query.
+    const user = await User.findOne({ uid }).select('+securityPin').lean();
+    if (!user || !user.securityPin) return res.status(400).json({ message: 'Security PIN not set for user' });
+    
+    const isMatch = await bcrypt.compare(pin, user.securityPin);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid Security PIN' });
+
     const team = await Team.findById(teamId).lean();
-    // Checks if the team was not found.
-    if (!team)
-      // If not found, sends a 404 Not Found status and a JSON error message.
-      return res.status(404).json({ message: 'Team not found' });
-
-    // Checks if the authenticated user is not the current owner of the team.
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    
     if (team.ownerId !== uid) {
-      // If not the owner, sends a 403 Forbidden status and a JSON error message.
-      return res
-        .status(403)
-        .json({ message: 'Only the current owner can transfer ownership' });
+      return res.status(403).json({ message: 'Only the current owner can transfer ownership' });
     }
 
-    // Checks if the 'newOwnerId' is not a member of the team.
     if (!team.members.includes(newOwnerId)) {
-      // If the target user is not a member, sends a 400 Bad Request status and a JSON error message.
-      return res
-        .status(400)
-        .json({ message: 'Target user is not a member of this team' });
+      return res.status(400).json({ message: 'Target user is not a member of this team' });
     }
 
-    // Checks if the 'newOwnerId' is the same as the current owner's 'uid'.
     if (newOwnerId === uid) {
-      // If trying to transfer ownership to themselves, sends a 400 Bad Request status and a JSON error message.
       return res.status(400).json({ message: 'You are already the owner' });
     }
 
-    // Updates the team document in the database by setting the 'ownerId' to the 'newOwnerId'.
     await Team.findByIdAndUpdate(teamId, { $set: { ownerId: newOwnerId } });
-    // Runs an asynchronous synchronization task to transfer team ownership in Firebase.
     await runSync('transfer-ownership', () =>
       transferTeamOwnership(teamId, uid, newOwnerId)
     );
 
-    // Sends a 200 OK status and a JSON success message.
     res.status(200).json({ message: 'Ownership transferred successfully' });
   } catch (error) {
-    // Catches any errors.
-    // Logs the error to the console.
     console.error('Error transferring ownership:', error);
-    // Sends a 500 Internal Server Error status and a JSON error message.
     res.status(500).json({ message: 'Server error' });
   }
 });
@@ -834,6 +833,166 @@ router.patch('/:teamId/name', verifyToken, async (req, res) => {
     // Logs the error to the console.
     console.error('Error renaming team:', error);
     // Sends a 500 Internal Server Error status and a JSON error message.
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+const Activity = require('../models/Activity');
+
+// Defines a POST route for '/:teamId/accept-member' to accept a pending join request. Protected by 'verifyToken'.
+router.post('/:teamId/accept-member', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  const { userId } = req.body;
+  const uid = req.user.uid;
+
+  try {
+    const team = await Team.findById(teamId).lean();
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.ownerId !== uid) return res.status(403).json({ message: 'Only the team owner can accept members' });
+
+    if (!team.pendingMembers?.includes(userId)) {
+      return res.status(400).json({ message: 'User is not in pending requests' });
+    }
+
+    const updatedTeam = await Team.findByIdAndUpdate(
+      teamId,
+      { 
+        $pull: { pendingMembers: userId },
+        $addToSet: { members: userId } 
+      },
+      { returnDocument: 'after', lean: true }
+    );
+
+    const user = await User.findOne({ uid: userId }).lean();
+    if (user) {
+      const memberships = [...(user.teamMemberships || []), teamId];
+      await User.updateOne({ uid: userId }, { $set: { teamMemberships: memberships } });
+      await cache.invalidate(`user:me:${userId}`);
+    }
+
+    await runSync('join-team-add-member', () => addMemberToTeam(teamId, userId));
+    await runSync('join-team-upsert', () => upsertTeamSnapshot(updatedTeam));
+
+    res.status(200).json(normalizeDoc(updatedTeam));
+  } catch (error) {
+    console.error('Error accepting member:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Defines a POST route for '/:teamId/reject-member' to reject a pending join request. Protected by 'verifyToken'.
+router.post('/:teamId/reject-member', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  const { userId } = req.body;
+  const uid = req.user.uid;
+
+  try {
+    const team = await Team.findById(teamId).lean();
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.ownerId !== uid) return res.status(403).json({ message: 'Only the team owner can reject members' });
+
+    const updatedTeam = await Team.findByIdAndUpdate(
+      teamId,
+      { $pull: { pendingMembers: userId } },
+      { returnDocument: 'after', lean: true }
+    );
+
+    const user = await User.findOne({ uid: userId }).lean();
+    if (user && user.email) {
+      try {
+        await sendEmail({
+          to: user.email,
+          subject: `Team Invitation Rejected`,
+          html: `<p>Hi ${user.displayName || 'there'},</p><p>Your request to join the team <strong>${team.name}</strong> has been rejected by the team owner.</p>`,
+        });
+      } catch (err) {
+        console.error('Failed to send rejection email:', err);
+      }
+    }
+
+    res.status(200).json(normalizeDoc(updatedTeam));
+  } catch (error) {
+    console.error('Error rejecting member:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Defines a POST route for '/:teamId/promote-admin' to promote a member to admin. Protected by 'verifyToken'.
+router.post('/:teamId/promote-admin', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  const { userId } = req.body;
+  const uid = req.user.uid;
+
+  try {
+    const team = await Team.findById(teamId).lean();
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.ownerId !== uid) return res.status(403).json({ message: 'Only the team owner can promote admins' });
+
+    if (!team.members?.includes(userId)) {
+      return res.status(400).json({ message: 'User must be a member first' });
+    }
+
+    const updatedTeam = await Team.findByIdAndUpdate(
+      teamId,
+      { $addToSet: { admins: userId } },
+      { returnDocument: 'after', lean: true }
+    );
+
+    res.status(200).json(normalizeDoc(updatedTeam));
+  } catch (error) {
+    console.error('Error promoting admin:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Defines a POST route for '/:teamId/demote-admin' to demote an admin to member. Protected by 'verifyToken'.
+router.post('/:teamId/demote-admin', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  const { userId } = req.body;
+  const uid = req.user.uid;
+
+  try {
+    const team = await Team.findById(teamId).lean();
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    if (team.ownerId !== uid) return res.status(403).json({ message: 'Only the team owner can demote admins' });
+
+    const updatedTeam = await Team.findByIdAndUpdate(
+      teamId,
+      { $pull: { admins: userId } },
+      { returnDocument: 'after', lean: true }
+    );
+
+    res.status(200).json(normalizeDoc(updatedTeam));
+  } catch (error) {
+    console.error('Error demoting admin:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Defines a GET route for '/:teamId/activity' to fetch team activity logs. Protected by 'verifyToken'.
+router.get('/:teamId/activity', verifyToken, async (req, res) => {
+  const { teamId } = req.params;
+  const uid = req.user.uid;
+
+  try {
+    const team = await Team.findById(teamId).lean();
+    if (!team) return res.status(404).json({ message: 'Team not found' });
+    
+    const isOwner = team.ownerId === uid;
+    const isAdmin = team.admins?.includes(uid);
+    
+    if (!isOwner && !isAdmin) {
+      return res.status(403).json({ message: 'Only team admins or owners can view activity logs' });
+    }
+
+    const logs = await Activity.find({ teamId })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+
+    res.status(200).json(normalizeDocs(logs));
+  } catch (error) {
+    console.error('Error fetching activity:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

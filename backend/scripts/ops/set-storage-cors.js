@@ -74,17 +74,18 @@
  * ============================================================================
  */
 require('dotenv').config();
-const admin = require('firebase-admin');
+const { getApps, initializeApp, cert } = require('firebase-admin/app');
+const { getStorage } = require('firebase-admin/storage');
 
 
-if (!admin.apps.length) {
+if (!getApps().length) {
     if (process.env.GCP_SERVICE_ACCOUNT_KEY) {
         let serviceAccount = process.env.GCP_SERVICE_ACCOUNT_KEY;
         if (typeof serviceAccount === 'string') {
             serviceAccount = JSON.parse(serviceAccount);
         }
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
+        initializeApp({
+            credential: cert(serviceAccount),
         });
     } else {
         console.error('ERROR: GCP_SERVICE_ACCOUNT_KEY env var is required.');
@@ -115,7 +116,7 @@ async function setCors() {
     for (const bucketName of bucketNames) {
         try {
             console.log(`Trying bucket: ${bucketName}...`);
-            const bucket = admin.storage().bucket(bucketName);
+            const bucket = getStorage().bucket(bucketName);
             await bucket.setCorsConfiguration(corsConfig);
             console.log(`✅ CORS set successfully on bucket: ${bucketName}`);
 

@@ -82,16 +82,15 @@ const router = express.Router();
 // Declares a constant variable 'axios' and assigns it the Axios library, which is a promise-based HTTP client for the browser and Node.js.
 // This is needed to make HTTP requests to the LinkedIn OAuth and API endpoints for token exchange and user information retrieval.
 const axios = require('axios');
-// Declares a constant variable 'admin' and assigns it the Firebase Admin SDK.
-// This is needed to interact with Firebase services (like Authentication) from the backend, specifically for creating custom tokens and managing users.
-const admin = require('firebase-admin');
+const { getApps, initializeApp } = require('firebase-admin/app');
+const { getAuth } = require('firebase-admin/auth');
 
 // Checks if the Firebase Admin SDK has already been initialized by checking the length of the 'apps' array.
 // This is needed to ensure Firebase Admin SDK is initialized only once, preventing errors if the module is loaded multiple times in a development environment or during hot-reloading.
-if (!admin.apps.length) {
+if (!getApps().length) {
   // Initializes the Firebase Admin SDK with default credentials (usually from environment variables or a service account file).
   // This is needed to configure the SDK so it can communicate with Firebase services.
-  admin.initializeApp();
+  initializeApp();
 }
 
 // Declares a constant variable 'LINKEDIN_CLIENT_ID' and assigns it the value of the environment variable 'LINKEDIN_CLIENT_ID'.
@@ -244,16 +243,16 @@ router.get('/callback', async (req, res) => {
     // Starts a try-catch block to attempt to retrieve or create a Firebase user.
     // This is needed to attempt to retrieve an existing Firebase user by email and catch a specific error if the user is not found, allowing for user creation.
     try {
-      // Attempts to retrieve a Firebase user by their email address.
-      // This is needed to check if a Firebase user with the obtained LinkedIn email already exists in the Firebase project.
-      userRecord = await admin.auth().getUserByEmail(email);
-    } catch (authErr) {
-      // Checks if the error code indicates that the user was not found.
-      // This is needed to specifically identify the error indicating that no Firebase user was found with the given email, which means a new user needs to be created.
-      if (authErr.code === 'auth/user-not-found') {
-        // Creates a new Firebase user with the LinkedIn profile information.
-        // This is needed to create a new user account in Firebase if no existing user was found with the LinkedIn email.
-        userRecord = await admin.auth().createUser({
+      // WHAT: Tries to get the user by their email address from Firebase Auth.
+      // WHY: If the user already exists (e.g., they previously signed up with email/password or another provider), we want to link this LinkedIn login to that existing account.
+      userRecord = await getAuth().getUserByEmail(email);
+    } catch (error) {
+      // WHAT: Checks if the error is specifically because the user wasn't found.
+      // WHY: This is the expected flow for a brand new user.
+      if (error.code === 'auth/user-not-found') {
+        // WHAT: Creates a new user in Firebase Auth using the data obtained from LinkedIn.
+        // WHY: Provisions a new account for first-time LinkedIn login users.
+        userRecord = await getAuth().createUser({
           // Sets the unique Firebase user ID.
           // This is needed to set the unique Firebase user ID, using the LinkedIn-derived UID to maintain a clear link to the original identity provider.
           uid: uid,
@@ -273,13 +272,13 @@ router.get('/callback', async (req, res) => {
       } else {
         // Re-throws any other authentication errors.
         // This is needed to propagate unexpected authentication errors up to the outer `catch` block, ensuring they are not silently ignored.
-        throw authErr;
+        throw error;
       }
     }
 
-    // Creates a Firebase custom authentication token for the retrieved or newly created user.
-    // This is needed to generate a secure, short-lived custom token for the authenticated Firebase user, which the frontend can use to sign in to Firebase.
-    const customToken = await admin.auth().createCustomToken(userRecord.uid);
+    // WHAT: Generates a custom Firebase authentication token for the authenticated user.
+    // WHY: This token is sent to the frontend, which uses it to sign in to Firebase Auth on the client side (`signInWithCustomToken`), completing the seamless login process.
+    const customToken = await getAuth().createCustomToken(userRecord.uid);
 
     // Redirects the user back to the frontend's login page, passing the custom token as a query parameter.
     // This is needed to redirect the user back to the frontend's login page, passing the Firebase custom token as a query parameter so the frontend can complete the Firebase authentication.

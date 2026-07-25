@@ -8,7 +8,7 @@ if (process.env.HUSKY === '0' || process.env.CI === 'true' || process.env.RENDER
 }
 
 try {
-  execSync('npx husky install', { stdio: 'inherit' });
+  execSync('npx husky', { stdio: 'inherit' });
 } catch {
   process.exit(0);
 }
