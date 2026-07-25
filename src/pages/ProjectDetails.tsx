@@ -219,7 +219,7 @@ const ProjectDetails = () => {
   };
 
   const handleSaveRepoSettings = async () => {
-    if (!project || !auth.currentUser) return;
+    if (!project || !auth.currentUser) {return;}
     setIsSavingRepoSettings(true);
     try {
       const token = await auth.currentUser.getIdToken();

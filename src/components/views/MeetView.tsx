@@ -291,8 +291,8 @@ export default function MeetView({
     .sort((a, b) => {
       const aIsFriend = closeFriendsIds.includes(a.uid);
       const bIsFriend = closeFriendsIds.includes(b.uid);
-      if (aIsFriend && !bIsFriend) return -1;
-      if (!aIsFriend && bIsFriend) return 1;
+      if (aIsFriend && !bIsFriend) {return -1;}
+      if (!aIsFriend && bIsFriend) {return 1;}
       return 0;
     });
 

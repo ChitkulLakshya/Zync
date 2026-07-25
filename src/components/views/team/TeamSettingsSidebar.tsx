@@ -60,7 +60,7 @@ export function TeamSettingsSidebar({
     }
   }, [isEditingTeamName]);
 
-  if (!teamInfo || !currentUser) return null;
+  if (!teamInfo || !currentUser) {return null;}
   const amITheOwner = teamInfo.ownerId === currentUser.uid;
 
   const handleTeamFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -119,7 +119,7 @@ export function TeamSettingsSidebar({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: teamNameDraft.trim() }),
       });
-      if (!res.ok) throw new Error('Failed to update name');
+      if (!res.ok) {throw new Error('Failed to update name');}
 
       setTeamInfo((prev: any) => (prev ? { ...prev, name: teamNameDraft.trim() } : null));
       toast({ title: 'Saved', description: 'Team name updated.' });
@@ -212,7 +212,7 @@ export function TeamSettingsSidebar({
                   value={teamNameDraft}
                   onChange={(e) => setTeamNameDraft(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleUpdateTeamName();
+                    if (e.key === 'Enter') {handleUpdateTeamName();}
                     if (e.key === 'Escape') {
                       setTeamNameDraft(teamInfo.name);
                       setIsEditingTeamName(false);
@@ -360,7 +360,7 @@ export function TeamSettingsSidebar({
               type="submit"
               disabled={inviteLoading}
               onClick={async () => {
-                if (!inviteEmail) return;
+                if (!inviteEmail) {return;}
                 setInviteLoading(true);
                 try {
                   const token = await currentUser?.getIdToken();

@@ -63,7 +63,7 @@ export function MemberListItem({
   const canManage = (amITheOwner || amIAdmin) && !isMemberOwner && !isYou;
 
   const handleRemoveMember = async () => {
-    if (!window.confirm('Remove this member from the team?')) return;
+    if (!window.confirm('Remove this member from the team?')) {return;}
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
@@ -72,7 +72,7 @@ export function MemberListItem({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.uid })
       });
-      if (!res.ok) throw new Error('Failed to remove member');
+      if (!res.ok) {throw new Error('Failed to remove member');}
       toast({ title: 'Member Removed', description: 'Successfully removed from the team.' });
       setTeamsData((prev: any[]) => prev.map((t) => t.id === teamInfo.id ? { ...t, members: t.members.filter((uid: string) => uid !== user.uid) } : t));
       refreshTeamQueries();
@@ -93,7 +93,7 @@ export function MemberListItem({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: user.uid }),
       });
-      if (!res.ok) throw new Error(`Failed to ${isMemberAdmin ? 'demote' : 'promote'} member`);
+      if (!res.ok) {throw new Error(`Failed to ${isMemberAdmin ? 'demote' : 'promote'} member`);}
       toast({ title: 'Success', description: `Member ${isMemberAdmin ? 'demoted from' : 'promoted to'} admin.` });
       refreshTeamQueries();
     } catch (error: any) {
@@ -104,7 +104,7 @@ export function MemberListItem({
   };
 
   const handleTransferOwnership = async () => {
-    if (transferPin.length < 4) return;
+    if (transferPin.length < 4) {return;}
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();

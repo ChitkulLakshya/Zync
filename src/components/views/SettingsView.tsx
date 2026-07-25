@@ -1274,7 +1274,7 @@ function TeamTabContent({
   };
 
   const handleTeamCroppedUpload = async (croppedBlob: Blob) => {
-    if (!currentUser?.uid || !selectedTeam) return;
+    if (!currentUser?.uid || !selectedTeam) {return;}
 
     setTeamCropperOpen(false);
     setIsUploadingTeamPhoto(true);
@@ -1398,8 +1398,8 @@ function TeamTabContent({
   }, [currentUser, userData?.teamMemberships]);
 
   const handleRemoveMember = async (teamId: string, memberUid: string) => {
-    if (!currentUser) return;
-    if (!window.confirm('Remove this member from the team?')) return;
+    if (!currentUser) {return;}
+    if (!window.confirm('Remove this member from the team?')) {return;}
 
     setActionLoading(true);
     try {
@@ -1436,7 +1436,7 @@ function TeamTabContent({
   };
 
   const handlePromoteAdmin = async (teamId: string, memberUid: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {return;}
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
@@ -1445,7 +1445,7 @@ function TeamTabContent({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: memberUid }),
       });
-      if (!res.ok) throw new Error('Failed to promote member to admin');
+      if (!res.ok) {throw new Error('Failed to promote member to admin');}
       toast({ title: 'Promoted', description: 'Member promoted to admin successfully.' });
       await refreshTeamQueries();
       const fetchTeams = async () => {
@@ -1466,7 +1466,7 @@ function TeamTabContent({
   };
 
   const handleDemoteAdmin = async (teamId: string, memberUid: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {return;}
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
@@ -1475,7 +1475,7 @@ function TeamTabContent({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: memberUid }),
       });
-      if (!res.ok) throw new Error('Failed to demote admin to member');
+      if (!res.ok) {throw new Error('Failed to demote admin to member');}
       toast({ title: 'Demoted', description: 'Admin demoted to member successfully.' });
       await refreshTeamQueries();
       const fetchTeams = async () => {
@@ -1496,7 +1496,7 @@ function TeamTabContent({
   };
 
   const handleAcceptMember = async (teamId: string, memberUid: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {return;}
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
@@ -1505,7 +1505,7 @@ function TeamTabContent({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: memberUid }),
       });
-      if (!res.ok) throw new Error('Failed to accept member');
+      if (!res.ok) {throw new Error('Failed to accept member');}
       toast({ title: 'Accepted', description: 'Member accepted successfully.' });
       await refreshTeamQueries();
       const fetchTeams = async () => {
@@ -1526,7 +1526,7 @@ function TeamTabContent({
   };
 
   const handleRejectMember = async (teamId: string, memberUid: string) => {
-    if (!currentUser) return;
+    if (!currentUser) {return;}
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
@@ -1535,7 +1535,7 @@ function TeamTabContent({
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: memberUid }),
       });
-      if (!res.ok) throw new Error('Failed to reject member');
+      if (!res.ok) {throw new Error('Failed to reject member');}
       toast({ title: 'Rejected', description: 'Member rejected successfully.' });
       await refreshTeamQueries();
       const fetchTeams = async () => {
@@ -1678,7 +1678,7 @@ function TeamTabContent({
   };
 
   const handleVerifyOwnershipTransfer = async (teamId: string) => {
-    if (!currentUser || !pendingTransferTarget) return;
+    if (!currentUser || !pendingTransferTarget) {return;}
 
     if (!transferOtp || transferOtp.length < 6) {
       toast({ title: 'Invalid OTP', description: 'Please enter the 6-digit OTP.', variant: 'destructive' });

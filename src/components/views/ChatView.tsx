@@ -435,7 +435,7 @@ const ChatView = ({ selectedUser, onBack, currentUserData, isQuickChat, onOpenFu
                 <div className="absolute inset-x-0 h-px bg-white/[0.06] top-1/2 -translate-y-1/2" />
                 <button
                   onClick={() => {
-                    if (onOpenFullChat) onOpenFullChat();
+                    if (onOpenFullChat) {onOpenFullChat();}
                   }}
                   className="relative z-10 px-4 py-1 text-[11px] font-medium text-muted-foreground bg-[#121212] border border-white/[0.06] rounded-full hover:text-foreground hover:bg-[#181818] transition-all"
                 >
