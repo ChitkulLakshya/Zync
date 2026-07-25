@@ -77,8 +77,13 @@ const express = require("express");
 const request = require("supertest");
 
 const createLeanChain = (result) => ({
+  select: jest.fn().mockReturnThis(),
   lean: jest.fn().mockResolvedValue(result),
 });
+
+jest.mock("bcryptjs", () => ({
+  compare: jest.fn().mockResolvedValue(true),
+}));
 
 jest.mock("../middleware/authMiddleware", () => (req, _res, next) => {
   req.user = { uid: "owner_uid", email: "owner@test.com" };
@@ -143,6 +148,7 @@ describe("Team delete route", () => {
         return createLeanChain({
           uid: ownerUid,
           teamMemberships: [{ toString: () => teamId }, "other_team"],
+          securityPin: "hashed_pin",
         });
       }
       if (uid === memberUid) {
@@ -159,7 +165,8 @@ describe("Team delete route", () => {
 
     const res = await request(app)
       .delete(`/api/teams/${teamId}`)
-      .set("Authorization", "Bearer valid_token");
+      .set("Authorization", "Bearer valid_token")
+      .send({ pin: "123456" });
 
     expect(res.status).toBe(200);
     expect(res.body).toEqual({ message: "Team deleted successfully" });
