@@ -105,7 +105,11 @@ import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import MessagesPage from './MessagesPage';
+import ChatView from './ChatView';
 import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
+import { TeamSettingsSidebar } from './team/TeamSettingsSidebar';
+import { MemberListItem } from './team/MemberListItem';
+import { TeamLogoDisplay } from '@/components/ui/TeamLogoDisplay';
 
 /** Format current time in a given IANA timezone (e.g. "America/New_York") */
 function formatLocalTime(timezone: string | null | undefined): string | null {
@@ -211,6 +215,7 @@ const PeopleView = ({
   });
 
   const [teamInfo, setTeamInfo] = useState<Team | null>(null);
+  const [quickChatUser, setQuickChatUser] = useState<User | null>(null);
   const [hasTeam, setHasTeam] = useState<boolean>(true);
 
   const myTeams: Team[] = isPreview && mockTeams ? mockTeams : myTeamsData || [];
@@ -405,7 +410,7 @@ const PeopleView = ({
         <div
           ref={sidebarRef}
           className={cn(
-            'relative h-full shrink-0 group/sidebar bg-background/50 backdrop-blur-xl border-r border-border/10 z-[60]'
+            'relative h-full shrink-0 group/sidebar bg-[#121212] border-r border-white/[0.04] z-[60]'
           )}
           style={{ width: isCollapsed ? 64 : sidebarWidth }}
         >
@@ -436,7 +441,7 @@ const PeopleView = ({
           >
             <div
               className={cn(
-                'p-4 border-b flex items-center sticky top-0 backdrop-blur-sm z-10 bg-card/50 border-border/10',
+                'p-4 border-b flex items-center sticky top-0 z-10 bg-[#121212] border-white/[0.04]',
                 effectiveCollapsed ? 'justify-center' : 'justify-between'
               )}
             >
@@ -460,12 +465,7 @@ const PeopleView = ({
             <div className="flex-1 flex flex-col min-h-0">
               {}
               <div className="flex-1 overflow-y-auto p-2 scrollbar-hide space-y-1">
-                <div className="px-2 text-xs font-bold uppercase mb-2 tracking-wider text-muted-foreground mt-4">
-                  {!effectiveCollapsed && 'My Team'}
-                </div>
-                {effectiveCollapsed && <div className="h-px bg-border/10 w-8 mx-auto my-2" />}
-
-                <div className="space-y-1">
+                <div className="space-y-1 mt-4">
                   {myTeams.map((team) =>
                     (() => {
                       const logoId = team.logoId || getDeterministicLogoId(team.id);
@@ -480,6 +480,7 @@ const PeopleView = ({
                           key={team.id}
                           onClick={() => {
                             setTeamInfo(team);
+                            setQuickChatUser(null);
                             setShowMessages(false);
                           }}
                           className={cn(
@@ -490,18 +491,14 @@ const PeopleView = ({
                               : 'text-muted-foreground hover:bg-card/50 hover:text-foreground'
                           )}
                         >
-                          <span
-                            className={cn(
-                              'inline-flex items-center justify-center rounded-full border shrink-0',
-                              effectiveCollapsed ? 'h-6 w-6' : 'h-5 w-5 mr-2'
-                            )}
-                            style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                          >
-                            <TeamLogoIcon className="h-3 w-3" />
-                          </span>
+                          <TeamLogoDisplay
+                            logoId={team.logoId}
+                            teamName={team.name}
+                            className={effectiveCollapsed ? 'w-10 h-10 shrink-0' : 'w-10 h-10 shrink-0'}
+                          />
                           {!effectiveCollapsed && (
-                            <div className="min-w-0 flex-1">
-                              <p className="font-medium truncate">{team.name}</p>
+                            <div className="min-w-0 flex-1 ml-2">
+                              <p className="font-medium truncate text-sm">{team.name}</p>
                             </div>
                           )}
                           {effectiveCollapsed && (
@@ -533,7 +530,7 @@ const PeopleView = ({
                   {!effectiveCollapsed && (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <button className="text-foreground hover:text-foreground/80 opacity-0 group-hover/section:opacity-100 transition-opacity p-0.5 rounded hover:bg-foreground/5">
+                        <button className="text-white opacity-100 transition-opacity p-1 rounded">
                           <Plus className="w-3.5 h-3.5" />
                         </button>
                       </DialogTrigger>
@@ -605,8 +602,9 @@ const PeopleView = ({
                   {closeFriendUsers.map((friend) => (
                     <div
                       key={friend.uid}
+                      onClick={() => setQuickChatUser(friend)}
                       className={cn(
-                        'flex items-center rounded-md transition-all select-none border border-transparent',
+                        'flex items-center rounded-md transition-all select-none border border-transparent cursor-pointer',
                         effectiveCollapsed ? 'justify-center px-0 py-2' : 'px-2 py-1.5 text-sm',
 
                         'text-foreground hover:bg-card/50 border-border/10'
@@ -663,387 +661,100 @@ const PeopleView = ({
         </div>
 
         {}
-        <div className="flex-1 relative flex flex-col overflow-hidden">
-          {}
-          <div className="flex justify-end p-6 md:pl-8 pb-0 shrink-0 z-10">
-            <Button
-              className="gap-2 bg-foreground text-background hover:bg-foreground/90 border border-border/10"
-              onClick={() => setShowMessages(true)}
-            >
-              <MessageSquare className="w-4 h-4" />
-              All Messages
-            </Button>
-          </div>
+        <div className="flex-1 flex overflow-hidden relative">
+          {/* Middle Column: Main Content */}
+          <div className="flex-1 relative flex flex-col overflow-hidden border-r border-white/[0.04] bg-[#121212]">
+            {/* Top Header */}
+            <div className="flex items-center justify-between p-6 md:pl-8 pb-0 shrink-0 z-10">
+              <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
+                {teamInfo?.name || 'Your Team'}
+              </h1>
+              <Button
+                className="gap-2 bg-foreground text-background hover:bg-foreground/90 border border-border/10"
+                onClick={() => setShowMessages(true)}
+              >
+                <MessageSquare className="w-4 h-4" />
+                All Messages
+              </Button>
+            </div>
 
-          <div className="flex-1 w-full overflow-y-auto">
-            <div className="max-w-7xl mx-auto w-full p-6 md:pl-8 pt-4 space-y-8">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-sm text-muted-foreground mb-1">Team Owner</h3>
-                    <div className="flex items-center gap-3">
-                      {(() => {
-                        let ownerUser = null;
-                        if (teamInfo?.ownerId) {
-                          if (currentUser?.uid === teamInfo.ownerId) {
-                            ownerUser = currentUser;
-                          } else {
-                            ownerUser = users.find((u) => u.uid === teamInfo.ownerId);
-                          }
-                        }
+            <div className="flex-1 w-full overflow-y-auto">
+              <div className="max-w-4xl mx-auto w-full p-6 md:pl-8 pt-6 space-y-8">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold">Members</h3>
+                  </div>
 
-                        const displayUser = ownerUser || currentUser;
-
-                        return (
-                          <>
-                            <Avatar className="h-10 w-10 border shadow-sm">
-                              <AvatarImage
-                                src={getFullUrl(displayUser?.photoURL || '')}
-                                referrerPolicy="no-referrer"
-                              />
-                              <AvatarFallback>{getUserInitials(displayUser)}</AvatarFallback>
-                            </Avatar>
-                            <div className="flex flex-col">
-                              <span className="font-semibold text-sm">
-                                {getUserName(displayUser)}
-                              </span>
-                              <span className="text-xs text-muted-foreground">
-                                {displayUser?.email}
-                              </span>
-                            </div>
-                          </>
-                        );
-                      })()}
-
-                      {}
-                      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            size="icon"
-                            className="rounded-full h-8 w-8 bg-foreground text-background hover:bg-foreground/90 shadow-none"
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[425px]">
-                          <DialogHeader>
-                            <DialogTitle>Invite to Team</DialogTitle>
-                            <DialogDescription>
-                              Send an invitation email to add a new member to your team.
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="grid gap-4 py-4">
-                            <div className="grid grid-cols-4 items-center gap-4">
-                              <Label htmlFor="email" className="text-right">
-                                Email
-                              </Label>
-                              <Input
-                                id="email"
-                                placeholder="colleague@example.com"
-                                className="col-span-3"
-                                value={inviteEmail}
-                                onChange={(e) => setInviteEmail(e.target.value)}
-                              />
-                            </div>
-                          </div>
-                          <DialogFooter>
-                            <Button
-                              type="submit"
-                              disabled={inviteLoading}
-                              onClick={async () => {
-                                if (!inviteEmail) {
-                                  return;
-                                }
-                                setInviteLoading(true);
-                                try {
-                                  const token = await currentUser?.getIdToken();
-                                  const res = await fetch(`${API_BASE_URL}/api/teams/invite`, {
-                                    method: 'POST',
-                                    headers: {
-                                      'Content-Type': 'application/json',
-                                      Authorization: `Bearer ${token}`,
-                                    },
-                                    body: JSON.stringify({ email: inviteEmail }),
-                                  });
-
-                                  if (res.ok) {
-                                    toast({
-                                      title: 'Invitation Sent',
-                                      description: `Invite sent to ${inviteEmail}`,
-                                    });
-                                    setInviteOpen(false);
-                                    setInviteEmail('');
-                                  } else {
-                                    const err = await res.json();
-                                    toast({
-                                      title: 'Error',
-                                      description: err.message,
-                                      variant: 'destructive',
-                                    });
-                                    if (err.message.includes('Invited user already exists')) {
-                                      alert('User already in team');
-                                    }
-                                  }
-                                } catch (e) {
-                                  console.error(e);
-                                  toast({
-                                    title: 'Error',
-                                    description: 'Failed to send invite',
-                                    variant: 'destructive',
-                                  });
-                                } finally {
-                                  setInviteLoading(false);
-                                }
-                              }}
-                            >
-                              {inviteLoading ? 'Sending...' : 'Send Invite'}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                  {usersLoading ? (
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="flex items-center p-4 h-24 border border-border/10 rounded-xl bg-card/50 backdrop-blur-sm animate-pulse" />
+                      ))}
                     </div>
-                  </div>
-                </div>
-
-                <div className="border border-border/10 rounded-2xl bg-card/50 backdrop-blur-md p-6 shadow-sm relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-foreground/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 group-hover:bg-foreground/10 transition-colors duration-500" />
-
-                  <div className="relative z-10">
-                    {teamInfo &&
-                      (() => {
-                        const logoId = teamInfo.logoId || getDeterministicLogoId(teamInfo.id);
-                        const {
-                          icon: TeamLogoIcon,
-                          label: teamLogoLabel,
-                          fgColor,
-                          bgColor,
-                          borderColor,
-                        } = getLogoById(logoId);
-                        return (
-                          <div className="mb-3 flex items-center gap-3">
-                            <div
-                              className="inline-flex h-10 w-10 items-center justify-center rounded-full border"
-                              style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                            >
-                              <TeamLogoIcon className="h-5 w-5" />
-                            </div>
-                            <div>
-                              <h1 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                                {teamInfo.name || 'Your Team'}
-                              </h1>
-                              <p className="text-xs text-muted-foreground">{teamLogoLabel}</p>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    {!teamInfo && (
-                      <h1 className="text-3xl font-bold tracking-tight mb-3 bg-clip-text text-transparent bg-gradient-to-r from-foreground to-foreground/70">
-                        Your Team
-                      </h1>
-                    )}
-                    {teamInfo && (
-                      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                          <span>Invite Code:</span>
-                          <div
-                            className="flex items-center gap-2 bg-card/50 px-3 py-1.5 rounded-md border border-border/10 cursor-pointer hover:border-border/30 backdrop-blur-sm transition-colors group/code"
-                            onClick={() => {
-                              navigator.clipboard.writeText(teamInfo.inviteCode);
-                              toast({ description: 'Invite code copied to clipboard' });
-                            }}
-                          >
-                            <code className="font-mono font-bold tracking-wider text-foreground">
-                              {teamInfo.inviteCode}
-                            </code>
-                            <div className="bg-foreground/10 p-1 rounded-md ml-1 group-hover/code:bg-foreground/20 transition-colors">
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                width="12"
-                                height="12"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                className="text-foreground"
-                              >
-                                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
-                                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">Members</h3>
-                </div>
-
-                {loading ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <div
-                        key={i}
-                        className="flex flex-row items-center p-4 gap-4 h-24 border border-border/10 rounded-2xl bg-card/50 backdrop-blur-sm animate-pulse"
-                      >
-                        <div className="h-14 w-14 rounded-full bg-card/80" />
-                        <div className="space-y-2 flex-1">
-                          <div className="h-4 w-1/3 bg-card/80 rounded" />
-                          <div className="h-3 w-1/2 bg-card rounded" />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : users.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center p-12 border border-border/10 rounded-2xl border-dashed bg-card/50 backdrop-blur-md text-center">
-                    <div className="bg-muted p-4 rounded-full mb-3">
-                      <Plus className="h-6 w-6 text-muted-foreground" />
+                  ) : users.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center p-12 border border-border/10 rounded-xl border-dashed bg-card/50 backdrop-blur-md text-center">
+                      <h3 className="text-lg font-semibold">No members yet</h3>
                     </div>
-                    <h3 className="text-lg font-semibold">No members yet</h3>
-                    <p className="text-sm text-muted-foreground max-w-sm mt-1 mb-4">
-                      Use the (+) button above to invite members to your team.
-                    </p>
-                  </div>
-                ) : (
-                  <div
-                    key={teamInfo?.id || 'members-list'}
-                    className="grid gap-4 md:grid-cols-2 xl:grid-cols-3"
-                  >
-                    {users.map((user, index) => {
-                      const statusData =
-                        !isPreview && userStatuses[user.uid]
-                          ? userStatuses[user.uid]
-                          : { status: user.status, lastSeen: user.lastSeen };
-
-                      const status = statusData.status || 'offline';
-                      const lastSeenDate = statusData.lastSeen
-                        ? new Date(statusData.lastSeen)
-                        : null;
-
-                      let statusText = status;
-                      if (lastSeenDate && !isNaN(lastSeenDate.getTime())) {
-                        try {
-                          const duration = formatDistanceToNow(lastSeenDate, { addSuffix: false })
-                            .replace('less than a minute', '1m')
-                            .replace(' minutes', 'm')
-                            .replace(' minute', 'm')
-                            .replace(' hours', 'h')
-                            .replace(' hour', 'h')
-                            .replace(' days', 'd')
-                            .replace(' day', 'd');
-
-                          if (status === 'online') {
-                            statusText = `Online (${duration})`;
-                          } else {
-                            statusText = `Offline ${duration}`;
-                          }
-                        } catch (e) {
-
-                        }
-                      }
-
-                      const displayName = getUserName(user);
-
-                      return (
-                        <Card
-                          key={user.uid || user.id}
-                          className="group hover:shadow-lg hover:-translate-y-1 transition-all duration-300 flex flex-row items-center p-4 gap-4 h-auto border border-border/10 bg-card/50 backdrop-blur-xl rounded-2xl overflow-hidden relative animate-fade-in-up opacity-0"
-                          style={{
-                            animationDelay: `${index * 50}ms`,
-                            animationFillMode: 'forwards',
+                  ) : (
+                    <div className="flex flex-col gap-3">
+                      {users.map((user, index) => (
+                        <MemberListItem
+                          key={user.uid}
+                          user={user}
+                          currentUser={currentUser}
+                          teamInfo={teamInfo}
+                          statusData={!isPreview && userStatuses[user.uid] ? userStatuses[user.uid] : { status: user.status, lastSeen: user.lastSeen }}
+                          onChat={onChat}
+                          refreshTeamQueries={async () => {
+                            await queryClient.invalidateQueries({ queryKey: ['teamUsers'] });
                           }}
-                        >
-                          {}
-                          <div className="absolute inset-0 bg-gradient-to-r from-foreground/0 via-foreground/5 to-foreground/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
-
-                          <div className="relative shrink-0">
-                            <Avatar className="h-14 w-14 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
-                              <AvatarImage
-                                src={getFullUrl(user.photoURL)}
-                                className="object-cover"
-                                referrerPolicy="no-referrer"
-                              />
-                              <AvatarFallback className="bg-muted text-foreground font-bold">
-                                {getUserInitials(user)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <span
-                              className={cn(
-                                'absolute bottom-0.5 right-0.5 w-3.5 h-3.5 rounded-full border-2 border-background shadow-none',
-                                status === 'online'
-                                  ? 'bg-green-500'
-                                  : status === 'away'
-                                    ? 'bg-amber-500'
-                                    : 'bg-slate-300 dark:bg-slate-600'
-                              )}
-                            />
-                          </div>
-
-                          <div className="flex-1 min-w-0 text-left z-10">
-                            <div className="flex items-center justify-between">
-                              <h4 className="font-bold truncate text-base group-hover:text-foreground transition-colors">
-                                {displayName}
-                              </h4>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 rounded-full opacity-0 group-hover:opacity-100 transition-opacity -mr-2"
-                                onClick={() => onChat(user)}
-                              >
-                                <MessageSquare className="w-4 h-4 text-foreground" />
-                              </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground truncate font-medium opacity-80">
-                              {user.email}
-                            </p>
-
-                            <div className="flex items-center gap-2 mt-3">
-                              <Badge
-                                variant="secondary"
-                                className={cn(
-                                  'text-[10px] px-2 h-5 font-medium capitalize border-0',
-                                  status === 'online'
-                                    ? 'bg-green-500/10 text-green-600 dark:text-green-400'
-                                    : 'bg-card/50 border border-border/10 text-muted-foreground'
-                                )}
-                              >
-                                {statusText}
-                              </Badge>
-                              {user.timezone &&
-                                (() => {
-                                  const localTime = formatLocalTime(user.timezone);
-                                  if (!localTime) {
-                                    return null;
-                                  }
-                                  return (
-                                    <Badge
-                                      variant="outline"
-                                      className="text-[10px] px-2 h-5 font-medium border-border/10 bg-transparent text-muted-foreground gap-1"
-                                    >
-                                      <Clock className="w-2.5 h-2.5" />
-                                      {localTime}
-                                    </Badge>
-                                  );
-                                })()}
-                            </div>
-                          </div>
-                        </Card>
-                      );
-                    })}
-                  </div>
-                )}
+                          setTeamsData={() => {}}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
+
+
           </div>
 
-          {}
+        <div className="hidden lg:flex lg:w-80 shrink-0 relative overflow-hidden bg-[#121212]">
+          <div className={cn("w-full h-full transition-opacity duration-300", quickChatUser ? "opacity-0 pointer-events-none" : "opacity-100")}>
+            <TeamSettingsSidebar
+              teamInfo={teamInfo}
+              currentUser={currentUser}
+              refreshTeamQueries={async () => {
+                await queryClient.invalidateQueries({ queryKey: ['myTeams', currentUser?.uid] });
+                await queryClient.invalidateQueries({ queryKey: ['me', currentUser?.uid] });
+              }}
+              setTeamInfo={setTeamInfo}
+              className="w-full h-full"
+            />
+          </div>
+          
+          <div 
+            className={cn(
+              "absolute inset-0 z-50 flex flex-col bg-[#121212] transition-transform duration-300 ease-in-out",
+              quickChatUser ? "translate-x-0" : "translate-x-full"
+            )}
+          >
+            {quickChatUser && (
+              <ChatView
+                selectedUser={quickChatUser}
+                currentUserData={userData}
+                isQuickChat={true}
+                onOpenFullChat={() => {
+                  onChat(quickChatUser);
+                  setQuickChatUser(null);
+                }}
+              />
+            )}
+          </div>
+        </div>
+
+          {/* Messages Overlay */}
           <div
             className={cn(
               'absolute inset-0 bg-background/50 backdrop-blur-xl z-50 transition-transform duration-300 ease-in-out will-change-transform shadow-elevation5',
@@ -1062,7 +773,7 @@ const PeopleView = ({
         </div>
       </div>
 
-      <div className="absolute bottom-6 right-6 z-50">
+      <div className={cn("absolute bottom-6 z-50 transition-all duration-300 ease-in-out", quickChatUser ? "right-[344px]" : "right-6")}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
