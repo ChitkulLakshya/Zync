@@ -101,7 +101,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import EmojiPicker from 'emoji-picker-react';
-import { API_BASE_URL, getFullUrl, getUserName, getUserInitials } from '@/lib/utils';
+import { API_BASE_URL, getFullUrl, getUserName, getUserInitials, cn } from '@/lib/utils';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import {
   Dialog,
@@ -116,9 +116,11 @@ interface ChatViewProps {
   selectedUser: any;
   onBack?: () => void;
   currentUserData?: any;
+  isQuickChat?: boolean;
+  onOpenFullChat?: () => void;
 }
 
-const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
+const ChatView = ({ selectedUser, onBack, currentUserData, isQuickChat, onOpenFullChat }: ChatViewProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const currentUser = auth.currentUser;
@@ -312,82 +314,84 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-background/50 backdrop-blur-xl relative">
+    <div className={cn("flex flex-col h-full relative", isQuickChat ? "bg-transparent" : "bg-background/50 backdrop-blur-xl")}>
       {}
-      <div className="flex items-center gap-3 p-4 border-b border-border/10 bg-transparent z-10">
-        {onBack && (
-          <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
-            ← Back
-          </Button>
-        )}
-        <Dialog>
-          <DialogTrigger asChild>
-            <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
-              <div className="relative">
-                <Avatar>
-                  <AvatarImage
-                    src={getFullUrl(selectedUser.photoURL)}
-                    referrerPolicy="no-referrer"
+      {!isQuickChat && (
+        <div className="flex items-center gap-3 p-4 border-b border-border/10 bg-transparent z-10">
+          {onBack && (
+            <Button variant="ghost" size="sm" onClick={onBack} className="mr-2">
+              ← Back
+            </Button>
+          )}
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="relative">
+                  <Avatar>
+                    <AvatarImage
+                      src={getFullUrl(selectedUser.photoURL)}
+                      referrerPolicy="no-referrer"
+                    />
+                    <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
+                  </Avatar>
+                  <span
+                    className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
+                      selectedUser.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                    }`}
                   />
-                  <AvatarFallback>{getUserInitials(selectedUser)}</AvatarFallback>
+                </div>
+                <div>
+                  <div className="font-semibold flex items-center gap-2">
+                    {getUserName(selectedUser)}
+                    {isCloseFriend && (
+                      <Star className="w-3 h-3 fill-yellow-400 text-yellow-500" strokeWidth={0} />
+                    )}
+                  </div>
+                  <div className="text-xs text-muted-foreground capitalize">
+                    {selectedUser.status}
+                  </div>
+                </div>
+              </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>User Profile</DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col items-center justify-center p-6 space-y-4">
+                <Avatar className="w-32 h-32 ring-4 ring-background shadow-elevation4">
+                  <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
+                  <AvatarFallback className="text-4xl">
+                    {getUserInitials(selectedUser)}
+                  </AvatarFallback>
                 </Avatar>
-                <span
-                  className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-background ${
-                    selectedUser.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
-                  }`}
-                />
-              </div>
-              <div>
-                <div className="font-semibold flex items-center gap-2">
-                  {getUserName(selectedUser)}
-                  {isCloseFriend && (
-                    <Star className="w-3 h-3 fill-yellow-400 text-yellow-500" strokeWidth={0} />
-                  )}
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold">{getUserName(selectedUser)}</h2>
+                  <p className="text-muted-foreground">{selectedUser.email}</p>
                 </div>
-                <div className="text-xs text-muted-foreground capitalize">
-                  {selectedUser.status}
-                </div>
+                <Button
+                  onClick={handleToggleCloseFriend}
+                  variant={isCloseFriend ? 'secondary' : 'default'}
+                  className="gap-2 w-full max-w-xs"
+                >
+                  <Star className={`w-4 h-4 ${isCloseFriend ? 'fill-current' : ''}`} />
+                  {isCloseFriend ? 'Remove from Close Friends' : 'Add to Close Friends'}
+                </Button>
               </div>
-            </div>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>User Profile</DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col items-center justify-center p-6 space-y-4">
-              <Avatar className="w-32 h-32 ring-4 ring-background shadow-elevation4">
-                <AvatarImage src={getFullUrl(selectedUser.photoURL)} />
-                <AvatarFallback className="text-4xl">
-                  {getUserInitials(selectedUser)}
-                </AvatarFallback>
-              </Avatar>
-              <div className="text-center">
-                <h2 className="text-2xl font-bold">{getUserName(selectedUser)}</h2>
-                <p className="text-muted-foreground">{selectedUser.email}</p>
-              </div>
-              <Button
-                onClick={handleToggleCloseFriend}
-                variant={isCloseFriend ? 'secondary' : 'default'}
-                className="gap-2 w-full max-w-xs"
-              >
-                <Star className={`w-4 h-4 ${isCloseFriend ? 'fill-current' : ''}`} />
-                {isCloseFriend ? 'Remove from Close Friends' : 'Add to Close Friends'}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-        <div className="ml-auto">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleClearChat}
-            className="text-muted-foreground hover:text-destructive"
-            title="Clear Chat"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
+            </DialogContent>
+          </Dialog>
+          <div className="ml-auto">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleClearChat}
+              className="text-muted-foreground hover:text-destructive"
+              title="Clear Chat"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
-      </div>
+      )}
 
       {}
       <div
@@ -396,6 +400,51 @@ const ChatView = ({ selectedUser, onBack, currentUserData }: ChatViewProps) => {
         ref={containerRef}
       >
         <div className="space-y-4 pb-4">
+          {isQuickChat && (
+            <div className="flex flex-col items-center pt-6 pb-2 px-4 space-y-4 border-b border-white/[0.04] mb-4">
+              <div className="relative">
+                <Avatar className="w-20 h-20 border border-white/[0.06] shadow-md">
+                  <AvatarImage
+                    src={getFullUrl(selectedUser.photoURL)}
+                    referrerPolicy="no-referrer"
+                  />
+                  <AvatarFallback className="text-2xl">{getUserInitials(selectedUser)}</AvatarFallback>
+                </Avatar>
+                <span className={`absolute bottom-0 right-1 w-3.5 h-3.5 rounded-full border-2 border-[#121212] ${
+                  selectedUser.status === 'online' ? 'bg-green-500' : 'bg-gray-400'
+                }`} />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-foreground leading-tight">{getUserName(selectedUser)}</h3>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  @{selectedUser.username || selectedUser.displayName?.toLowerCase().replace(/\s+/g, '') || 'username'}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground/80 text-center max-w-[240px] leading-relaxed">
+                {selectedUser.bio || 'Visual Design, Product Design, Research. Typography & colors lover.'}
+              </p>
+              <div className="flex items-center gap-1.5 justify-center">
+                {(selectedUser.tags || ['UX/UI designer', 'Dribbbler']).map((tag: string) => (
+                  <span key={tag} className="text-[10px] font-medium px-3 py-1 rounded-full border border-white/[0.06] text-muted-foreground/90 bg-white/[0.02]">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+              
+              <div className="w-full flex items-center justify-center pt-3 relative">
+                <div className="absolute inset-x-0 h-px bg-white/[0.06] top-1/2 -translate-y-1/2" />
+                <button
+                  onClick={() => {
+                    if (onOpenFullChat) onOpenFullChat();
+                  }}
+                  className="relative z-10 px-4 py-1 text-[11px] font-medium text-muted-foreground bg-[#121212] border border-white/[0.06] rounded-full hover:text-foreground hover:bg-[#181818] transition-all"
+                >
+                  Open Full Chat
+                </button>
+              </div>
+            </div>
+          )}
+
           {messages.map((msg) => {
             const isMe = msg.senderId === currentUser?.uid;
             const isImage = msg.type === 'image';

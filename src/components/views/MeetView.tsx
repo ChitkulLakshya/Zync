@@ -89,6 +89,7 @@ import {
   Users,
   Building2,
   Trash2,
+  Star,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -106,6 +107,8 @@ import { useToast } from '@/hooks/use-toast';
 import { getFullUrl, getUserInitials, getUserName, API_BASE_URL } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
+import { TeamLogoDisplay } from '@/components/ui/TeamLogoDisplay';
+import { useMe } from '@/hooks/useMe';
 
 interface MeetViewProps {
   currentUser: User | null;
@@ -145,6 +148,10 @@ export default function MeetView({
   mockMe,
 }: MeetViewProps) {
   const currentUser = isPreview && mockMe ? mockMe : realCurrentUser;
+  const { data: realUserData } = useMe();
+  const userData = isPreview && mockMe ? mockMe : realUserData;
+  const closeFriendsIds = userData?.closeFriends || [];
+
   const { toast } = useToast();
   const [isGenerating, setIsGenerating] = useState(false);
   const [invitedUserIds, setInvitedUserIds] = useState<string[]>([]);
@@ -280,7 +287,14 @@ export default function MeetView({
       (u) =>
         getUserName(u).toLowerCase().includes(searchQuery.toLowerCase()) ||
         u.email?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    )
+    .sort((a, b) => {
+      const aIsFriend = closeFriendsIds.includes(a.uid);
+      const bIsFriend = closeFriendsIds.includes(b.uid);
+      if (aIsFriend && !bIsFriend) return -1;
+      if (!aIsFriend && bIsFriend) return 1;
+      return 0;
+    });
 
   const toggleInviteUser = (uid: string) => {
     setInvitedUserIds((prev) =>
@@ -624,19 +638,14 @@ export default function MeetView({
                           >
                             <div className="flex items-center justify-between mb-2">
                               <div className="flex items-center gap-3">
-                                <div
+                                <TeamLogoDisplay
+                                  logoId={team.logoId}
+                                  teamName={team.name}
                                   className={cn(
-                                    'w-10 h-10 rounded-lg flex items-center justify-center',
+                                    'w-10 h-10 rounded-lg',
                                     isSelected ? 'bg-foreground/20' : 'bg-card/50 backdrop-blur-sm'
                                   )}
-                                >
-                                  <Users
-                                    className={cn(
-                                      'w-5 h-5',
-                                      isSelected ? 'text-foreground' : 'text-muted-foreground'
-                                    )}
-                                  />
-                                </div>
+                                />
                                 <div>
                                   <h4
                                     className={cn(
@@ -905,6 +914,7 @@ export default function MeetView({
                 <tbody>
                   {filteredUsers.map((user) => {
                     const isSelected = invitedUserIds.includes(user.uid);
+                    const isCloseFriend = closeFriendsIds.includes(user.uid);
                     const status = userStatuses[user.uid]?.state || 'offline';
 
                     return (
@@ -938,11 +948,14 @@ export default function MeetView({
                             <div>
                               <div
                                 className={cn(
-                                  'font-medium',
+                                  'font-medium flex items-center gap-1.5',
                                   isSelected ? 'text-primary' : 'text-foreground'
                                 )}
                               >
                                 {getUserName(user)}
+                                {isCloseFriend && (
+                                  <Star className="w-3.5 h-3.5 fill-yellow-500 text-yellow-500" />
+                                )}
                               </div>
                               <div className="text-xs text-muted-foreground">{user.email}</div>
                             </div>
