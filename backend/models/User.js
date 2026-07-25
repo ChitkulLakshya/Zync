@@ -120,8 +120,7 @@ const userSchema = new mongoose.Schema(
 
 
     teamMemberships: { type: [String], default: [] },
-
-
+    securityPin: { type: String, select: false },
     welcomeNotificationSent: { type: Boolean, default: false },
   },
   {

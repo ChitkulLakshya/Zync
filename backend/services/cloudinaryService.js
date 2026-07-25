@@ -190,10 +190,37 @@ const uploadProfilePhoto = async (filePath, uid) => {
   }
 };
 
+/**
+ * Uploads an optimized image buffer to Cloudinary using upload_stream.
+ * @param {Buffer} buffer - The optimized image buffer
+ * @param {string} folder - Folder name in Cloudinary
+ * @param {string} publicId - Specific public ID to use
+ * @returns {Promise<any>} - Cloudinary upload result
+ */
+const uploadImageBuffer = (buffer, folder, publicId) => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        public_id: publicId,
+        overwrite: true,
+      },
+      (error, result) => {
+        if (error) {
+          console.error('Cloudinary stream upload failed:', error);
+          return reject(error);
+        }
+        resolve(result);
+      }
+    );
+    uploadStream.end(buffer);
+  });
+};
 // WHAT: Export utilities. WHY: Makes functions available to other files.
 module.exports = {
   cloudinary,
   extractPublicId,
   deleteCloudinaryAsset,
   uploadProfilePhoto,
+  uploadImageBuffer,
 };

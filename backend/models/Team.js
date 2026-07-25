@@ -80,8 +80,11 @@ const teamSchema = new mongoose.Schema(
     name:       { type: String, required: true },
     inviteCode: { type: String, required: true, unique: true },
     ownerId:    { type: String, required: true },
+    admins:     { type: [String], default: [] },
     members:    { type: [String], default: [] },
+    pendingMembers: { type: [String], default: [] },
     type:       { type: String, default: 'Other' },
+    logoId:     { type: String, default: null },
   },
   {
     timestamps: true,

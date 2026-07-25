@@ -93,6 +93,7 @@ interface MobileLayoutProps {
     } | null;
     onFabClick?: () => void;
     rightHeaderAction?: React.ReactNode;
+    hideActivityLog?: boolean;
 }
 
 export const MobileLayout = ({
@@ -103,7 +104,8 @@ export const MobileLayout = ({
     drawerContent,
     user,
     onFabClick,
-    rightHeaderAction
+    rightHeaderAction,
+    hideActivityLog
 }: MobileLayoutProps) => {
     const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
 
@@ -111,7 +113,7 @@ export const MobileLayout = ({
         { id: 'Home', icon: Home, label: 'Home' },
         { id: 'Meet', icon: Video, label: 'Meet' },
         { id: 'Tasks', icon: CheckSquare, label: 'Tasks' },
-        { id: 'Activity', icon: Bell, label: 'Activity' },
+        ...(hideActivityLog ? [] : [{ id: 'Activity', icon: Bell, label: 'Activity' }]),
         { id: 'Settings', icon: Settings, label: 'Settings' },
     ];
 

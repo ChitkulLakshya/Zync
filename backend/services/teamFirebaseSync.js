@@ -78,7 +78,8 @@
  * What: Handles synchronization of team and user membership states to Firestore, managing team creation, member additions, removals, and ownership transfers.
  * Why: Keeps the external NoSQL datastore (Firestore) strictly consistent with our internal business logic, allowing fast client-side querying and real-time updates for collaborative team features.
  */
-const { admin, getFirestoreAdmin } = require('./firebaseAdmin'); // WHAT: Imports the Firebase Admin SDK instances. WHY: Needed to interact with Firestore with elevated privileges.
+const { getFirestoreAdmin } = require('./firebaseAdmin'); // WHAT: Imports the Firebase Admin SDK instances. WHY: Needed to interact with Firestore with elevated privileges.
+const { FieldValue } = require('firebase-admin/firestore'); // WHAT: Imports Firestore FieldValue. WHY: Needed for arrayUnion and arrayRemove.
 
 const normalizeUid = (value) => { // WHAT: Normalizes a user ID into a plain string. WHY: Ensures consistent string formatting regardless of how the ID was passed in.
   if (!value) return ''; // WHAT: Returns empty string for falsy values. WHY: Prevents errors when accessing properties of undefined.
@@ -143,8 +144,8 @@ const upsertTeamSnapshot = async (team) => { // WHAT: Upserts a team into Firest
   if (ownerId) { // WHAT: Checks if there is an owner. WHY: Avoids writing to a blank user ID.
     await db.collection('users').doc(ownerId).set({ // WHAT: Updates the owner's user document. WHY: Keeps the user's membership arrays in sync.
       uid: ownerId, // WHAT: Sets the uid. WHY: Redundancy for querying.
-      ownedTeamIds: admin.firestore.FieldValue.arrayUnion(teamId), // WHAT: Adds the team to the user's owned teams. WHY: Uses arrayUnion to avoid duplicates safely.
-      teamMemberships: admin.firestore.FieldValue.arrayUnion(teamId), // WHAT: Adds the team to the user's memberships. WHY: The owner is also a member.
+      ownedTeamIds: FieldValue.arrayUnion(teamId), // WHAT: Adds the team to the user's owned teams. WHY: Uses arrayUnion to avoid duplicates safely.
+      teamMemberships: FieldValue.arrayUnion(teamId), // WHAT: Adds the team to the user's memberships. WHY: The owner is also a member.
       updatedAt: now, // WHAT: Updates the timestamp. WHY: Reflects the modification.
     }, { merge: true }); // WHAT: Merges with existing user data. WHY: Prevents overwriting other user properties.
   }
@@ -152,7 +153,7 @@ const upsertTeamSnapshot = async (team) => { // WHAT: Upserts a team into Firest
   for (const memberId of members) { // WHAT: Loops through all other members. WHY: Updates each member's user document.
     await db.collection('users').doc(memberId).set({ // WHAT: Updates the member's user document. WHY: Keeps their membership array in sync.
       uid: memberId, // WHAT: Sets the uid. WHY: Redundancy for querying.
-      teamMemberships: admin.firestore.FieldValue.arrayUnion(teamId), // WHAT: Adds the team to their memberships. WHY: Enables querying "which teams am I in".
+      teamMemberships: FieldValue.arrayUnion(teamId), // WHAT: Adds the team to their memberships. WHY: Enables querying "which teams am I in".
       updatedAt: now, // WHAT: Updates the timestamp. WHY: Reflects the modification.
     }, { merge: true }); // WHAT: Merges with existing user data. WHY: Safe partial update.
   }
@@ -167,14 +168,14 @@ const addMemberToTeam = async (teamIdOrObj, memberUid) => { // WHAT: Adds a spec
 
   const now = new Date().toISOString(); // WHAT: Grabs current timestamp. WHY: For tracking update times.
   await db.collection('teams').doc(teamId).set({ // WHAT: Updates the team document. WHY: Adds the member to the team's array.
-    members: admin.firestore.FieldValue.arrayUnion(uid), // WHAT: Uses arrayUnion to safely add the member. WHY: Avoids pulling and pushing the whole array, and prevents duplicates.
+    members: FieldValue.arrayUnion(uid), // WHAT: Uses arrayUnion to safely add the member. WHY: Avoids pulling and pushing the whole array, and prevents duplicates.
     updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
     syncedAt: now, // WHAT: Updates sync time. WHY: Auditing.
   }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other team data.
 
   await db.collection('users').doc(uid).set({ // WHAT: Updates the user document. WHY: Adds the team to the user's array.
     uid, // WHAT: Ensures uid field exists. WHY: Data consistency.
-    teamMemberships: admin.firestore.FieldValue.arrayUnion(teamId), // WHAT: Uses arrayUnion to safely add the team. WHY: Prevents duplicates.
+    teamMemberships: FieldValue.arrayUnion(teamId), // WHAT: Uses arrayUnion to safely add the team. WHY: Prevents duplicates.
     updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
   }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other user data.
 };
@@ -188,15 +189,15 @@ const removeMemberFromTeam = async (teamIdOrObj, memberUid) => { // WHAT: Remove
 
   const now = new Date().toISOString(); // WHAT: Gets timestamp. WHY: Auditing.
   await db.collection('teams').doc(teamId).set({ // WHAT: Updates the team document. WHY: Removes the user from the members array.
-    members: admin.firestore.FieldValue.arrayRemove(uid), // WHAT: Uses arrayRemove to pull the specific ID. WHY: Atomic and safe operation.
+    members: FieldValue.arrayRemove(uid), // WHAT: Uses arrayRemove to pull the specific ID. WHY: Atomic and safe operation.
     updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
     syncedAt: now, // WHAT: Updates sync time. WHY: Auditing.
   }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other team data.
 
   await db.collection('users').doc(uid).set({ // WHAT: Updates the user document. WHY: Removes the team from their lists.
     uid, // WHAT: Ensures uid field exists. WHY: Data consistency.
-    teamMemberships: admin.firestore.FieldValue.arrayRemove(teamId), // WHAT: Atomic removal from memberships. WHY: Clean removal.
-    ownedTeamIds: admin.firestore.FieldValue.arrayRemove(teamId), // WHAT: Atomic removal from owned teams. WHY: Ensures they don't appear as an owner if removed.
+    teamMemberships: FieldValue.arrayRemove(teamId), // WHAT: Atomic removal from memberships. WHY: Clean removal.
+    ownedTeamIds: FieldValue.arrayRemove(teamId), // WHAT: Atomic removal from owned teams. WHY: Ensures they don't appear as an owner if removed.
     updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
   }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other user data.
 };
@@ -213,7 +214,7 @@ const transferTeamOwnership = async (teamIdOrObj, previousOwnerUid, nextOwnerUid
   await db.collection('teams').doc(teamId).set({ // WHAT: Updates the team document. WHY: Reassigns the owner properties.
     ownerId: newOwner, // WHAT: Sets new owner ID. WHY: Updates ownership.
     leaderId: newOwner, // WHAT: Sets new leader ID. WHY: Updates legacy field.
-    members: admin.firestore.FieldValue.arrayUnion(newOwner), // WHAT: Ensures new owner is in members array. WHY: An owner must be a member.
+    members: FieldValue.arrayUnion(newOwner), // WHAT: Ensures new owner is in members array. WHY: An owner must be a member.
     updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
     syncedAt: now, // WHAT: Updates sync time. WHY: Auditing.
   }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other team data.
@@ -221,15 +222,15 @@ const transferTeamOwnership = async (teamIdOrObj, previousOwnerUid, nextOwnerUid
   if (prevOwner) { // WHAT: Checks if there was a previous owner. WHY: Avoids invalid updates if it was unowned.
     await db.collection('users').doc(prevOwner).set({ // WHAT: Updates old owner's document. WHY: Removes their owner status.
       uid: prevOwner, // WHAT: Ensures uid field exists. WHY: Data consistency.
-      ownedTeamIds: admin.firestore.FieldValue.arrayRemove(teamId), // WHAT: Removes from ownedTeamIds. WHY: They no longer own it.
+      ownedTeamIds: FieldValue.arrayRemove(teamId), // WHAT: Removes from ownedTeamIds. WHY: They no longer own it.
       updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
     }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other user data.
   }
 
   await db.collection('users').doc(newOwner).set({ // WHAT: Updates new owner's document. WHY: Grants them owner status.
     uid: newOwner, // WHAT: Ensures uid field exists. WHY: Data consistency.
-    ownedTeamIds: admin.firestore.FieldValue.arrayUnion(teamId), // WHAT: Adds to ownedTeamIds. WHY: Grants ownership role.
-    teamMemberships: admin.firestore.FieldValue.arrayUnion(teamId), // WHAT: Ensures they are in teamMemberships. WHY: Consistency.
+    ownedTeamIds: FieldValue.arrayUnion(teamId), // WHAT: Adds to ownedTeamIds. WHY: Grants ownership role.
+    teamMemberships: FieldValue.arrayUnion(teamId), // WHAT: Ensures they are in teamMemberships. WHY: Consistency.
     updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
   }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other user data.
 };
@@ -253,8 +254,8 @@ const deleteTeamSnapshot = async (teamIdOrObj, memberUids = [], ownerUid) => { /
   for (const uid of allMembers) { // WHAT: Iterates over all involved users. WHY: Cleans up each user sequentially.
     await db.collection('users').doc(uid).set({ // WHAT: Updates user document. WHY: Pulls the deleted team from their arrays.
       uid, // WHAT: Ensures uid field exists. WHY: Data consistency.
-      teamMemberships: admin.firestore.FieldValue.arrayRemove(teamId), // WHAT: Removes team from memberships. WHY: Cleanup.
-      ownedTeamIds: admin.firestore.FieldValue.arrayRemove(teamId), // WHAT: Removes team from owned teams. WHY: Cleanup.
+      teamMemberships: FieldValue.arrayRemove(teamId), // WHAT: Removes team from memberships. WHY: Cleanup.
+      ownedTeamIds: FieldValue.arrayRemove(teamId), // WHAT: Removes team from owned teams. WHY: Cleanup.
       updatedAt: now, // WHAT: Updates modified time. WHY: Auditing.
     }, { merge: true }); // WHAT: Merges safely. WHY: Preserves other user data.
   }

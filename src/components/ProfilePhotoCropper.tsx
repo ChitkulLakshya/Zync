@@ -90,6 +90,7 @@ import { RotateCw, ZoomIn, ZoomOut, RotateCcw } from "lucide-react";
 interface ProfilePhotoCropperProps {
     open: boolean;
     imageSrc: string;
+    title?: string;
     onClose: () => void;
     onCropComplete: (croppedBlob: Blob) => void;
 }
@@ -181,6 +182,7 @@ function rotateSize(width: number, height: number, rotation: number) {
 const ProfilePhotoCropper: React.FC<ProfilePhotoCropperProps> = ({
     open,
     imageSrc,
+    title,
     onClose,
     onCropComplete,
 }) => {
@@ -218,7 +220,7 @@ const ProfilePhotoCropper: React.FC<ProfilePhotoCropperProps> = ({
         <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
             <DialogContent className="sm:max-w-[500px] p-0 gap-0 overflow-hidden">
                 <DialogHeader className="px-6 pt-6 pb-2">
-                    <DialogTitle>Adjust Profile Photo</DialogTitle>
+                    <DialogTitle>{title || "Adjust Profile Photo"}</DialogTitle>
                     <DialogDescription className="sr-only">
                         Crop, zoom, and rotate your profile image before saving.
                     </DialogDescription>

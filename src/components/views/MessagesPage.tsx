@@ -392,7 +392,7 @@ const MessagesPage = ({
           </div>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin scrollbar-thumb-secondary">
+        <div className="flex-1 overflow-y-auto p-2 space-y-4 [&::-webkit-scrollbar]:hidden">
           {/* REQUESTS SECTION */}
           {pendingRequests.length > 0 && !searchTerm && (
             <div>

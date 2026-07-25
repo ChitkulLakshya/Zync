@@ -82,12 +82,15 @@ const crypto = require('crypto'); // Imports the 'crypto' module, a built-in Nod
 const {
   deleteCloudinaryAsset, // Destructures and imports the 'deleteCloudinaryAsset' function from the 'cloudinaryService' file, used to remove assets from Cloudinary.
   uploadProfilePhoto, // Destructures and imports the 'uploadProfilePhoto' function from the 'cloudinaryService' file, used to upload profile photos to Cloudinary.
+  uploadImageBuffer,
 } = require('../services/cloudinaryService'); // Specifies the path to the 'cloudinaryService' file from which the functions are imported.
 const authMiddleware = require('../middleware/authMiddleware'); // Imports the 'authMiddleware' function, which is a custom middleware used to authenticate user requests before processing.
 const User = require('../models/User'); // Imports the 'User' Mongoose model, representing the user schema in the database, to interact with user data.
+const Team = require('../models/Team'); // Imports the 'Team' Mongoose model.
 const { normalizeDoc } = require('../utils/normalize'); // Destructures and imports the 'normalizeDoc' function from the 'normalize' utility file, though it appears unused in this specific file.
 const mime = require('mime-types'); // Imports the 'mime-types' module, which provides a mapping between file extensions and MIME types, used for file type validation and extension determination.
-
+const { optimizeImage } = require('../utils/imageOptimizer');
+const cache = require('../utils/cache');
 
 const uploadDir = path.join(__dirname, '../uploads'); // Defines the directory path where uploaded files will be temporarily stored, joining the current directory with '../uploads' for a relative path.
 if (!fs.existsSync(uploadDir)) { // Checks if the 'uploadDir' directory does not exist in the file system.
@@ -192,19 +195,15 @@ router.post( // Defines another POST route.
       }
 
 
-      const result = await uploadProfilePhoto(req.file.path, uid); // Calls the 'uploadProfilePhoto' function to upload the new file (from its temporary path) to Cloudinary, associating it with the user's UID.
+      const optimizedBuffer = await optimizeImage(req.file.path, 500);
 
+      const publicId = `profile_${uid}_${Date.now()}`;
+      const result = await uploadImageBuffer(optimizedBuffer, 'zync-profiles', publicId);
 
-      try { // Starts an inner try block to handle potential errors during the deletion of the temporary local file.
-        fs.unlinkSync(req.file.path); // Synchronously deletes the temporary file from the local server's 'uploads' directory after it has been uploaded to Cloudinary.
-      } catch (e) { // Catches any errors that occur during the temporary file deletion.
-        console.warn('Failed to remove temp file:', e.message); // Logs a warning message if the temporary file could not be deleted.
-      }
-
-      const photoURL = result.secure_url; // Extracts the secure URL of the newly uploaded profile photo from the Cloudinary upload result.
-
+      const photoURL = result.secure_url;
 
       await User.updateOne({ uid }, { $set: { photoURL } }); // Updates the user document in the database, setting their 'photoURL' field to the new Cloudinary URL.
+      await cache.invalidate(`user:me:${uid}`);
 
       res.json({ photoURL }); // Sends a JSON response back to the client containing the new profile photo URL.
     } catch (error) { // Catches any errors that occurred within the main try block of the route handler.
@@ -218,6 +217,68 @@ router.post( // Defines another POST route.
         }
       }
       res.status(500).json({ message: 'Upload failed', error: error.message }); // Sends a 500 Internal Server Error response with a generic upload failed message and the specific error details.
+    }
+  }
+);
+
+
+router.post(
+  '/team-photo/:teamId',
+  authMiddleware,
+  upload.single('file'),
+  async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+      }
+
+      const uid = req.user.uid;
+      const { teamId } = req.params;
+
+      const team = await Team.findById(teamId).lean();
+      if (!team) {
+        return res.status(404).json({ message: 'Team not found' });
+      }
+      if (team.ownerId !== uid) {
+        return res.status(403).json({ message: 'Only the team owner can upload a team photo' });
+      }
+
+      if (team.logoId) {
+        try {
+          await deleteCloudinaryAsset(team.logoId);
+          console.log(`Deleted old team photo for: ${teamId}`);
+        } catch (e) {
+          console.warn('Failed to delete old team photo:', e.message);
+        }
+      }
+
+      const optimizedBuffer = await optimizeImage(req.file.path, 500);
+
+      const publicId = `team_${teamId}_${Date.now()}`;
+      const result = await uploadImageBuffer(optimizedBuffer, 'zync-teams', publicId);
+
+      const logoId = result.secure_url;
+
+      await Team.updateOne({ _id: team._id }, { $set: { logoId } });
+      await cache.invalidate(`team:${teamId}`);
+      // Also invalidate cache for all members so their team lists update instantly
+      if (team.members && team.members.length > 0) {
+        const memberKeys = team.members.map(memberUid => `user:me:${memberUid}`);
+        await cache.invalidate(...memberKeys, `user:me:${team.ownerId}`);
+      } else {
+        await cache.invalidate(`user:me:${team.ownerId}`);
+      }
+
+      res.json({ logoId });
+    } catch (error) {
+      console.error('Error uploading team photo:', error);
+
+      if (req.file?.path) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (e) {}
+      }
+      res.status(500).json({ message: 'Upload failed', error: error.message });
     }
   }
 );

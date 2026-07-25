@@ -171,6 +171,8 @@ export interface Repository {
         login: string;
         avatar_url: string;
     };
+    homepage?: string;
+    topics?: string[];
 }
 
 export interface GitHubReposResponse {

@@ -145,7 +145,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
       leaderId: ownerId,
       members,
       inviteCode: String(team?.inviteCode || ''),
-      logoId: team?.logoId || 'rocket',
+      logoId: team?.logoId || null,
       createdAt: team?.createdAt,
       updatedAt: new Date().toISOString(),
     };
@@ -197,7 +197,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
           leaderId: team.ownerId,
           members: team.members,
           inviteCode: team.inviteCode,
-          logoId: team.logoId || 'rocket',
+          logoId: team.logoId || null,
           createdAt: team.createdAt || new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         },
@@ -243,7 +243,7 @@ export const useTeamPersistence = (userId: string | undefined) => {
           leaderId,
           members: [leaderId],
           inviteCode,
-          logoId: logoId || 'rocket',
+          logoId: logoId || null,
         },
         leaderId
       );

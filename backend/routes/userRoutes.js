@@ -75,6 +75,7 @@
  */
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
 const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Team = require('../models/Team');
@@ -852,6 +853,47 @@ router.post('/verify-phone/confirm', async (req, res) => {
     res.status(200).json({ message: 'Phone number verified successfully' });
   } catch (error) {
     console.error('Error verifying phone:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.post('/set-pin', verifyToken, async (req, res) => {
+  const { newPin, currentPin } = req.body;
+  try {
+    const user = await User.findOne({ uid: req.user.uid }).select('+securityPin');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    if (user.securityPin) {
+      if (!currentPin) return res.status(400).json({ message: 'Current PIN required' });
+      const isMatch = await bcrypt.compare(currentPin, user.securityPin);
+      if (!isMatch) return res.status(401).json({ message: 'Invalid current PIN' });
+    }
+    
+    user.securityPin = await bcrypt.hash(newPin, 10);
+    await user.save();
+    
+    res.json({ message: 'Security PIN updated successfully' });
+  } catch (error) {
+    console.error('Error setting PIN:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.post('/verify-pin', verifyToken, async (req, res) => {
+  const { pin } = req.body;
+  try {
+    if (!pin) return res.status(400).json({ message: 'PIN required' });
+    const user = await User.findOne({ uid: req.user.uid }).select('+securityPin').lean();
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    
+    if (!user.securityPin) return res.status(400).json({ message: 'Security PIN not set' });
+    
+    const isMatch = await bcrypt.compare(pin, user.securityPin);
+    if (!isMatch) return res.status(401).json({ message: 'Invalid Security PIN' });
+    
+    res.json({ message: 'Security PIN verified successfully', valid: true });
+  } catch (error) {
+    console.error('Error verifying PIN:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
