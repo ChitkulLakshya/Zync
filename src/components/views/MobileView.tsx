@@ -331,12 +331,16 @@ const MobileView = () => {
   };
 
 
+  const canViewActivityLog = myTeams.some(
+    (t) => t.ownerId === currentUser?.uid || t.admins?.includes(currentUser?.uid)
+  );
+
   const drawerItems = [
     { id: 'Home', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'Projects', label: 'Projects', icon: Folder },
     { id: 'Tasks', label: 'My Tasks', icon: CheckSquare },
     { id: 'People', label: 'Team', icon: Users },
-    { id: 'Activity', label: 'Activity', icon: Bell },
+    ...(canViewActivityLog ? [{ id: 'Activity', label: 'Activity', icon: Bell }] : []),
     { id: 'Calendar', label: 'Calendar', icon: Calendar },
     { id: 'Notes', label: 'Notes', icon: FileText },
     { id: 'Meet', label: 'Meet', icon: Video },
@@ -440,6 +444,7 @@ const MobileView = () => {
 
   return (
     <MobileLayout
+      hideActivityLog={!canViewActivityLog}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       user={currentUser ? {

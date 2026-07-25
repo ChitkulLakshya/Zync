@@ -745,6 +745,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
+  const canViewActivityLog = myTeams.some(
+    (t) => t.ownerId === currentUser?.uid || t.admins?.includes(currentUser?.uid)
+  );
+
   const sidebarItems = [
     { icon: Home, label: 'Dashboard', active: activeSection === 'Dashboard' },
     {
@@ -758,7 +762,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     { icon: Github, label: 'My Projects', active: activeSection === 'My Projects' },
     { icon: CheckSquare, label: 'Tasks', active: activeSection === 'Tasks' },
     { icon: FileText, label: 'Notes', active: activeSection === 'Notes' },
-    { icon: Clock, label: 'Activity log', active: activeSection === 'Activity log' },
+    ...(canViewActivityLog
+      ? [{ icon: Clock, label: 'Activity log', active: activeSection === 'Activity log' }]
+      : []),
     { icon: Users, label: 'People', active: activeSection === 'People' },
     { icon: Video, label: 'Meet', active: activeSection === 'Meet' },
     { icon: Settings, label: 'Settings', active: activeSection === 'Settings' },

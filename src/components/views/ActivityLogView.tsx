@@ -100,6 +100,7 @@ import { format, formatDistanceToNow, startOfMonth, endOfMonth, subMonths } from
 import { useTaskPersistence } from '@/hooks/useTaskPersistence';
 import { useTeamPersistence } from '@/hooks/useTeamPersistence';
 import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
+import { TeamLogoDisplay } from '@/components/ui/TeamLogoDisplay';
 
 /** Design tokens — Activity Log page only */
 const T = {
@@ -438,63 +439,13 @@ export default function ActivityLogView({
     [allTeams, normalizedCurrentUserId, ownedTeamIdSet]
   );
   const teamFilterOptions = useMemo(() => {
-    const fromOwned = (Array.isArray(mergedOwnedTeams) ? mergedOwnedTeams : [])
-      .map((t: any) => ({
-        ...t,
-        id: String(t?.id || t?._id || t?.teamId || ''),
-        name: t?.name || 'My Team',
-      }))
-      .filter((t: any) => Boolean(t.id));
-    const fromMineOwned = (Array.isArray(mergedMyTeams) ? mergedMyTeams : [])
-      .map((t: any) => ({
-        ...t,
-        id: String(t?.id || t?._id || t?.teamId || ''),
-        name: t?.name || 'My Team',
-      }))
-      .filter((t: any) => {
-        if (!t.id || !normalizedCurrentUserId) {
-          return false;
-        }
-        const owner = extractOwnerUid(t);
-        return Boolean(owner) && owner === normalizedCurrentUserId;
-      });
-
-    if (leaderTeams.length > 0) {
-      return leaderTeams;
-    }
-    if (fromOwned.length > 0) {
-      return fromOwned;
-    }
-    if (fromMineOwned.length > 0) {
-      return fromMineOwned;
-    }
-    const normalizedCurrentTeamOwner = normalizeUid(currentTeamOwnerId);
-    if (
-      currentTeamId &&
-      normalizedCurrentTeamOwner &&
-      normalizedCurrentTeamOwner === normalizedCurrentUserId
-    ) {
-      return [
-        {
-          id: String(currentTeamId),
-          name: currentTeamName || 'My Team',
-          ownerId: normalizedCurrentTeamOwner,
-          leaderId: normalizedCurrentTeamOwner,
-          logoId: currentTeamLogoId,
-        },
-      ];
-    }
-    return [];
-  }, [
-    leaderTeams,
-    mergedOwnedTeams,
-    mergedMyTeams,
-    currentTeamId,
-    currentTeamName,
-    currentTeamOwnerId,
-    currentTeamLogoId,
-    normalizedCurrentUserId,
-  ]);
+    return allTeams.filter((t: any) => {
+      const owner = extractOwnerUid(t);
+      const isOwner = Boolean(normalizedCurrentUserId) && owner === normalizedCurrentUserId;
+      const isAdmin = t?.admins?.includes(normalizedCurrentUserId);
+      return isOwner || isAdmin || (t?.id && ownedTeamIdSet.has(t.id)) || (t?._id && ownedTeamIdSet.has(t._id));
+    });
+  }, [allTeams, normalizedCurrentUserId, ownedTeamIdSet]);
 
   const normalizedTeamFilterOptions = useMemo(() => {
     const map = new Map<string, any>();
@@ -1008,7 +959,7 @@ export default function ActivityLogView({
 
 
         const team = allTeams.find((t) => t.id === selectedTeamId);
-        const logoId = team?.logoId || getDeterministicLogoId(selectedTeamId || 'default');
+        const logoId = team?.logoId || null;
 
         out.push({
           id: `team-session-${session._id || idx}`,
@@ -1286,22 +1237,15 @@ export default function ActivityLogView({
                     {selectedTeamId !== 'all' && selectedTeamOption ? (
                       (() => {
                         const logoId =
-                          selectedTeamOption.logoId ||
-                          getDeterministicLogoId(selectedTeamOption.id);
-                        const {
-                          icon: LogoIcon,
-                          fgColor,
-                          bgColor,
-                          borderColor,
-                        } = getLogoById(logoId);
+                          selectedTeamOption.logoId || null;
                         return (
                           <div className="flex items-center gap-2 truncate">
-                            <span
-                              className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                              style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                            >
-                              <LogoIcon className="h-3 w-3" />
-                            </span>
+                            <TeamLogoDisplay 
+                              logoId={logoId}
+                              teamName={selectedTeamOption.name}
+                              className="h-5 w-5"
+                              iconClassName="h-3 w-3"
+                            />
                             <span className="truncate">{selectedTeamOption.name}</span>
                           </div>
                         );
@@ -1321,13 +1265,7 @@ export default function ActivityLogView({
                       </SelectItem>
                     ) : (
                       normalizedTeamFilterOptions.map((t: any) => {
-                        const logoId = t.logoId || getDeterministicLogoId(t.id);
-                        const {
-                          icon: LogoIcon,
-                          fgColor,
-                          bgColor,
-                          borderColor,
-                        } = getLogoById(logoId);
+                        const logoId = t.logoId || null;
                         return (
                           <SelectItem
                             key={t.id}
@@ -1335,12 +1273,12 @@ export default function ActivityLogView({
                             className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
                           >
                             <div className="flex items-center gap-2">
-                              <span
-                                className="inline-flex h-5 w-5 items-center justify-center rounded-full border"
-                                style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                              >
-                                <LogoIcon className="h-3 w-3" />
-                              </span>
+                              <TeamLogoDisplay 
+                                logoId={logoId}
+                                teamName={t.name}
+                                className="h-5 w-5"
+                                iconClassName="h-3 w-3"
+                              />
                               <span>{t.name}</span>
                             </div>
                           </SelectItem>
@@ -1443,15 +1381,14 @@ export default function ActivityLogView({
                   (() => {
                     const team = allTeams.find((t) => t.id === selectedTeamId);
                     const logoId =
-                      team?.logoId || getDeterministicLogoId(selectedTeamId || 'default');
-                    const { icon: LogoIcon, fgColor, bgColor, borderColor } = getLogoById(logoId);
+                      team?.logoId || null;
                     return (
-                      <span
-                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border"
-                        style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                      >
-                        <LogoIcon className="h-6 w-6" />
-                      </span>
+                      <TeamLogoDisplay 
+                        logoId={logoId}
+                        teamName={team?.name || 'Team'}
+                        className="h-10 w-10"
+                        iconClassName="h-6 w-6"
+                      />
                     );
                   })()
                 )}
@@ -1784,19 +1721,13 @@ export default function ActivityLogView({
                     >
                       {item.logoId
                         ? (() => {
-                            const {
-                              icon: CustomIcon,
-                              fgColor,
-                              bgColor,
-                              borderColor,
-                            } = getLogoById(item.logoId);
                             return (
-                              <span
-                                className="inline-flex h-6 w-6 items-center justify-center rounded-full border"
-                                style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                              >
-                                <CustomIcon className="h-3.5 w-3.5" />
-                              </span>
+                              <TeamLogoDisplay 
+                                logoId={item.logoId}
+                                teamName={item.entity}
+                                className="h-6 w-6"
+                                iconClassName="h-3.5 w-3.5"
+                              />
                             );
                           })()
                         : item.tag === 'Session'

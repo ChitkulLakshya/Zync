@@ -111,6 +111,7 @@ import {
   CommandList,
 } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { TeamLogoDisplay } from '@/components/ui/TeamLogoDisplay';
 import {
   Select,
   SelectContent,
@@ -118,6 +119,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
 
 const countries = [
@@ -241,6 +250,53 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
       toast({ title: 'Error', description: 'Failed to update profile', variant: 'destructive' });
     } finally {
       setIsSavingProfile(false);
+    }
+  };
+
+  const [pinForm, setPinForm] = useState({
+    currentPin: '',
+    newPin: '',
+    confirmNewPin: '',
+  });
+  const [isUpdatingPin, setIsUpdatingPin] = useState(false);
+
+  const handlePinUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (pinForm.newPin !== pinForm.confirmNewPin) {
+      toast({ title: 'Error', description: 'New PINs do not match.', variant: 'destructive' });
+      return;
+    }
+    if (pinForm.newPin.length < 4 || pinForm.newPin.length > 6) {
+      toast({ title: 'Error', description: 'New PIN must be 4-6 digits.', variant: 'destructive' });
+      return;
+    }
+
+    setIsUpdatingPin(true);
+    try {
+      const idToken = await currentUser?.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/users/set-pin`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${idToken}`,
+        },
+        body: JSON.stringify({
+          newPin: pinForm.newPin,
+          currentPin: pinForm.currentPin || undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to update PIN');
+      }
+
+      toast({ title: 'Success', description: 'Security PIN updated successfully' });
+      setPinForm({ currentPin: '', newPin: '', confirmNewPin: '' });
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setIsUpdatingPin(false);
     }
   };
 
@@ -638,9 +694,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
               <TabsTrigger value="profile" className="shrink-0">
                 My Profile
               </TabsTrigger>
-              <TabsTrigger value="team" className="shrink-0">
-                Team
-              </TabsTrigger>
+
               <TabsTrigger value="preferences" className="shrink-0">
                 Preferences
               </TabsTrigger>
@@ -828,21 +882,52 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                 </form>
               </CardContent>
             </Card>
-          </TabsContent>
 
-          {}
-          <TabsContent value="team">
-            <TeamTabContent
-              currentUser={currentUser}
-              userData={userData}
-              teamsData={teamsData}
-              setTeamsData={setTeamsData}
-              teamLoading={teamLoading}
-              setTeamLoading={setTeamLoading}
-              setUserData={setUserData}
-              isPreview={isPreview}
-              mockTeams={mockTeams}
-            />
+            <Card className="bg-card/50 border-border/10 backdrop-blur-xl mt-6">
+              <CardHeader>
+                <CardTitle>Security PIN</CardTitle>
+                <CardDescription>Set or update your security PIN (4-6 digits).</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handlePinUpdate} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Current PIN</Label>
+                    <Input
+                      type="password"
+                      maxLength={6}
+                      value={pinForm.currentPin}
+                      onChange={(e) => setPinForm({ ...pinForm, currentPin: e.target.value.replace(/\D/g, '') })}
+                      placeholder="Leave blank if setting for the first time"
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>New PIN</Label>
+                      <Input
+                        type="password"
+                        maxLength={6}
+                        value={pinForm.newPin}
+                        onChange={(e) => setPinForm({ ...pinForm, newPin: e.target.value.replace(/\D/g, '') })}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Confirm New PIN</Label>
+                      <Input
+                        type="password"
+                        maxLength={6}
+                        value={pinForm.confirmNewPin}
+                        onChange={(e) => setPinForm({ ...pinForm, confirmNewPin: e.target.value.replace(/\D/g, '') })}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end pt-4">
+                    <Button type="submit" disabled={isUpdatingPin}>
+                      {isUpdatingPin ? 'Updating...' : 'Update PIN'}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           {}
@@ -1131,6 +1216,13 @@ function TeamTabContent({
   const [renameSaved, setRenameSaved] = useState(false);
   const teamNameInputRef = useRef<HTMLInputElement>(null);
   const renameSavedTimerRef = useRef<number | null>(null);
+  const teamFileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploadingTeamPhoto, setIsUploadingTeamPhoto] = useState(false);
+  const [teamCropperOpen, setTeamCropperOpen] = useState(false);
+  const [teamCropperImage, setTeamCropperImage] = useState('');
+  const [transferOtpOpen, setTransferOtpOpen] = useState(false);
+  const [transferOtp, setTransferOtp] = useState('');
+  const [pendingTransferTarget, setPendingTransferTarget] = useState<{ id: string, name: string } | null>(null);
 
   const selectedTeam = teamsData.find((t: any) => (t.id || t._id) === selectedTeamId);
 
@@ -1167,6 +1259,67 @@ function TeamTabContent({
       }
     };
   }, []);
+
+  const handleTeamFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        setTeamCropperImage(reader.result as string);
+        setTeamCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+  };
+
+  const handleTeamCroppedUpload = async (croppedBlob: Blob) => {
+    if (!currentUser?.uid || !selectedTeam) return;
+
+    setTeamCropperOpen(false);
+    setIsUploadingTeamPhoto(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const formData = new FormData();
+      formData.append('file', croppedBlob, 'team-photo.jpg');
+
+      const teamId = selectedTeam.id || selectedTeam._id;
+      const response = await fetch(`${API_BASE_URL}/api/upload/team-photo/${teamId}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.message || 'Upload failed');
+      }
+
+      const data = await response.json();
+      const logoId = data.logoId;
+
+      setTeamsData((prev: any[]) =>
+        prev.map((t) =>
+          (t.id || t._id) === teamId ? { ...t, logoId } : t
+        )
+      );
+
+      // Invalidate React Query cache so other views (People, ActivityLog) see the new photo
+      queryClient.invalidateQueries({ queryKey: ['myTeams', currentUser.uid] });
+      queryClient.invalidateQueries({ queryKey: ['me', currentUser.uid] });
+
+      toast({ title: 'Success', description: 'Team photo updated successfully' });
+    } catch (error: any) {
+      console.error('Upload error:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to upload team photo',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingTeamPhoto(false);
+    }
+  };
 
   const refreshTeamQueries = async () => {
     if (!currentUser?.uid) {
@@ -1245,19 +1398,16 @@ function TeamTabContent({
   }, [currentUser, userData?.teamMemberships]);
 
   const handleRemoveMember = async (teamId: string, memberUid: string) => {
-    if (!currentUser) {
-      return;
-    }
-    if (!window.confirm('Remove this member from the team?')) {
-      return;
-    }
+    if (!currentUser) return;
+    if (!window.confirm('Remove this member from the team?')) return;
 
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/members/${memberUid}`, {
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/remove-member`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: memberUid })
       });
 
       if (!res.ok) {
@@ -1266,7 +1416,6 @@ function TeamTabContent({
       }
 
       toast({ title: 'Member Removed', description: 'Successfully removed from the team.' });
-
       setTeamsData((prev: any[]) =>
         prev.map((t) =>
           t.id === teamId
@@ -1279,6 +1428,126 @@ function TeamTabContent({
         )
       );
       await refreshTeamQueries();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handlePromoteAdmin = async (teamId: string, memberUid: string) => {
+    if (!currentUser) return;
+    setActionLoading(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/promote-admin`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: memberUid }),
+      });
+      if (!res.ok) throw new Error('Failed to promote member to admin');
+      toast({ title: 'Promoted', description: 'Member promoted to admin successfully.' });
+      await refreshTeamQueries();
+      const fetchTeams = async () => {
+        const teamsRes = await fetch(`${API_BASE_URL}/api/teams`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if(teamsRes.ok) {
+          const data = await teamsRes.json();
+          setTeamsData(data);
+        }
+      };
+      await fetchTeams();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleDemoteAdmin = async (teamId: string, memberUid: string) => {
+    if (!currentUser) return;
+    setActionLoading(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/demote-admin`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: memberUid }),
+      });
+      if (!res.ok) throw new Error('Failed to demote admin to member');
+      toast({ title: 'Demoted', description: 'Admin demoted to member successfully.' });
+      await refreshTeamQueries();
+      const fetchTeams = async () => {
+        const teamsRes = await fetch(`${API_BASE_URL}/api/teams`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if(teamsRes.ok) {
+          const data = await teamsRes.json();
+          setTeamsData(data);
+        }
+      };
+      await fetchTeams();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAcceptMember = async (teamId: string, memberUid: string) => {
+    if (!currentUser) return;
+    setActionLoading(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/accept-member`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: memberUid }),
+      });
+      if (!res.ok) throw new Error('Failed to accept member');
+      toast({ title: 'Accepted', description: 'Member accepted successfully.' });
+      await refreshTeamQueries();
+      const fetchTeams = async () => {
+        const teamsRes = await fetch(`${API_BASE_URL}/api/teams`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if(teamsRes.ok) {
+          const data = await teamsRes.json();
+          setTeamsData(data);
+        }
+      };
+      await fetchTeams();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRejectMember = async (teamId: string, memberUid: string) => {
+    if (!currentUser) return;
+    setActionLoading(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/reject-member`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: memberUid }),
+      });
+      if (!res.ok) throw new Error('Failed to reject member');
+      toast({ title: 'Rejected', description: 'Member rejected successfully.' });
+      await refreshTeamQueries();
+      const fetchTeams = async () => {
+        const teamsRes = await fetch(`${API_BASE_URL}/api/teams`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if(teamsRes.ok) {
+          const data = await teamsRes.json();
+          setTeamsData(data);
+        }
+      };
+      await fetchTeams();
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
@@ -1369,8 +1638,8 @@ function TeamTabContent({
     const member = team?.memberDetails?.find((m: any) => m.uid === newOwnerId);
 
     if (
-      !window.confirm(
-        `Are you sure you want to transfer ownership to ${member?.displayName || 'this member'}? You will lose owner permissions.`
+      !confirm(
+        `Are you sure you want to request an ownership transfer to ${member?.displayName || 'this member'}? An email will be sent to you to verify.`
       )
     ) {
       return;
@@ -1379,8 +1648,8 @@ function TeamTabContent({
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/transfer-ownership`, {
-        method: 'PATCH',
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/transfer-ownership/request`, {
+        method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -1390,7 +1659,47 @@ function TeamTabContent({
 
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.message || 'Failed to transfer ownership');
+        throw new Error(err.message || 'Failed to request transfer');
+      }
+
+      toast({
+        title: 'Verification Email Sent',
+        description: 'Please check your email for the OTP.',
+      });
+
+      setPendingTransferTarget({ id: newOwnerId, name: member?.displayName || 'this member' });
+      setTransferOtp('');
+      setTransferOtpOpen(true);
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleVerifyOwnershipTransfer = async (teamId: string) => {
+    if (!currentUser || !pendingTransferTarget) return;
+
+    if (!transferOtp || transferOtp.length < 6) {
+      toast({ title: 'Invalid OTP', description: 'Please enter the 6-digit OTP.', variant: 'destructive' });
+      return;
+    }
+
+    setActionLoading(true);
+    try {
+      const token = await currentUser.getIdToken();
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/transfer-ownership/verify`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ newOwnerId: pendingTransferTarget.id, otp: transferOtp }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.message || 'Failed to verify transfer');
       }
 
       toast({
@@ -1398,16 +1707,19 @@ function TeamTabContent({
         description: 'Successfully updated the team leader.',
       });
 
+      setTransferOtpOpen(false);
+      setPendingTransferTarget(null);
+      setTransferOtp('');
 
       setTeamsData((prev: any[]) =>
         prev.map((t) =>
           t.id === teamId
             ? {
                 ...t,
-                ownerId: newOwnerId,
+                ownerId: pendingTransferTarget.id,
                 memberDetails: t.memberDetails.map((m: any) => ({
                   ...m,
-                  isOwner: m.uid === newOwnerId,
+                  isOwner: m.uid === pendingTransferTarget.id,
                 })),
               }
             : t
@@ -1526,8 +1838,7 @@ function TeamTabContent({
         {teamsData.map((team: any) => {
           const tid = team.id || team._id;
           const isSelected = selectedTeamId === tid;
-          const logoId = team.logoId || getDeterministicLogoId(tid);
-          const { icon: LogoIcon, fgColor, bgColor, borderColor } = getLogoById(logoId);
+          const logoId = team.logoId || null;
           const isOwner = team.ownerId === currentUser?.uid;
 
           return (
@@ -1541,16 +1852,12 @@ function TeamTabContent({
             >
               <CardContent className="p-4 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div
-                    className="h-10 w-10 flex items-center justify-center rounded-full border"
-                    style={{
-                      color: fgColor,
-                      backgroundColor: isSelected ? bgColor : `${bgColor}CC`,
-                      borderColor,
-                    }}
-                  >
-                    <LogoIcon className="h-5 w-5" />
-                  </div>
+                  <TeamLogoDisplay 
+                    logoId={logoId}
+                    teamName={team.name}
+                    className="h-10 w-10"
+                    style={{ backgroundColor: isSelected ? undefined : 'color-mix(in srgb, currentColor 10%, transparent)' }}
+                  />
                   <div className="min-w-0">
                     <p className="text-sm font-semibold truncate max-w-[120px]">{team.name}</p>
                     <p className="text-[10px] text-muted-foreground">
@@ -1578,15 +1885,46 @@ function TeamTabContent({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   {(() => {
-                    const lid = selectedTeam.logoId || getDeterministicLogoId(selectedTeam.id);
-                    const { icon: LI, fgColor, bgColor, borderColor } = getLogoById(lid);
-                    return (
-                      <div
-                        className="h-12 w-12 flex items-center justify-center rounded-full border"
-                        style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                      >
-                        <LI className="h-6 w-6" />
+                    const lid = selectedTeam.logoId || null;
+                    const isOwner = selectedTeam.ownerId === currentUser?.uid;
+                    const isAdmin = selectedTeam.admins?.includes(currentUser?.uid);
+                    const canEditPhoto = isOwner || isAdmin;
+
+                    const LogoElement = (
+                      <div className={cn("relative group shrink-0 h-12 w-12", canEditPhoto && "cursor-pointer")}>
+                        <TeamLogoDisplay
+                          logoId={lid}
+                          teamName={selectedTeam.name}
+                          className="h-12 w-12 group-hover:ring-2 group-hover:ring-primary/50 transition-all"
+                          iconClassName="h-6 w-6 relative z-0"
+                        />
+                        {canEditPhoto && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            {isUploadingTeamPhoto ? (
+                              <div className="h-4 w-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                            ) : (
+                              <Camera className="h-4 w-4 text-white" />
+                            )}
+                          </div>
+                        )}
                       </div>
+                    );
+
+                    return canEditPhoto ? (
+                      <>
+                        <div onClick={() => teamFileInputRef.current?.click()} className="shrink-0" title="Click to upload team photo">
+                          {LogoElement}
+                        </div>
+                        <input
+                          type="file"
+                          ref={teamFileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleTeamFileSelect}
+                        />
+                      </>
+                    ) : (
+                      LogoElement
                     );
                   })()}
                   <div>
@@ -1671,6 +2009,7 @@ function TeamTabContent({
           </Card>
 
           {/* Members Card */}
+          {/* Members Card */}
           <Card className="bg-card/60 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-lg">Members Management</CardTitle>
@@ -1680,75 +2019,164 @@ function TeamTabContent({
                   : 'View team collaborators.'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {selectedTeam.memberDetails?.map((member: any) => {
-                const isMemberOwner = member.uid === selectedTeam.ownerId;
-                const isYou = member.uid === currentUser?.uid;
-                const amITheOwner = selectedTeam.ownerId === currentUser?.uid;
-
-                return (
-                  <div
-                    key={member.uid}
-                    className="flex items-center justify-between p-4 rounded-xl border border-border/10 bg-card/50 hover:bg-card/80 transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-10 w-10 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
-                        <AvatarImage
-                          src={member.photoURL ? getFullUrl(member.photoURL) : undefined}
-                        />
-                        <AvatarFallback className="text-xs bg-muted text-foreground font-bold">
-                          {member.displayName
-                            ?.split(' ')
-                            .map((n: string) => n[0])
-                            .join('')
-                            .slice(0, 2)
-                            .toUpperCase() || '?'}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <p className="text-sm font-bold flex items-center gap-2">
-                          {member.displayName}{' '}
-                          {isYou && (
-                            <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
-                              You
-                            </span>
-                          )}
-                          {isMemberOwner && (
-                            <Crown className="h-3.5 w-3.5 text-amber-500 fill-amber-500/20" />
-                          )}
-                        </p>
-                        <p className="text-xs text-muted-foreground">{member.email}</p>
+            <CardContent className="space-y-6">
+              {/* Pending Requests */}
+              {selectedTeam.ownerId === currentUser?.uid && selectedTeam.pendingMemberDetails && selectedTeam.pendingMemberDetails.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Pending Requests</h3>
+                  {selectedTeam.pendingMemberDetails.map((member: any) => (
+                    <div
+                      key={member.uid}
+                      className="flex items-center justify-between p-4 rounded-xl border border-border/10 bg-card/50 hover:bg-card/80 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
+                          <AvatarImage
+                            src={member.photoURL ? getFullUrl(member.photoURL) : undefined}
+                          />
+                          <AvatarFallback className="text-xs bg-muted text-foreground font-bold">
+                            {member.displayName
+                              ?.split(' ')
+                              .map((n: string) => n[0])
+                              .join('')
+                              .slice(0, 2)
+                              .toUpperCase() || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-bold flex items-center gap-2">
+                            {member.displayName}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{member.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          className="h-8 text-xs font-bold"
+                          onClick={() => handleAcceptMember(selectedTeam.id, member.uid)}
+                          disabled={actionLoading}
+                        >
+                          Accept
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 text-xs text-destructive hover:bg-destructive/10 hover:text-destructive font-bold"
+                          onClick={() => handleRejectMember(selectedTeam.id, member.uid)}
+                          disabled={actionLoading}
+                        >
+                          Reject
+                        </Button>
                       </div>
                     </div>
+                  ))}
+                </div>
+              )}
 
-                    <div className="flex items-center gap-1">
-                      {amITheOwner && !isMemberOwner && (
-                        <>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-[10px] hover:bg-amber-500/10 hover:text-amber-500 text-text3 font-bold"
-                            onClick={() => handleTransferOwnership(selectedTeam.id, member.uid)}
-                            disabled={actionLoading}
-                          >
-                            Transfer Ownership
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                            onClick={() => handleRemoveMember(selectedTeam.id, member.uid)}
-                            disabled={actionLoading}
-                            title="Remove from team"
-                          >
-                            <UserMinus className="h-4 w-4" />
-                          </Button>
-                        </>
-                      )}
+              {/* Active Members */}
+              <div className="space-y-3">
+                {selectedTeam.ownerId === currentUser?.uid && selectedTeam.pendingMemberDetails && selectedTeam.pendingMemberDetails.length > 0 && (
+                   <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Active Members</h3>
+                )}
+                {selectedTeam.memberDetails?.map((member: any) => {
+                  const isMemberOwner = member.uid === selectedTeam.ownerId;
+                  const isMemberAdmin = selectedTeam.admins?.includes(member.uid);
+                  const isYou = member.uid === currentUser?.uid;
+                  const amITheOwner = selectedTeam.ownerId === currentUser?.uid;
+
+                  return (
+                    <div
+                      key={member.uid}
+                      className="flex items-center justify-between p-4 rounded-xl border border-border/10 bg-card/50 hover:bg-card/80 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border border-transparent ring-1 ring-border/10 group-hover:ring-border/30 transition-all">
+                          <AvatarImage
+                            src={member.photoURL ? getFullUrl(member.photoURL) : undefined}
+                          />
+                          <AvatarFallback className="text-xs bg-muted text-foreground font-bold">
+                            {member.displayName
+                              ?.split(' ')
+                              .map((n: string) => n[0])
+                              .join('')
+                              .slice(0, 2)
+                              .toUpperCase() || '?'}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <p className="text-sm font-bold flex items-center gap-2">
+                            {member.displayName}{' '}
+                            {isYou && (
+                              <span className="text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">
+                                You
+                              </span>
+                            )}
+                            {isMemberOwner ? (
+                              <span className="text-[10px] text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                                <Crown className="h-3 w-3" /> Owner
+                              </span>
+                            ) : isMemberAdmin ? (
+                              <span className="text-[10px] text-blue-500 bg-blue-500/10 px-1.5 py-0.5 rounded-full font-bold">
+                                Admin
+                              </span>
+                            ) : null}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{member.email}</p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1">
+                        {amITheOwner && !isMemberOwner && (
+                          <>
+                            {isMemberAdmin ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-[10px] hover:bg-orange-500/10 hover:text-orange-500 text-text3 font-bold"
+                                onClick={() => handleDemoteAdmin(selectedTeam.id, member.uid)}
+                                disabled={actionLoading}
+                              >
+                                Demote to Member
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 text-[10px] hover:bg-blue-500/10 hover:text-blue-500 text-text3 font-bold"
+                                onClick={() => handlePromoteAdmin(selectedTeam.id, member.uid)}
+                                disabled={actionLoading}
+                              >
+                                Promote to Admin
+                              </Button>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 text-[10px] hover:bg-amber-500/10 hover:text-amber-500 text-text3 font-bold"
+                              onClick={() => handleTransferOwnership(selectedTeam.id, member.uid)}
+                              disabled={actionLoading}
+                            >
+                              Transfer Ownership
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                              onClick={() => handleRemoveMember(selectedTeam.id, member.uid)}
+                              disabled={actionLoading}
+                              title="Remove from team"
+                            >
+                              <UserMinus className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </CardContent>
           </Card>
 
@@ -1819,6 +2247,58 @@ function TeamTabContent({
           </p>
         </Card>
       )}
+      
+      <ProfilePhotoCropper
+        open={teamCropperOpen}
+        imageSrc={teamCropperImage}
+        title="Adjust Team Photo"
+        onClose={() => setTeamCropperOpen(false)}
+        onCropComplete={handleTeamCroppedUpload}
+      />
+      
+      {/* OTP Dialog for Ownership Transfer */}
+      <Dialog open={transferOtpOpen} onOpenChange={setTransferOtpOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Verify Ownership Transfer</DialogTitle>
+            <DialogDescription>
+              We've sent a 6-digit verification code to your email. Enter it below to transfer ownership to {pendingTransferTarget?.name}.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="otp">Verification Code</Label>
+              <Input
+                id="otp"
+                placeholder="123456"
+                value={transferOtp}
+                onChange={(e) => setTransferOtp(e.target.value)}
+                maxLength={6}
+                className="text-center tracking-[0.5em] text-lg font-mono"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setTransferOtpOpen(false);
+                setPendingTransferTarget(null);
+                setTransferOtp('');
+              }}
+              disabled={actionLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => selectedTeam?.id && handleVerifyOwnershipTransfer(selectedTeam.id)}
+              disabled={actionLoading || transferOtp.length < 6}
+            >
+              {actionLoading ? 'Verifying...' : 'Transfer Ownership'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

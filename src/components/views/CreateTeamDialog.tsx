@@ -73,7 +73,7 @@
  * @license Proprietary and Confidential
  * ============================================================================
  */
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -87,18 +87,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { X } from 'lucide-react';
+import { X, Camera } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTeamPersistence } from '@/hooks/useTeamPersistence';
-import { TEAM_LOGOS, TeamLogoId, getRandomLogoId } from '@/lib/team-logos';
+import ProfilePhotoCropper from '@/components/ProfilePhotoCropper';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 
@@ -121,7 +122,11 @@ const TEAM_TYPES = [
 export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDialogProps) => {
   const [teamName, setTeamName] = useState('');
   const [teamType, setTeamType] = useState('Product');
-  const [selectedLogoId, setSelectedLogoId] = useState<TeamLogoId>(getRandomLogoId());
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [cropperOpen, setCropperOpen] = useState(false);
+  const [cropperImage, setCropperImage] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [invites, setInvites] = useState<{ email: string }[]>([]);
   const [currentInvite, setCurrentInvite] = useState('');
 
@@ -148,6 +153,26 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
       if (!response.ok) {
         throw new Error(data.message || 'Failed to create team');
       }
+
+      if (selectedFile) {
+        const teamId = data.id || data._id;
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        try {
+          const uploadRes = await fetch(`${API_BASE_URL}/api/upload/team-photo/${teamId}`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${token}` },
+            body: formData,
+          });
+          if (uploadRes.ok) {
+            const uploadData = await uploadRes.json();
+            data.logoId = uploadData.logoId;
+          }
+        } catch (e) {
+          console.warn('Failed to upload team photo:', e);
+        }
+      }
+
       return data;
     },
     onSuccess: (data) => {
@@ -160,7 +185,7 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
           data.name,
           auth.currentUser.uid,
           data.inviteCode,
-          selectedLogoId
+          data.logoId || ''
         );
       }
 
@@ -174,6 +199,8 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
       onOpenChange(false);
       setTeamName('');
       setInvites([]);
+      setSelectedFile(null);
+      setPreviewUrl(null);
     },
     onError: (error: any) => {
       console.error('Error creating team:', error);
@@ -210,6 +237,26 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
       return;
     }
     createTeamMutation.mutate();
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        setCropperImage(reader.result as string);
+        setCropperOpen(true);
+      };
+      reader.readAsDataURL(file);
+      e.target.value = '';
+    }
+  };
+
+  const handleCropComplete = (croppedBlob: Blob) => {
+    const file = new File([croppedBlob], 'team-photo.jpg', { type: 'image/jpeg' });
+    setSelectedFile(file);
+    setPreviewUrl(URL.createObjectURL(croppedBlob));
+    setCropperOpen(false);
   };
 
   return (
@@ -249,40 +296,36 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
 
           <div className="space-y-2">
             <Label>Team Logo</Label>
-            <ScrollArea className="h-[200px] w-full rounded-2xl border border-border/10 p-4 bg-card/50 backdrop-blur-md">
-              <div className="grid grid-cols-6 gap-3">
-                {TEAM_LOGOS.map((logo) => {
-                  const Icon = logo.icon;
-                  return (
-                    <Button
-                      key={logo.id}
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className={cn(
-                        'h-10 w-10 p-0 transition-all hover:bg-foreground/10',
-                        selectedLogoId === logo.id
-                          ? 'bg-foreground/15 ring-2 ring-foreground/20'
-                          : ''
-                      )}
-                      onClick={() => setSelectedLogoId(logo.id)}
-                      title={logo.label}
-                    >
-                      <span
-                        className="inline-flex h-8 w-8 items-center justify-center rounded-full border"
-                        style={{
-                          color: logo.fgColor,
-                          backgroundColor: logo.bgColor,
-                          borderColor: logo.borderColor,
-                        }}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                    </Button>
-                  );
-                })}
+            <div className="flex flex-col items-center justify-center p-6 border border-border/10 rounded-2xl bg-card/50 backdrop-blur-md">
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept="image/*"
+                onChange={handleFileSelect}
+              />
+              <div
+                className="relative h-28 w-28 rounded-full border-2 border-border/20 bg-background flex items-center justify-center cursor-pointer overflow-hidden group shadow-elevation2 transition-all hover:border-border/50"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {previewUrl ? (
+                  <>
+                    <img src={previewUrl} alt="Preview" className="h-full w-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Camera className="h-8 w-8 text-white" />
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-center text-muted-foreground group-hover:text-foreground transition-colors">
+                    <Camera className="h-10 w-10 mb-1" />
+                    <span className="text-xs uppercase font-bold tracking-wider">Upload</span>
+                  </div>
+                )}
               </div>
-            </ScrollArea>
+              <p className="text-xs text-muted-foreground mt-4">
+                Recommended size: 500x500px
+              </p>
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -318,15 +361,23 @@ export const CreateTeamDialog = ({ open, onOpenChange, onSuccess }: CreateTeamDi
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
+        <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
           <Button onClick={handleCreateTeam} disabled={createTeamMutation.isPending}>
             {createTeamMutation.isPending ? 'Creating...' : 'Create Team'}
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
+
+      <ProfilePhotoCropper
+        open={cropperOpen}
+        imageSrc={cropperImage}
+        title="Adjust Team Photo"
+        onClose={() => setCropperOpen(false)}
+        onCropComplete={handleCropComplete}
+      />
     </Dialog>
   );
 };
