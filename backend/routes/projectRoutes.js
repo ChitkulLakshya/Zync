@@ -1135,7 +1135,7 @@ router.post(
       const newTask = new ProjectTask({
         title,
         description: description || null,
-        status: 'Pending',
+        status: 'Ready',
         assignedBy: assignedBy || 'Admin',
         createdBy: req.user ? req.user.uid : assignedBy || 'Admin',
         stepId,
@@ -1230,6 +1230,19 @@ router.put(
         project: updatedProject,
       });
 
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        const updatedTask = await ProjectTask.findById(taskId).lean();
+        taskIO.emitToProject(projectId, 'task-updated', {
+          projectId,
+          stepId,
+          taskId,
+          task: updatedTask,
+          changes: taskUpdate,
+          actor: req.user.uid,
+        });
+      }
+
       invalidateProjectCache(project);
       res.json(updatedProject);
     } catch (error) {
@@ -1275,6 +1288,16 @@ router.delete(
         projectId: updatedProject.id,
         project: updatedProject,
       });
+
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        taskIO.emitToProject(projectId, 'task-deleted', {
+          projectId,
+          stepId,
+          taskId,
+          actor: userId,
+        });
+      }
 
       res.json({
         message: 'Task deleted successfully',
@@ -1419,7 +1442,7 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
     const newTask = await ProjectTask.create({
       title,
       description: description || null,
-      status: 'Backlog',
+      status: 'Ready',
       assignedTo,
       assignedToName,
       assignedBy: req.user?.name || 'Admin',
@@ -1860,6 +1883,76 @@ router.patch('/:id/github-settings', authMiddleware, async (req, res) => {
   }
 });
 
+// WHAT: Live GitHub activity for a task's branch (commit count + messages). WHY: Powers
+// the task detail dialog without needing to store full commit history in Mongo.
+router.get('/:projectId/steps/:stepId/tasks/:taskId/git-activity', authMiddleware, async (req, res) => {
+  try {
+    const { projectId, taskId } = req.params;
+    const project = await Project.findById(projectId).lean();
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    const task = await ProjectTask.findById(taskId).lean();
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    const base = {
+      branch: task.githubBranchName || null,
+      commitCount: 0,
+      commits: [],
+      prUrl: task.githubPrUrl || null,
+      prNumber: task.githubPrNumber || null,
+      merged: Boolean(task.merged),
+    };
+
+    if (!task.githubBranchName || !project.githubRepoOwner || !project.githubRepoName) {
+      return res.json(base);
+    }
+
+    try {
+      const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+      const commitsRes = await octokit.request('GET /repos/{owner}/{repo}/commits', {
+        owner: project.githubRepoOwner,
+        repo: project.githubRepoName,
+        sha: task.githubBranchName,
+        per_page: 30,
+      });
+
+      base.commits = (commitsRes.data || []).map((c) => ({
+        sha: c.sha?.substring(0, 7),
+        message: c.commit?.message || '',
+        author: c.commit?.author?.name || c.author?.login || 'Unknown',
+        date: c.commit?.author?.date || null,
+        url: c.html_url,
+      }));
+      base.commitCount = base.commits.length;
+    } catch (ghError) {
+      console.warn(`Failed to fetch commits for branch ${task.githubBranchName}:`, ghError.message);
+      // Fall back to the single latest commit we already have stored, if any.
+      if (task.commitMessage) {
+        base.commits = [{
+          sha: task.commitCode,
+          message: task.commitMessage,
+          author: task.commitAuthor,
+          date: task.commitTimestamp,
+          url: task.commitUrl,
+        }];
+        base.commitCount = 1;
+      }
+    }
+
+    res.json(base);
+  } catch (error) {
+    console.error('Error fetching task git activity:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // WHAT: Merge PR and delete branch. WHY: Feature 2 - Automated Task Workflow.
 router.post('/tasks/:taskId/merge-pr', authMiddleware, async (req, res) => {
   try {
@@ -1909,13 +2002,26 @@ router.post('/tasks/:taskId/merge-pr', authMiddleware, async (req, res) => {
         // We don't fail the request if branch deletion fails, as the merge was successful.
       }
 
-      // 3. Mark task fully completed in Zync
+      // 3. Mark the PR as merged in Zync. Status stays as-is (PR Raised is the final
+      // column); the `merged` flag lets the UI show a "Merged" state instead of
+      // regressing the card backward on the board.
       await ProjectTask.findByIdAndUpdate(taskId, {
         $set: {
-          status: 'Completed',
+          merged: true,
           updatedAt: Date.now()
         }
       });
+
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        taskIO.emitToProject(String(project._id), 'task-updated', {
+          projectId: String(project._id),
+          stepId: String(step._id),
+          taskId: String(taskId),
+          changes: { merged: true },
+          actor: req.user.uid,
+        });
+      }
 
       return res.status(200).json({ message: 'PR successfully merged and branch deleted. Task completed.' });
     } catch (apiError) {

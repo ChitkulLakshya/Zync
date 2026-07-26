@@ -80,7 +80,7 @@ const projectTaskSchema = new mongoose.Schema(
     displayId: { type: String, default: null },
     title: { type: String, required: true },
     description: { type: String, default: null },
-    status: { type: String, default: 'Backlog' },
+    status: { type: String, default: 'Ready' },
 
     assignedTo: { type: String, default: null },
     assignedUserIds: { type: [String], default: [] },
@@ -102,6 +102,7 @@ const projectTaskSchema = new mongoose.Schema(
     completionCommitMessage: { type: String, default: null },
     githubPrUrl: { type: String, default: null },
     githubPrNumber: { type: Number, default: null },
+    merged: { type: Boolean, default: false },
 
     stepId: {
       type: mongoose.Schema.Types.ObjectId,
