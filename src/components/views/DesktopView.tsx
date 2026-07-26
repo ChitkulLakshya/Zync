@@ -107,6 +107,7 @@ import { Github } from '@/components/ui/GithubIcon';
 import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
 import { NotesView } from '@/components/notes/NotesView';
 import TasksView from './TasksView';
+import TaskBoardView from './TaskBoardView';
 import ActivityLogView from './ActivityLogView';
 import Workspace from '@/components/workspace/Workspace';
 import { Button } from '@/components/ui/button';
@@ -188,6 +189,20 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     return localStorage.getItem('ZYNC-active-section') || 'Dashboard';
   });
   const { beginTransition, showCompactSpinner } = useSectionTransitionLoader('desktop');
+
+  const [tasksSubView, setTasksSubView] = useState<'My Tasks' | 'Task Board'>(() => {
+    if (isPreview) {
+      return 'My Tasks';
+    }
+    const stored = localStorage.getItem('ZYNC-tasks-sub-view');
+    return stored === 'Task Board' ? 'Task Board' : 'My Tasks';
+  });
+
+  useEffect(() => {
+    if (!isPreview) {
+      localStorage.setItem('ZYNC-tasks-sub-view', tasksSubView);
+    }
+  }, [tasksSubView, isPreview]);
 
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
@@ -953,7 +968,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         return <DesignView />;
 
       case 'Tasks':
-        return <TasksView currentUser={currentUser} users={usersList} />;
+        return tasksSubView === 'Task Board' ? (
+          <TaskBoardView currentUser={currentUser} users={usersList} />
+        ) : (
+          <TasksView currentUser={currentUser} users={usersList} />
+        );
 
       case 'Notes':
         return (
@@ -1154,7 +1173,27 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     <PanelLeft className="w-5 h-5" />
                   </Button>
                   <h2 className="text-xl font-bold text-foreground tracking-tight flex items-center gap-2">
-                    <span>{activeSection}</span>
+                    {activeSection !== 'Tasks' && <span>{activeSection}</span>}
+                    
+                    {activeSection === 'Tasks' && (
+                      <div className="inline-flex items-center gap-1 bg-card/50 border border-border/10 rounded-xl p-1 backdrop-blur-md">
+                        {(['My Tasks', 'Task Board'] as const).map((label) => (
+                          <button
+                            key={label}
+                            onClick={() => setTasksSubView(label)}
+                            className={cn(
+                              'h-8 px-3 text-sm font-medium rounded-lg transition-colors',
+                              tasksSubView === label
+                                ? 'bg-secondary text-foreground shadow-sm'
+                                : 'text-muted-foreground hover:text-foreground'
+                            )}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
                     {showCompactSpinner && (
                       <RefreshCw
                         className="w-4 h-4 animate-spin text-zinc-400"
@@ -1173,6 +1212,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   </div>
                 </div>
               </div>
+
+
 
               {userMeError && !isPreview && (
                 <div className="px-4 pt-3 shrink-0 z-30">

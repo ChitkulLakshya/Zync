@@ -304,25 +304,58 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
     };
   }
 
-  // CHECK FOR COMPLETION COMMIT
+  // WHAT: Auto-progress the task's Kanban status based on branch activity. WHY: The board
+  // moves on its own according to real developer activity instead of manual drag/drop.
   const ref = payload.ref; // e.g. refs/heads/task/something
   if (ref && ref.startsWith('refs/heads/task/')) {
     const branchName = ref.replace('refs/heads/', '');
     const task = await ProjectTask.findOne({ githubBranchName: branchName });
-    if (task && task.completionCommitMessage) {
-      const match = commitsToProcess.find(c => c.message.trim() === task.completionCommitMessage.trim());
-      if (match) {
-        await ProjectTask.updateOne(
-          { _id: task._id },
-          { $set: { commitCode: match.id.substring(0, 7), commitMessage: match.message } }
+    if (task) {
+      const currentStatus = String(task.status || '').toLowerCase();
+      const isBeforeInProgress = ['ready', 'active'].includes(currentStatus);
+      const isBeforeDone = isBeforeInProgress || currentStatus === 'in progress';
+
+      const taskUpdate = {};
+
+      // Any commit pushed to the branch signals work has started ("In Progress").
+      if (isBeforeInProgress) {
+        taskUpdate.status = 'In Progress';
+      }
+
+      // A commit matching the Zync-generated completion message marks the task "Done",
+      // as long as a PR hasn't already been raised for it.
+      if (task.completionCommitMessage) {
+        const match = commitsToProcess.find(
+          (c) => c.message.trim() === task.completionCommitMessage.trim()
         );
-        // Note: we don't set status to "Completed" yet, because a PR is required. 
-        // We could set it to "Code Complete" but "PR Raised" handles the next stage.
-        if (getIo) {
-          getIo().to(linkedProject.ownerUid).emit('notification', {
-            title: 'Task Code Complete',
-            message: `Code for task "${task.title}" has been pushed to the branch!`,
-            type: 'info'
+        if (match) {
+          taskUpdate.commitCode = match.id.substring(0, 7);
+          taskUpdate.commitMessage = match.message;
+          if (isBeforeDone) {
+            taskUpdate.status = 'Done';
+          }
+
+          if (getIo) {
+            getIo().to(linkedProject.ownerUid).emit('notification', {
+              title: 'Task Code Complete',
+              message: `Code for task "${task.title}" has been pushed to the branch!`,
+              type: 'info',
+            });
+          }
+        }
+      }
+
+      if (Object.keys(taskUpdate).length > 0) {
+        await ProjectTask.updateOne({ _id: task._id }, { $set: taskUpdate });
+
+        const taskIO = req?.app?.get ? req.app.get('taskIO') : null;
+        if (taskIO) {
+          taskIO.emitToProject(String(linkedProject._id), 'task-updated', {
+            projectId: String(linkedProject._id),
+            stepId: String(task.stepId),
+            taskId: String(task._id),
+            changes: taskUpdate,
+            actor: sender?.login || 'github',
           });
         }
       }

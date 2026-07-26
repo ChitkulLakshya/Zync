@@ -175,7 +175,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
               _id: taskId,
               title: t.title || t.name || t,
               description: t.description,
-              status: t.status || 'Pending',
+              status: t.status || 'Ready',
               priority: t.priority || 'Medium',
               projectName: p.name,
               projectId,
@@ -230,7 +230,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
   });
 
   const markTaskActive = async (task: FlattenedTask) => {
-    if (!['Pending', 'Ready', 'Backlog'].includes(task.status)) {
+    if (task.status !== 'Ready') {
       return;
     }
 
@@ -290,29 +290,23 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
   };
 
   const getStatusColor = (status: string) => {
-    if (['Completed', 'Done'].includes(status)) {
-      return 'bg-emerald-500';
+    switch (status) {
+      case 'Done': return 'bg-emerald-500';
+      case 'PR Raised': return 'bg-purple-500';
+      case 'In Progress': return 'bg-amber-500';
+      case 'Active': return 'bg-sky-500';
+      default: return 'bg-muted-foreground';
     }
-    if (['In Progress'].includes(status)) {
-      return 'bg-amber-500';
-    }
-    if (['Active'].includes(status)) {
-      return 'bg-sky-500';
-    }
-    return 'bg-muted-foreground';
   };
 
   const getStatusLabel = (status: string) => {
-    if (['Completed', 'Done'].includes(status)) {
-      return 'Done';
+    switch (status) {
+      case 'Done': return 'Done';
+      case 'PR Raised': return 'PR Raised';
+      case 'In Progress': return 'In Progress';
+      case 'Active': return 'Active';
+      default: return 'Ready';
     }
-    if (['In Progress'].includes(status)) {
-      return 'In Progress';
-    }
-    if (['Active'].includes(status)) {
-      return 'Active';
-    }
-    return 'Pending';
   };
 
   const getPriorityIcon = (priority?: string) => {
@@ -334,10 +328,10 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
     const allTasks = groupedTasks.flatMap((g) => g.tasks);
     return {
       total: allTasks.length,
-      pending: allTasks.filter((t) => t.status === 'Pending').length,
+      ready: allTasks.filter((t) => t.status === 'Ready').length,
       active: allTasks.filter((t) => t.status === 'Active').length,
       inProgress: allTasks.filter((t) => t.status === 'In Progress').length,
-      done: allTasks.filter((t) => ['Done', 'Completed'].includes(t.status)).length,
+      done: allTasks.filter((t) => t.status === 'Done').length,
       projectCount: groupedTasks.length,
     };
   }, [groupedTasks]);
@@ -396,7 +390,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <h4
-                              className={`text-[15px] font-medium leading-snug ${['Completed', 'Done'].includes(task.status) ? 'line-through text-muted-foreground' : ''}`}
+                              className={`text-[15px] font-medium leading-snug ${task.status === 'Done' ? 'line-through text-muted-foreground' : ''}`}
                             >
                               {task.title}
                             </h4>
@@ -414,13 +408,15 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
                             <span className="text-muted-foreground/30">·</span>
                             <span
                               className={`px-1.5 py-0.5 rounded text-xs ${
-                                ['Completed', 'Done'].includes(task.status)
+                                task.status === 'Done'
                                   ? 'bg-emerald-500/20 text-emerald-400'
-                                  : ['In Progress'].includes(task.status)
-                                    ? 'bg-amber-500/20 text-amber-400'
-                                    : ['Active'].includes(task.status)
-                                      ? 'bg-sky-500/20 text-sky-400'
-                                      : 'bg-accent text-accent-foreground'
+                                  : task.status === 'PR Raised'
+                                    ? 'bg-purple-500/20 text-purple-400'
+                                    : task.status === 'In Progress'
+                                      ? 'bg-amber-500/20 text-amber-400'
+                                      : task.status === 'Active'
+                                        ? 'bg-sky-500/20 text-sky-400'
+                                        : 'bg-accent text-accent-foreground'
                               }`}
                             >
                               {getStatusLabel(task.status)}

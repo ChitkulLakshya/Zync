@@ -90,7 +90,6 @@ import { API_BASE_URL, SOCKET_BASE_URL, getFullUrl } from "@/lib/utils";
 import { auth } from "@/lib/firebase";
 import { sendMessage as socketSendMessage } from "@/services/chatSocketService";
 import { useTaskUpdates } from "@/hooks/use-task-updates";
-import KanbanBoard from "@/components/workspace/KanbanBoard";
 import { ActivityGraph } from "@/components/views/ActivityGraph";
 import { io } from "socket.io-client";
 import { toast } from "sonner";
@@ -542,46 +541,6 @@ const ProjectDetails = () => {
   };
 
 
-  const handleDeleteTask = async (stepId: string, taskId: string) => {
-    if (!project) {return;}
-
-
-    const newSteps = project.steps.map(step => {
-      if (step._id === stepId || step.id === stepId) {
-        return {
-          ...step,
-          tasks: step.tasks.filter(t => t._id !== taskId && t.id !== taskId)
-        };
-      }
-      return step;
-    });
-
-    setProject({ ...project, steps: newSteps });
-
-    try {
-      const step = project.steps.find(s => s._id === stepId || s.id === stepId);
-      if (!step) {return;}
-
-      const realStepId = step._id;
-
-
-      const token = await auth.currentUser?.getIdToken();
-      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${taskId}`, {
-        method: 'DELETE',
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      if (!response.ok) {throw new Error("Failed to delete");}
-      toast.success("Task deleted");
-    } catch (error) {
-      console.error("Delete failed", error);
-      toast.error("Failed to delete task");
-      fetchProject();
-    }
-  };
-
   const openAssignmentDialog = (stepId: string, task: Task) => {
     setSelectedTaskForAssignment({ stepId, task });
     setSelectedUserId(task.assignedTo || null);
@@ -726,9 +685,6 @@ const ProjectDetails = () => {
                 Development Steps
               </TabsTrigger>
             )}
-            <TabsTrigger value="board" className="rounded-none border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:bg-transparent px-6 pb-2">
-              Task Board
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="architecture" className="flex-1 space-y-6">
@@ -886,18 +842,6 @@ const ProjectDetails = () => {
                 </Card>
               </div>
             )}
-          </TabsContent>
-
-          <TabsContent value="board" className="flex-1 p-4">
-            <KanbanBoard
-              steps={project.steps}
-              onUpdateTask={handleTaskUpdate}
-              users={users}
-              currentUser={auth.currentUser}
-              isOwner={isOwner}
-              readOnly={true}
-              onDeleteTask={handleDeleteTask}
-            />
           </TabsContent>
 
           {!isGitHubProject && (
