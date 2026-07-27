@@ -41,6 +41,37 @@ const nodePaletteItems = [
   { type: 'external', label: 'External', icon: '☁️', color: '#6b7280' },
 ];
 
+const splitTechStack = (raw: string): string[] => {
+  if (!raw) return [];
+  const parts: string[] = [];
+  let current = '';
+  let depth = 0;
+  for (let i = 0; i < raw.length; i++) {
+    const char = raw[i];
+    if (char === '(') depth++;
+    if (char === ')') depth--;
+    if (char === ',' && depth === 0) {
+      if (current.trim()) parts.push(current.trim());
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+};
+
+const normalizeTechValue = (raw: string): string | null => {
+  const text = String(raw)
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[^a-zA-Z0-9+.# -]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!text || text.length < 2) return null;
+  if (/^(and|or|the|for|with|without|using|via|including|excluding|likely|potentially|complementing)$/i.test(text)) return null;
+  return text;
+};
+
 const convertBackendArchitectureToDiagram = (arch: any, projectName: string): ArchitectureDiagram => {
   if (!arch || typeof arch !== 'object') {
     return {
@@ -63,9 +94,9 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 
   const highLevel = (arch.highLevel || '').toString();
 
-  const frontendId = addNode('Frontend', 'frontend', arch.frontend?.structure || 'Client application', 'healthy', Array.isArray(arch.integrations) ? arch.integrations.join(', ') : undefined);
-  const backendId = addNode('Backend', 'service', arch.backend?.structure || 'API server', 'healthy', Array.isArray(arch.backend?.services) ? arch.backend.services.join(', ') : (Array.isArray(arch.integrations) ? arch.integrations.join(', ') : undefined));
-  const databaseId = addNode('Database', 'database', arch.database?.design || 'Primary datastore', 'healthy', Array.isArray(arch.database?.collections) ? arch.database.collections.join(', ') : undefined);
+  const frontendId = addNode('Frontend', 'frontend', arch.frontend?.structure || 'Client application', 'healthy', Array.isArray(arch.integrations) ? arch.integrations.map((i: string) => normalizeTechValue(i)).filter(Boolean).join(', ') : undefined);
+  const backendId = addNode('Backend', 'service', arch.backend?.structure || 'API server', 'healthy', Array.isArray(arch.backend?.services) ? arch.backend.services.map((s: string) => normalizeTechValue(s)).filter(Boolean).join(', ') : (Array.isArray(arch.integrations) ? arch.integrations.map((i: string) => normalizeTechValue(i)).filter(Boolean).join(', ') : undefined));
+  const databaseId = addNode('Database', 'database', arch.database?.design || 'Primary datastore', 'healthy', Array.isArray(arch.database?.collections) ? arch.database.collections.map((c: string) => normalizeTechValue(c)).filter(Boolean).join(', ') : undefined);
 
   edges.push(
     { id: `e-${idCounter++}`, source: frontendId, target: backendId, label: 'API calls', animated: true },
@@ -74,7 +105,8 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 
   if (Array.isArray(arch.integrations)) {
     arch.integrations.forEach((integration: string) => {
-      const name = String(integration).trim();
+      const raw = String(integration).trim();
+      const name = normalizeTechValue(raw);
       if (!name) {return;}
       const externalId = addNode(name, 'external', 'Integration', 'healthy', name);
       edges.push({ id: `e-${idCounter++}`, source: backendId, target: externalId, label: 'Integration', animated: false });
@@ -83,7 +115,8 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 
   if (Array.isArray(arch.backend?.services)) {
     arch.backend.services.forEach((service: string) => {
-      const name = String(service).trim();
+      const raw = String(service).trim();
+      const name = normalizeTechValue(raw);
       if (!name || name.toLowerCase() === (arch.backend?.structure || '').toLowerCase()) {return;}
       const serviceId = addNode(name, 'service', 'Backend service', 'healthy', name);
       edges.push({ id: `e-${idCounter++}`, source: backendId, target: serviceId, label: 'Internal', animated: false });
@@ -92,7 +125,8 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 
   if (Array.isArray(arch.database?.collections)) {
     arch.database.collections.forEach((collection: string) => {
-      const name = String(collection).trim();
+      const raw = String(collection).trim();
+      const name = normalizeTechValue(raw);
       if (!name) {return;}
       const collectionId = addNode(name, 'database', 'Collection / table', 'healthy', name);
       edges.push({ id: `e-${idCounter++}`, source: databaseId, target: collectionId, label: 'Stores', animated: false });
@@ -211,7 +245,7 @@ const normalizeFlowNodes = (nodes: any[]): Node[] => {
         label: node.label || node.id,
         sublabel: node.sublabel,
         status: node.status || 'healthy',
-        techStack: node.techStack,
+        techStack: node.techStack ? splitTechStack(node.techStack).map((t: string) => normalizeTechValue(t)).filter(Boolean).join(', ') : undefined,
         icon: node.icon,
         tasks: node.tasks,
         teamMembers: node.teamMembers,
@@ -570,6 +604,18 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   useEffect(() => {
     saveToStorage(nodes, edges, projectId);
   }, [nodes, edges]);
+
+  useEffect(() => {
+    const techs = nodes
+      .map((n) => (n.data as any)?.techStack)
+      .filter(Boolean)
+      .reduce<string[]>((acc, tech) => {
+        const parts = String(tech).split(',').map((p) => p.trim()).filter(Boolean);
+        parts.forEach((part) => { if (!acc.includes(part)) acc.push(part); });
+        return acc;
+      }, []);
+    console.log('[ArchitectureMap] Loaded tech values:', techs);
+  }, [nodes]);
 
   useEffect(() => {
     if (!searchTerm.trim()) {
