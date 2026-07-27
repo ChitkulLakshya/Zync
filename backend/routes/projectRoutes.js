@@ -620,12 +620,12 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const forceRefresh =
       req.query.forceRefresh === 'true' || req.body?.forceRefresh === true;
-    const provider = req.query.provider || 'gemini';
+    const provider = req.query.provider || 'kilo';
     const project = await Project.findById(id).lean();
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-    if (project.ownerUid !== req.user.uid) {
+    if (project.ownerUid !== req.user.uid && !(project.team || []).includes(req.user.uid)) {
       return res.status(403).json({ message: 'Unauthorized' });
     }
 
