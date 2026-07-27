@@ -283,7 +283,7 @@ const ProjectDetails = () => {
       
       // What: Sends a POST request to the analyze-architecture endpoint.
       // Why: Instructs the backend to perform the heavy lifting of analyzing the project.
-      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`, {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture?provider=kilo&forceRefresh=true`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
