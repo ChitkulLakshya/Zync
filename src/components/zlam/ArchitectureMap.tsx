@@ -55,17 +55,17 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
   const edges: ArchitectureEdge[] = [];
   let idCounter = 0;
 
-  const addNode = (label: string, type: ArchitectureNode['type'], sublabel?: string, status: ArchitectureNode['status'] = 'healthy') => {
+  const addNode = (label: string, type: ArchitectureNode['type'], sublabel?: string, status: ArchitectureNode['status'] = 'healthy', techStack?: string) => {
     const id = `node-${idCounter++}`;
-    nodes.push({ id, type, label, sublabel, status });
+    nodes.push({ id, type, label, sublabel, status, techStack });
     return id;
   };
 
   const highLevel = (arch.highLevel || '').toString();
 
-  const frontendId = addNode('Frontend', 'frontend', arch.frontend?.structure || 'Client application');
-  const backendId = addNode('Backend', 'service', arch.backend?.structure || 'API server');
-  const databaseId = addNode('Database', 'database', arch.database?.design || 'Primary datastore');
+  const frontendId = addNode('Frontend', 'frontend', arch.frontend?.structure || 'Client application', 'healthy', Array.isArray(arch.integrations) ? arch.integrations.join(', ') : undefined);
+  const backendId = addNode('Backend', 'service', arch.backend?.structure || 'API server', 'healthy', Array.isArray(arch.backend?.services) ? arch.backend.services.join(', ') : (Array.isArray(arch.integrations) ? arch.integrations.join(', ') : undefined));
+  const databaseId = addNode('Database', 'database', arch.database?.design || 'Primary datastore', 'healthy', Array.isArray(arch.database?.collections) ? arch.database.collections.join(', ') : undefined);
 
   edges.push(
     { id: `e-${idCounter++}`, source: frontendId, target: backendId, label: 'API calls', animated: true },
@@ -76,7 +76,7 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
     arch.integrations.forEach((integration: string) => {
       const name = String(integration).trim();
       if (!name) {return;}
-      const externalId = addNode(name, 'external', 'Integration');
+      const externalId = addNode(name, 'external', 'Integration', 'healthy', name);
       edges.push({ id: `e-${idCounter++}`, source: backendId, target: externalId, label: 'Integration', animated: false });
     });
   }
@@ -85,7 +85,7 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
     arch.backend.services.forEach((service: string) => {
       const name = String(service).trim();
       if (!name || name.toLowerCase() === (arch.backend?.structure || '').toLowerCase()) {return;}
-      const serviceId = addNode(name, 'service', 'Backend service');
+      const serviceId = addNode(name, 'service', 'Backend service', 'healthy', name);
       edges.push({ id: `e-${idCounter++}`, source: backendId, target: serviceId, label: 'Internal', animated: false });
     });
   }
@@ -94,7 +94,7 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
     arch.database.collections.forEach((collection: string) => {
       const name = String(collection).trim();
       if (!name) {return;}
-      const collectionId = addNode(name, 'database', 'Collection / table');
+      const collectionId = addNode(name, 'database', 'Collection / table', 'healthy', name);
       edges.push({ id: `e-${idCounter++}`, source: databaseId, target: collectionId, label: 'Stores', animated: false });
     });
   }

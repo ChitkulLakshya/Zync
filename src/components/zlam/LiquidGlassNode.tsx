@@ -1,6 +1,7 @@
 import React from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import { Clock, AlertTriangle, CheckCircle, Database, Server, Globe, Box } from 'lucide-react';
+import TechIcon from './TechIcon';
 
 interface LiquidGlassNodeData {
   label: string;
@@ -41,18 +42,23 @@ const LiquidGlassNode: React.FC<NodeProps> = ({ data, selected }) => {
       style={{ boxShadow: 'var(--shadow-md), var(--glass-bevel)' }}
     >
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-lg">{nodeData.icon || ''}</span>
         <TypeIcon className="w-4 h-4 text-muted-foreground" />
         <span className="font-semibold text-sm truncate">{nodeData.label}</span>
         {StatusIcon && (
           <StatusIcon className={`w-3 h-3 ml-auto ${nodeData.status === 'healthy' ? 'text-green-500' : nodeData.status === 'degraded' ? 'text-yellow-500' : 'text-red-500'}`} />
         )}
       </div>
+      {nodeData.techStack && (
+        <div className="flex flex-wrap gap-1 mb-1">
+          {nodeData.techStack.split(',').map((tech) => {
+            const trimmed = tech.trim();
+            if (!trimmed) return null;
+            return <TechIcon key={trimmed} tech={trimmed} className="w-7 h-7 !p-0.5" />;
+          })}
+        </div>
+      )}
       {nodeData.sublabel && (
         <p className="text-xs text-muted-foreground truncate">{nodeData.sublabel}</p>
-      )}
-      {nodeData.techStack && (
-        <p className="text-[10px] text-muted-foreground/70 mt-1 truncate">{nodeData.techStack}</p>
       )}
       <div className="flex items-center gap-2 mt-2">
         {nodeData.tasks != null && (
