@@ -23,6 +23,11 @@ import { API_BASE_URL } from '@/lib/utils';
 
 const STORAGE_KEY = 'zync-zlam-diagram';
 
+const getStorageKey = (projectId?: string) => {
+  if (!projectId) return STORAGE_KEY;
+  return `${STORAGE_KEY}-${projectId}`;
+};
+
 const nodeTypes = {
   liquidGlass: LiquidGlassNode,
 };
@@ -150,7 +155,7 @@ const getLayoutedElements = async (
   }
 };
 
-const saveToStorage = (nodes: Node[], edges: Edge[]) => {
+const saveToStorage = (nodes: Node[], edges: Edge[], projectId?: string) => {
   try {
     const safeNodes = (nodes || []).filter((node) => node && node.id);
     const data: ArchitectureDiagram = {
@@ -178,9 +183,20 @@ const saveToStorage = (nodes: Node[], edges: Edge[]) => {
         animated: edge.animated,
       })),
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(getStorageKey(projectId), JSON.stringify(data));
   } catch (e) {
     console.error('Failed to save diagram:', e);
+  }
+};
+
+const loadFromStorage = (projectId?: string): ArchitectureDiagram | null => {
+  try {
+    const raw = localStorage.getItem(getStorageKey(projectId));
+    if (!raw) {return null;}
+    return JSON.parse(raw) as ArchitectureDiagram;
+  } catch (e) {
+    console.error('Failed to load diagram:', e);
+    return null;
   }
 };
 
@@ -215,17 +231,6 @@ const normalizeFlowEdges = (edges: any[]): Edge[] => {
       animated: edge.animated,
       type: 'smoothstep',
     }));
-};
-
-const loadFromStorage = (): ArchitectureDiagram | null => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {return null;}
-    return JSON.parse(raw) as ArchitectureDiagram;
-  } catch (e) {
-    console.error('Failed to load diagram:', e);
-    return null;
-  }
 };
 
 const NodePalette: React.FC<{ onAddNode: (type: string) => void }> = ({ onAddNode }) => {
@@ -402,7 +407,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   const projectId = project?._id || project?.id;
 
   const initialData = useMemo(() => {
-    const saved = loadFromStorage();
+    const saved = loadFromStorage(projectId);
     if (saved && saved.nodes && saved.nodes.length > 0) {
       return saved;
     }
@@ -435,13 +440,42 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
           const converted = convertBackendArchitectureToDiagram(architecture, projectData?.name || 'Project');
           setNodesTyped(normalizeFlowNodes(converted.nodes));
           setEdgesTyped(normalizeFlowEdges(converted.edges));
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(converted));
+          localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
           toast({ title: 'Architecture loaded', description: 'Project-specific architecture loaded successfully' });
         } else if (projectData?.githubRepoName && projectData?.githubRepoOwner) {
-          toast({
-            title: 'No architecture yet',
-            description: 'Run architecture analysis from project settings to generate the diagram.',
-          });
+          setAnalyzing(true);
+          try {
+            const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
+            if (!token) throw new Error('No auth token');
+            const provider = 'kilo';
+            const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=${provider}&forceRefresh=true`, {
+              method: 'POST',
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+              },
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err?.error || err?.message || `Analysis failed with status ${res.status}`);
+            }
+            const analyzedProject = await res.json();
+            const analyzedArch = analyzedProject?.architecture;
+            if (analyzedArch && analyzedArch.highLevel) {
+              const converted = convertBackendArchitectureToDiagram(analyzedArch, analyzedProject?.name || 'Project');
+              setNodesTyped(normalizeFlowNodes(converted.nodes));
+              setEdgesTyped(normalizeFlowEdges(converted.edges));
+              localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
+              toast({ title: 'Analysis complete', description: 'Architecture diagram generated from repo analysis.' });
+            } else {
+              toast({ title: 'No architecture found', description: 'Analysis did not return architecture data.', variant: 'destructive' });
+            }
+          } catch (error: any) {
+            console.error('Auto architecture analysis failed:', error);
+            toast({ title: 'Analysis failed', description: error?.message || 'Could not analyze architecture.', variant: 'destructive' });
+          } finally {
+            if (!cancelled) setAnalyzing(false);
+          }
         }
       } catch (error: any) {
         if (!cancelled) {
@@ -491,7 +525,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
         const converted = convertBackendArchitectureToDiagram(architecture, projectData?.name || 'Project');
         setNodesTyped(normalizeFlowNodes(converted.nodes));
         setEdgesTyped(normalizeFlowEdges(converted.edges));
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(converted));
+        localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
         toast({ title: 'Analysis complete', description: 'Architecture diagram updated from repo analysis.' });
       } else {
         toast({
@@ -534,7 +568,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   }, [setEdges]);
 
   useEffect(() => {
-    saveToStorage(nodes, edges);
+    saveToStorage(nodes, edges, projectId);
   }, [nodes, edges]);
 
   useEffect(() => {
@@ -665,7 +699,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
   const handleReset = useCallback(() => {
     snapshot();
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(getStorageKey(projectId));
     setNodesTyped(normalizeFlowNodes(mockArchitectureData.nodes));
     setEdgesTyped(normalizeFlowEdges(mockArchitectureData.edges));
     setSelectedNode(null);
@@ -792,32 +826,9 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
             alert('Invalid architecture file');
             return;
           }
-          const importedNodes: Node[] = raw.nodes.map((node) => ({
-            id: node.id,
-            type: 'liquidGlass' as const,
-            position: { x: 0, y: 0 },
-            data: {
-              label: node.label,
-              sublabel: node.sublabel,
-              status: node.status,
-              techStack: node.techStack,
-              icon: node.icon,
-              tasks: node.tasks,
-              teamMembers: node.teamMembers,
-              type: node.type,
-            },
-          }));
-          const importedEdges: Edge[] = (raw.edges || []).map((edge) => ({
-            id: edge.id,
-            source: edge.source,
-            target: edge.target,
-            label: edge.label,
-            animated: edge.animated,
-            type: 'smoothstep' as const,
-          }));
-          setNodesTyped(importedNodes);
-          setEdgesTyped(importedEdges);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(raw));
+          setNodesTyped(normalizeFlowNodes(raw.nodes));
+          setEdgesTyped(normalizeFlowEdges(raw.edges || []));
+          localStorage.setItem(getStorageKey(projectId), JSON.stringify(raw));
           setSelectedNode(null);
           setSelectedEdge(null);
           toast({ title: 'Imported', description: 'Architecture diagram imported successfully.' });
@@ -897,9 +908,18 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
     <div className="w-full h-full min-h-[600px] rounded-3xl border border-border/50 bg-transparent overflow-hidden flex relative">
       {loading && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            Loading architecture...
+          <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span>Loading architecture...</span>
+          </div>
+        </div>
+      )}
+      {analyzing && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
+          <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
+            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span>Analyzing repository...</span>
+            <span className="text-xs">This may take a minute.</span>
           </div>
         </div>
       )}
