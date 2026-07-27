@@ -59,7 +59,7 @@ const AssignedTasksView = ({ currentUser, users }: Props) => {
   }>({ open: false, task: null, step: 1, loading: false });
 
   const loadTasks = useCallback(async () => {
-    if (!currentUser?.uid) return;
+    if (!currentUser?.uid) {return;}
     setLoading(true);
     try {
       const projects = await fetchProjects();
@@ -120,7 +120,7 @@ const AssignedTasksView = ({ currentUser, users }: Props) => {
 
   const confirmDelete = async () => {
     const { task, step } = deleteDialog;
-    if (!task) return;
+    if (!task) {return;}
 
     if (step === 1 && (task.status === 'In Progress' || task.status === 'Done')) {
       setDeleteDialog({ ...deleteDialog, step: 2 });

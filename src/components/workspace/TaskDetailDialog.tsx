@@ -174,7 +174,7 @@ const TaskDetailDialog = ({ task, open, onOpenChange, isOwner, onMerged, users }
               )}
               {(() => {
                 const assignerUid = task.assignedBy || task.createdBy;
-                if (!assignerUid || assignerUid === task.assignedTo) return null;
+                if (!assignerUid || assignerUid === task.assignedTo) {return null;}
                 const assignerUser = users?.find((u: any) => u.uid === assignerUid);
                 const assignerName = assignerUser?.displayName || assignerUser?.email || assignerUid;
                 const assignerPhoto = assignerUser?.photoURL;
