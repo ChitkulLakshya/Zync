@@ -240,8 +240,10 @@ const AppContent = () => {
               {/* Defines the '/dashboard/chat' route to render the Dashboard component with the messaging interface active. */}
               <Route path="/dashboard/chat" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
               {/* Defines the '/dashboard/new-project' route to render the Dashboard component overlayed with a new project creation modal. */}
-              <Route path="/dashboard/new-project" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
-              {/* Defines a standalone '/new-project' route outside the dashboard shell for a dedicated creation flow. */}
+<Route path="/dashboard/new-project" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
+               {/* Defines the '/dashboard/architecture' route to render the Dashboard component with the Architecture Map view active. */}
+               <Route path="/dashboard/architecture" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
+               {/* Defines a standalone '/new-project' route outside the dashboard shell for a dedicated creation flow. */}
               <Route path="/new-project" element={isMobile ? <NewProjectMobile /> : <NewProject />} />
               {/* Defines a standalone '/projects/:id' dynamic route for viewing project details outside the standard dashboard shell. */}
               <Route path="/projects/:id" element={isMobile ? <ProjectDetailsMobile /> : <ProjectDetails />} />

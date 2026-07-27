@@ -125,12 +125,13 @@ interface Project {
 interface WorkspaceProps {
   onNavigate: (section: string) => void;
   onSelectProject: (id: string) => void;
+  onOpenArchitecture?: (project: Project) => void;
   onOpenNote?: (id: string) => void;
   currentUser: any;
   usersList?: any[];
 }
 
-const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }: WorkspaceProps) => {
+const Workspace = ({ onSelectProject, onOpenNote, onOpenArchitecture, onNavigate, currentUser, usersList = [] }: WorkspaceProps) => {
   const { toast } = useToast();
   
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
@@ -407,9 +408,11 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
   const handleOpenArchitecture = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
-    const projectId = getProjectId(project);
-    if (!projectId) { return; }
-    onSelectProject(projectId);
+    if (onOpenArchitecture) {
+      onOpenArchitecture(project);
+    } else {
+      onNavigate('Architecture');
+    }
   };
 
   const fetchCollaboratorData = async (projectId: string) => {

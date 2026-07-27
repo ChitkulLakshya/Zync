@@ -102,6 +102,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   PanelLeft,
+  Layout,
 } from 'lucide-react';
 import { Github } from '@/components/ui/GithubIcon';
 import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
@@ -157,6 +158,7 @@ import CreateProject from '@/components/dashboard/CreateProject';
 import ProjectDetails from '@/pages/ProjectDetails';
 import TeamGateway from './TeamGateway';
 import MeetView from './MeetView';
+import ArchitectureView from '@/components/zlam/ArchitectureView';
 import { usePresence } from '@/hooks/usePresence';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -228,6 +230,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   }, [currentUser]);
 
   const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
+  const [selectedProjectForArchitecture, setSelectedProjectForArchitecture] = useState<any>(null);
 
   useEffect(() => {
     const handleOpenChat = (e: Event) => {
@@ -254,7 +257,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     return () => window.removeEventListener('ZYNC-open-chat', handleOpenChat);
   }, [activeSection, beginTransition, location.pathname, navigate]);
 
-  const pathToSection: Record<string, string> = {
+const pathToSection: Record<string, string> = {
     '/dashboard': 'Dashboard',
     '/dashboard/home': 'Dashboard',
     '/dashboard/workspace': 'My Workspace',
@@ -263,16 +266,16 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     '/dashboard/design': 'Design',
     '/dashboard/tasks': 'Tasks',
     '/dashboard/notes': 'Notes',
-
     '/dashboard/activity': 'Activity log',
     '/dashboard/people': 'People',
     '/dashboard/meet': 'Meet',
     '/dashboard/settings': 'Settings',
     '/dashboard/chat': 'Chat',
     '/dashboard/new-project': 'New Project',
+    '/dashboard/architecture': 'Architecture',
   };
 
-  const sectionToPath: Record<string, string> = {
+const sectionToPath: Record<string, string> = {
     Dashboard: '/dashboard',
     'My Workspace': '/dashboard/workspace',
     'My Projects': '/dashboard/projects',
@@ -280,13 +283,13 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     Design: '/dashboard/design',
     Tasks: '/dashboard/tasks',
     Notes: '/dashboard/notes',
-
     'Activity log': '/dashboard/activity',
     People: '/dashboard/people',
     Meet: '/dashboard/meet',
     Settings: '/dashboard/settings',
     Chat: '/dashboard/chat',
     'New Project': '/dashboard/new-project',
+    Architecture: '/dashboard/architecture',
   };
 
   useEffect(() => {
@@ -768,6 +771,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     { icon: Users, label: 'People', active: activeSection === 'People' },
     { icon: Video, label: 'Meet', active: activeSection === 'Meet' },
     { icon: Settings, label: 'Settings', active: activeSection === 'Settings' },
+    { icon: Layout, label: 'Architecture', active: activeSection === 'Architecture' },
   ];
 
   const tasks: any[] = [];
@@ -840,6 +844,10 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 state: { from: '/dashboard/workspace' },
               })
             }
+            onOpenArchitecture={(project) => {
+              setSelectedProjectForArchitecture(project);
+              handleSectionChange('Architecture');
+            }}
             onOpenNote={(noteId) => {
               setActiveNoteId(noteId);
               handleSectionChange('Notes');
@@ -951,6 +959,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case 'Design':
         return <DesignView />;
+
+      case 'Architecture':
+        return <ArchitectureView project={selectedProjectForArchitecture} />;
 
       case 'Tasks':
         return <TasksView currentUser={currentUser} users={usersList} />;
