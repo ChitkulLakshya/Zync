@@ -99,10 +99,9 @@ import {
   Star,
   Trash2,
   Send,
-  ChevronsLeft,
+   ChevronsLeft,
   ChevronsRight,
   PanelLeft,
-  Layout,
 } from 'lucide-react';
 import { Github } from '@/components/ui/GithubIcon';
 import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
@@ -117,7 +116,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from 'next-themes';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -230,7 +229,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   }, [currentUser]);
 
   const [selectedChatUser, setSelectedChatUser] = useState<any>(null);
-  const [selectedProjectForArchitecture, setSelectedProjectForArchitecture] = useState<any>(null);
 
   useEffect(() => {
     const handleOpenChat = (e: Event) => {
@@ -272,7 +270,6 @@ const pathToSection: Record<string, string> = {
     '/dashboard/settings': 'Settings',
     '/dashboard/chat': 'Chat',
     '/dashboard/new-project': 'New Project',
-    '/dashboard/architecture': 'Architecture',
   };
 
 const sectionToPath: Record<string, string> = {
@@ -289,7 +286,6 @@ const sectionToPath: Record<string, string> = {
     Settings: '/dashboard/settings',
     Chat: '/dashboard/chat',
     'New Project': '/dashboard/new-project',
-    Architecture: '/dashboard/architecture',
   };
 
   useEffect(() => {
@@ -771,7 +767,6 @@ const sectionToPath: Record<string, string> = {
     { icon: Users, label: 'People', active: activeSection === 'People' },
     { icon: Video, label: 'Meet', active: activeSection === 'Meet' },
     { icon: Settings, label: 'Settings', active: activeSection === 'Settings' },
-    { icon: Layout, label: 'Architecture', active: activeSection === 'Architecture' },
   ];
 
   const tasks: any[] = [];
@@ -834,6 +829,9 @@ const sectionToPath: Record<string, string> = {
 
       case 'My Workspace':
         if (location.pathname.startsWith('/dashboard/workspace/project/')) {
+          if (location.pathname.endsWith('/architecture')) {
+            return <ArchitectureView />;
+          }
           return <ProjectDetails />;
         }
         return (
@@ -844,10 +842,6 @@ const sectionToPath: Record<string, string> = {
                 state: { from: '/dashboard/workspace' },
               })
             }
-            onOpenArchitecture={(project) => {
-              setSelectedProjectForArchitecture(project);
-              handleSectionChange('Architecture');
-            }}
             onOpenNote={(noteId) => {
               setActiveNoteId(noteId);
               handleSectionChange('Notes');
@@ -959,9 +953,6 @@ const sectionToPath: Record<string, string> = {
 
       case 'Design':
         return <DesignView />;
-
-      case 'Architecture':
-        return <ArchitectureView project={selectedProjectForArchitecture} />;
 
       case 'Tasks':
         return <TasksView currentUser={currentUser} users={usersList} />;

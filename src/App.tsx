@@ -216,7 +216,8 @@ const AppContent = () => {
               {/* Defines the '/dashboard/workspace' route to render the Dashboard component with the workspace view active. */}
               <Route path="/dashboard/workspace" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
               {/* Defines a dynamic route '/dashboard/workspace/project/:id' to render the Dashboard component and load a specific project by ID. */}
-              <Route path="/dashboard/workspace/project/:id" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
+               <Route path="/dashboard/workspace/project/:id" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
+               <Route path="/dashboard/workspace/project/:id/architecture" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
               {/* Defines the '/dashboard/projects' route to render the Dashboard component with the projects list view active. */}
               <Route path="/dashboard/projects" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
               {/* Defines the '/dashboard/calendar' route to render the Dashboard component with the calendar view active. */}
@@ -239,10 +240,8 @@ const AppContent = () => {
               <Route path="/dashboard/settings" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
               {/* Defines the '/dashboard/chat' route to render the Dashboard component with the messaging interface active. */}
               <Route path="/dashboard/chat" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
-              {/* Defines the '/dashboard/new-project' route to render the Dashboard component overlayed with a new project creation modal. */}
-<Route path="/dashboard/new-project" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
-               {/* Defines the '/dashboard/architecture' route to render the Dashboard component with the Architecture Map view active. */}
-               <Route path="/dashboard/architecture" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
+               {/* Defines the '/dashboard/new-project' route to render the Dashboard component overlayed with a new project creation modal. */}
+               <Route path="/dashboard/new-project" element={isMobile ? <DashboardMobile /> : <Dashboard />} />
                {/* Defines a standalone '/new-project' route outside the dashboard shell for a dedicated creation flow. */}
               <Route path="/new-project" element={isMobile ? <NewProjectMobile /> : <NewProject />} />
               {/* Defines a standalone '/projects/:id' dynamic route for viewing project details outside the standard dashboard shell. */}
