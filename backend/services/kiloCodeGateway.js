@@ -48,13 +48,18 @@ Return a STRICT JSON object matching this schema exactly:
     "relationships": ["Inferred key relationships"]
   },
   "apiFlow": "How frontend communicates with backend",
-  "integrations": ["Detected external libraries/SDKs as simple names like Stripe, Socket.io, AWS S3, Redis, etc."]
+  "integrations": ["Detected external libraries/SDKs as simple canonical names only, such as React, Vue, Angular, Next.js, Node.js, Express, NestJS, MongoDB, PostgreSQL, MySQL, Redis, Elasticsearch, Docker, Kubernetes, AWS, Firebase, GraphQL, TypeScript, JavaScript, Python, Java, Go, Tailwind CSS, Laravel, Django, Flask, Socket.io, Stripe, etc."]
 }
 
-Rules for integrations and services:
-- Use simple canonical technology names only, such as React, Vue, Angular, Next.js, Node.js, Express, NestJS, MongoDB, PostgreSQL, MySQL, Redis, Elasticsearch, Docker, Kubernetes, AWS, Firebase, GraphQL, TypeScript, JavaScript, Python, Java, Go, Tailwind CSS, Laravel, Django, Flask, Socket.io, Stripe, etc.
-- Do not return sentences or descriptions in arrays, only short names.
-- If you cannot derive specific details, ANY logical inference is better than null. Use "N/A" only if absolutely unknown.
+CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
+- Return ONLY simple canonical technology names.
+- Do NOT include descriptions, explanations, or parenthetical notes.
+- Do NOT include UI features, page names, or component names like "Profile Information", "Projects", "Experience Entries", "Skills", "Certifications", "Social Links".
+- Do NOT include libraries with descriptive suffixes like "Framer Motion (for complex animations)". Just return "Framer Motion".
+- Do NOT include animation/scroll utilities unless they are core architecture dependencies.
+- Bad examples: "Framer Motion (for complex animations", "GSAP (likely for...)", "Lucide React (for vector icons)", "Sharp (likely for...)", "Profile Information".
+- Good examples: "React", "Framer Motion", "GSAP", "Lenis", "Lucide React", "Tailwind CSS", "Sharp".
+- If you cannot derive a specific detail, use "N/A" rather than making up descriptive text.
 `;
 
   const response = await axios.post(
