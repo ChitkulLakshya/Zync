@@ -83,8 +83,7 @@ export const API_BASE_URL = import.meta.env.DEV ? "" : (import.meta.env.VITE_API
 // Exports the base URL for the Socket.IO server, prioritizing explicit socket URLs, falling back to the API URL, and defaulting to localhost during development.
 export const SOCKET_BASE_URL =
   import.meta.env.VITE_SOCKET_URL ||
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? "http://localhost:5000" : "");
+  (import.meta.env.DEV ? "http://localhost:5000" : (import.meta.env.VITE_API_URL || ""));
 
 // Defines and exports the 'cn' (class name) utility function, widely used in modern React apps to cleanly combine conditional Tailwind classes without conflicts.
 export function cn(...inputs: ClassValue[]) {
