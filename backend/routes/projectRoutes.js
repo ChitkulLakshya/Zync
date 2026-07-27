@@ -95,6 +95,7 @@ const {
   getProjectsWithSteps,
 } = require('../utils/projectHelper');
 const cache = require('../utils/cache');
+const { analyzeArchitectureWithKilo } = require('../services/kiloCodeGateway');
 
 async function invalidateProjectCache(project) {
   if (!project) return;
@@ -348,6 +349,61 @@ const fetchRepoContext = async (accessToken, owner, repo) => {
   }
 };
 
+const fetchFullRepoContextUsingApp = async (ownerUid, owner, repo) => {
+  logDebug(`Fetching full repo context for ${owner}/${repo} using GitHub App`);
+  try {
+    const octokit = await buildInstallationOctokitFromOwner(ownerUid);
+
+    const repoData = await octok.request('GET /repos/{owner}/{repo}', {
+      owner,
+      repo,
+    });
+
+    const defaultBranch = repoData.data.default_branch;
+    const commitData = await octok.request('GET /repos/{owner}/{repo}/git/ref/heads/{ref}', {
+      owner,
+      repo,
+      ref: defaultBranch,
+    });
+
+    const treeSha = commitData.data.object.sha;
+    const treeData = await octok.request('GET /repositories/{id}/git/trees/{sha}', {
+      id: `${owner}/${repo}`,
+      sha: treeSha,
+      recursive: '1',
+    });
+
+    const allFiles = (treeData.data.tree || [])
+      .filter((item) => item.type === 'blob' && item.size < 100 * 1024)
+      .slice(0, 500);
+
+    const filePromises = allFiles.map(async (file) => {
+      try {
+        const contentRes = await octokit.request('GET /repos/{owner}/{repo}/contents/{path}', {
+          owner,
+          repo,
+          path: file.path,
+        });
+        if (contentRes.data.content) {
+          const content = Buffer.from(contentRes.data.content, 'base64').toString('utf-8');
+          return `\n--- File: ${file.path} ---\n${content.substring(0, 5000)}\n----------------------\n`;
+        }
+      } catch (e) {
+        logDebug(`Failed to fetch ${file.path}: ${e.message}`);
+      }
+      return '';
+    });
+
+    const fileContents = await Promise.all(filePromises);
+    const context = fileContents.join('');
+    logDebug(`Full repo context prepared. Length: ${context.length} chars`);
+    return context;
+  } catch (error) {
+    logDebug(`Error fetching full repo context: ${error.message}`);
+    return 'Failed to fetch full repository context.';
+  }
+};
+
 const analyzeWithGemini = async (repoContext, projectName) => {
   logDebug(`Sending context to Gemini for analysis...`);
   const prompt = `
@@ -564,6 +620,7 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
     const { id } = req.params;
     const forceRefresh =
       req.query.forceRefresh === 'true' || req.body?.forceRefresh === true;
+    const provider = req.query.provider || 'gemini';
     const project = await Project.findById(id).lean();
 
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -635,12 +692,28 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
     console.log(
       `Analyzing GitHub Repo: ${githubRepoOwner}/${githubRepoName}...`
     );
-    const context = await fetchRepoContext(
-      accessToken,
-      githubRepoOwner,
-      githubRepoName
-    );
-    const analyzedArch = await analyzeWithGemini(context, project.name);
+
+    let context;
+    let analyzedArch;
+
+    if (provider === 'kilo') {
+      context = await fetchFullRepoContextUsingApp(
+        project.ownerUid,
+        githubRepoOwner,
+        githubRepoName
+      );
+      analyzedArch = await analyzeArchitectureWithKilo({
+        repoContext: context,
+        projectName: project.name,
+      });
+    } else {
+      context = await fetchRepoContext(
+        accessToken,
+        githubRepoOwner,
+        githubRepoName
+      );
+      analyzedArch = await analyzeWithGemini(context, project.name);
+    }
 
     console.log('Analysis Result:', JSON.stringify(analyzedArch, null, 2));
 
