@@ -45,19 +45,22 @@ Return a STRICT JSON object matching this schema exactly:
   "database": {
     "design": "Description of data model",
     "collections": ["Inferred collections/tables"],
-    "relationships": "Inferred key relationships"
+    "relationships": ["Inferred key relationships"]
   },
   "apiFlow": "How frontend communicates with backend",
-  "integrations": ["Detected external libraries/SDKs"]
+  "integrations": ["Detected external libraries/SDKs as simple names like Stripe, Socket.io, AWS S3, Redis, etc."]
 }
 
-If you cannot derive specific details, ANY logical inference is better than null. Use "N/A" only if absolutely unknown.
+Rules for integrations and services:
+- Use simple canonical technology names only, such as React, Vue, Angular, Next.js, Node.js, Express, NestJS, MongoDB, PostgreSQL, MySQL, Redis, Elasticsearch, Docker, Kubernetes, AWS, Firebase, GraphQL, TypeScript, JavaScript, Python, Java, Go, Tailwind CSS, Laravel, Django, Flask, Socket.io, Stripe, etc.
+- Do not return sentences or descriptions in arrays, only short names.
+- If you cannot derive specific details, ANY logical inference is better than null. Use "N/A" only if absolutely unknown.
 `;
 
   const response = await axios.post(
     `${KILO_CODE_GATEWAY_URL}/v1/chat/completions`,
     {
-      model,
+      model: selectedModel,
       messages: [
         { role: 'system', content: 'You are a helpful assistant that returns only valid JSON.' },
         { role: 'user', content: prompt },
