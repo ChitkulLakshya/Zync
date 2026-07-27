@@ -110,6 +110,8 @@ export interface FlattenedTask {
   createdAt?: string;
   githubRepoName?: string;
   githubRepoOwner?: string;
+  assignedBy?: string;
+  createdBy?: string;
 }
 
 interface ProjectGroup {
@@ -147,8 +149,9 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
               return;
             }
 
-            if (!groups[p._id]) {
-              const projectId = p._id;
+            const currentProjectId = p.id || p._id;
+            if (!groups[currentProjectId]) {
+              const projectId = currentProjectId;
               if (!projectId) {
                 return;
               }
@@ -163,9 +166,9 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
               };
             }
 
-            const projectId = p._id;
-            const taskId = t._id || t.id;
-            const stepId = step._id || step.id;
+            const projectId = p.id || p._id;
+            const taskId = t.id || t._id;
+            const stepId = step.id || step._id;
             if (!projectId || !taskId || !stepId) {
               return;
             }
@@ -187,6 +190,8 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
               createdAt: t.createdAt,
               githubRepoName: p.githubRepoName,
               githubRepoOwner: p.githubRepoOwner,
+              assignedBy: t.assignedBy,
+              createdBy: t.createdBy,
             });
           });
         });
@@ -217,7 +222,7 @@ const TasksView = ({ currentUser, users = [] }: TasksViewProps) => {
   loadTasksRef.current = loadTasks;
 
   const projectIds = useMemo(
-    () => projects.map((p) => p._id).filter((id): id is string => Boolean(id)),
+    () => projects.map((p) => p.id || p._id).filter((id): id is string => Boolean(id)),
     [projects]
   );
 

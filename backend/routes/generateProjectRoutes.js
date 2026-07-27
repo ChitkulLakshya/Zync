@@ -83,6 +83,7 @@ const ProjectTask = require('../models/ProjectTask'); // Imports the Mongoose Pr
 const { normalizeDoc } = require('../utils/normalize'); // Imports the 'normalizeDoc' utility function, which is likely used to standardize document structures, though not directly used in this specific route.
 const { getProjectWithSteps } = require('../utils/projectHelper'); // Imports the 'getProjectWithSteps' utility function, which is used to fetch a project along with its associated steps from the database.
 const cache = require('../utils/cache');
+const { invalidateInstallationCaches } = require('../utils/githubInstallation');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
 
@@ -146,7 +147,36 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
       );
       githubRepoName = response.data.name;
       githubRepoOwner = response.data.owner.login;
-      await cache.invalidate(`gh:user-repos:${uid}`);
+      const newRepoId = response.data.id;
+
+      // WHAT: Grant the Zync GitHub App access to the newly created repo.
+      // WHY: The repo is created with the user's personal token. On a
+      // "selected repositories" installation the App would not see it
+      // otherwise, which previously looked like "app not installed".
+      if (github.installationId && newRepoId) {
+        try {
+          await axios.put(
+            `https://api.github.com/user/installations/${github.installationId}/repositories/${newRepoId}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${decryptedAccessToken}`,
+                Accept: 'application/vnd.github.v3+json',
+              },
+            }
+          );
+        } catch (grantError) {
+          const grantStatus = grantError.response?.status;
+          if (grantStatus !== 304) {
+            console.warn(
+              `[GitHub] Could not add repo ${githubRepoName} to installation ${github.installationId}:`,
+              grantError.response?.data?.message || grantError.message
+            );
+          }
+        }
+      }
+
+      await invalidateInstallationCaches(uid);
     } catch (ghError) {
       console.error('Failed to create GitHub repository:', ghError.response?.data || ghError.message);
       return res.status(400).json({ 

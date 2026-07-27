@@ -84,6 +84,12 @@ const Project = require('../models/Project');
 const User = require('../models/User');
 // WHAT: Import cache utility. WHY: Clear caches on GitHub changes.
 const cache = require('../utils/cache');
+// WHAT: Import installation helpers. WHY: Keep the stored GitHub App installation
+// id authoritative and bust derived caches when GitHub reports a change.
+const {
+  persistInstallationId,
+  invalidateInstallationCaches,
+} = require('../utils/githubInstallation');
 // WHAT: Import commit analysis. WHY: Run AI analysis on commits.
 const { analyzeCommit } = require('../utils/commitAnalysisService');
 const Step = require('../models/Step');
@@ -197,18 +203,61 @@ const findLinkedProject = async (repository) => {
 
 // WHAT: Process GitHub webhook payload. WHY: Orchestrates update logic.
 const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) => {
-  // WHAT: Handle installation. WHY: Invalidate repo cache.
+  // WHAT: Keep the stored installationId in lockstep with GitHub.
+  // WHY: This is the ONLY place allowed to conclude "the app was uninstalled".
+  // Inferring it from a failed API call is what used to strand users on the
+  // "Install Zync GitHub App" screen while the app was still installed.
   if (event === 'installation' || event === 'installation_repositories') {
     const installationId = payload.installation?.id;
-    if (installationId) {
-      const user = await User.findOne({ 'githubIntegration.installationId': installationId.toString() }).lean();
-      if (user) {
-        await cache.invalidate(`gh:user-repos:${user.uid}`);
-        debugWebhookLog(`Cleared repo cache for user ${user.uid} upon installation event`);
-        return { processed: true, action: 'cleared_repo_cache' };
-      }
+    const action = payload.action;
+    const accountLogin = payload.installation?.account?.login;
+
+    if (!installationId) {
+      return { ignored: true, reason: 'installation_event_without_id' };
     }
-    return { ignored: true, reason: 'installation_event_user_not_found' };
+
+    // Match by stored id first, then by GitHub login. The login fallback is what
+    // lets a *re-install* (which mints a brand new installation id) reattach to
+    // the right Zync user.
+    let user = await User.findOne({
+      'githubIntegration.installationId': installationId.toString(),
+    }).lean();
+
+    if (!user && accountLogin) {
+      user = await User.findOne({
+        'githubIntegration.username': accountLogin,
+      }).lean();
+    }
+
+    if (!user) {
+      return { ignored: true, reason: 'installation_event_user_not_found' };
+    }
+
+    if (action === 'deleted') {
+      // Authoritative uninstall - safe to clear.
+      const existing = user.githubIntegration || {};
+      await User.updateOne(
+        { uid: user.uid },
+        { $set: { githubIntegration: { ...existing, installationId: null } } }
+      );
+      await invalidateInstallationCaches(user.uid);
+      debugWebhookLog(`Cleared installationId for user ${user.uid} (app uninstalled)`);
+      return { processed: true, action: 'installation_deleted' };
+    }
+
+    if (action === 'created' || action === 'unsuspend' || action === 'new_permissions_accepted') {
+      // Authoritative (re)install - persist the current id so the UI recovers
+      // immediately instead of waiting for a lazy re-resolution.
+      await persistInstallationId(user.uid, installationId);
+      await invalidateInstallationCaches(user.uid);
+      debugWebhookLog(`Stored installationId ${installationId} for user ${user.uid} (${action})`);
+      return { processed: true, action: 'installation_synced' };
+    }
+
+    // added/removed repositories, suspend, etc: the repo set changed.
+    await invalidateInstallationCaches(user.uid);
+    debugWebhookLog(`Cleared repo cache for user ${user.uid} upon installation event (${action})`);
+    return { processed: true, action: 'cleared_repo_cache' };
   }
 
   // WHAT: Handle repository deletion. WHY: Keeps Zync DB synced with GitHub.
@@ -228,7 +277,9 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
       const uids = [linkedProject.ownerUid, ...(linkedProject.team || [])];
       const keys = uids.map((uid) => `projects:${uid}`);
       await cache.invalidate(...keys);
-      await cache.invalidate(`gh:user-repos:${linkedProject.ownerUid}`);
+      // Deleting a repo invalidates cached installation tokens as well as the
+      // cached repo list, so clear both rather than just the repo list.
+      await invalidateInstallationCaches(linkedProject.ownerUid);
       
       debugWebhookLog(`Deleted project ${linkedProject._id} because github repo was deleted`);
       return { processed: true, action: 'deleted_project' };
@@ -347,6 +398,12 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
 
       if (Object.keys(taskUpdate).length > 0) {
         await ProjectTask.updateOne({ _id: task._id }, { $set: taskUpdate });
+
+        // Invalidate assignee's project cache so their My Tasks updates in real-time
+        if (task.assignedTo) {
+          const cacheModule = require('../utils/cache');
+          await cacheModule.invalidate(`projects:${task.assignedTo}`);
+        }
 
         const taskIO = req?.app?.get ? req.app.get('taskIO') : null;
         if (taskIO) {

@@ -107,6 +107,7 @@ import { Github } from '@/components/ui/GithubIcon';
 import { getUserName, getUserInitials, pickUserForDisplay } from '@/lib/utils';
 import { NotesView } from '@/components/notes/NotesView';
 import TasksView from './TasksView';
+import AssignedTasksView from './AssignedTasksView';
 import TaskBoardView from './TaskBoardView';
 import ActivityLogView from './ActivityLogView';
 import Workspace from '@/components/workspace/Workspace';
@@ -190,12 +191,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   });
   const { beginTransition, showCompactSpinner } = useSectionTransitionLoader('desktop');
 
-  const [tasksSubView, setTasksSubView] = useState<'My Tasks' | 'Task Board'>(() => {
+  const [tasksSubView, setTasksSubView] = useState<'My Tasks' | 'Task Board' | 'Assigned Tasks'>(() => {
     if (isPreview) {
       return 'My Tasks';
     }
     const stored = localStorage.getItem('ZYNC-tasks-sub-view');
-    return stored === 'Task Board' ? 'Task Board' : 'My Tasks';
+    return stored === 'Task Board' ? 'Task Board' : stored === 'Assigned Tasks' ? 'Assigned Tasks' : 'My Tasks';
   });
 
   useEffect(() => {
@@ -970,6 +971,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
       case 'Tasks':
         return tasksSubView === 'Task Board' ? (
           <TaskBoardView currentUser={currentUser} users={usersList} />
+        ) : tasksSubView === 'Assigned Tasks' ? (
+          <AssignedTasksView currentUser={currentUser} users={usersList} />
         ) : (
           <TasksView currentUser={currentUser} users={usersList} />
         );
@@ -1177,7 +1180,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                     
                     {activeSection === 'Tasks' && (
                       <div className="inline-flex items-center gap-1 bg-card/50 border border-border/10 rounded-xl p-1 backdrop-blur-md">
-                        {(['My Tasks', 'Task Board'] as const).map((label) => (
+                        {(['My Tasks', 'Task Board', 'Assigned Tasks'] as const).map((label) => (
                           <button
                             key={label}
                             onClick={() => setTasksSubView(label)}

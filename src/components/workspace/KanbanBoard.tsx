@@ -262,6 +262,7 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser }: Kanba
         }}
         isOwner={isOwner}
         onMerged={() => setActiveTask(null)}
+        users={users}
       />
     </div>
   );

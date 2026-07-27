@@ -121,14 +121,14 @@ const TaskBoardView = ({ currentUser, users = [] }: TaskBoardViewProps) => {
 
   // All project ids currently loaded -> join every one of those socket rooms
   // so live updates arrive regardless of which pivot/filter is selected.
-  const allProjectIds = useMemo(
-    () => projects.map((p) => p._id).filter((id): id is string => Boolean(id)),
+  const projectIds = useMemo(
+    () => projects.map((p) => p.id || p._id).filter((id): id is string => Boolean(id)),
     [projects]
   );
 
   useTaskUpdates({
     userId: currentUser?.uid,
-    projectIds: allProjectIds,
+    projectIds: projectIds,
     onTaskChange: useCallback(() => {
       loadDataRef.current();
     }, []),
@@ -164,7 +164,7 @@ const TaskBoardView = ({ currentUser, users = [] }: TaskBoardViewProps) => {
   const projectOptions = useMemo(
     () =>
       projects.map((p) => ({
-        id: p._id,
+        id: p.id || p._id,
         name: p.name,
         githubRepoName: p.githubRepoName,
         githubRepoOwner: p.githubRepoOwner,
@@ -211,15 +211,20 @@ const TaskBoardView = ({ currentUser, users = [] }: TaskBoardViewProps) => {
           tasks: [],
         });
       }
-      stepsById.get(stepId)!.tasks.push(task);
+      const proj = projects.find((p) => (p.id || p._id) === projectId);
+      stepsById.get(stepId)!.tasks.push({
+        ...task,
+        githubRepoName: proj?.githubRepoName || task.githubRepoName,
+        githubRepoOwner: proj?.githubRepoOwner || task.githubRepoOwner,
+      });
       taskProjectMapRef.current.set(task._id || task.id, { projectId, projectName });
     };
 
     if (pivotMode === 'repo') {
-      const project = projects.find((p) => p._id === selectedProjectId);
+      const project = projects.find((p) => (p.id || p._id) === selectedProjectId);
       if (project) {
         project.steps.forEach((step: any) => {
-          (step.tasks || []).forEach((task: any) => includeTask(project._id, project.name, step, task));
+          (step.tasks || []).forEach((task: any) => includeTask(project.id || project._id, project.name, step, task));
         });
       }
     } else if (pivotMode === 'user') {
@@ -228,7 +233,7 @@ const TaskBoardView = ({ currentUser, users = [] }: TaskBoardViewProps) => {
           project.steps.forEach((step: any) => {
             (step.tasks || []).forEach((task: any) => {
               if (task.assignedTo === selectedUserId) {
-                includeTask(project._id, project.name, step, task);
+                includeTask(project.id || project._id, project.name, step, task);
               }
             });
           });
@@ -242,7 +247,7 @@ const TaskBoardView = ({ currentUser, users = [] }: TaskBoardViewProps) => {
           project.steps.forEach((step: any) => {
             (step.tasks || []).forEach((task: any) => {
               if (task.assignedTo && memberSet.has(task.assignedTo)) {
-                includeTask(project._id, project.name, step, task);
+                includeTask(project.id || project._id, project.name, step, task);
               }
             });
           });
@@ -262,7 +267,7 @@ const TaskBoardView = ({ currentUser, users = [] }: TaskBoardViewProps) => {
     // Optimistic local update so the drag animation feels instant.
     setProjects((prev) =>
       prev.map((p) => {
-        if (p._id !== origin.projectId) {
+        if (p.id !== origin.projectId && p._id !== origin.projectId) {
           return p;
         }
         return {

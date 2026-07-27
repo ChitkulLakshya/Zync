@@ -150,6 +150,12 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
   const [selectedProjectForLink, setSelectedProjectForLink] = useState<any>(null);
   const [repos, setRepos] = useState<any[]>([]);
   const [loadingRepos, setLoadingRepos] = useState(false);
+  // WHAT: The real reason the repo list is empty.
+  // WHY: An empty list is NOT proof that the GitHub App is missing. Showing the
+  // install prompt for a transient fetch failure was the long-standing bug.
+  const [repoLoadState, setRepoLoadState] = useState<
+    'idle' | 'ok' | 'not-connected' | 'not-installed' | 'suspended' | 'no-repo-access' | 'error'
+  >('idle');
   const [searchTerm, setSearchTerm] = useState("");
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [selectedRepos, setSelectedRepos] = useState<any[]>([]);
@@ -238,32 +244,66 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
   const getProjectId = (project: Project | null | undefined) => project?._id || project?.id || "";
 
+  /**
+   * WHAT: Loads the GitHub repositories the Zync App can access.
+   * WHY: Single source of truth for repo loading so the "install the app"
+   * prompt is only ever shown when the backend explicitly reports
+   * `notInstalled`. Previously any failure left `repos` empty and the UI
+   * wrongly concluded the app was missing.
+   */
+  const loadRepos = async ({ force = false }: { force?: boolean } = {}) => {
+    setLoadingRepos(true);
+    try {
+      const user = auth.currentUser;
+      const token = user ? await user.getIdToken() : null;
+
+      if (!token) {
+        setRepoLoadState('error');
+        return;
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}/api/github/user-repos${force ? '?refresh=1' : ''}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      const data = await response.json().catch(() => ({}));
+      const list = normalizeRepoList(data);
+      setRepos(list);
+
+      if (response.ok) {
+        setRepoLoadState(list.length === 0 ? 'no-repo-access' : 'ok');
+        return;
+      }
+
+      // Only the backend may declare the app missing, and it only does so when
+      // GitHub itself confirms it.
+      if (data?.notInstalled) {
+        setRepoLoadState('not-installed');
+      } else if (data?.notConnected) {
+        setRepoLoadState('not-connected');
+      } else if (data?.suspended) {
+        setRepoLoadState('suspended');
+      } else {
+        setRepoLoadState('error');
+      }
+    } catch (err) {
+      console.error('Failed to load GitHub repositories', err);
+      setRepoLoadState('error');
+    } finally {
+      setLoadingRepos(false);
+    }
+  };
+
   const handleOpenLinkModal = async (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
     setSelectedProjectForLink(project);
     setRepoModalOpen(true);
     setSearchTerm("");
-    
-    if (repos.length === 0) {
-      setLoadingRepos(true);
-      try {
-        const user = auth.currentUser;
-        const token = user ? await user.getIdToken() : null;
-        if (token) {
-          const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setRepos(normalizeRepoList(data));
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingRepos(false);
-      }
-    }
+
+    // Always force-refresh: a stale cache from a previous open (or from
+    // before a repo was created/deleted) must not show the wrong state.
+    await loadRepos({ force: true });
   };
 
   const handleLinkRepo = async (repo: any) => {
@@ -288,26 +328,9 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
     setCreateModalOpen(true);
     setSearchTerm("");
     setSelectedRepos([]);
-    if (repos.length === 0) {
-      setLoadingRepos(true);
-      try {
-        const user = auth.currentUser;
-        const token = user ? await user.getIdToken() : null;
-        if (token) {
-          const response = await fetch(`${API_BASE_URL}/api/github/user-repos`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-          });
-          if (response.ok) {
-            const data = await response.json();
-            setRepos(normalizeRepoList(data));
-          }
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoadingRepos(false);
-      }
-    }
+    // Always force-refresh so a stale cache from a previous open (or from
+    // before a repo was created/deleted) doesn't show the wrong state.
+    await loadRepos({ force: true });
   };
 
   const handleCreateProjectFromRepo = async (repo: any) => {
@@ -844,10 +867,29 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                 </div>
               ) : repos.length === 0 ? (
                 <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
-                  <p>No repositories found.</p>
-                  <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
-                    Install Zync App on GitHub
-                  </a>
+                  {repoLoadState === 'not-installed' ? (
+                    <>
+                      <p>The Zync GitHub App is not installed on your account.</p>
+                      <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                        Install Zync App on GitHub
+                      </a>
+                    </>
+                  ) : repoLoadState === 'not-connected' ? (
+                    <p>Please connect your GitHub account first.</p>
+                  ) : repoLoadState === 'suspended' ? (
+                    <p>The Zync GitHub App installation is suspended. Re-enable it on GitHub.</p>
+                  ) : repoLoadState === 'no-repo-access' ? (
+                    <>
+                      <p>No repositories accessible. Grant the Zync App access to repositories on GitHub.</p>
+                      <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                        Manage App permissions on GitHub
+                      </a>
+                    </>
+                  ) : repoLoadState === 'error' ? (
+                    <p>Could not load repositories. Please try again.</p>
+                  ) : (
+                    <p>No repositories found.</p>
+                  )}
                 </div>
               ) : (
                 linkRepos.map((repo: any) => (
@@ -942,10 +984,29 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                       </div>
                   ) : repos.length === 0 ? (
                       <div className="flex h-full flex-col items-center justify-center text-center text-sm text-muted-foreground p-4">
-                        <p>No repositories found.</p>
-                        <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
-                          Install Zync App on GitHub
-                        </a>
+                        {repoLoadState === 'not-installed' ? (
+                          <>
+                            <p>The Zync GitHub App is not installed on your account.</p>
+                            <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                              Install Zync App on GitHub
+                            </a>
+                          </>
+                        ) : repoLoadState === 'not-connected' ? (
+                          <p>Please connect your GitHub account first.</p>
+                        ) : repoLoadState === 'suspended' ? (
+                          <p>The Zync GitHub App installation is suspended. Re-enable it on GitHub.</p>
+                        ) : repoLoadState === 'no-repo-access' ? (
+                          <>
+                            <p>No repositories accessible. Grant the Zync App access to repositories on GitHub.</p>
+                            <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                              Manage App permissions on GitHub
+                            </a>
+                          </>
+                        ) : repoLoadState === 'error' ? (
+                          <p>Could not load repositories. Please try again.</p>
+                        ) : (
+                          <p>No repositories found.</p>
+                        )}
                       </div>
                   ) : addProjectRepos.length === 0 ? (
                       <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">

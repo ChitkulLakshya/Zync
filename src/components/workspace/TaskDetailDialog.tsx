@@ -51,6 +51,12 @@ export interface TaskDetailTask {
   githubPrNumber?: number;
   projectId?: string;
   stepId?: string;
+  githubRepoName?: string;
+  githubRepoOwner?: string;
+  assignedBy?: string;
+  assignedTo?: string;
+  assignedToName?: string;
+  createdBy?: string;
 }
 
 interface TaskDetailDialogProps {
@@ -59,9 +65,10 @@ interface TaskDetailDialogProps {
   onOpenChange: (open: boolean) => void;
   isOwner?: boolean;
   onMerged?: () => void;
+  users?: any[];
 }
 
-const TaskDetailDialog = ({ task, open, onOpenChange, isOwner, onMerged }: TaskDetailDialogProps) => {
+const TaskDetailDialog = ({ task, open, onOpenChange, isOwner, onMerged, users }: TaskDetailDialogProps) => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [activity, setActivity] = useState<GitActivity | null>(null);
@@ -129,8 +136,8 @@ const TaskDetailDialog = ({ task, open, onOpenChange, isOwner, onMerged }: TaskD
     return null;
   }
 
-  const isDone = task.status === 'Done' || task.status === 'Completed';
-  const isPrRaised = task.status === 'PR Raised' || task.status === 'In Review';
+  const isDone = task.status === 'Done';
+  const isPrRaised = task.status === 'PR Raised';
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -147,6 +154,45 @@ const TaskDetailDialog = ({ task, open, onOpenChange, isOwner, onMerged }: TaskD
             <p className="text-sm text-muted-foreground leading-relaxed">
               {task.description || 'No description provided.'}
             </p>
+
+            {/* Repo & Assigner Info */}
+            <div className="space-y-3 rounded-lg border border-border/10 bg-secondary/20 p-3">
+              {task.githubRepoName && task.githubRepoOwner && (
+                <div className="flex items-center gap-2 text-sm">
+                  <GitBranch className="w-4 h-4 text-muted-foreground shrink-0" />
+                  <span className="text-muted-foreground">Repository:</span>
+                  <a
+                    href={`https://github.com/${task.githubRepoOwner}/${task.githubRepoName}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground font-medium hover:underline flex items-center gap-1"
+                  >
+                    {task.githubRepoOwner}/{task.githubRepoName}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              )}
+              {(() => {
+                const assignerUid = task.assignedBy || task.createdBy;
+                if (!assignerUid || assignerUid === task.assignedTo) return null;
+                const assignerUser = users?.find((u: any) => u.uid === assignerUid);
+                const assignerName = assignerUser?.displayName || assignerUser?.email || assignerUid;
+                const assignerPhoto = assignerUser?.photoURL;
+                return (
+                  <div className="flex items-center gap-2 text-sm">
+                    {assignerPhoto ? (
+                      <img src={assignerPhoto} alt="" className="w-5 h-5 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-5 h-5 rounded-full bg-muted flex items-center justify-center text-[10px] font-bold">
+                        {(assignerName || '?')[0]?.toUpperCase()}
+                      </div>
+                    )}
+                    <span className="text-muted-foreground">Assigned by:</span>
+                    <span className="text-foreground font-medium">{assignerName}</span>
+                  </div>
+                );
+              })()}
+            </div>
 
             {isDone && !isPrRaised && (
               <div className="flex items-center gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-emerald-500 text-sm font-medium">
