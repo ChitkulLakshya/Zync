@@ -354,20 +354,20 @@ const fetchFullRepoContextUsingApp = async (ownerUid, owner, repo) => {
   try {
     const octokit = await buildInstallationOctokitFromOwner(ownerUid);
 
-    const repoData = await octok.request('GET /repos/{owner}/{repo}', {
+    const repoData = await octokit.request('GET /repos/{owner}/{repo}', {
       owner,
       repo,
     });
 
     const defaultBranch = repoData.data.default_branch;
-    const commitData = await octok.request('GET /repos/{owner}/{repo}/git/ref/heads/{ref}', {
+    const commitData = await octokit.request('GET /repos/{owner}/{repo}/git/ref/heads/{ref}', {
       owner,
       repo,
       ref: defaultBranch,
     });
 
     const treeSha = commitData.data.object.sha;
-    const treeData = await octok.request('GET /repositories/{id}/git/trees/{sha}', {
+    const treeData = await octokit.request('GET /repositories/{id}/git/trees/{sha}', {
       id: `${owner}/${repo}`,
       sha: treeSha,
       recursive: '1',
