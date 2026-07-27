@@ -4,7 +4,7 @@ type TechKey =
   | 'react'
   | 'vue'
   | 'angular'
-  | 'nextjs'
+  | 'nextdotjs'
   | 'nodejs'
   | 'express'
   | 'mongodb'
@@ -22,16 +22,26 @@ type TechKey =
   | 'python'
   | 'java'
   | 'go'
+  | 'goland'
   | 'tailwindcss'
   | 'laravel'
   | 'django'
-  | 'flask';
+  | 'flask'
+  | 'framer'
+  | 'gsap'
+  | 'lenis'
+  | 'lucide'
+  | 'sharp'
+  | 'cva'
+  | 'vite'
+  | 'vercel'
+  | 'supabase';
 
-const techColorMap: Record<TechKey, string> = {
+const techBrandColorMap: Record<TechKey, string> = {
   react: '#61DAFB',
   vue: '#4FC08D',
   angular: '#DD0031',
-  nextjs: '#000000',
+  nextdotjs: '#000000',
   nodejs: '#339933',
   express: '#000000',
   mongodb: '#47A248',
@@ -49,46 +59,65 @@ const techColorMap: Record<TechKey, string> = {
   python: '#3776AB',
   java: '#007396',
   go: '#00ADD8',
+  goland: '#000000',
   tailwindcss: '#06B6D4',
   laravel: '#FF2D20',
   django: '#092E20',
   flask: '#000000',
+  framer: '#0055FF',
+  gsap: '#88CE02',
+  lenis: '#00D4AA',
+  lucide: '#000000',
+  sharp: '#000000',
+  cva: '#000000',
+  vite: '#646CFF',
+  vercel: '#000000',
+  supabase: '#3ECF8E',
 };
 
-const techIdMap: Record<TechKey, string> = {
-  react: 'react',
-  vue: 'vue.js',
-  angular: 'angular',
-  nextjs: 'next.js',
-  nodejs: 'node.js',
-  express: 'express',
-  mongodb: 'mongodb',
-  postgresql: 'postgresql',
-  mysql: 'mysql',
-  redis: 'redis',
-  elasticsearch: 'elasticsearch',
-  docker: 'docker',
-  kubernetes: 'kubernetes',
-  aws: 'amazonaws',
-  firebase: 'firebase',
-  graphql: 'graphql',
-  typescript: 'typescript',
-  javascript: 'javascript',
-  python: 'python',
-  java: 'java',
-  go: 'go',
-  tailwindcss: 'tailwindcss',
-  laravel: 'laravel',
-  django: 'django',
-  flask: 'flask',
+const normalize = (raw: string): string => {
+  const text = String(raw)
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[^a-zA-Z0-9+.# -]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const lower = text.toLowerCase();
+  const nonTechPhrases = [
+    'profile information',
+    'experience entries',
+    'social links',
+    'certifications',
+    'skills categorized',
+    'transitions',
+    'and scroll reveals',
+  ];
+  if (nonTechPhrases.some((phrase) => lower.includes(phrase))) return '';
+  if (/^(and|or|the|for|with|without|using|via|including|excluding|likely|potentially|complementing)$/i.test(text)) return '';
+  if (text.length < 2) return '';
+  return text;
 };
 
 const resolveTechKey = (raw: string): TechKey | undefined => {
-  const value = raw.toLowerCase();
-  if (value.includes('react')) return 'react';
+  const cleaned = normalize(raw);
+  if (!cleaned) return undefined;
+  const value = cleaned.toLowerCase();
+
+  if (value.includes('framer motion')) return 'framer';
+  if (value.includes('gsap')) return 'gsap';
+  if (value.includes('lenis')) return 'lenis';
+  if (value.includes('lucide')) return 'lucide';
+  if (value.includes('react icons')) return 'react';
+  if (value.includes('class-variance-authority') || value.includes('cva')) return 'cva';
+  if (value.includes('clsx')) return 'cva';
+  if (value.includes('tailwind-merge') || value.includes('tailwindcss-animate')) return 'tailwindcss';
+  if (value.includes('sharp')) return 'sharp';
+  if (value.includes('vite')) return 'vite';
+  if (value.includes('vercel')) return 'vercel';
+  if (value.includes('supabase')) return 'supabase';
   if (value.includes('vue')) return 'vue';
   if (value.includes('angular')) return 'angular';
-  if (value.includes('next.js') || value.includes('nextjs')) return 'nextjs';
+  if (value.includes('next.js') || value.includes('nextjs')) return 'nextdotjs';
+  if (value.includes('goland')) return 'goland';
   if (value.includes('node')) return 'nodejs';
   if (value.includes('express')) return 'express';
   if (value.includes('mongo')) return 'mongodb';
@@ -102,9 +131,9 @@ const resolveTechKey = (raw: string): TechKey | undefined => {
   if (value.includes('firebase')) return 'firebase';
   if (value.includes('graphql')) return 'graphql';
   if (value.includes('typescript')) return 'typescript';
-  if (value.includes('javascript') || value.includes('js')) return 'javascript';
+  if (value.includes('javascript') || value.includes('js only')) return 'javascript';
   if (value.includes('python')) return 'python';
-  if (value.includes('java')) return 'java';
+  if (value.includes('java ') || value === 'java') return 'java';
   if (value.includes('golang') || value === 'go') return 'go';
   if (value.includes('tailwind')) return 'tailwindcss';
   if (value.includes('laravel')) return 'laravel';
@@ -113,37 +142,89 @@ const resolveTechKey = (raw: string): TechKey | undefined => {
   return undefined;
 };
 
-const initials = (raw: string) => raw.slice(0, 2).toUpperCase();
+let simpleIconsCache: Map<string, { svg: string; hex: string }> | null = null;
+
+async function getSimpleIconsCache(): Promise<Map<string, { svg: string; hex: string }>> {
+  if (simpleIconsCache) return simpleIconsCache;
+  const mod = await import('simple-icons');
+  const cache = new Map<string, { svg: string; hex: string }>();
+  for (const key of Object.keys(mod)) {
+    if (typeof key === 'string' && key.startsWith('si')) {
+      const icon = (mod as any)[key];
+      if (icon?.svg && typeof icon.svg === 'string') {
+        cache.set(key, { svg: icon.svg, hex: icon.hex || '#000000' });
+      }
+    }
+  }
+  simpleIconsCache = cache;
+  return cache;
+}
+
+function toSimpleIconKey(key: string): string {
+  return key.charAt(0).toUpperCase() + key.slice(1);
+}
 
 const TechIcon: React.FC<{ tech?: string; className?: string }> = ({ tech, className }) => {
+  const [svg, setSvg] = React.useState<string | null>(null);
+  const [color, setColor] = React.useState<string>('#6B7280');
+  const [loaded, setLoaded] = React.useState(false);
+
+  React.useEffect(() => {
+    if (!tech) return;
+    const key = resolveTechKey(tech);
+    if (!key) {
+      setLoaded(true);
+      return;
+    }
+    const brand = techBrandColorMap[key];
+    setColor(brand || '#6B7280');
+    const iconKey = toSimpleIconKey(key);
+
+    getSimpleIconsCache().then((cache) => {
+      const icon = cache.get(iconKey);
+      if (icon) {
+        setSvg(icon.svg);
+      }
+      setLoaded(true);
+    });
+  }, [tech]);
+
   if (!tech) return null;
   const key = resolveTechKey(tech);
-  const color = key ? techColorMap[key] : '#6B7280';
 
-  if (key) {
-    const iconId = techIdMap[key];
-    const src = `https://cdn.simpleicons.org/${iconId}/${color.replace('#', '')}`;
+  if (!loaded) {
     return (
-      <img
-        src={src}
-        alt={tech}
+      <span
+        className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold leading-none px-1.5 py-1 ${className || ''}`}
+        style={{ backgroundColor: '#6B7280', color: '#FFF' }}
         title={tech}
-        className={`inline-flex items-center justify-center rounded-md bg-white/90 p-1 ${className || ''}`}
-        style={{ width: 28, height: 28 }}
-        loading="lazy"
-      />
+      >
+        {tech.slice(0, 2).toUpperCase()}
+      </span>
     );
   }
 
-  const text = '#FFFFFF';
+  if (!key || !svg) {
+    return (
+      <span
+        className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold leading-none px-1.5 py-1 ${className || ''}`}
+        style={{ backgroundColor: '#6B7280', color: '#FFF' }}
+        title={tech}
+      >
+        {tech.slice(0, 2).toUpperCase()}
+      </span>
+    );
+  }
+
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold leading-none px-1.5 py-1 ${className || ''}`}
-      style={{ backgroundColor: color, color: text }}
+      className={`inline-flex items-center justify-center rounded-md bg-white/90 p-0.5 ${className || ''}`}
+      style={{ width: 28, height: 28 }}
       title={tech}
-    >
-      {initials(tech)}
-    </span>
+      dangerouslySetInnerHTML={{
+        __html: svg.replace('<svg ', `<svg style="color:${color}" `),
+      }}
+    />
   );
 };
 
