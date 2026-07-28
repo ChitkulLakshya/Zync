@@ -74,11 +74,12 @@
  * ============================================================================
  */
 import React from 'react';
-import { Menu, Search, Plus, Home, Video, CheckSquare, Bell, Settings } from 'lucide-react';
+import { Plus, Home, CheckSquare, FileText, Folder, Users, Calendar, Video } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { InstallPromptView, useAppInstallStatus } from '@/features/install-wall';
 
 interface MobileLayoutProps {
     children: React.ReactNode;
@@ -108,31 +109,44 @@ export const MobileLayout = ({
     hideActivityLog
 }: MobileLayoutProps) => {
     const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
+    const { hasCheckedStatus, requiresInstallWall, isIOS, isAndroid } = useAppInstallStatus();
 
-    const navItems = [
+    if (hasCheckedStatus && requiresInstallWall) {
+        return <InstallPromptView isIOS={isIOS} isAndroid={isAndroid} appName="ZYNC" />;
+    }
+
+    const leftNavItems = [
         { id: 'Home', icon: Home, label: 'Home' },
-        { id: 'Meet', icon: Video, label: 'Meet' },
+        { id: 'People', icon: Users, label: 'People' },
+        { id: 'Calendar', icon: Calendar, label: 'Cal' },
+    ];
+
+    const rightNavItems = [
+        { id: 'Notes', icon: FileText, label: 'Notes' },
         { id: 'Tasks', icon: CheckSquare, label: 'Tasks' },
-        ...(hideActivityLog ? [] : [{ id: 'Activity', icon: Bell, label: 'Activity' }]),
-        { id: 'Settings', icon: Settings, label: 'Settings' },
+        { id: 'Meet', icon: Video, label: 'Meet' },
     ];
 
 
-    const isMainTab = navItems.some(item => item.id === activeTab);
+    const isMainTab = [...leftNavItems, ...rightNavItems].some(item => item.id === activeTab);
 
     return (
         <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden">
-            {}
-            <header className="h-14 border-b border-border/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex items-center justify-between px-4 shrink-0 z-40">
-                <div className="flex items-center gap-3">
+            <header className="absolute top-2 right-4 z-50 flex items-center justify-end pointer-events-none">
+                <div className="flex items-center gap-2 pointer-events-auto">
+                    {rightHeaderAction}
                     <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
                         <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="-ml-2 h-10 w-10">
-                                <Menu className="h-6 w-6" />
-                                <span className="sr-only">Open Menu</span>
-                            </Button>
+                            <button className="relative outline-none">
+                                <Avatar className="w-7 h-7 border border-border/20">
+                                    <AvatarImage src={user?.photoURL} />
+                                    <AvatarFallback className="text-[10px] bg-foreground text-background">
+                                        {user?.displayName?.substring(0, 2).toUpperCase() || 'U'}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </button>
                         </SheetTrigger>
-                        <SheetContent side="left" className="w-[85%] sm:w-[350px] p-0">
+                        <SheetContent side="right" className="w-[85%] sm:w-[350px] p-0">
                             <SheetHeader className="sr-only">
                                 <SheetTitle>Navigation Menu</SheetTitle>
                                 <SheetDescription>
@@ -166,65 +180,58 @@ export const MobileLayout = ({
                             </div>
                         </SheetContent>
                     </Sheet>
-
-                    <div className="font-semibold text-lg tracking-tight">
-                        {headerTitle}
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                    {rightHeaderAction ? rightHeaderAction : (
-                        <Button variant="ghost" size="icon" className="-mr-2 text-muted-foreground">
-                            <Search className="h-5 w-5" />
-                        </Button>
-                    )}
                 </div>
             </header>
 
             {}
-            <main className="flex-1 overflow-y-auto overflow-x-hidden bg-background relative" id="mobile-main-content">
+            <main className="flex-1 overflow-hidden bg-background relative" id="mobile-main-content">
                 {children}
             </main>
 
-            {}
-            {}
-            {onFabClick && (
-                <div className="absolute bottom-20 right-4 z-50">
-                    <Button
-                        onClick={onFabClick}
-                        size="icon"
-                        className="h-14 w-14 rounded-full shadow-xl bg-foreground text-background hover:bg-foreground/90 transition-transform active:scale-95"
-                    >
-                        <Plus className="h-6 w-6" />
-                    </Button>
-                </div>
-            )}
-
-            {}
-            <nav className="h-16 border-t border-border/10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 shrink-0 z-40 pb-safe">
-                <div className="grid grid-cols-5 h-full">
-                    {navItems.map((item) => {
+            {/* Bottom Navigation */}
+            <nav className="h-14 border-t border-border/10 bg-background/90 backdrop-blur-md supports-[backdrop-filter]:bg-background/60 shrink-0 z-40 pb-safe relative">
+                <div className="flex items-center justify-between px-2 h-full max-w-md mx-auto">
+                    {leftNavItems.map((item) => {
                         const isActive = activeTab === item.id;
                         const Icon = item.icon;
-
                         return (
                             <button
                                 key={item.id}
                                 onClick={() => onTabChange(item.id)}
                                 className={cn(
-                                    "flex flex-col items-center justify-center gap-1 transition-colors relative group",
+                                    "flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors",
                                     isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
                                 )}
                             >
-                                <div className={cn(
-                                    "p-1.5 rounded-xl transition-all duration-200",
-                                    isActive ? "bg-foreground/5" : "group-hover:bg-muted"
-                                )}>
-                                    <Icon className={cn("h-5 w-5", isActive && "fill-current")} />
-                                </div>
-                                <span className="text-[10px] font-medium">{item.label}</span>
+                                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
                             </button>
-                        )
+                        );
+                    })}
+
+                    <div className="relative -top-4 mx-1">
+                        <button
+                            onClick={onFabClick || (() => onTabChange('Projects'))}
+                            className="w-11 h-11 rounded-full bg-foreground text-background shadow-lg flex items-center justify-center ring-2 ring-background transition-transform active:scale-95"
+                        >
+                            <Plus className="w-6 h-6" />
+                        </button>
+                    </div>
+
+                    {rightNavItems.map((item) => {
+                        const isActive = activeTab === item.id;
+                        const Icon = item.icon;
+                        return (
+                            <button
+                                key={item.id}
+                                onClick={() => onTabChange(item.id)}
+                                className={cn(
+                                    "flex flex-col items-center justify-center p-1 min-w-[36px] transition-colors",
+                                    isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground"
+                                )}
+                            >
+                                <Icon className="w-6 h-6" strokeWidth={isActive ? 2.5 : 2} />
+                            </button>
+                        );
                     })}
                 </div>
             </nav>

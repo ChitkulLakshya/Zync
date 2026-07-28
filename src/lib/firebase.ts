@@ -83,6 +83,7 @@ import { getStorage } from 'firebase/storage';
 import { getFirestore } from 'firebase/firestore';
 // Imports App Check initialization and ReCaptcha provider classes to protect the backend services from abuse.
 import { initializeAppCheck, ReCaptchaV3Provider } from 'firebase/app-check';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
 
 // Defines the Firebase configuration object containing all necessary public keys and endpoints needed to connect to the cloud project.
 const firebaseConfig = {
@@ -139,5 +140,13 @@ export const auth = getAuth(app);
 export const storage = getStorage(app);
 // Initializes and exports the Cloud Firestore database service instance tied to the configured app.
 export const db = getFirestore(app);
-// Exports the core Firebase app instance as the default export for any modules that need direct app access.
+
+let messagingInstance: ReturnType<typeof getMessaging> | null = null;
+try {
+  messagingInstance = getMessaging(app);
+} catch {
+  messagingInstance = null;
+}
+export const messaging = messagingInstance;
+export { getToken, onMessage };
 export default app;

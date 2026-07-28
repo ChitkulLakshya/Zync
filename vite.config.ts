@@ -4,6 +4,14 @@ import path from 'path';
 import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig(({ mode: _mode }) => ({
+  define: {
+    __FIREBASE_API_KEY__: JSON.stringify(process.env.VITE_FIREBASE_API_KEY || ''),
+    __FIREBASE_AUTH_DOMAIN__: JSON.stringify(process.env.VITE_FIREBASE_AUTH_DOMAIN || ''),
+    __FIREBASE_PROJECT_ID__: JSON.stringify(process.env.VITE_FIREBASE_PROJECT_ID || ''),
+    __FIREBASE_STORAGE_BUCKET__: JSON.stringify(process.env.VITE_FIREBASE_STORAGE_BUCKET || ''),
+    __FIREBASE_MESSAGING_SENDER_ID__: JSON.stringify(process.env.VITE_FIREBASE_MESSAGING_SENDER_ID || ''),
+    __FIREBASE_APP_ID__: JSON.stringify(process.env.VITE_FIREBASE_APP_ID || ''),
+  },
   server: {
     host: '::',
     port: 8081,
@@ -29,7 +37,7 @@ export default defineConfig(({ mode: _mode }) => ({
       'Content-Security-Policy':
         "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://apis.google.com https://www.googleapis.com https://www.gstatic.com https://www.google.com; " +
         "frame-src 'self' https://*.firebaseapp.com https://*.google.com https://www.google.com; " +
-        "connect-src 'self' http://localhost:* ws://localhost:* https://*.googleapis.com https://*.firebaseio.com https://*.firebase.google.com https://www.google.com https://www.gstatic.com https://*.ws.pusherapp.com https://api.github.com https://github.com https://*.onrender.com wss://*.onrender.com; " +
+        "connect-src 'self' http://localhost:* ws://localhost:* https://apis.google.com https://*.googleapis.com https://*.firebaseio.com https://*.firebase.google.com https://www.google.com https://www.gstatic.com https://*.ws.pusherapp.com https://api.github.com https://github.com https://*.onrender.com wss://*.onrender.com; " +
         "worker-src 'self' blob:; " +
         "object-src 'none';",
     },
@@ -47,7 +55,7 @@ export default defineConfig(({ mode: _mode }) => ({
     VitePWA({
       registerType: _mode === 'development' ? 'prompt' : 'autoUpdate',
       injectRegister: 'auto',
-      includeAssets: ['pwa-192x192.png', 'pwa-512x512.png', 'pwa-maskable-512x512.png'],
+      includeAssets: ['zync-white.webp', 'zync-dark.webp'],
       manifestFilename: 'manifest.json',
       manifest: {
         name: 'ZYNC',
@@ -60,19 +68,19 @@ export default defineConfig(({ mode: _mode }) => ({
         scope: '/',
         icons: [
           {
-            src: '/pwa-192x192.png',
+            src: '/zync-white.webp',
             sizes: '192x192',
-            type: 'image/png',
+            type: 'image/webp',
           },
           {
-            src: '/pwa-512x512.png',
+            src: '/zync-white.webp',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/webp',
           },
           {
-            src: '/pwa-maskable-512x512.png',
+            src: '/zync-white.webp',
             sizes: '512x512',
-            type: 'image/png',
+            type: 'image/webp',
             purpose: 'maskable',
           },
         ],

@@ -92,6 +92,7 @@ const { sendZyncEmail } = require('../services/mailer');
 const { getMeetingInviteTextVersion, getMeetingEmailHtml } = require('../utils/emailTemplates');
 // This line imports utility functions for generating the plain text and HTML content of meeting invitation emails, ensuring consistent email formatting.
 const { normalizeDoc, normalizeDocs } = require('../utils/normalize');
+const { sendPushNotification } = require('../services/pushNotificationService');
 // This line imports utility functions 'normalizeDoc' and 'normalizeDocs', which are used to transform Mongoose document objects into a consistent, standardized format (e.g., converting '_id' to 'id').
 const { paginateArray, setPaginationHeaders } = require('../utils/pagination');
 // This line imports utility functions 'paginateArray' and 'setPaginationHeaders', which are used to handle array pagination logic and set appropriate HTTP response headers for pagination metadata.
@@ -340,6 +341,26 @@ router.post('/schedule', verifyToken, async (req, res) => {
                     }
                 }
             }));
+        })();
+
+        (async () => {
+            try {
+                for (const p of participants) {
+                    if (p.uid) {
+                        await sendPushNotification(p.uid, {
+                            title: 'Meeting Invitation',
+                            body: `${title || 'Scheduled Meeting'} at ${new Date(startTime).toLocaleString()}`,
+                            data: {
+                                type: 'meeting-invite',
+                                meetingId: String(newMeeting._id),
+                                meetLink: meetingUrl || '',
+                            },
+                        });
+                    }
+                }
+            } catch (e) {
+                console.warn('[MeetRoutes] Push notification error:', e.message);
+            }
         })();
 
         res.status(201).json(meetingObj);
