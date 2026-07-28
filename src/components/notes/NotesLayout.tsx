@@ -153,6 +153,7 @@ import {
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { useConfirm } from '@/hooks/use-confirm';
 
 interface NotesLayoutProps {
   user: { uid: string; displayName?: string; email?: string; photoURL?: string } | null;
@@ -417,6 +418,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
   const [selectedNote, setSelectedNote] = useState<Note | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const { confirm } = useConfirm();
 
 
   const sensors = useSensors(
@@ -718,9 +720,13 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
   };
 
   const handleDeleteFolder = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this folder and all its contents?')) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Delete Folder',
+      description: 'Are you sure you want to delete this folder and all its contents?',
+      checkboxLabel: 'I confirm I want to delete this folder'
+    });
+    if (!isConfirmed) return;
+
     try {
       await deleteFolder(id);
       toast.success('Folder deleted');
@@ -736,11 +742,12 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
   };
 
   const handleDeleteNote = async (id: string) => {
-
-
-    if (!window.confirm('Are you sure you want to delete this note?')) {
-      return;
-    }
+    const isConfirmed = await confirm({
+      title: 'Delete Note',
+      description: 'Are you sure you want to delete this note?',
+      checkboxLabel: 'I confirm I want to delete this note'
+    });
+    if (!isConfirmed) return;
 
     try {
       await deleteNote(id);

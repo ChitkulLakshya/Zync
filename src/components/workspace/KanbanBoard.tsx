@@ -162,7 +162,7 @@ const KanbanBoard = ({ steps, onUpdateTask, users, isOwner, currentUser }: Kanba
     const resolvedTaskId = task._id || task.id;
     const resolvedStepId = task.stepId;
 
-    if (resolvedTaskId && resolvedStepId && !isOwner && isAssignee && isReadyLike) {
+    if (resolvedTaskId && resolvedStepId && isAssignee && isReadyLike) {
       onUpdateTask(resolvedStepId, resolvedTaskId, { status: 'Active' });
     }
 

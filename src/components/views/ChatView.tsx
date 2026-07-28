@@ -111,6 +111,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useChatHistory } from '@/hooks/useChatHistory';
+import { useConfirm } from '@/hooks/use-confirm';
 
 interface ChatViewProps {
   selectedUser: any;
@@ -123,6 +124,7 @@ interface ChatViewProps {
 const ChatView = ({ selectedUser, onBack, currentUserData, isQuickChat, onOpenFullChat }: ChatViewProps) => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { confirm } = useConfirm();
   const currentUser = auth.currentUser;
 
   const chatId =
@@ -268,7 +270,13 @@ const ChatView = ({ selectedUser, onBack, currentUserData, isQuickChat, onOpenFu
       return;
     }
 
-    if (confirm('Are you sure you want to clear this chat history? This cannot be undone.')) {
+    const isConfirmed = await confirm({
+      title: 'Clear Chat History',
+      description: 'Are you sure you want to clear this chat history? This cannot be undone.',
+      checkboxLabel: 'I confirm I want to clear this chat'
+    });
+    
+    if (isConfirmed) {
       try {
         const chatId = [currentUser.uid, selectedUser.uid].sort().join('_');
         socketClearChat(chatId, selectedUser.uid);

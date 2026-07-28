@@ -109,6 +109,7 @@ import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { TeamLogoDisplay } from '@/components/ui/TeamLogoDisplay';
 import { useMe } from '@/hooks/useMe';
+import { useConfirm } from '@/hooks/use-confirm';
 
 interface MeetViewProps {
   currentUser: User | null;
@@ -149,6 +150,7 @@ export default function MeetView({
 }: MeetViewProps) {
   const currentUser = isPreview && mockMe ? mockMe : realCurrentUser;
   const { data: realUserData } = useMe();
+  const { confirm } = useConfirm();
   const userData = isPreview && mockMe ? mockMe : realUserData;
   const closeFriendsIds = userData?.closeFriends || [];
 
@@ -812,9 +814,14 @@ export default function MeetView({
                         size="sm"
                         variant="ghost"
                         className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                        onClick={(e) => {
+                        onClick={async (e) => {
                           e.stopPropagation();
-                          if (window.confirm('Are you sure you want to delete this meeting?')) {
+                          const isConfirmed = await confirm({
+                            title: 'Delete Meeting',
+                            description: 'Are you sure you want to delete this meeting?',
+                            checkboxLabel: 'I confirm I want to delete this meeting'
+                          });
+                          if (isConfirmed) {
                             handleDeleteMeeting(meeting.id);
                           }
                         }}

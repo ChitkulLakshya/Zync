@@ -128,7 +128,7 @@ const MobileDashboardView = ({ currentUser }: { currentUser: any }) => {
   }, 0);
 
   return (
-    <div className="p-4 space-y-4 overflow-x-hidden">
+    <div className="p-4 pr-14 space-y-4 overflow-x-hidden">
       <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-sm">
         <CardContent className="pt-4">
           <div className="flex items-center gap-3">

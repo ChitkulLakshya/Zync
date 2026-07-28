@@ -107,6 +107,7 @@ import { Github } from '@/components/ui/GithubIcon';;
 import { useGitHubStats, useGitHubEvents, useGitHubContributions } from '@/hooks/useGitHubData';
 import { useProjects } from '@/hooks/useProjects';
 import { useQueryClient } from '@tanstack/react-query';
+import { useConfirm } from '@/hooks/use-confirm';
 
 interface DashboardViewProps {
   currentUser: any;
@@ -122,6 +123,7 @@ const DashboardView = ({
   mockProjects,
 }: DashboardViewProps) => {
   const queryClient = useQueryClient();
+  const { confirm } = useConfirm();
   const { data: realProjects = [] } = useProjects();
   const projects = isPreview && mockProjects ? mockProjects : realProjects;
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -202,7 +204,13 @@ const DashboardView = ({
   };
 
   const handleUnlink = async () => {
-    if (!confirm('Are you sure you want to unlink your GitHub account?')) {
+    const isConfirmed = await confirm({
+      title: 'Unlink GitHub',
+      description: 'Are you sure you want to unlink your GitHub account?',
+      checkboxLabel: 'I confirm I want to unlink GitHub'
+    });
+    
+    if (!isConfirmed) {
       return;
     }
 

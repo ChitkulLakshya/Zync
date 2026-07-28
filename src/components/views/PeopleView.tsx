@@ -223,9 +223,12 @@ const PeopleView = ({
   useEffect(() => {
     if (myTeams.length > 0) {
       setHasTeam(true);
-      if (!teamInfo || !myTeams.find((t) => t.id === teamInfo.id)) {
+      const matchingTeam = teamInfo ? myTeams.find((t) => t.id === teamInfo.id) : null;
+      if (!teamInfo || !matchingTeam) {
         const activeTeam = myTeams.find((t) => t.id === (userData?.teamId as string)) || myTeams[0];
         setTeamInfo(activeTeam);
+      } else if (JSON.stringify(matchingTeam) !== JSON.stringify(teamInfo)) {
+        setTeamInfo(matchingTeam);
       }
     } else if (!myTeamsLoading && myTeams.length === 0 && !isPreview) {
       setHasTeam(false);
@@ -707,6 +710,7 @@ const PeopleView = ({
                           onChat={onChat}
                           refreshTeamQueries={async () => {
                             await queryClient.invalidateQueries({ queryKey: ['teamUsers'] });
+                            await queryClient.invalidateQueries({ queryKey: ['myTeams', currentUser?.uid] });
                           }}
                           setTeamsData={() => {}}
                         />

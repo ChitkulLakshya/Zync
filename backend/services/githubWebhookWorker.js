@@ -260,6 +260,19 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
     return { processed: true, action: 'cleared_repo_cache' };
   }
 
+  // WHAT: Handle collaborator invitation acceptance. WHY: Updates "My Workspace" UI in real-time.
+  if (event === 'member' && payload.action === 'added') {
+    const { repository } = payload;
+    const linkedProject = await findLinkedProject(repository);
+    if (linkedProject) {
+      await cache.invalidate(`collaborator-assignees:${linkedProject._id}:${linkedProject.ownerUid}`);
+      await cache.invalidate(`projects:${linkedProject.ownerUid}`);
+      debugWebhookLog(`Invalidated caches for project ${linkedProject._id} upon member added event`);
+      return { processed: true, action: 'member_added_cache_invalidated' };
+    }
+    return { ignored: true, reason: 'member_added_but_not_linked' };
+  }
+
   // WHAT: Handle repository deletion. WHY: Keeps Zync DB synced with GitHub.
   if (event === 'repository' && payload.action === 'deleted') {
     const { repository } = payload;

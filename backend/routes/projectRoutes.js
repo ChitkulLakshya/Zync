@@ -235,40 +235,44 @@ const handleTaskAssignment = async (project, task, assignedTo, assignedToName) =
     assignedToName
   };
 
-  // Only create branch if there is a github repo linked and the task doesn't already have one
-  if (project.githubRepoOwner && project.githubRepoName && !task.githubBranchName) {
-    try {
-      const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
-      
-      // Fetch default branch SHA
-      const repoRes = await octokit.request('GET /repos/{owner}/{repo}', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName
-      });
-      const defaultBranch = repoRes.data.default_branch;
-      
-      const refRes = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName,
-        ref: `heads/${defaultBranch}`
-      });
-      const sha = refRes.data.object.sha;
+  // Unconditionally generate the branch name and commit message if they don't exist yet,
+  // so the DB has the official tracking names even if GitHub automated branch creation fails.
+  if (!task.githubBranchName) {
+    const slug = slugify(task.title).substring(0, 30);
+    const branchName = `task/${slug}-${task._id}`;
+    
+    taskUpdate.githubBranchName = branchName;
+    taskUpdate.completionCommitMessage = `Complete Task: ${task._id}`;
 
-      const slug = slugify(task.title).substring(0, 30);
-      const branchName = `task/${slug}-${task._id}`;
-      
-      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName,
-        ref: `refs/heads/${branchName}`,
-        sha: sha
-      });
+    if (project.githubRepoOwner && project.githubRepoName) {
+      try {
+        const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+        
+        // Fetch default branch SHA
+        const repoRes = await octokit.request('GET /repos/{owner}/{repo}', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName
+        });
+        const defaultBranch = repoRes.data.default_branch;
+        
+        const refRes = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          ref: `heads/${defaultBranch}`
+        });
+        const sha = refRes.data.object.sha;
 
-      taskUpdate.githubBranchName = branchName;
-      taskUpdate.completionCommitMessage = `Complete Task: ${task._id}`;
-    } catch (err) {
-      console.error('Failed to create task branch on GitHub:', err.message);
-      // We don't fail the assignment if branch creation fails
+        await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          ref: `refs/heads/${branchName}`,
+          sha: sha
+        });
+      } catch (err) {
+        console.error('Failed to create task branch on GitHub:', err.message);
+        // We don't fail the assignment if branch creation fails. 
+        // The DB now holds the correct branch tracking details for manual creation fallback!
+      }
     }
   }
 

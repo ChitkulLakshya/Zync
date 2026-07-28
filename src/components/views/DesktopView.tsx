@@ -1031,12 +1031,12 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                   <img
                     src="/zync-white.webp"
                     alt="Logo"
-                    className="h-8 w-8 object-contain rounded-lg block dark:hidden"
+                    className="h-9 w-auto object-contain block dark:hidden"
                   />
                   <img
                     src="/zync-dark.webp"
                     alt="Logo"
-                    className="h-8 w-8 object-contain rounded-lg hidden dark:block"
+                    className="h-9 w-auto object-contain hidden dark:block"
                   />
                 </>
               ) : (

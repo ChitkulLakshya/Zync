@@ -17,10 +17,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { MoreVertical, MessageSquare, Crown, Shield, ShieldOff, UserMinus, ArrowRightLeft, Clock } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { getFullUrl, getUserName, getUserInitials, API_BASE_URL, cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { useConfirm } from '@/hooks/use-confirm';
 
 export function MemberListItem({
   user,
@@ -32,9 +35,11 @@ export function MemberListItem({
   setTeamsData,
 }: any) {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   const [actionLoading, setActionLoading] = useState(false);
   const [transferDialogOpen, setTransferDialogOpen] = useState(false);
   const [transferPin, setTransferPin] = useState('');
+  const [transferConfirmChecked, setTransferConfirmChecked] = useState(false);
 
   const status = statusData?.status || 'offline';
   const lastSeenDate = statusData?.lastSeen ? new Date(statusData.lastSeen) : null;
@@ -63,14 +68,19 @@ export function MemberListItem({
   const canManage = (amITheOwner || amIAdmin) && !isMemberOwner && !isYou;
 
   const handleRemoveMember = async () => {
-    if (!window.confirm('Remove this member from the team?')) {return;}
+    const isConfirmed = await confirm({
+      title: 'Remove Member',
+      description: 'Remove this member from the team?',
+      checkboxLabel: 'I confirm I want to remove this member'
+    });
+    if (!isConfirmed) {return;}
+    
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${teamInfo.id}/remove-member`, {
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamInfo.id}/members/${user.uid}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user.uid })
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
       if (!res.ok) {throw new Error('Failed to remove member');}
       toast({ title: 'Member Removed', description: 'Successfully removed from the team.' });
@@ -224,7 +234,7 @@ export function MemberListItem({
               Please enter your Security PIN to confirm.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             <Input
               type="password"
               placeholder="Enter Security PIN"
@@ -233,12 +243,22 @@ export function MemberListItem({
               maxLength={6}
               className="text-center tracking-[0.5em] text-lg font-mono"
             />
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="transfer-confirm-checkbox" 
+                checked={transferConfirmChecked} 
+                onCheckedChange={(checked) => setTransferConfirmChecked(checked === true)} 
+              />
+              <Label htmlFor="transfer-confirm-checkbox" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                I confirm I want to transfer ownership
+              </Label>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setTransferDialogOpen(false); setTransferPin(''); }} disabled={actionLoading}>
+            <Button variant="outline" onClick={() => { setTransferDialogOpen(false); setTransferPin(''); setTransferConfirmChecked(false); }} disabled={actionLoading}>
               Cancel
             </Button>
-            <Button variant="default" onClick={handleTransferOwnership} disabled={actionLoading || transferPin.length < 4}>
+            <Button variant="default" onClick={handleTransferOwnership} disabled={actionLoading || transferPin.length < 4 || !transferConfirmChecked}>
               {actionLoading ? 'Transferring...' : 'Transfer Ownership'}
             </Button>
           </DialogFooter>

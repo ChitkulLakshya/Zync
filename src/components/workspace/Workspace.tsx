@@ -102,6 +102,7 @@ import { Label } from "@/components/ui/label";
 import { useProjects, useProjectMutations } from "@/hooks/useProjects";
 import { usePinnedNotes } from "@/hooks/useNotes";
 import TaskAssignmentDrawer from "@/components/workspace/TaskAssignmentDrawer";
+import { useConfirm } from '@/hooks/use-confirm';
 
 interface Project {
   _id?: string;
@@ -132,6 +133,7 @@ interface WorkspaceProps {
 
 const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }: WorkspaceProps) => {
   const { toast } = useToast();
+  const { confirm } = useConfirm();
   
   const { data: projects = [], isLoading: projectsLoading } = useProjects();
   const { data: pinnedNotes = [], isLoading: notesLoading } = usePinnedNotes();
@@ -418,11 +420,16 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
   const handleDeleteProject = async (e: React.MouseEvent, projectId: string) => {
     e.stopPropagation();
-    if (!confirm("Are you sure you want to delete this project? This action cannot be undone.")) { return; }
+    const isConfirmed = await confirm({
+      title: 'Remove Project',
+      description: "Are you sure you want to remove this project from your workspace? This will ONLY unlink it from Zync; your GitHub repository will NOT be deleted.",
+      checkboxLabel: 'I confirm I want to remove this project'
+    });
+    if (!isConfirmed) { return; }
 
     try {
       await deleteProject(projectId);
-      toast({ title: "Project deleted", description: "The project has been successfully removed." });
+      toast({ title: "Project Unlinked", description: "The project has been successfully removed from Zync." });
     } catch (error) {
       toast({ title: "Error", description: "Failed to delete project.", variant: "destructive" });
     }
