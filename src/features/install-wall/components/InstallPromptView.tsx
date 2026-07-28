@@ -74,15 +74,14 @@
  * ============================================================================
  */
 // Imports essential React hooks (useEffect, useMemo, useState) required for managing side effects, derived state, and local component state.
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 // Imports specific icons (Download, Share2, Smartphone, CheckCircle2) from the 'lucide-react' library to enhance the UI visually.
-import { Download, Share2, Smartphone, CheckCircle2 } from "lucide-react";
+import { Download, Bell, BellOff, CheckCircle2 } from "lucide-react";
 // Imports the reusable 'Button' component from the local UI library for consistent styling of interactive elements.
 import { Button } from "@/components/ui/button";
 // Imports various Card sub-components from the local UI library to structure the prompt interface neatly.
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-// Imports the 'Badge' component from the local UI library to highlight specific status labels, like "Mobile Install Required".
-import { Badge } from "@/components/ui/badge";
+import { useAppInstallStatus } from "../hooks/useAppInstallStatus";
 
 // Extends the standard DOM Event interface to include properties specific to the 'beforeinstallprompt' event, ensuring TypeScript understands this PWA-specific event.
 interface BeforeInstallPromptEvent extends Event {
@@ -106,10 +105,15 @@ interface InstallPromptViewProps {
 
 // Declares the functional component 'InstallPromptView', destructuring its props and assigning a default value of "ZYNC" to 'appName'.
 const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPromptViewProps) => {
+  const { isStandalone } = useAppInstallStatus();
   // Initializes a state variable 'deferredPrompt' to null, used to capture and hold the native 'beforeinstallprompt' event for later triggering on Android.
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   // Initializes a boolean state variable 'isInstalling' to false, tracking whether the install process is currently active to disable UI elements.
   const [isInstalling, setIsInstalling] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission>(
+    typeof Notification !== "undefined" ? Notification.permission : "denied"
+  );
+  const [isRequestingNotif, setIsRequestingNotif] = useState(false);
 
   // Uses the useEffect hook to listen for the 'beforeinstallprompt' event when the component mounts, which is critical for customizing the PWA install flow on Android.
   useEffect(() => {
@@ -128,29 +132,28 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
   // Empty dependency array ensures this effect only runs once on mount.
   }, []);
 
-  // Memoizes a boolean indicating if auto-install is possible: it requires the device to be Android AND the 'beforeinstallprompt' event to have been captured.
-  const canAutoInstall = useMemo(() => isAndroid && Boolean(deferredPrompt), [isAndroid, deferredPrompt]);
-
-  // Defines an asynchronous click handler for the install button, wrapping the native PWA install prompt logic.
   const handleInstallClick = async () => {
-    // Exits early if there is no deferred prompt available, preventing errors if the button is somehow clicked before the event fires.
     if (!deferredPrompt) {
       return;
     }
-
-    // Starts a try...finally block to ensure the 'isInstalling' state is correctly reset regardless of whether the install succeeds or fails.
     try {
-      // Sets the 'isInstalling' state to true, indicating to the UI that the install process is underway (e.g., to show a loading state).
       setIsInstalling(true);
-      // Programmatically triggers the native browser installation prompt using the stored event.
       await deferredPrompt.prompt();
-      // Waits for the user to respond to the native prompt (either accepting or dismissing the installation).
       await deferredPrompt.userChoice;
     } finally {
-      // Resets the 'isInstalling' state to false, as the native prompt interaction is finished.
       setIsInstalling(false);
-      // Clears the deferred prompt from state, as it can only be used once.
       setDeferredPrompt(null);
+    }
+  };
+
+  const handleEnableNotifications = async () => {
+    if (typeof Notification === "undefined") { return; }
+    setIsRequestingNotif(true);
+    try {
+      const permission = await Notification.requestPermission();
+      setNotifPermission(permission);
+    } finally {
+      setIsRequestingNotif(false);
     }
   };
 
@@ -158,111 +161,88 @@ const InstallPromptView = ({ isIOS, isAndroid, appName = "ZYNC" }: InstallPrompt
   // Renders a full-viewport height container with a background color and padding, ensuring the prompt takes up the whole screen natively.
   return (
     <div className="min-h-[100dvh] w-full bg-background px-4 py-6">
-      {/* Centers the inner card vertically and horizontally within the viewport. */}
       <div className="mx-auto flex min-h-[calc(100dvh-3rem)] w-full max-w-md items-center justify-center">
-        {/* Renders a Card component with a subtle border and glassmorphism (backdrop-blur) effect for a modern aesthetic. */}
         <Card className="w-full border-border/10 bg-card/50 shadow-none backdrop-blur-xl">
-          {/* Defines the header section of the Card containing the icon, badge, and titles. */}
-          <CardHeader className="space-y-3 text-center">
-            {/* Renders a circular container for the Smartphone icon to make it visually prominent. */}
-            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-foreground/10 text-foreground">
-              {/* Renders the Smartphone icon from lucide-react. */}
-              <Smartphone className="h-6 w-6" />
-            </div>
-            {/* Groups the text elements with vertical spacing. */}
-            <div className="space-y-2">
-              {/* Renders a secondary badge indicating that installation is a requirement. */}
-              <Badge variant="secondary" className="text-xs">
-                Mobile Install Required
-              </Badge>
-              {/* Renders the main title of the card, dynamically including the application name. */}
-              <CardTitle className="text-xl md:text-2xl">Install {appName} to Continue</CardTitle>
-              {/* Renders a descriptive subtitle explaining why installation is necessary for the best experience. */}
-              <CardDescription className="text-sm md:text-base">
-                For the best real-time collaboration experience on mobile, {appName} must run as an installed app.
-              </CardDescription>
+          <CardHeader className="space-y-4 text-center pt-6">
+            <div className="mx-auto flex flex-col items-center gap-3">
+              <img
+                src="/zync-white.webp"
+                alt={appName}
+                className="h-20 w-20 rounded-2xl object-contain block dark:hidden"
+              />
+              <img
+                src="/zync-dark.webp"
+                alt={appName}
+                className="h-20 w-20 rounded-2xl object-contain hidden dark:block"
+              />
+              <div className="space-y-1">
+                <CardTitle className="text-xl md:text-2xl">Install {appName}</CardTitle>
+                <CardDescription className="text-sm md:text-base">
+                  Install the app to get the full experience with push notifications.
+                </CardDescription>
+              </div>
             </div>
           </CardHeader>
 
-          {/* Defines the main content area of the Card containing platform-specific instructions or buttons. */}
           <CardContent className="space-y-4">
-            {/* Conditionally renders iOS-specific instructions if the 'isIOS' prop is true, as iOS does not support the 'beforeinstallprompt' API for custom install buttons.
-                Wraps the iOS instructions in a distinct bordered box for clarity. */}
-            {isIOS && (
-              <div className="rounded-xl border border-border/10 bg-card/50 p-4">
-                {/* Renders the instruction heading for iOS. */}
-                <p className="mb-3 text-sm font-medium">On iPhone/iPad:</p>
-                {/* Renders an ordered list of steps the iOS user must take manually. */}
-                <ol className="space-y-2 text-sm text-muted-foreground">
-                  {/* List item for step 1: tapping the share button. */}
-                  <li className="flex items-start gap-2">
-                    {/* Wraps the icon for alignment. */}
-                    <span className="mt-0.5 text-foreground">
-                      {/* Renders the native Apple Share icon equivalent. */}
-                      <Share2 className="h-4 w-4" />
-                    </span>
-                    {/* Renders the text instruction for step 1. */}
-                    <span>Tap the Share button in Safari.</span>
-                  </li>
-                  {/* List item for step 2: selecting "Add to Home Screen". */}
-                  <li className="flex items-start gap-2">
-                    {/* Wraps the icon for alignment. */}
-                    <span className="mt-0.5 text-foreground">
-                      {/* Renders a Download icon to represent adding to home screen. */}
-                      <Download className="h-4 w-4" />
-                    </span>
-                    {/* Renders the text instruction for step 2, bolding the specific button name. */}
-                    <span>Select <strong>Add to Home Screen</strong>.</span>
-                  </li>
-                  {/* List item for step 3: opening the app. */}
-                  <li className="flex items-start gap-2">
-                    {/* Wraps the icon for alignment. */}
-                    <span className="mt-0.5 text-foreground">
-                      {/* Renders a CheckCircle2 icon to represent completion. */}
-                      <CheckCircle2 className="h-4 w-4" />
-                    </span>
-                    {/* Renders the text instruction for step 3, dynamically including the app name. */}
-                    <span>Open {appName} from your home screen.</span>
-                  </li>
-                </ol>
-              </div>
-            )}
+            <Button
+              type="button"
+              className="h-12 w-full text-base"
+              onClick={handleInstallClick}
+              disabled={isInstalling}
+            >
+              <Download className="mr-2 h-5 w-5" />
+              {isInstalling ? "Installing..." : "Install App"}
+            </Button>
 
-            {/* Conditionally renders Android-specific text if 'isIOS' is false, explaining what the install button will do.
-                Wraps the Android context text in a bordered box. */}
-            {!isIOS && (
-              <div className="rounded-xl border border-border/10 bg-card/50 p-4">
-                {/* Renders the context heading for Android. */}
-                <p className="mb-2 text-sm font-medium">Android install</p>
-                {/* Renders the explanatory text for Android users. */}
-                <p className="text-sm text-muted-foreground">
-                  Tap install to add {appName} to your home screen and launch it in app mode.
-                </p>
-              </div>
-            )}
-
-            {/* Conditionally renders the interactive install button only if the device is Android.
-                Renders a full-width Button component to trigger the PWA install prompt. */}
-            {isAndroid && (
-              <Button
-                type="button"
-                className="h-11 w-full"
-                onClick={handleInstallClick}
-                disabled={!canAutoInstall || isInstalling}
-              >
-                {/* Renders a Download icon inside the button. */}
-                <Download className="mr-2 h-4 w-4" />
-                {/* Dynamically changes the button text based on whether the install process is currently active. */}
-                {isInstalling ? "Opening install prompt..." : "Install App"}
-              </Button>
-            )}
-
-            {/* Conditionally renders fallback instructions for Android if the 'beforeinstallprompt' event was not caught (e.g., in some specific browsers or if already installed).
-                Renders centered fallback text instructing the user to use the browser menu. */}
-            {isAndroid && !deferredPrompt && (
+            {!isIOS && !deferredPrompt && (
               <p className="text-center text-xs text-muted-foreground">
-                If install button is disabled, open browser menu and tap <strong>Install app</strong>.
+                If nothing happens, open your browser menu and tap <strong>Install app</strong>.
               </p>
+            )}
+
+            {isStandalone && (
+            <div className="rounded-xl border border-border/10 bg-card/50 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                {notifPermission === "granted" ? (
+                  <Bell className="h-4 w-4 text-emerald-500" />
+                ) : notifPermission === "denied" ? (
+                  <BellOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Bell className="h-4 w-4 text-foreground" />
+                )}
+                <p className="text-sm font-medium">Enable Notifications</p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {notifPermission === "granted"
+                  ? "Notifications are enabled. You'll receive push notifications for tasks and meetings."
+                  : notifPermission === "denied"
+                  ? "Notifications are blocked. Enable them in your browser settings to receive task and meeting alerts."
+                  : "Get instant alerts when tasks are assigned or meetings are scheduled in your team."}
+              </p>
+              {notifPermission !== "granted" && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 w-full"
+                  onClick={handleEnableNotifications}
+                  disabled={isRequestingNotif || notifPermission === "denied"}
+                >
+                  <Bell className="mr-2 h-4 w-4" />
+                  {isRequestingNotif
+                    ? "Requesting..."
+                    : notifPermission === "denied"
+                    ? "Blocked \u2013 Enable in Settings"
+                    : "Allow Notifications"}
+                </Button>
+              )}
+              {notifPermission === "granted" && (
+                <div className="flex items-center gap-2 text-sm text-emerald-500">
+                  <CheckCircle2 className="h-4 w-4" />
+                  <span>Notifications enabled</span>
+                </div>
+              )}
+            </div>
             )}
           </CardContent>
         </Card>
