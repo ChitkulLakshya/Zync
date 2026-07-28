@@ -79,6 +79,7 @@ const bcrypt = require('bcryptjs');
 const verifyToken = require('../middleware/authMiddleware');
 const User = require('../models/User');
 const Team = require('../models/Team');
+const Project = require('../models/Project');
 const { encrypt } = require('../utils/encryption');
 const { sendZyncEmail } = require('../services/mailer');
 const { appendRow } = require('../services/sheetLogger');
@@ -609,14 +610,22 @@ router.get('/', verifyToken, async (req, res) => {
 
     const relatedUids = new Set(currentUser.connections || []);
 
-    const [allMyTeams, ownedTeams] = await Promise.all([
+    const [allMyTeams, ownedTeams, myProjects, ownedProjects] = await Promise.all([
       Team.find({ members: req.user.uid }).lean(),
       Team.find({ ownerId: req.user.uid }).lean(),
+      Project.find({ team: req.user.uid }).lean(),
+      Project.find({ ownerUid: req.user.uid }).lean(),
     ]);
 
     const uniqueTeams = [...allMyTeams, ...ownedTeams];
     uniqueTeams.forEach((t) => {
       if (t.members) t.members.forEach((m) => relatedUids.add(m));
+    });
+
+    const uniqueProjects = [...myProjects, ...ownedProjects];
+    uniqueProjects.forEach((p) => {
+      if (p.team) p.team.forEach((m) => relatedUids.add(m));
+      if (p.ownerUid) relatedUids.add(p.ownerUid);
     });
 
     relatedUids.add(req.user.uid);
@@ -894,6 +903,52 @@ router.post('/verify-pin', verifyToken, async (req, res) => {
     res.json({ message: 'Security PIN verified successfully', valid: true });
   } catch (error) {
     console.error('Error verifying PIN:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.post('/fcm-token', verifyToken, async (req, res) => {
+  const { token, platform } = req.body;
+  if (!token) {
+    return res.status(400).json({ message: 'FCM token is required' });
+  }
+  try {
+    const uid = req.user.uid;
+    await User.updateOne(
+      { uid },
+      {
+        $pull: { fcmTokens: { token } },
+      }
+    );
+    await User.updateOne(
+      { uid },
+      {
+        $addToSet: {
+          fcmTokens: { token, platform: platform || 'web', updatedAt: new Date() },
+        },
+      }
+    );
+    res.status(200).json({ message: 'FCM token registered' });
+  } catch (error) {
+    console.error('Error registering FCM token:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+router.delete('/fcm-token', verifyToken, async (req, res) => {
+  const { token } = req.body;
+  if (!token) {
+    return res.status(400).json({ message: 'FCM token is required' });
+  }
+  try {
+    const uid = req.user.uid;
+    await User.updateOne(
+      { uid },
+      { $pull: { fcmTokens: { token } } }
+    );
+    res.status(200).json({ message: 'FCM token removed' });
+  } catch (error) {
+    console.error('Error removing FCM token:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });

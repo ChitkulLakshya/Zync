@@ -86,6 +86,7 @@ const { normalizeDocs } = require('../utils/normalize');
 const cache = require('../utils/cache');
 const { sendZyncEmail } = require('../services/mailer');
 const { getTaskAssignmentEmailHtml } = require('../utils/emailTemplates');
+const { sendPushNotification } = require('../services/pushNotificationService');
 
 const buildOctokitForInstallation = async (installationId) => {
   const appId = process.env.GITHUB_APP_ID;
@@ -341,6 +342,25 @@ router.post('/assign', verifyToken, async (req, res) => {
         });
       }
     }
+
+    (async () => {
+      try {
+        const taskTitle = createdTasks.map((t) => t.title).join(', ');
+        for (const uid of normalizedAssigneeIds) {
+          await sendPushNotification(uid, {
+            title: 'New Task Assigned',
+            body: taskTitle,
+            data: {
+              type: 'task-assigned',
+              projectId: String(projectId),
+              projectName: project.name || '',
+            },
+          });
+        }
+      } catch (e) {
+        console.warn('[TaskRoutes] Push notification error:', e.message);
+      }
+    })();
 
     return res.status(200).json({
       message: 'Task created successfully.',

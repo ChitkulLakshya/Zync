@@ -96,6 +96,17 @@ const userSchema = new mongoose.Schema(
     githubIntegration: { type: mongoose.Schema.Types.Mixed, default: null },
     googleIntegration: { type: mongoose.Schema.Types.Mixed, default: null },
 
+    fcmTokens: {
+      type: [
+        {
+          token: { type: String, required: true },
+          platform: { type: String, default: 'web' },
+          updatedAt: { type: Date, default: Date.now },
+        },
+      ],
+      default: [],
+    },
+
 
     isPhoneVerified: { type: Boolean, default: false },
     phoneVerificationCode: { type: String, default: null },
