@@ -18,7 +18,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npm run dev:frontend',
+    command: 'npm run dev:full',
     url: 'http://localhost:8081',
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',
