@@ -65,13 +65,13 @@ export default function MobileCalendar({ currentUser, users = [] }: MobileCalend
         }
         
         // clamp to week
-        if (start < weekStart) start = weekStart;
-        if (end > weekEnd) end = weekEnd;
+        if (start < weekStart) {start = weekStart;}
+        if (end > weekEnd) {end = weekEnd;}
         
         const startDayIndex = start.getDay() + 1; // 1 to 7
         let span = end.getDay() - start.getDay() + 1;
-        if (span <= 0) span = 1;
-        if (span < 2) span = 2; // minimum span for aesthetics
+        if (span <= 0) {span = 1;}
+        if (span < 2) {span = 2;} // minimum span for aesthetics
         if (startDayIndex + span - 1 > 7) {
            span = 7 - startDayIndex + 1;
         }
@@ -91,7 +91,7 @@ export default function MobileCalendar({ currentUser, users = [] }: MobileCalend
 
      // Sort tasks by start day, then by duration descending
      const sorted = [...tasksInWeek].sort((a, b) => {
-        if (a.startDayIndex !== b.startDayIndex) return a.startDayIndex - b.startDayIndex;
+        if (a.startDayIndex !== b.startDayIndex) {return a.startDayIndex - b.startDayIndex;}
         return b.span - a.span;
      });
 
@@ -102,7 +102,7 @@ export default function MobileCalendar({ currentUser, users = [] }: MobileCalend
         const e = task.startDayIndex + task.span - 1;
 
         while (!placed) {
-           if (!rows[rowIndex]) rows[rowIndex] = [];
+           if (!rows[rowIndex]) {rows[rowIndex] = [];}
            const overlap = rows[rowIndex].some(r => Math.max(s, r.start) <= Math.min(e, r.end));
            if (!overlap) {
               rows[rowIndex].push({ start: s, end: e });
@@ -190,12 +190,12 @@ export default function MobileCalendar({ currentUser, users = [] }: MobileCalend
                     const assignedUsers: any[] = [];
                     if (task.assignedTo) {
                       const u = users.find(x => x.uid === task.assignedTo);
-                      if (u) assignedUsers.push(u);
+                      if (u) {assignedUsers.push(u);}
                     }
                     if (task.assignedUserIds) {
                        task.assignedUserIds.forEach((uid: string) => {
                           const u = users.find(x => x.uid === uid);
-                          if (u && !assignedUsers.find(x => x.uid === uid)) assignedUsers.push(u);
+                          if (u && !assignedUsers.find(x => x.uid === uid)) {assignedUsers.push(u);}
                        });
                     }
 

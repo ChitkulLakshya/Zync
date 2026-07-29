@@ -40,12 +40,12 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const handleConfirm = () => {
-    if (resolver) resolver(true);
+    if (resolver) {resolver(true);}
     closeDialog();
   };
 
   const handleCancel = () => {
-    if (resolver) resolver(false);
+    if (resolver) {resolver(false);}
     closeDialog();
   };
 
@@ -62,7 +62,7 @@ export const ConfirmProvider = ({ children }: { children: ReactNode }) => {
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
       
-      <AlertDialog open={isOpen} onOpenChange={(open) => { if (!open) handleCancel(); }}>
+      <AlertDialog open={isOpen} onOpenChange={(open) => { if (!open) {handleCancel();} }}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{options?.title || 'Are you sure?'}</AlertDialogTitle>

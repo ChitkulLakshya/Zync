@@ -725,7 +725,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
       description: 'Are you sure you want to delete this folder and all its contents?',
       checkboxLabel: 'I confirm I want to delete this folder'
     });
-    if (!isConfirmed) return;
+    if (!isConfirmed) {return;}
 
     try {
       await deleteFolder(id);
@@ -747,7 +747,7 @@ export const NotesLayout: React.FC<NotesLayoutProps> = ({
       description: 'Are you sure you want to delete this note?',
       checkboxLabel: 'I confirm I want to delete this note'
     });
-    if (!isConfirmed) return;
+    if (!isConfirmed) {return;}
 
     try {
       await deleteNote(id);

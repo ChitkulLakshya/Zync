@@ -219,7 +219,7 @@ const MobileTasks = ({ currentUser, users = [] }: MobileTasksProps) => {
           const isAssigner = t.createdBy === currentUser?.uid || t.assignedBy === currentUser?.uid;
           const isAssignedToOther = t.assignedTo && t.assignedTo !== currentUser?.uid;
           if (isAssigner && isAssignedToOther) {
-            if (!grouped[p.name]) grouped[p.name] = [];
+            if (!grouped[p.name]) {grouped[p.name] = [];}
             grouped[p.name].push({
               ...t,
               projectName: p.name,
