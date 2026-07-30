@@ -162,7 +162,7 @@ const HeroSection = () => {
                 <SimulatedCursor x={0} y={0} name="Team Chat" color="hsl(var(--primary))" />
               </motion.div>
 
-              <h1 className="text-[clamp(2.5rem,8vw,5rem)] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter mb-4 text-foreground leading-[1.05]">
+              <h1 className="text-[clamp(2.5rem,8vw,5rem)] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter mb-4 text-foreground leading-[1.2] sm:leading-[1.05]">
                 Build software,
                 <br />
                 <span className="text-foreground/80">together.</span>

@@ -368,9 +368,6 @@ const MobileWorkspace = ({ currentUser, onSelectProject }: MobileWorkspaceProps)
           </SheetHeader>
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/10 shrink-0">
             <h2 className="font-semibold text-lg">Add Project</h2>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setCreateSheetOpen(false)}>
-              <X className="w-4 h-4" />
-            </Button>
           </div>
 
           <Tabs defaultValue="import" className="flex-1 flex flex-col overflow-hidden">
@@ -478,9 +475,6 @@ const MobileWorkspace = ({ currentUser, onSelectProject }: MobileWorkspaceProps)
           </SheetHeader>
           <div className="flex items-center justify-between px-4 py-3 border-b border-border/10 shrink-0">
             <h2 className="font-semibold text-lg">Link Repository</h2>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setLinkSheetOpen(false)}>
-              <X className="w-4 h-4" />
-            </Button>
           </div>
 
           <div className="px-4 py-2 shrink-0">

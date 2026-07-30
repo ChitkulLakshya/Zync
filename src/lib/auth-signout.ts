@@ -81,12 +81,31 @@ import { queryClient } from "@/lib/query-client";
 import { clearQueryCache } from "@/lib/query-persister";
 
 /** Clears TanStack Query memory + persisted localStorage cache, then signs out. */
-// Exports an asynchronous function that takes the Firebase Auth instance and coordinates the complete sign-out process, including data cleanup.
 export async function signOutAndClearState(auth: Auth): Promise<void> {
-  // Synchronously clears the active TanStack Query cache in memory to prevent the next user from seeing the previous user's data.
-  queryClient.clear();
-  // Synchronously invokes the utility function that removes the persisted cache from the browser's localStorage or IndexedDB.
-  clearQueryCache();
-  // Awaits the Firebase SDK's signOut method to officially terminate the authentication session on the client and server.
-  await signOut(auth);
+  try {
+    queryClient.clear();
+  } catch (e) {
+    console.warn("Failed to clear query client:", e);
+  }
+
+  try {
+    clearQueryCache();
+  } catch (e) {
+    console.warn("Failed to clear query cache:", e);
+  }
+
+  try {
+    localStorage.removeItem('ZYNC-active-section');
+    sessionStorage.clear();
+  } catch (e) {
+    console.warn("Failed to clear storage on signout:", e);
+  }
+
+  try {
+    if (auth) {
+      await signOut(auth);
+    }
+  } catch (e) {
+    console.warn("Firebase signOut failed:", e);
+  }
 }

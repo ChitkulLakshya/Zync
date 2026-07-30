@@ -61,12 +61,20 @@ export const MobileLayout = ({
         <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden font-sans">
             {/* Top Header Bar */}
             <header className="h-14 px-4 border-b border-white/10 dark:border-white/10 bg-background/70 backdrop-blur-2xl backdrop-saturate-180 shrink-0 z-30 flex items-center justify-between relative">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                        <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
-                            {headerTitle}
-                        </span>
-                    </div>
+                <div className="flex items-center gap-2">
+                    <img
+                        src="/zync-white.webp"
+                        alt="Zync"
+                        className="h-6 w-auto object-contain hidden dark:block"
+                    />
+                    <img
+                        src="/zync-dark.webp"
+                        alt="Zync"
+                        className="h-6 w-auto object-contain block dark:hidden"
+                    />
+                    <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
+                        Zync
+                    </span>
                 </div>
 
                 <div className="flex items-center gap-3">
@@ -131,7 +139,7 @@ export const MobileLayout = ({
             </header>
 
             {/* Main View Area */}
-            <main className="flex-1 overflow-y-auto overscroll-contain bg-background relative touch-pan-y" id="mobile-main-content">
+            <main className="flex-1 w-full flex flex-col box-border overflow-y-auto overscroll-contain bg-background relative touch-pan-y" id="mobile-main-content">
                 {children}
             </main>
 

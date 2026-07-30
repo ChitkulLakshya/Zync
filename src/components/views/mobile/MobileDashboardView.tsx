@@ -155,8 +155,8 @@ const MobileDashboardView = ({ currentUser }: { currentUser: any }) => {
   }, 0);
 
   return (
-    <div className="p-4 space-y-4 pb-28 min-h-full overflow-y-auto overscroll-contain touch-pan-y">
-      <Card className="bg-card/60 dark:bg-card/40 backdrop-blur-2xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)]">
+    <div className="w-full flex flex-col box-border px-4 py-4 space-y-5 pb-28 min-h-fit overflow-y-auto overscroll-contain touch-pan-y">
+      <Card className="w-full h-auto min-h-fit box-border bg-card/60 dark:bg-card/40 backdrop-blur-2xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.08)]">
         <CardContent className="pt-4">
           <div className="flex items-center gap-3">
             <Avatar className="h-14 w-14 border border-border/20 shadow-sm">

@@ -441,8 +441,13 @@ const MobileView = () => {
             variant="ghost"
             className="w-full justify-start gap-3 h-11 font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
             onClick={async () => {
-              await signOutAndClearState(auth);
-              navigate('/login');
+              try {
+                await signOutAndClearState(auth);
+              } catch (err) {
+                console.error('Sign out error:', err);
+              } finally {
+                window.location.href = '/login';
+              }
             }}
           >
             <LogOut className="h-5 w-5 text-destructive" />
@@ -478,7 +483,7 @@ const MobileView = () => {
         photoURL: currentUser.photoURL ? getFullUrl(currentUser.photoURL) : undefined
       } : null}
       drawerContent={DrawerContent}
-      headerTitle={activeTab === 'Home' ? 'Workspace' : activeTab}
+      headerTitle="Zync"
     >
       {userMeError && currentUser && (
         <div className="p-3 border-b border-border/10 bg-transparent shrink-0">
