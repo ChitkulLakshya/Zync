@@ -108,7 +108,7 @@ const MobileAppSection = () => {
   };
 
   return (
-    <section id="mobile" ref={containerRef} className="relative lg:h-[200vh] scroll-mt-20">
+    <section id="mobile" ref={containerRef} className="hidden md:block relative lg:h-[200vh] scroll-mt-20">
       <div className="lg:sticky top-0 lg:h-screen flex items-center py-16 lg:py-0 overflow-visible lg:overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-12 items-center">

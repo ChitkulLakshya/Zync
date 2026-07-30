@@ -934,8 +934,8 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
                 currentTeamOwnerId={
                   typeof userData?.teamId === 'object'
                     ? userData?.teamId?.ownerId ||
-                      userData?.teamId?.ownerUid ||
-                      userData?.teamId?.leaderId
+                    userData?.teamId?.ownerUid ||
+                    userData?.teamId?.leaderId
                     : undefined
                 }
                 currentTeamLogoId={
@@ -983,11 +983,11 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
             user={
               currentUser
                 ? {
-                    uid: currentUser.uid,
-                    displayName: currentUser.displayName || undefined,
-                    email: currentUser.email || undefined,
-                    photoURL: currentUser.photoURL || undefined,
-                  }
+                  uid: currentUser.uid,
+                  displayName: currentUser.displayName || undefined,
+                  email: currentUser.email || undefined,
+                  photoURL: currentUser.photoURL || undefined,
+                }
                 : null
             }
             users={usersList}

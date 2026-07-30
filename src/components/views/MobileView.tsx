@@ -87,8 +87,10 @@ import {
   Video,
   Settings,
   Bell,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from "lucide-react";
+import { signOutAndClearState } from "@/lib/auth-signout";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { useMe } from "@/hooks/useMe";
@@ -188,9 +190,9 @@ const MobileView = () => {
       const assignedUserIds = Array.isArray(task?.assignedUserIds) ? task.assignedUserIds : [];
       const hasRepoLink = Boolean(
         task?.githubRepoOwner ||
-          task?.githubRepoName ||
-          task?.githubRepo ||
-          (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
+        task?.githubRepoName ||
+        task?.githubRepo ||
+        (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
       );
       const hasCommitCode = Boolean(task?.commitCode);
 
@@ -338,6 +340,8 @@ const MobileView = () => {
 
   const drawerItems = [
     { id: 'Projects', label: 'Projects', icon: Folder },
+    { id: 'Calendar', label: 'Calendar', icon: Calendar },
+    { id: 'Notes', label: 'Notes', icon: FileText },
     { id: 'Messages', label: 'Messages', icon: MessageSquare },
     ...(canViewActivityLog ? [{ id: 'Activity', label: 'Activity', icon: Bell }] : []),
     { id: 'Settings', label: 'Settings', icon: Settings },
@@ -370,10 +374,10 @@ const MobileView = () => {
             currentUserProfile={
               currentUser
                 ? {
-                    displayName: currentUser.displayName || undefined,
-                    email: currentUser.email || undefined,
-                    photoURL: currentUser.photoURL || undefined,
-                  }
+                  displayName: currentUser.displayName || undefined,
+                  email: currentUser.email || undefined,
+                  photoURL: currentUser.photoURL || undefined,
+                }
                 : null
             }
             teamTasks={teamTasks}
@@ -431,6 +435,20 @@ const MobileView = () => {
             {item.label}
           </Button>
         ))}
+
+        <div className="pt-4 border-t border-border/10 mt-4 px-1">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 h-11 font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={async () => {
+              await signOutAndClearState(auth);
+              navigate('/login');
+            }}
+          >
+            <LogOut className="h-5 w-5 text-destructive" />
+            Sign Out
+          </Button>
+        </div>
       </div>
     </ScrollArea>
   );
