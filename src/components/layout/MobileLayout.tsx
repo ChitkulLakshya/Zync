@@ -60,7 +60,7 @@ export const MobileLayout = ({
     return (
         <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden font-sans">
             {/* Top Header Bar */}
-            <header className="h-14 px-4 border-b border-border/10 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shrink-0 z-30 flex items-center justify-between relative">
+            <header className="h-14 px-4 border-b border-white/10 dark:border-white/10 bg-background/70 backdrop-blur-2xl backdrop-saturate-180 shrink-0 z-30 flex items-center justify-between relative">
                 <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                         <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
@@ -131,12 +131,12 @@ export const MobileLayout = ({
             </header>
 
             {/* Main View Area */}
-            <main className="flex-1 overflow-hidden bg-background relative" id="mobile-main-content">
+            <main className="flex-1 overflow-y-auto overscroll-contain bg-background relative touch-pan-y" id="mobile-main-content">
                 {children}
             </main>
 
             {/* Modern 5-Item Bottom Navigation Bar */}
-            <nav className="h-16 border-t border-border/10 bg-background/85 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/70 shrink-0 z-40 pb-safe relative">
+            <nav className="h-16 border-t border-white/10 dark:border-white/10 bg-background/75 backdrop-blur-2xl backdrop-saturate-180 shrink-0 z-40 pb-safe relative">
                 <div className="flex items-center justify-around px-2 h-full max-w-lg mx-auto">
                     {/* Left Nav: Home, People */}
                     {leftNavItems.map((item) => {

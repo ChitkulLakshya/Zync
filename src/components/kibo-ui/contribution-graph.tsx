@@ -340,13 +340,15 @@ const ContributionGraphTotalCount = ({ className, ...props }: ComponentProps<'sp
 
 const ContributionGraphLegend = ({ className, ...props }: ComponentProps<'div'>) => {
   return (
-    <div className={cn('flex items-center gap-1', className)} {...props}>
+    <div className={cn('flex items-center justify-center gap-1.5 text-xs text-muted-foreground mx-auto text-center w-full', className)} {...props}>
       <span>Less</span>
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-0)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-1)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-2)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-3)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-4)' }} />
+      <div className="flex items-center gap-1">
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-0)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-1)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-2)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-3)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-4)' }} />
+      </div>
       <span>More</span>
     </div>
   );
