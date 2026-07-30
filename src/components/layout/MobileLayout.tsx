@@ -136,7 +136,7 @@ export const MobileLayout = ({
             </main>
 
             {/* Modern 5-Item Bottom Navigation Bar */}
-            <nav className="h-16 border-t border-white/10 dark:border-white/10 bg-background/75 backdrop-blur-2xl backdrop-saturate-180 shrink-0 z-40 pb-safe relative">
+            <nav className="h-16 border-t border-border/10 bg-background/85 backdrop-blur-2xl supports-[backdrop-filter]:bg-background/70 shrink-0 z-40 pb-safe relative">
                 <div className="flex items-center justify-around px-2 h-full max-w-lg mx-auto">
                     {/* Left Nav: Home, People */}
                     {leftNavItems.map((item) => {
@@ -153,9 +153,6 @@ export const MobileLayout = ({
                             >
                                 <div className="relative">
                                     <Icon className={cn("w-5 h-5 transition-transform duration-200", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.8} />
-                                    {isActive && (
-                                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
-                                    )}
                                 </div>
                                 <span className={cn("text-[10px] mt-1 font-medium tracking-tight transition-colors", isActive ? "font-semibold text-primary" : "opacity-80")}>
                                     {item.label}
@@ -190,9 +187,6 @@ export const MobileLayout = ({
                             >
                                 <div className="relative">
                                     <Icon className={cn("w-5 h-5 transition-transform duration-200", isActive && "scale-110")} strokeWidth={isActive ? 2.5 : 1.8} />
-                                    {isActive && (
-                                        <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary shadow-[0_0_6px_rgba(59,130,246,0.8)]" />
-                                    )}
                                 </div>
                                 <span className={cn("text-[10px] mt-1 font-medium tracking-tight transition-colors", isActive ? "font-semibold text-primary" : "opacity-80")}>
                                     {item.label}
