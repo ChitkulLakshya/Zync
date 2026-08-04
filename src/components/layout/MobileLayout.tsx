@@ -42,9 +42,9 @@ export const MobileLayout = ({
     const [isDrawerOpen, setIsDrawerOpen] = React.useState(false);
     const { hasCheckedStatus, requiresInstallWall, isIOS, isAndroid } = useAppInstallStatus();
 
-    if (hasCheckedStatus && requiresInstallWall) {
-        return <InstallPromptView isIOS={isIOS} isAndroid={isAndroid} appName="ZYNC" />;
-    }
+    // if (hasCheckedStatus && requiresInstallWall) {
+    //     return <InstallPromptView isIOS={isIOS} isAndroid={isAndroid} appName="ZYNC" />;
+    // }
 
     // Bottom Navigation Items strictly matching user specification: Home, People, +, Tasks, Meet
     const leftNavItems = [
@@ -65,12 +65,12 @@ export const MobileLayout = ({
                     <img
                         src="/zync-white.webp"
                         alt="Zync"
-                        className="h-6 w-auto object-contain hidden dark:block"
+                        className="h-6 w-auto object-contain block dark:hidden"
                     />
                     <img
                         src="/zync-dark.webp"
                         alt="Zync"
-                        className="h-6 w-auto object-contain block dark:hidden"
+                        className="h-6 w-auto object-contain hidden dark:block"
                     />
                     <span className="font-bold text-lg tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
                         Zync
