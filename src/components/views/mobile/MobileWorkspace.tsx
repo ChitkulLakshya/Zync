@@ -265,7 +265,7 @@ const MobileWorkspace = ({ currentUser, onSelectProject }: MobileWorkspaceProps)
       {/* Header */}
       <div className="flex items-center justify-between pl-4 pr-14 py-3 shrink-0">
         <div>
-          <h2 className="text-lg font-semibold">Projects</h2>
+          <h2 className="text-lg font-semibold">My Workspace</h2>
           <p className="text-xs text-muted-foreground">{projects.length} project{projects.length !== 1 ? 's' : ''}</p>
         </div>
         <Button size="sm" className="gap-2" onClick={handleOpenCreateSheet}>

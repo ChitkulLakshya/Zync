@@ -80,6 +80,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import {
   LayoutDashboard,
   Folder,
+  FolderKanban,
   CheckSquare,
   Users,
   Calendar,
@@ -90,6 +91,7 @@ import {
   MessageSquare,
   LogOut
 } from "lucide-react";
+import { Github } from '@/components/ui/GithubIcon';
 import { signOutAndClearState } from "@/lib/auth-signout";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
@@ -109,6 +111,7 @@ import MobileNotes from "@/components/views/mobile/MobileNotes";
 import MobileMeet from "@/components/views/mobile/MobileMeet";
 import MobileSettings from "@/components/views/mobile/MobileSettings";
 import MobileMessages from "@/components/views/mobile/MobileMessages";
+import MyProjectsView from "./MyProjectsView";
 
 const MobileView = () => {
   const [activeTab, setActiveTab] = useState("Home");
@@ -158,8 +161,8 @@ const MobileView = () => {
   const handleNavigate = (path: string) => {
     if (path === "New Project") {
       navigate("/new-project");
-    } else if (path === "Projects") {
-      setActiveTab("Projects");
+    } else if (path === "My Workspace" || path === "Projects") {
+      setActiveTab("My Workspace");
     }
   };
 
@@ -339,7 +342,8 @@ const MobileView = () => {
   );
 
   const drawerItems = [
-    { id: 'Projects', label: 'Projects', icon: Folder },
+    { id: 'My Workspace', label: 'My Workspace', icon: FolderKanban },
+    { id: 'My Projects', label: 'My Projects', icon: Github },
     { id: 'Calendar', label: 'Calendar', icon: Calendar },
     { id: 'Notes', label: 'Notes', icon: FileText },
     { id: 'Messages', label: 'Messages', icon: MessageSquare },
@@ -351,7 +355,7 @@ const MobileView = () => {
     switch (activeTab) {
       case "Home":
         return currentUser ? <MobileDashboardView currentUser={currentUser} /> : null;
-      case "Projects":
+      case "My Workspace":
         return currentUser ? (
           <MobileWorkspace
             currentUser={currentUser}
@@ -359,6 +363,8 @@ const MobileView = () => {
             onSelectProject={handleSelectProject}
           />
         ) : null;
+      case "My Projects":
+        return currentUser ? <MyProjectsView currentUser={currentUser} /> : null;
       case "Tasks":
         return currentUser ? <MobileTasks currentUser={currentUser} users={usersList} /> : null;
       case "Activity":
