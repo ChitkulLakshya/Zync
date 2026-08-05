@@ -204,6 +204,12 @@ const ContributionGraphCalendar = ({ children, maxWeeks }: ContributionGraphCale
     const firstDayOfWeek = parseLocalDate(week[0].date);
     const month = firstDayOfWeek.getMonth();
     if (month !== lastMonth) {
+      if (months.length > 0) {
+        const lastAdded = months[months.length - 1];
+        if (weekIndex - lastAdded.weekIndex < 3) {
+          months.pop();
+        }
+      }
       months.push({
         name: firstDayOfWeek.toLocaleString('en-US', { month: 'short' }),
         weekIndex,
