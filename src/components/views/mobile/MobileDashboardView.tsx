@@ -101,7 +101,7 @@ const formatEventType = (type: string) => {
 };
 
 const formatTimeAgo = (dateStr?: string) => {
-  if (!dateStr) return '';
+  if (!dateStr) {return '';}
   const date = new Date(dateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
@@ -109,8 +109,8 @@ const formatTimeAgo = (dateStr?: string) => {
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-  if (diffMins < 60) return `${Math.max(1, diffMins)}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffMins < 60) {return `${Math.max(1, diffMins)}m ago`;}
+  if (diffHours < 24) {return `${diffHours}h ago`;}
   return `${diffDays}d ago`;
 };
 
