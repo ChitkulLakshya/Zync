@@ -803,28 +803,23 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Username</Label>
-                    <Input
-                      value={profileForm.username}
-                      onChange={(e) => setProfileForm({ ...profileForm, username: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2 flex flex-col">
-                      <Label>Country</Label>
+                    <Label>Phone Number</Label>
+                    <div className="flex gap-2">
                       <Popover open={openCountry} onOpenChange={setOpenCountry}>
                         <PopoverTrigger asChild>
                           <Button
                             variant="outline"
                             role="combobox"
                             aria-expanded={openCountry}
-                            className="w-full justify-between"
+                            className="w-44 justify-between shrink-0"
                           >
                             {profileForm.countryCode
-                              ? countries.find(
-                                  (country) => country.dial_code === profileForm.countryCode
-                                )?.name
+                              ? (() => {
+                                  const c = countries.find(
+                                    (country) => country.dial_code === profileForm.countryCode
+                                  );
+                                  return c ? `${c.flag} ${c.dial_code}` : 'Select country...';
+                                })()
                               : 'Select country...'}
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
@@ -864,25 +859,17 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                           </Command>
                         </PopoverContent>
                       </Popover>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label>Phone Number</Label>
-                      <div className="flex gap-2">
-                        <div className="flex items-center justify-center px-3 border rounded-md bg-muted text-muted-foreground">
-                          {profileForm.countryCode}
-                        </div>
-                        <Input
-                          type="tel"
-                          value={profileForm.phoneNumber}
-                          onChange={(e) =>
-                            setProfileForm({
-                              ...profileForm,
-                              phoneNumber: e.target.value.replace(/\D/g, ''),
-                            })
-                          }
-                        />
-                      </div>
+                      <Input
+                        type="tel"
+                        placeholder="Phone number"
+                        value={profileForm.phoneNumber}
+                        onChange={(e) =>
+                          setProfileForm({
+                            ...profileForm,
+                            phoneNumber: e.target.value.replace(/\D/g, ''),
+                          })
+                        }
+                      />
                     </div>
                   </div>
 

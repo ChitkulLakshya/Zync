@@ -218,7 +218,7 @@ const ProjectDetails = () => {
   };
 
   const handleSaveRepoSettings = async () => {
-    if (!project || !auth.currentUser) {return;}
+    if (!project || !auth.currentUser) { return; }
     setIsSavingRepoSettings(true);
     try {
       const token = await auth.currentUser.getIdToken();
@@ -270,8 +270,8 @@ const ProjectDetails = () => {
   const handleAnalyzeArchitecture = async () => {
     // What: Guard clause ensuring both a project and an authenticated user exist.
     // Why: Prevents execution if the required context is missing, avoiding runtime errors.
-    if (!project || !auth.currentUser) {return;}
-    
+    if (!project || !auth.currentUser) { return; }
+
     // What: Sets the analyzing state to true.
     // Why: Triggers the loading UI in the component.
     setIsAnalyzing(true);
@@ -279,7 +279,7 @@ const ProjectDetails = () => {
       // What: Retrieves the current user's Firebase ID token.
       // Why: Needed to authenticate the API request on the backend.
       const token = await auth.currentUser.getIdToken();
-      
+
       // What: Sends a POST request to the analyze-architecture endpoint.
       // Why: Instructs the backend to perform the heavy lifting of analyzing the project.
       const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`, {
@@ -299,11 +299,11 @@ const ProjectDetails = () => {
       // What: Parses the JSON response to get the updated project data.
       // Why: We need the newly analyzed architecture to display in the UI.
       const updatedProject = await response.json();
-      
+
       // What: Updates the local project state.
       // Why: Causes the component to re-render with the new architecture details.
       setProject(updatedProject);
-      
+
       // What: Shows a success toast notification.
       // Why: Provides positive feedback to the user that the analysis succeeded.
       toast.success("Architecture analysis complete!");
@@ -325,11 +325,11 @@ const ProjectDetails = () => {
   const [isSharing, setIsSharing] = useState(false);
 
   const handleShareProject = async () => {
-    if (!selectedShareUser || !project || !auth.currentUser) {return;}
+    if (!selectedShareUser || !project || !auth.currentUser) { return; }
     setIsSharing(true);
     try {
       const receiver = users.find(u => u.uid === selectedShareUser);
-      if (!receiver) {throw new Error("User not found");}
+      if (!receiver) { throw new Error("User not found"); }
 
       const chatId = [auth.currentUser.uid, receiver.uid].sort().join("_");
       socketSendMessage({
@@ -370,7 +370,7 @@ const ProjectDetails = () => {
 
   const fetchUsers = async () => {
     try {
-      if (!currentUser) {return;}
+      if (!currentUser) { return; }
       const token = await currentUser.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/users`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -394,7 +394,7 @@ const ProjectDetails = () => {
         options.headers = { Authorization: `Bearer ${token}` };
       }
       const response = await fetch(`${API_BASE_URL}/api/projects/${id}`, options);
-      if (!response.ok) {throw new Error("Project not found");}
+      if (!response.ok) { throw new Error("Project not found"); }
       const data = await response.json();
       setProject(data);
 
@@ -445,7 +445,7 @@ const ProjectDetails = () => {
       toast.success(`Task ${data.taskId} completed via commit!`);
 
       setProject((prevProject) => {
-        if (!prevProject) {return null;}
+        if (!prevProject) { return null; }
 
         const newSteps = prevProject.steps.map(step => {
           const newTasks = step.tasks.map(task => {
@@ -500,10 +500,10 @@ const ProjectDetails = () => {
 
 
     const stepIndex = project.steps.findIndex(s => s._id === stepId || s.id === stepId);
-    if (stepIndex === -1) {return;}
+    if (stepIndex === -1) { return; }
 
     const taskIndex = project.steps[stepIndex].tasks.findIndex(t => t._id === taskId || t.id === taskId);
-    if (taskIndex === -1) {return;}
+    if (taskIndex === -1) { return; }
 
 
     const newSteps = [...project.steps];
@@ -523,7 +523,7 @@ const ProjectDetails = () => {
       const realStepId = step._id || step.id;
       const realTaskId = step.tasks[taskIndex]._id || step.tasks[taskIndex].id;
 
-      if (!realStepId || !realTaskId) {return;}
+      if (!realStepId || !realTaskId) { return; }
 
       await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${realTaskId}`, {
         method: 'PUT',
@@ -548,7 +548,7 @@ const ProjectDetails = () => {
   };
 
   const handleAssignSubmit = async () => {
-    if (!selectedTaskForAssignment || !project) {return;}
+    if (!selectedTaskForAssignment || !project) { return; }
     setIsSubmittingAssignment(true);
 
     const { stepId, task } = selectedTaskForAssignment;
@@ -642,7 +642,7 @@ const ProjectDetails = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {}
+      { }
       <header className="border-b border-border/10 bg-card/50 backdrop-blur-xl px-6 py-4">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(backPath)}>
@@ -688,7 +688,7 @@ const ProjectDetails = () => {
           </TabsList>
 
           <TabsContent value="architecture" className="flex-1 space-y-6">
-            {}
+            { }
             {readmeContent && (
               <Card>
                 <CardHeader>
@@ -706,7 +706,7 @@ const ProjectDetails = () => {
               </Card>
             )}
 
-            {}
+            { }
             {isGitHubProject && !project.architecture?.highLevel && (
               <Card>
                 <CardHeader>
@@ -730,10 +730,10 @@ const ProjectDetails = () => {
               </Card>
             )}
 
-            {}
+            { }
             {(project.architecture?.highLevel || (!isGitHubProject)) && (
               <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {}
+                { }
                 <Card className="col-span-full">
                   <CardHeader>
                     <CardTitle>High-Level Architecture</CardTitle>
@@ -749,7 +749,7 @@ const ProjectDetails = () => {
                   </CardContent>
                 </Card>
 
-                {}
+                { }
                 <Card>
                   <CardHeader className="flex flex-row items-center gap-2">
                     <Layout className="h-5 w-5 text-blue-500" />
@@ -781,7 +781,7 @@ const ProjectDetails = () => {
                   </CardContent>
                 </Card>
 
-                {}
+                { }
                 <Card>
                   <CardHeader className="flex flex-row items-center gap-2">
                     <Server className="h-5 w-5 text-green-500" />
@@ -813,7 +813,7 @@ const ProjectDetails = () => {
                   </CardContent>
                 </Card>
 
-                {}
+                { }
                 <Card>
                   <CardHeader className="flex flex-row items-center gap-2">
                     <Database className="h-5 w-5 text-orange-500" />
@@ -898,7 +898,7 @@ const ProjectDetails = () => {
                                 )}
 
                                 <div className="flex items-center gap-4 mt-2">
-                                  {}
+                                  { }
                                   {isOwner ? (
                                     <Button
                                       variant="ghost"
@@ -946,7 +946,7 @@ const ProjectDetails = () => {
                                     </div>
                                   )}
 
-                                  {}
+                                  { }
                                   <Select
                                     value={task.status}
                                     onValueChange={(val) => handleTaskUpdate(step._id, task._id, { status: val })}

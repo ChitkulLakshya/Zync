@@ -50,6 +50,9 @@ export default defineConfig(({ mode: _mode }) => ({
       },
     },
   },
+  esbuild: {
+    jsx: 'automatic',
+  },
   plugins: [
     react(),
     VitePWA({

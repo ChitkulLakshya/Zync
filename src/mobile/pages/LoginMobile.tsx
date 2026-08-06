@@ -360,16 +360,11 @@ const LoginMobile = () => {
   return (
     <div className="min-h-screen bg-transparent px-4 flex items-center justify-center">
       <div className="w-full max-w-sm space-y-4">
-        {/* Header section with branding and back button */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <>
-                <img src="/zync-white.webp" alt="Zync" className="h-8 w-8 rounded-md object-contain block dark:hidden" />
-                <img src="/zync-dark.webp" alt="Zync" className="h-8 w-8 rounded-md object-contain hidden dark:block" />
-            </>
-            <span className="text-base font-semibold">Zync</span>
-          </div>
-          <Link to="/" className="text-xs text-foreground">Back</Link>
+        {/* Logo + Name */}
+        <div className="flex flex-col items-center mb-6 sm:mb-8">
+          <img src="/zync-white.webp" alt="Zync" className="h-16 sm:h-20 md:h-24 w-auto rounded-xl sm:rounded-2xl block dark:hidden" />
+          <img src="/zync-dark.webp" alt="Zync" className="h-16 sm:h-20 md:h-24 w-auto rounded-xl sm:rounded-2xl hidden dark:block" />
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-3 sm:mt-4">Zync</h1>
         </div>
 
         <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none">

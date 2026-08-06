@@ -143,9 +143,10 @@ const ContributionGraph = ({
 
 interface ContributionGraphCalendarProps {
   children: (props: { activity: Activity; dayIndex: number; weekIndex: number }) => ReactNode;
+  maxWeeks?: number;
 }
 
-const ContributionGraphCalendar = ({ children }: ContributionGraphCalendarProps) => {
+const ContributionGraphCalendar = ({ children, maxWeeks }: ContributionGraphCalendarProps) => {
   const { data, blockSize, blockMargin } = useContributionGraph();
 
   if (data.length === 0) {
@@ -184,22 +185,30 @@ const ContributionGraphCalendar = ({ children }: ContributionGraphCalendarProps)
     weeks.push(week);
   }
 
+  // 150 days is ~21 weeks. Default mobile view to 21 weeks if maxWeeks is unspecified.
+  const isMobileViewport = typeof window !== 'undefined' && window.innerWidth < 768;
+  const effectiveMaxWeeks = maxWeeks ?? (isMobileViewport ? 21 : undefined);
+
+  const displayWeeks =
+    effectiveMaxWeeks && weeks.length > effectiveMaxWeeks
+      ? weeks.slice(-effectiveMaxWeeks)
+      : weeks;
+
   const height = 7 * (blockSize + blockMargin);
-  const width = weeks.length * (blockSize + blockMargin);
-  const marginLeft = 30;
+  const width = displayWeeks.length * (blockSize + blockMargin);
+  const marginLeft = 26;
 
   const months: { name: string; weekIndex: number }[] = [];
   let lastMonth = -1;
-  weeks.forEach((week, weekIndex) => {
+  displayWeeks.forEach((week, weekIndex) => {
     const firstDayOfWeek = parseLocalDate(week[0].date);
     const month = firstDayOfWeek.getMonth();
     if (month !== lastMonth) {
-
-
-
-      if (firstDayOfWeek < startDate) {
-        lastMonth = month;
-        return;
+      if (months.length > 0) {
+        const lastAdded = months[months.length - 1];
+        if (weekIndex - lastAdded.weekIndex < 3) {
+          months.pop();
+        }
       }
       months.push({
         name: firstDayOfWeek.toLocaleString('en-US', { month: 'short' }),
@@ -210,45 +219,47 @@ const ContributionGraphCalendar = ({ children }: ContributionGraphCalendarProps)
   });
 
   return (
-    <div className="flex flex-col">
-      {}
-      <div
-        className="flex text-xs text-muted-foreground mb-2 relative"
-        style={{ marginLeft: marginLeft, height: '1.2em' }}
-      >
-        {months.map((month, idx) => (
-          <span
-            key={idx}
-            className="absolute whitespace-nowrap"
-            style={{
-              left: month.weekIndex * (blockSize + blockMargin),
-            }}
-          >
-            {month.name}
-          </span>
-        ))}
-      </div>
-
-      <div className="flex">
-        {}
+    <div className="w-full flex flex-col items-center justify-center overflow-hidden py-1">
+      <div className="flex flex-col items-center max-w-full">
+        {/* Month Labels */}
         <div
-          className="flex flex-col justify-between text-xs text-muted-foreground mr-2 h-full py-[1px]"
-          style={{ height: height }}
+          className="flex text-xs text-muted-foreground mb-2 relative"
+          style={{ marginLeft: marginLeft, height: '1.2em', width: width }}
         >
-          <span className="opacity-0">Sum</span>
-          <span>Mon</span>
-          <span className="opacity-0">Tue</span>
-          <span>Wed</span>
-          <span className="opacity-0">Thu</span>
-          <span>Fri</span>
-          <span className="opacity-0">Sat</span>
+          {months.map((month, idx) => (
+            <span
+              key={idx}
+              className="absolute whitespace-nowrap text-[10px] sm:text-xs"
+              style={{
+                left: month.weekIndex * (blockSize + blockMargin),
+              }}
+            >
+              {month.name}
+            </span>
+          ))}
         </div>
 
-        <svg width={width} height={height} className="block">
-          {weeks.map((week, weekIndex) =>
-            week.map((activity, dayIndex) => children({ activity, dayIndex, weekIndex }))
-          )}
-        </svg>
+        <div className="flex items-center">
+          {/* Day Labels */}
+          <div
+            className="flex flex-col justify-between text-xs text-muted-foreground mr-1.5 h-full py-[1px]"
+            style={{ height: height }}
+          >
+            <span className="opacity-0 text-[10px]">Sum</span>
+            <span className="text-[10px]">Mon</span>
+            <span className="opacity-0 text-[10px]">Tue</span>
+            <span className="text-[10px]">Wed</span>
+            <span className="opacity-0 text-[10px]">Thu</span>
+            <span className="text-[10px]">Fri</span>
+            <span className="opacity-0 text-[10px]">Sat</span>
+          </div>
+
+          <svg width={width} height={height} className="block">
+            {displayWeeks.map((week, weekIndex) =>
+              week.map((activity, dayIndex) => children({ activity, dayIndex, weekIndex }))
+            )}
+          </svg>
+        </div>
       </div>
     </div>
   );
@@ -335,13 +346,15 @@ const ContributionGraphTotalCount = ({ className, ...props }: ComponentProps<'sp
 
 const ContributionGraphLegend = ({ className, ...props }: ComponentProps<'div'>) => {
   return (
-    <div className={cn('flex items-center gap-1', className)} {...props}>
+    <div className={cn('flex items-center justify-center gap-1.5 text-xs text-muted-foreground mx-auto text-center w-full', className)} {...props}>
       <span>Less</span>
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-0)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-1)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-2)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-3)' }} />
-      <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-4)' }} />
+      <div className="flex items-center gap-1">
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-0)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-1)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-2)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-3)' }} />
+        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'var(--level-4)' }} />
+      </div>
       <span>More</span>
     </div>
   );

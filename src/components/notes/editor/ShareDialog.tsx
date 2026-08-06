@@ -109,7 +109,7 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
     const publicLink = `${window.location.origin}/notes/${noteId}`;
 
     const handleInvite = async () => {
-        if (!email) {return;}
+        if (!email) { return; }
         setLoading(true);
         try {
 
@@ -124,7 +124,7 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
     };
 
     const handleRemoveCollaborator = async (userId: string) => {
-        if (!currentPermissions) {return;}
+        if (!currentPermissions) { return; }
 
         const newPermissions = { ...currentPermissions };
         delete newPermissions[userId];
@@ -155,7 +155,7 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
 
                 <div className="space-y-6 py-4">
 
-                    {}
+                    { }
                     <div className="space-y-2">
                         <Label>Note Link</Label>
                         <div className="flex gap-2">
@@ -166,7 +166,7 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
                         </div>
                     </div>
 
-                    {}
+                    { }
                     <div className="space-y-2">
                         <Label>Invite by Email (Coming Soon)</Label>
                         <div className="flex gap-2">
@@ -181,12 +181,12 @@ export const ShareDialog: React.FC<ShareDialogProps> = ({
                         </div>
                     </div>
 
-                    {}
+                    { }
                     {Object.keys(currentPermissions).length > 0 && (
                         <div className="space-y-2">
                             <Label>People with access</Label>
                             <div className="text-sm text-muted-foreground border border-border/10 rounded-xl bg-secondary/5 p-2">
-                                {}
+                                { }
                                 {Object.entries(currentPermissions).map(([uid, role]) => (
                                     <div key={uid} className="flex justify-between items-center py-2 border-b border-border/10 last:border-0">
                                         <span className="font-mono text-xs">{uid.slice(0, 8)}...</span>

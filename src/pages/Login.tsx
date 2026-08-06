@@ -373,9 +373,9 @@ const Login = () => {
     }
   };
 
-  if (hasCheckedStatus && requiresInstallWall) {
-    return <InstallPromptView isIOS={isIOS} isAndroid={isAndroid} appName="ZYNC" />;
-  }
+  // if (hasCheckedStatus && requiresInstallWall) {
+  //   return <InstallPromptView isIOS={isIOS} isAndroid={isAndroid} appName="ZYNC" />;
+  // }
 
   if (currentUser) {
     return (
