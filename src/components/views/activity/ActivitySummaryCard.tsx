@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { T } from './activityTypes';
 import { formatHoursMinutes, formatSecondsToHoursMinutes } from './activityUtils';
 import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
+import { getFullUrl } from '@/lib/utils';
 
 interface ActivitySummaryCardProps {
   selectedTeamId: string;
@@ -148,7 +149,8 @@ export function ActivitySummaryCard({
                     <div className="flex items-center gap-2 truncate">
                       {selectedMemberOption.photoURL ? (
                         <img
-                          src={selectedMemberOption.photoURL}
+                          src={getFullUrl(selectedMemberOption.photoURL)}
+                          referrerPolicy="no-referrer"
                           alt={selectedMemberOption.label}
                           className="h-5 w-5 rounded-full object-cover border border-border shrink-0"
                         />
@@ -182,7 +184,8 @@ export function ActivitySummaryCard({
                         <div className="flex items-center gap-2">
                           {u.photoURL ? (
                             <img
-                              src={u.photoURL}
+                              src={getFullUrl(u.photoURL)}
+                              referrerPolicy="no-referrer"
                               alt={u.label}
                               className="h-5 w-5 rounded-full object-cover border border-border"
                             />
@@ -221,7 +224,8 @@ export function ActivitySummaryCard({
             {selectedUserId !== 'all' ? (
               activeUser?.photoURL ? (
                 <img
-                  src={activeUser.photoURL}
+                  src={getFullUrl(activeUser.photoURL)}
+                  referrerPolicy="no-referrer"
                   alt="Profile"
                   className="h-full w-full object-cover"
                 />
