@@ -91,61 +91,61 @@ const normalize = (raw: string): string => {
     'transitions',
     'and scroll reveals',
   ];
-  if (nonTechPhrases.some((phrase) => lower.includes(phrase))) return '';
-  if (/^(and|or|the|for|with|without|using|via|including|excluding|likely|potentially|complementing)$/i.test(text)) return '';
-  if (text.length < 2) return '';
+  if (nonTechPhrases.some((phrase) => lower.includes(phrase))) {return '';}
+  if (/^(and|or|the|for|with|without|using|via|including|excluding|likely|potentially|complementing)$/i.test(text)) {return '';}
+  if (text.length < 2) {return '';}
   return text;
 };
 
 const resolveTechKey = (raw: string): TechKey | undefined => {
   const cleaned = normalize(raw);
-  if (!cleaned) return undefined;
+  if (!cleaned) {return undefined;}
   const value = cleaned.toLowerCase();
 
-  if (value.includes('framer motion')) return 'framer';
-  if (value.includes('gsap')) return 'gsap';
-  if (value.includes('lenis')) return 'lenis';
-  if (value.includes('lucide')) return 'lucide';
-  if (value.includes('react icons')) return 'react';
-  if (value.includes('class-variance-authority') || value.includes('cva')) return 'cva';
-  if (value.includes('clsx')) return 'cva';
-  if (value.includes('tailwind-merge') || value.includes('tailwindcss-animate')) return 'tailwindcss';
-  if (value.includes('sharp')) return 'sharp';
-  if (value.includes('vite')) return 'vite';
-  if (value.includes('vercel')) return 'vercel';
-  if (value.includes('supabase')) return 'supabase';
-  if (value.includes('vue')) return 'vue';
-  if (value.includes('angular')) return 'angular';
-  if (value.includes('next.js') || value.includes('nextjs')) return 'nextdotjs';
-  if (value.includes('goland')) return 'goland';
-  if (value.includes('node')) return 'nodejs';
-  if (value.includes('express')) return 'express';
-  if (value.includes('mongo')) return 'mongodb';
-  if (value.includes('postgres')) return 'postgresql';
-  if (value.includes('mysql')) return 'mysql';
-  if (value.includes('redis')) return 'redis';
-  if (value.includes('elastic')) return 'elasticsearch';
-  if (value.includes('docker')) return 'docker';
-  if (value.includes('kubernetes') || value.includes('k8s')) return 'kubernetes';
-  if (value.includes('aws')) return 'aws';
-  if (value.includes('firebase')) return 'firebase';
-  if (value.includes('graphql')) return 'graphql';
-  if (value.includes('typescript')) return 'typescript';
-  if (value.includes('javascript') || value.includes('js only')) return 'javascript';
-  if (value.includes('python')) return 'python';
-  if (value.includes('java ') || value === 'java') return 'java';
-  if (value.includes('golang') || value === 'go') return 'go';
-  if (value.includes('tailwind')) return 'tailwindcss';
-  if (value.includes('laravel')) return 'laravel';
-  if (value.includes('django')) return 'django';
-  if (value.includes('flask')) return 'flask';
+  if (value.includes('framer motion')) {return 'framer';}
+  if (value.includes('gsap')) {return 'gsap';}
+  if (value.includes('lenis')) {return 'lenis';}
+  if (value.includes('lucide')) {return 'lucide';}
+  if (value.includes('react icons')) {return 'react';}
+  if (value.includes('class-variance-authority') || value.includes('cva')) {return 'cva';}
+  if (value.includes('clsx')) {return 'cva';}
+  if (value.includes('tailwind-merge') || value.includes('tailwindcss-animate')) {return 'tailwindcss';}
+  if (value.includes('sharp')) {return 'sharp';}
+  if (value.includes('vite')) {return 'vite';}
+  if (value.includes('vercel')) {return 'vercel';}
+  if (value.includes('supabase')) {return 'supabase';}
+  if (value.includes('vue')) {return 'vue';}
+  if (value.includes('angular')) {return 'angular';}
+  if (value.includes('next.js') || value.includes('nextjs')) {return 'nextdotjs';}
+  if (value.includes('goland')) {return 'goland';}
+  if (value.includes('node')) {return 'nodejs';}
+  if (value.includes('express')) {return 'express';}
+  if (value.includes('mongo')) {return 'mongodb';}
+  if (value.includes('postgres')) {return 'postgresql';}
+  if (value.includes('mysql')) {return 'mysql';}
+  if (value.includes('redis')) {return 'redis';}
+  if (value.includes('elastic')) {return 'elasticsearch';}
+  if (value.includes('docker')) {return 'docker';}
+  if (value.includes('kubernetes') || value.includes('k8s')) {return 'kubernetes';}
+  if (value.includes('aws')) {return 'aws';}
+  if (value.includes('firebase')) {return 'firebase';}
+  if (value.includes('graphql')) {return 'graphql';}
+  if (value.includes('typescript')) {return 'typescript';}
+  if (value.includes('javascript') || value.includes('js only')) {return 'javascript';}
+  if (value.includes('python')) {return 'python';}
+  if (value.includes('java ') || value === 'java') {return 'java';}
+  if (value.includes('golang') || value === 'go') {return 'go';}
+  if (value.includes('tailwind')) {return 'tailwindcss';}
+  if (value.includes('laravel')) {return 'laravel';}
+  if (value.includes('django')) {return 'django';}
+  if (value.includes('flask')) {return 'flask';}
   return undefined;
 };
 
 let simpleIconsCache: Map<string, { svg: string; hex: string }> | null = null;
 
 async function getSimpleIconsCache(): Promise<Map<string, { svg: string; hex: string }>> {
-  if (simpleIconsCache) return simpleIconsCache;
+  if (simpleIconsCache) {return simpleIconsCache;}
   const mod = await import('simple-icons');
   const cache = new Map<string, { svg: string; hex: string }>();
   for (const key of Object.keys(mod)) {
@@ -170,7 +170,7 @@ const TechIcon: React.FC<{ tech?: string; className?: string }> = ({ tech, class
   const [loaded, setLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    if (!tech) return;
+    if (!tech) {return;}
     const key = resolveTechKey(tech);
     if (!key) {
       setLoaded(true);
@@ -189,7 +189,7 @@ const TechIcon: React.FC<{ tech?: string; className?: string }> = ({ tech, class
     });
   }, [tech]);
 
-  if (!tech) return null;
+  if (!tech) {return null;}
   const key = resolveTechKey(tech);
 
   if (!loaded) {

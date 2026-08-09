@@ -131,7 +131,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
     const interval = setInterval(() => {
       if (progress < 95) {
         progress += Math.floor(Math.random() * 8) + 4; // increment between 4% and 11%
-        if (progress > 95) progress = 95;
+        if (progress > 95) {progress = 95;}
 
         let statusText = "Initializing GitHub repository...";
         if (progress > 80) {

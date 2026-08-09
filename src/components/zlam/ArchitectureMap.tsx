@@ -24,7 +24,7 @@ import { API_BASE_URL } from '@/lib/utils';
 const STORAGE_KEY = 'zync-zlam-diagram';
 
 const getStorageKey = (projectId?: string) => {
-  if (!projectId) return STORAGE_KEY;
+  if (!projectId) {return STORAGE_KEY;}
   return `${STORAGE_KEY}-${projectId}`;
 };
 
@@ -42,22 +42,22 @@ const nodePaletteItems = [
 ];
 
 const splitTechStack = (raw: string): string[] => {
-  if (!raw) return [];
+  if (!raw) {return [];}
   const parts: string[] = [];
   let current = '';
   let depth = 0;
   for (let i = 0; i < raw.length; i++) {
     const char = raw[i];
-    if (char === '(') depth++;
-    if (char === ')') depth--;
+    if (char === '(') {depth++;}
+    if (char === ')') {depth--;}
     if (char === ',' && depth === 0) {
-      if (current.trim()) parts.push(current.trim());
+      if (current.trim()) {parts.push(current.trim());}
       current = '';
     } else {
       current += char;
     }
   }
-  if (current.trim()) parts.push(current.trim());
+  if (current.trim()) {parts.push(current.trim());}
   return parts;
 };
 
@@ -67,8 +67,8 @@ const normalizeTechValue = (raw: string): string | null => {
     .replace(/[^a-zA-Z0-9+.# -]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  if (!text || text.length < 2) return null;
-  if (/^(and|or|the|for|with|without|using|via|including|excluding|likely|potentially|complementing)$/i.test(text)) return null;
+  if (!text || text.length < 2) {return null;}
+  if (/^(and|or|the|for|with|without|using|via|including|excluding|likely|potentially|complementing)$/i.test(text)) {return null;}
   return text;
 };
 
@@ -480,7 +480,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
           setAnalyzing(true);
           try {
             const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
-            if (!token) throw new Error('No auth token');
+            if (!token) {throw new Error('No auth token');}
             const provider = 'kilo';
             const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=${provider}&forceRefresh=true`, {
               method: 'POST',
@@ -508,7 +508,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
             console.error('Auto architecture analysis failed:', error);
             toast({ title: 'Analysis failed', description: error?.message || 'Could not analyze architecture.', variant: 'destructive' });
           } finally {
-            if (!cancelled) setAnalyzing(false);
+            if (!cancelled) {setAnalyzing(false);}
           }
         }
       } catch (error: any) {

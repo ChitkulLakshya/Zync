@@ -52,7 +52,7 @@ const LiquidGlassNode: React.FC<NodeProps> = ({ data, selected }) => {
         <div className="flex flex-wrap gap-1 mb-1">
           {nodeData.techStack.split(',').map((tech) => {
             const trimmed = tech.trim();
-            if (!trimmed) return null;
+            if (!trimmed) {return null;}
             return <TechIcon key={trimmed} tech={trimmed} className="w-7 h-7 !p-0.5" />;
           })}
         </div>
@@ -61,7 +61,7 @@ const LiquidGlassNode: React.FC<NodeProps> = ({ data, selected }) => {
         <p className="text-xs text-muted-foreground truncate">{nodeData.sublabel}</p>
       )}
       <div className="flex items-center gap-2 mt-2">
-        {nodeData.tasks != null && (
+        {nodeData.tasks !== null && nodeData.tasks !== undefined && (
           <span className="text-[10px] bg-secondary/50 px-1.5 py-0.5 rounded-full text-muted-foreground">
             {nodeData.tasks} tasks
           </span>
