@@ -10,7 +10,7 @@ const axios = require('axios');
 
 const KILO_CODE_GATEWAY_URL = process.env.KILO_CODE_GATEWAY_URL || '';
 const KILO_CODE_GATEWAY_API_KEY = process.env.KILO_CODE_GATEWAY_API_KEY || '';
-const KILO_CODE_GATEWAY_MODEL = process.env.KILO_CODE_GATEWAY_MODEL || 'autofree';
+const KILO_CODE_GATEWAY_MODEL = process.env.KILO_CODE_GATEWAY_MODEL || 'kilo-auto/free';
 
 const analyzeArchitectureWithKilo = async ({ repoContext, projectName, model }) => {
   const selectedModel = model || KILO_CODE_GATEWAY_MODEL;
@@ -95,6 +95,91 @@ CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
   return parsed;
 };
 
+const generateArchitectureWithKilo = async ({ projectName, projectDescription, model }) => {
+  const selectedModel = model || KILO_CODE_GATEWAY_MODEL;
+  if (!KILO_CODE_GATEWAY_URL || !KILO_CODE_GATEWAY_API_KEY) {
+    throw new Error('Kilo Code Gateway is not configured. Set KILO_CODE_GATEWAY_URL and KILO_CODE_GATEWAY_API_KEY.');
+  }
+
+  const prompt = `
+You are an expert AI Software Architect Agent.
+Your task is to design a complete, production-ready system architecture blueprint for a new project based on its name and description.
+
+Project Name: ${projectName}
+Project Description: ${projectDescription}
+
+Design a modern, scalable architecture for this project. State clear design decisions.
+Return a STRICT JSON object matching this schema exactly:
+
+{
+  "highLevel": "Detailed explanation of the high-level architecture design, choice of patterns (MVC, microservices, etc.), and execution flow.",
+  "frontend": {
+    "structure": "Organization strategy for the frontend codebase (e.g. Next.js, Vite React, components, hooks, views structure).",
+    "pages": ["List of critical pages/screens required for this application"],
+    "components": ["List of key reusable UI components to build"],
+    "routing": "Frontend routing strategy (e.g. Next.js App Router, React Router DOM)"
+  },
+  "backend": {
+    "structure": "Organization strategy for the backend codebase (e.g. modular controller-service-repository pattern in Node.js/Express).",
+    "apis": ["List of key REST API endpoints required (e.g. /api/auth/register, /api/tasks, etc.)"],
+    "controllers": ["List of required controllers"],
+    "services": ["List of required services/handlers"],
+    "authFlow": "Authentication and authorization mechanism (e.g., Firebase Auth JWT token validation middleware)"
+  },
+  "database": {
+    "design": "Data modeling approach (e.g. Document-based NoSQL collections, relational schemas).",
+    "collections": ["List of collections/tables needed (e.g. users, tasks, projects)"],
+    "relationships": ["List of relationships between collections/tables (e.g. User has-many Tasks)"]
+  },
+  "apiFlow": "Description of the request-response lifecycle and communication flow between client and backend.",
+  "integrations": ["List of key canonical technology names (e.g. React, Node.js, Express, MongoDB, Firebase Auth, Tailwind CSS, Axios)"]
+}
+
+CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
+- Return ONLY simple canonical technology names.
+- Do NOT include descriptions, explanations, or parenthetical notes.
+- Do NOT include UI features, page names, or component names like "Profile Information", "Projects", "Experience Entries", "Skills", "Certifications", "Social Links".
+- Do NOT include libraries with descriptive suffixes like "Framer Motion (for complex animations)". Just return "Framer Motion".
+- Do NOT include animation/scroll utilities unless they are core architecture dependencies.
+- Bad examples: "Framer Motion (for complex animations", "GSAP (likely for...)", "Lucide React (for vector icons)", "Sharp (likely for...)", "Profile Information".
+- Good examples: "React", "Framer Motion", "GSAP", "Lenis", "Lucide React", "Tailwind CSS", "Sharp".
+- If you cannot derive a specific detail, use "N/A" rather than making up descriptive text.
+`;
+
+  const response = await axios.post(
+    `${KILO_CODE_GATEWAY_URL}/v1/chat/completions`,
+    {
+      model: selectedModel,
+      messages: [
+        { role: 'system', content: 'You are a helpful assistant that returns only valid JSON.' },
+        { role: 'user', content: prompt },
+      ],
+      temperature: 0.2,
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${KILO_CODE_GATEWAY_API_KEY}`,
+      },
+      timeout: 120000,
+    }
+  );
+
+  const text = response.data?.choices?.[0]?.message?.content || '';
+  const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch (e) {
+    console.error('Failed to parse Kilo Code Gateway response:', jsonString);
+    throw new Error('Failed to parse architecture generation response');
+  }
+
+  return parsed;
+};
+
 module.exports = {
   analyzeArchitectureWithKilo,
+  generateArchitectureWithKilo,
 };

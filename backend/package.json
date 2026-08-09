@@ -16,8 +16,6 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@google/genai": "^2.10.0",
-    "@google/generative-ai": "^0.24.1",
     "@prisma/client": "5.22.0",
     "axios": "^1.13.2",
     "bcryptjs": "^3.0.3",

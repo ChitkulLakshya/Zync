@@ -75,7 +75,6 @@
  */
 const express = require('express');
 const router = express.Router();
-const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { sendZyncEmail } = require('../services/mailer');
 const { getTaskAssignmentEmailHtml } = require('../utils/emailTemplates');
 const { escapeRegExp } = require('../utils/regexUtils');
@@ -104,9 +103,6 @@ async function invalidateProjectCache(project) {
   await cache.invalidate(...keys);
 }
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY_SECONDARY);
-const MODEL_NAME = 'gemini-2.5-flash';
-console.log(`[Config] Using Gemini Model: ${MODEL_NAME}`);
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
 const ARCHITECTURE_CACHE_TTL_MS = Number.parseInt(
   process.env.ARCHITECTURE_CACHE_TTL_MS || '21600000',
@@ -404,65 +400,7 @@ const fetchFullRepoContextUsingApp = async (ownerUid, owner, repo) => {
   }
 };
 
-const analyzeWithGemini = async (repoContext, projectName) => {
-  logDebug(`Sending context to Gemini for analysis...`);
-  const prompt = `
-    You are a Senior Software Architect. Analyze the following codebase context for the project "${projectName}".
 
-    Codebase Context:
-    ${repoContext}
-
-    Based on the file structure and contents (dependencies, README, etc.), deduce the architecture.
-    Return a STRICT JSON object matching this schema exactly:
-
-    {
-      "highLevel": "Brief summary of the architecture (e.g., MERN Stack application with Redux)",
-      "frontend": {
-        "structure": "Description of frontend organization (e.g., React with Vite)",
-        "pages": ["Inferred pages"],
-        "components": ["Inferred key components"],
-        "routing": "Inferred routing strategy"
-      },
-      "backend": {
-        "structure": "Description of backend organization (e.g., Node.js Express server)",
-        "apis": ["Inferred API routes (REST/GraphQL)"],
-        "controllers": ["Inferred controllers"],
-        "services": ["Inferred services"],
-        "authFlow": "Inferred authentication mechanism"
-      },
-      "database": {
-        "design": "Description of data model",
-        "collections": ["Inferred collections/tables"],
-        "relationships": "Inferred key relationships"
-      },
-      "apiFlow": "How frontend communicates with backend",
-      "integrations": ["Detected external libraries/SDKs (e.g., Firebase, Stripe)"]
-    }
-
-    If you cannot derive specific details, ANY logical inference is better than null. Use "N/A" only if absolutely unknown.
-    Do NOT include markdown formatting or explanations outside the JSON.
-  `;
-
-  try {
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    const jsonString = text
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim();
-    logDebug(`Gemini response received. Length: ${jsonString.length}`);
-
-    const parsed = JSON.parse(jsonString);
-    logDebug(`Parsed JSON keys: ${Object.keys(parsed).join(', ')}`);
-    return parsed;
-  } catch (error) {
-    logDebug(`Gemini analysis failed: ${error.message}`);
-    throw error;
-  }
-};
 
 router.post('/new-repo', authMiddleware, async (req, res) => {
   try {
@@ -694,26 +632,30 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
     );
 
     let context;
-    let analyzedArch;
-
-    if (provider === 'kilo') {
+    try {
       context = await fetchFullRepoContextUsingApp(
         project.ownerUid,
         githubRepoOwner,
         githubRepoName
       );
-      analyzedArch = await analyzeArchitectureWithKilo({
-        repoContext: context,
-        projectName: project.name,
-      });
-    } else {
-      context = await fetchRepoContext(
-        accessToken,
-        githubRepoOwner,
-        githubRepoName
-      );
-      analyzedArch = await analyzeWithGemini(context, project.name);
+    } catch (appErr) {
+      console.warn(`Failed to fetch repo context using GitHub App: ${appErr.message}. Trying Access Token...`);
+      try {
+        context = await fetchRepoContext(
+          accessToken,
+          githubRepoOwner,
+          githubRepoName
+        );
+      } catch (tokenErr) {
+        console.error(`Failed to fetch repo context using Access Token: ${tokenErr.message}`);
+      }
     }
+
+    const analyzedArch = await analyzeArchitectureWithKilo({
+      repoContext: context || `Project description: ${project.description || 'No description'}`,
+      projectName: project.name,
+      model: 'kilo-auto/free',
+    });
 
     console.log('Analysis Result:', JSON.stringify(analyzedArch, null, 2));
 
@@ -749,141 +691,7 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
   }
 });
 
-router.post('/generate', authMiddleware, async (req, res) => {
-  try {
-    const { name, description } = req.body;
-    const ownerUid = req.user.uid;
 
-    if (!name || !description) {
-      return res
-        .status(400)
-        .json({ message: 'Name and description are required' });
-    }
-
-    const owner = await User.findOne({ uid: ownerUid }).lean();
-    if (!owner) return res.status(404).json({ message: 'User not found' });
-
-    const prompt = `
-      You are a software architect. Generate a comprehensive project architecture and step-by-step development plan for the following project:
-
-      Project Name: ${name}
-      Project Description: ${description}
-
-      Please provide the output strictly as a JSON object with the following structure. Do not include any markdown formatting or explanations outside the JSON.
-
-      {
-        "architecture": {
-          "highLevel": "String describing high-level architecture",
-          "frontend": {
-            "structure": "String describing frontend structure",
-            "pages": ["List of pages"],
-            "components": ["List of key components"],
-            "routing": "Description of routing"
-          },
-          "backend": {
-            "structure": "String describing backend structure",
-            "apis": ["List of key API endpoints"],
-            "controllers": ["List of controllers"],
-            "services": ["List of services"],
-            "authFlow": "Description of authentication flow"
-          },
-          "database": {
-            "design": "String describing database design",
-            "collections": ["List of collections/tables"],
-            "relationships": "Description of relationships"
-          },
-          "apiFlow": "Description of API calling flow between frontend and backend",
-          "integrations": ["List of optional integrations"]
-        },
-        "steps": [
-          {
-            "title": "Phase Title (e.g., Planning, Frontend, Backend)",
-            "description": "Description of the phase",
-            "type": "Frontend" | "Backend" | "Database" | "Design" | "Other",
-            "page": "Related Page",
-            "tasks": [
-               {
-                 "title": "Task Title",
-                 "description": "Task details"
-               }
-            ]
-          }
-        ]
-      }
-
-      Ensure the steps are ordered logically for development. Each step should act as a phase and contain multiple granular tasks.
-    `;
-
-    const model = genAI.getGenerativeModel({ model: MODEL_NAME });
-    const result = await model.generateContent(prompt);
-    const response = await result.response;
-    const text = response.text();
-
-    const jsonString = text
-      .replace(/```json/g, '')
-      .replace(/```/g, '')
-      .trim();
-
-    let generatedData;
-    try {
-      generatedData = JSON.parse(jsonString);
-    } catch (e) {
-      console.error('Failed to parse Gemini response:', jsonString);
-      return res
-        .status(500)
-        .json({
-          message: 'Failed to generate valid project structure',
-          error: e.message,
-        });
-    }
-
-    const newProject = await Project.create({
-      name,
-      description,
-      ownerId: owner._id,
-      ownerUid: owner.uid,
-      architecture: generatedData.architecture || {},
-      team: [],
-    });
-
-
-    const stepsData = (generatedData.steps || []).map((stepData, idx) => ({
-      title: stepData.title,
-      description: stepData.description || '',
-      type: stepData.type || 'Other',
-      page: stepData.page || 'General',
-      order: idx,
-      projectId: newProject._id,
-      tasks: stepData.tasks || [],
-    }));
-
-    const createdSteps = await Step.insertMany(
-      stepsData.map(({ tasks, ...stepFields }) => stepFields)
-    );
-
-    const allTasks = createdSteps.flatMap((step, i) =>
-      stepsData[i].tasks.map((task) => ({
-        title: task.title,
-        description: task.description || '',
-        status: 'Pending',
-        stepId: step._id,
-      }))
-    );
-
-    if (allTasks.length > 0) {
-      await ProjectTask.insertMany(allTasks);
-    }
-
-    const fullProject = await getProjectWithSteps(newProject._id);
-    cache.invalidate(`projects:${ownerUid}`);
-    res.status(201).json(fullProject);
-  } catch (error) {
-    console.error('Error generating project:', error);
-    res
-      .status(500)
-      .json({ message: 'Failed to generate project', error: error.message });
-  }
-});
 
 router.post('/sync', authMiddleware, async (req, res) => {
   try {
@@ -983,7 +791,44 @@ router.get('/', authMiddleware, async (req, res) => {
 
     const projectMap = new Map();
     [...projects, ...assignedProjects].forEach((p) => projectMap.set(p.id, p));
-    const allProjects = Array.from(projectMap.values());
+    let allProjects = Array.from(projectMap.values());
+
+    const user = await User.findOne({ uid: ownerUid }).lean();
+    if (user && user.githubIntegration?.connected && user.githubIntegration?.accessToken) {
+      const accessToken = decryptToken(user.githubIntegration.accessToken);
+      if (accessToken) {
+        const headers = {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: 'application/vnd.github.v3+json',
+        };
+
+        const projectsWithOwnerRepo = allProjects.filter(p => p.ownerUid === ownerUid && p.githubRepoName && p.githubRepoOwner);
+
+        const checkPromises = projectsWithOwnerRepo.map(async (p) => {
+          // Avoid pruning recently created projects to allow GitHub replication to complete
+          const isRecent = p.createdAt && (new Date() - new Date(p.createdAt)) < 120000;
+          if (isRecent) return null;
+
+          try {
+            await axios.get(`https://api.github.com/repos/${p.githubRepoOwner}/${p.githubRepoName}`, { headers });
+          } catch (err) {
+            if (err.response && (err.response.status === 404 || err.response.status === 401)) {
+              await Project.deleteOne({ _id: p._id || p.id });
+              await Step.deleteMany({ projectId: p._id || p.id });
+              console.log(`Pruned project ${p.name} (${p._id || p.id}) because its GitHub repo was deleted.`);
+              return p._id || p.id;
+            }
+          }
+          return null;
+        });
+
+        const deletedIds = (await Promise.all(checkPromises)).filter(id => id !== null);
+        if (deletedIds.length > 0) {
+          allProjects = allProjects.filter(p => !deletedIds.includes(p._id || p.id));
+        }
+      }
+    }
+
     const { items, pagination } = paginateArray(allProjects, req.query);
     setPaginationHeaders(res, pagination);
 

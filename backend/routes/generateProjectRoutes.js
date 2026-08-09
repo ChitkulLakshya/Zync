@@ -85,6 +85,7 @@ const { getProjectWithSteps } = require('../utils/projectHelper'); // Imports th
 const cache = require('../utils/cache');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
+const { generateArchitectureWithKilo } = require('../services/kiloCodeGateway');
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'fallback-encryption-key-123';
 
@@ -97,6 +98,93 @@ const decryptToken = (ciphertext) => {
     console.error('Token decryption failed:', error);
     return null;
   }
+};
+
+const fetchRepoContext = async (accessToken, owner, repo, description) => {
+  try {
+    const headers = {
+      Authorization: `Bearer ${accessToken}`,
+      Accept: 'application/vnd.github.v3+json',
+    };
+
+    const treeResponse = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/contents`,
+      { headers }
+    );
+    const files = treeResponse.data.map((f) => f.name);
+
+    let context = `Repository File Structure (Root):\n${files.join('\n')}\n\n`;
+
+    const interestingFiles = [
+      'package.json',
+      'requirements.txt',
+      'go.mod',
+      'README.md',
+      'schema.prisma',
+      'Genre.js',
+      'App.js',
+      'server.js',
+      'index.js',
+    ];
+
+    const filePromises = interestingFiles
+      .filter((file) => files.includes(file))
+      .map(async (file) => {
+        try {
+          const contentRes = await axios.get(
+            `https://api.github.com/repos/${owner}/${repo}/contents/${file}`,
+            { headers }
+          );
+          if (contentRes.data.content) {
+            const content = Buffer.from(
+              contentRes.data.content,
+              'base64'
+            ).toString('utf-8');
+            return `\n--- Content of ${file} ---\n${content.substring(0, 5000)}\n----------------------\n`;
+          }
+        } catch (e) {
+          return '';
+        }
+        return '';
+      });
+
+    const fileContents = await Promise.all(filePromises);
+    context += fileContents.join('');
+
+    return context;
+  } catch (error) {
+    return `Repository Name: ${repo}\nDescription: ${description || 'No description'}`;
+  }
+};
+
+
+const commitFileToGitHub = async (accessToken, owner, repo, filePath, contentString, commitMessage) => {
+  const headers = {
+    Authorization: `Bearer ${accessToken}`,
+    Accept: 'application/vnd.github.v3+json',
+  };
+  const base64Content = Buffer.from(contentString).toString('base64');
+
+  let sha;
+  try {
+    const existingFile = await axios.get(
+      `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+      { headers }
+    );
+    sha = existingFile.data?.sha;
+  } catch (err) {
+    // File doesn't exist yet, which is expected for new files
+  }
+
+  await axios.put(
+    `https://api.github.com/repos/${owner}/${repo}/contents/${filePath}`,
+    {
+      message: commitMessage,
+      content: base64Content,
+      sha,
+    },
+    { headers }
+  );
 };
 
 
@@ -167,6 +255,69 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
       team: [], // Initializes the 'team' array as empty for the new project.
     });
 
+    try {
+      console.log(`Generating initial architecture plan for new project: ${name} using Kilo...`);
+      let context = `Project Description:\n${description}\n\n`;
+      const fetchedContext = await fetchRepoContext(decryptedAccessToken, githubRepoOwner, githubRepoName, description);
+      if (fetchedContext) {
+        context += fetchedContext;
+      }
+
+      const analyzedArch = await generateArchitectureWithKilo({
+        projectName: name,
+        projectDescription: description || '',
+        model: 'kilo-auto/free',
+      });
+
+      if (analyzedArch && Object.keys(analyzedArch).length > 0) {
+        await Project.updateOne(
+          { _id: newProject._id },
+          {
+            $set: {
+              architecture: analyzedArch,
+              architectureAnalyzedAt: new Date(),
+            },
+          }
+        );
+        console.log('Initial architecture plan successfully generated and saved.');
+
+        // Commit custom docs to GitHub
+        try {
+          console.log(`Committing custom initial documentation (README.md, docs/ARCHITECTURE.md, docs/TODO.md) to GitHub repo...`);
+          
+          const readmeContent = `# ${name}\n\n${description}\n\n## 🏛️ Architecture Overview\n${analyzedArch.highLevel || 'N/A'}\n\n## 🚀 Quick Start\n1. Clone the repository:\n   \`\`\`bash\n   git clone https://github.com/${githubRepoOwner}/${githubRepoName}.git\n   \`\`\`\n2. Install dependencies.\n3. Run the development server.\n\nSee [ARCHITECTURE.md](./docs/ARCHITECTURE.md) and [TODO.md](./docs/TODO.md) for more details.`;
+
+          const architectureContent = `# Project Architecture: ${name}\n\n## High-Level Overview\n${analyzedArch.highLevel || 'N/A'}\n\n## Frontend\n- **Structure**: ${analyzedArch.frontend?.structure || 'N/A'}\n- **Routing**: ${analyzedArch.frontend?.routing || 'N/A'}\n- **Pages**:\n${(analyzedArch.frontend?.pages || []).map(p => `  - ${p}`).join('\n') || '  - N/A'}\n- **Key Components**:\n${(analyzedArch.frontend?.components || []).map(c => `  - ${c}`).join('\n') || '  - N/A'}\n\n## Backend\n- **Structure**: ${analyzedArch.backend?.structure || 'N/A'}\n- **Auth Flow**: ${analyzedArch.backend?.authFlow || 'N/A'}\n- **APIs**:\n${(analyzedArch.backend?.apis || []).map(a => `  - ${a}`).join('\n') || '  - N/A'}\n- **Controllers**:\n${(analyzedArch.backend?.controllers || []).map(c => `  - ${c}`).join('\n') || '  - N/A'}\n- **Services**:\n${(analyzedArch.backend?.services || []).map(s => `  - ${s}`).join('\n') || '  - N/A'}\n\n## Database\n- **Design**: ${analyzedArch.database?.design || 'N/A'}\n- **Collections/Tables**:\n${(analyzedArch.database?.collections || []).map(c => `  - ${c}`).join('\n') || '  - N/A'}\n- **Relationships**:\n${(analyzedArch.database?.relationships || []).map(r => `  - ${r}`).join('\n') || '  - N/A'}\n\n## API Communication Flow\n${analyzedArch.apiFlow || 'N/A'}\n\n## Tech Stack & Integrations\n${(analyzedArch.integrations || []).map(i => `- ${i}`).join('\n') || '- N/A'}`;
+
+          const todoContent = `# Zync Project Roadmap & Tasks: ${name}\n\n## 📋 Planning & Design\n- [ ] Refine system architecture & requirements\n- [ ] Database schema validation & indexing strategy\n\n## 💻 Frontend Tasks\n${(analyzedArch.frontend?.pages || []).map(p => `- [ ] Design page layout and views for **${p}**`).join('\n') || '- [ ] Design UI screens'}\n${(analyzedArch.frontend?.components || []).map(c => `- [ ] Implement component: **${c}**`).join('\n') || '- [ ] Create reusable components'}\n- [ ] Configure client-side routing (${analyzedArch.frontend?.routing || 'N/A'})\n\n## ⚙️ Backend & API Tasks\n- [ ] Set up server structure & middlewares\n- [ ] Configure database connection & schema\n- [ ] Implement authentication flow (${analyzedArch.backend?.authFlow || 'N/A'})\n${(analyzedArch.backend?.apis || []).map(a => `- [ ] Create API route: **${a}**`).join('\n') || '- [ ] Develop REST API endpoints'}\n${(analyzedArch.backend?.services || []).map(s => `- [ ] Implement service logic for **${s}**`).join('\n') || '- [ ] Write business logic services'}\n\n## 💾 Database Tasks\n${(analyzedArch.database?.collections || []).map(c => `- [ ] Define model/schema for **${c}**`).join('\n') || '- [ ] Set up database collections/tables'}\n\n## 🚀 Deployment & Integrations\n${(analyzedArch.integrations || []).map(i => `- [ ] Integrate and configure **${i}**`).join('\n') || '- [ ] Setup CI/CD and deployment environment'}`;
+
+          // Overwrite default README.md
+          await commitFileToGitHub(decryptedAccessToken, githubRepoOwner, githubRepoName, 'README.md', readmeContent, 'docs: initialize README with architecture overview');
+
+          // Commit ARCHITECTURE.md
+          await commitFileToGitHub(decryptedAccessToken, githubRepoOwner, githubRepoName, 'docs/ARCHITECTURE.md', architectureContent, 'docs: add ARCHITECTURE.md detailed specification');
+
+          // Commit TODO.md
+          await commitFileToGitHub(decryptedAccessToken, githubRepoOwner, githubRepoName, 'docs/TODO.md', todoContent, 'docs: add project todo roadmap');
+
+          console.log(`Successfully committed all initial documentation to GitHub.`);
+        } catch (commitErr) {
+          const detail = commitErr.response?.data?.message || commitErr.message;
+          console.error(`Failed to commit documentation to GitHub:`, detail);
+          if (commitErr.response?.data) {
+            console.error(`GitHub API Error Details:`, JSON.stringify(commitErr.response.data));
+            if (detail === 'Resource not accessible by integration') {
+              console.error('PROTIP: Please check your GitHub App configuration at https://github.com/settings/apps and ensure that "Repository permissions -> Contents" is set to "Read & Write".');
+            }
+          }
+        }
+      }
+    } catch (kiloErr) {
+      console.error('Failed to generate initial architecture plan using Kilo Code Gateway:', kiloErr.message);
+      throw kiloErr; // Propagate the Kilo Gateway error so client/backend creation explicitly fails
+    }
+
+    await cache.invalidate(`projects:${user.uid}`);
     const fullProject = await getProjectWithSteps(newProject._id); // Fetches the newly created project along with all its associated steps and tasks using a utility function, providing a complete view of the project.
     res.status(201).json(fullProject); // Sends a 201 Created status response along with the fully populated project object, indicating successful project generation and creation.
   } catch (error) { // Catches any error that occurred within the try block.
