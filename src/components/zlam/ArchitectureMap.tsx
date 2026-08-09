@@ -606,18 +606,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   }, [nodes, edges]);
 
   useEffect(() => {
-    const techs = nodes
-      .map((n) => (n.data as any)?.techStack)
-      .filter(Boolean)
-      .reduce<string[]>((acc, tech) => {
-        const parts = String(tech).split(',').map((p) => p.trim()).filter(Boolean);
-        parts.forEach((part) => { if (!acc.includes(part)) acc.push(part); });
-        return acc;
-      }, []);
-    console.log('[ArchitectureMap] Loaded tech values:', techs);
-  }, [nodes]);
-
-  useEffect(() => {
     if (!searchTerm.trim()) {
       setNodesTyped((nds: Node[]) => nds.map((n) => ({ ...n, style: undefined })));
       return;
