@@ -101,11 +101,66 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
 
     setIsGenerating(true);
 
+    const user = auth.currentUser;
+    const ownerId = user ? user.uid : "anonymous";
+    let token = "";
     try {
-      const user = auth.currentUser;
-      const ownerId = user ? user.uid : "anonymous";
-      const token = user ? await user.getIdToken() : "";
+      token = user ? await user.getIdToken() : "";
+    } catch (tokenErr) {
+      console.error("Failed to get token:", tokenErr);
+    }
 
+    // Trigger immediate redirect to workspace
+    onProjectCreated(null);
+
+    // Trigger persistent dynamic progress toast
+    const toastController = toast({
+      title: "Creating Project",
+      description: (
+        <div className="w-full mt-2 space-y-1">
+          <div className="text-xs text-muted-foreground">Initializing GitHub repository...</div>
+          <div className="h-1.5 w-full bg-secondary/30 rounded-full overflow-hidden">
+            <div className="h-full bg-primary transition-all duration-300 animate-pulse" style={{ width: '10%' }} />
+          </div>
+        </div>
+      ),
+      duration: 120000, // 2 minutes timeout
+    });
+
+    let progress = 10;
+    const interval = setInterval(() => {
+      if (progress < 95) {
+        progress += Math.floor(Math.random() * 8) + 4; // increment between 4% and 11%
+        if (progress > 95) progress = 95;
+
+        let statusText = "Initializing GitHub repository...";
+        if (progress > 80) {
+          statusText = "Finalizing commit changes...";
+        } else if (progress > 60) {
+          statusText = "Writing project configuration & documentation...";
+        } else if (progress > 40) {
+          statusText = "Analyzing architecture plan using Kilo Code Gateway...";
+        } else if (progress > 25) {
+          statusText = "Provisioning codebase structure...";
+        }
+
+        toastController.update({
+          id: toastController.id,
+          title: "Creating Project",
+          description: (
+            <div className="w-full mt-2 space-y-1">
+              <div className="text-xs text-muted-foreground">{statusText}</div>
+              <div className="h-1.5 w-full bg-secondary/30 rounded-full overflow-hidden">
+                <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          ),
+          duration: 120000,
+        });
+      }
+    }, 800);
+
+    try {
       const response = await fetch(`${API_BASE_URL}/api/generate-project`, {
         method: "POST",
         headers: {
@@ -119,6 +174,8 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
         }),
       });
 
+      clearInterval(interval);
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to generate project");
@@ -126,24 +183,37 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
 
       const data = await response.json();
 
-      toast({
-        title: "Project Created!",
-        description: "Your new project and GitHub repository are ready.",
+      // Show success toast
+      toastController.update({
+        id: toastController.id,
+        title: "Project Created Successfully!",
+        description: (
+          <div className="w-full mt-2 space-y-1">
+            <div className="text-xs text-green-500 font-medium font-sans">Your new project and GitHub repository are ready.</div>
+            <div className="h-1.5 w-full bg-green-500/20 rounded-full overflow-hidden">
+              <div className="h-full bg-green-500 transition-all duration-500" style={{ width: '100%' }} />
+            </div>
+          </div>
+        ),
+        duration: 4000,
       });
 
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       sessionStorage.setItem('newlyCreatedProjectId', data._id || data.id);
-      onProjectCreated(data);
-
     } catch (error: any) {
+      clearInterval(interval);
       console.error("Generation error:", error);
-      toast({
+      toastController.update({
+        id: toastController.id,
         title: "Generation Failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive"
+        description: (
+          <div className="w-full mt-2 text-xs text-destructive font-medium font-sans">
+            {error.message || "Something went wrong. Please try again."}
+          </div>
+        ),
+        variant: "destructive",
+        duration: 6000,
       });
-    } finally {
-      setIsGenerating(false);
     }
   };
 

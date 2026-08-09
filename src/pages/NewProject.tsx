@@ -102,8 +102,8 @@ const NewProject = () => {
           Why: Centers the project creation form and ensures it doesn't stretch too wide on large screens. */}
       <div className="container mx-auto max-w-4xl py-10 px-6">
         {/* What: The main CreateProject form component.
-            Why: Abstracts the complex form logic away from the page, passing a callback to navigate to the new project's ID once creation succeeds. */}
-        <CreateProject onProjectCreated={(data) => navigate('/dashboard')} />
+            Why: Abstracts the complex form logic away from the page, passing a callback to navigate to the workspace once creation starts. */}
+        <CreateProject onProjectCreated={() => navigate('/dashboard/workspace')} />
       </div>
     </div>
   );
