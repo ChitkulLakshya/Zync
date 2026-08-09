@@ -79,6 +79,7 @@ const API_URL = `${API_BASE_URL}/api/projects`;
 
 export interface Project {
     _id: string;
+    id?: string;
     name: string;
     description: string;
     ownerId: string;

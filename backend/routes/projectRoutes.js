@@ -95,10 +95,14 @@ const {
 } = require('../utils/projectHelper');
 const cache = require('../utils/cache');
 const { analyzeArchitectureWithKilo } = require('../services/kiloCodeGateway');
+const {
+  getInstallationOctokit,
+  invalidateInstallationCaches,
+} = require('../utils/githubInstallation');
 
-async function invalidateProjectCache(project) {
+async function invalidateProjectCache(project, additionalUids = []) {
   if (!project) return;
-  const uids = [project.ownerUid, ...(project.team || [])];
+  const uids = [...new Set([project.ownerUid, ...(project.team || []), ...additionalUids].filter(Boolean))];
   const keys = uids.map((uid) => `projects:${uid}`);
   await cache.invalidate(...keys);
 }
@@ -210,20 +214,14 @@ const buildRepoFreshnessKey = async (accessToken, owner, repo) => {
   ].join('|');
 };
 
+// WHAT: Builds an installation-scoped Octokit for a project owner.
+// WHY: Delegates to the self-healing resolver so a stale/missing installationId
+// is re-discovered from GitHub instead of hard-failing. This is what keeps
+// branch creation, PR merging and collaborator lookups working after a repo is
+// created in Zync or deleted on GitHub (both of which invalidate cached
+// installation tokens).
 const buildInstallationOctokitFromOwner = async (ownerUid) => {
-  const ownerUser = await User.findOne({ uid: ownerUid }).lean();
-  const installationId = ownerUser?.githubIntegration?.installationId;
-  const appId = process.env.GITHUB_APP_ID;
-  let privateKey = process.env.GITHUB_PRIVATE_KEY;
-
-  if (!installationId || !appId || !privateKey) {
-    throw new Error('Missing GitHub App installation/configuration for owner');
-  }
-
-  privateKey = privateKey.replace(/\\n/g, '\n');
-  const { App } = await import('octokit');
-  const app = new App({ appId, privateKey });
-  return app.getInstallationOctokit(Number.parseInt(installationId, 10));
+  return getInstallationOctokit(ownerUid);
 };
 
 const slugify = (text) => (text || '').toString().toLowerCase().trim().replace(/[\s\W-]+/g, '-').replace(/^-+|-+$/g, '');
@@ -234,40 +232,44 @@ const handleTaskAssignment = async (project, task, assignedTo, assignedToName) =
     assignedToName
   };
 
-  // Only create branch if there is a github repo linked and the task doesn't already have one
-  if (project.githubRepoOwner && project.githubRepoName && !task.githubBranchName) {
-    try {
-      const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
-      
-      // Fetch default branch SHA
-      const repoRes = await octokit.request('GET /repos/{owner}/{repo}', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName
-      });
-      const defaultBranch = repoRes.data.default_branch;
-      
-      const refRes = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName,
-        ref: `heads/${defaultBranch}`
-      });
-      const sha = refRes.data.object.sha;
+  // Unconditionally generate the branch name and commit message if they don't exist yet,
+  // so the DB has the official tracking names even if GitHub automated branch creation fails.
+  if (!task.githubBranchName) {
+    const slug = slugify(task.title).substring(0, 30);
+    const branchName = `task/${slug}-${task._id}`;
+    
+    taskUpdate.githubBranchName = branchName;
+    taskUpdate.completionCommitMessage = `Complete Task: ${task._id}`;
 
-      const slug = slugify(task.title).substring(0, 30);
-      const branchName = `task/${slug}-${task._id}`;
-      
-      await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
-        owner: project.githubRepoOwner,
-        repo: project.githubRepoName,
-        ref: `refs/heads/${branchName}`,
-        sha: sha
-      });
+    if (project.githubRepoOwner && project.githubRepoName) {
+      try {
+        const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+        
+        // Fetch default branch SHA
+        const repoRes = await octokit.request('GET /repos/{owner}/{repo}', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName
+        });
+        const defaultBranch = repoRes.data.default_branch;
+        
+        const refRes = await octokit.request('GET /repos/{owner}/{repo}/git/ref/{ref}', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          ref: `heads/${defaultBranch}`
+        });
+        const sha = refRes.data.object.sha;
 
-      taskUpdate.githubBranchName = branchName;
-      taskUpdate.completionCommitMessage = `Complete Task: ${task._id}`;
-    } catch (err) {
-      console.error('Failed to create task branch on GitHub:', err.message);
-      // We don't fail the assignment if branch creation fails
+        await octokit.request('POST /repos/{owner}/{repo}/git/refs', {
+          owner: project.githubRepoOwner,
+          repo: project.githubRepoName,
+          ref: `refs/heads/${branchName}`,
+          sha: sha
+        });
+      } catch (err) {
+        console.error('Failed to create task branch on GitHub:', err.message);
+        // We don't fail the assignment if branch creation fails. 
+        // The DB now holds the correct branch tracking details for manual creation fallback!
+      }
     }
   }
 
@@ -445,7 +447,40 @@ router.post('/new-repo', authMiddleware, async (req, res) => {
       );
       githubRepoName = response.data.name;
       githubRepoOwner = response.data.owner.login;
-      await cache.invalidate(`gh:user-repos:${ownerUid}`);
+      const newRepoId = response.data.id;
+
+      // WHAT: Grant the Zync GitHub App access to the repo we just created.
+      // WHY: The repo is created with the user's personal token, so on a
+      // "selected repositories" installation it would otherwise be invisible to
+      // the App - which previously looked to the UI like "app not installed".
+      // Best-effort: a failure here must not fail project creation.
+      if (github.installationId && newRepoId) {
+        try {
+          await axios.put(
+            `https://api.github.com/user/installations/${github.installationId}/repositories/${newRepoId}`,
+            {},
+            {
+              headers: {
+                Authorization: `Bearer ${decryptedAccessToken}`,
+                Accept: 'application/vnd.github.v3+json',
+              },
+            }
+          );
+        } catch (grantError) {
+          // 304 means it is already accessible (e.g. "all repositories" install).
+          const grantStatus = grantError.response?.status;
+          if (grantStatus !== 304) {
+            console.warn(
+              `[GitHub] Could not add repo ${githubRepoName} to installation ${github.installationId}:`,
+              grantError.response?.data?.message || grantError.message
+            );
+          }
+        }
+      }
+
+      // Creating a repo changes the installation's repository set, which
+      // invalidates cached installation tokens and the cached repo list.
+      await invalidateInstallationCaches(ownerUid);
     } catch (ghError) {
       console.error('Failed to create GitHub repository:', ghError.response?.data || ghError.message);
       return res.status(400).json({ message: 'Failed to create GitHub repository', error: ghError.response?.data?.message || ghError.message });
@@ -1053,8 +1088,8 @@ router.post(
       const newTask = new ProjectTask({
         title,
         description: description || null,
-        status: 'Pending',
-        assignedBy: assignedBy || 'Admin',
+        status: 'Ready',
+        assignedBy: req.user ? req.user.uid : 'Admin',
         createdBy: req.user ? req.user.uid : assignedBy || 'Admin',
         stepId,
       });
@@ -1067,7 +1102,7 @@ router.post(
       await newTask.save();
 
       const updatedProject = await getProjectWithSteps(projectId);
-      invalidateProjectCache(project);
+      invalidateProjectCache(project, [assignedTo].filter(Boolean));
       res.status(201).json(updatedProject);
     } catch (error) {
       console.error('Error creating task:', error);
@@ -1113,6 +1148,7 @@ router.put(
         taskUpdate.assignedToName = assignedToName;
 
         if (assignedTo && assignedTo !== oldAssignee) {
+          taskUpdate.assignedBy = req.user.uid;
           const assignmentUpdate = await handleTaskAssignment(project, task, assignedTo, assignedToName);
           Object.assign(taskUpdate, assignmentUpdate);
 
@@ -1148,7 +1184,20 @@ router.put(
         project: updatedProject,
       });
 
-      invalidateProjectCache(project);
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        const updatedTask = await ProjectTask.findById(taskId).lean();
+        taskIO.emitToProject(projectId, 'task-updated', {
+          projectId,
+          stepId,
+          taskId,
+          task: updatedTask,
+          changes: taskUpdate,
+          actor: req.user.uid,
+        });
+      }
+
+      invalidateProjectCache(project, [task.assignedTo, assignedTo].filter(Boolean));
       res.json(updatedProject);
     } catch (error) {
       console.error('Error updating task:', error);
@@ -1185,6 +1234,27 @@ router.delete(
       const task = await ProjectTask.findOne({ _id: taskId, stepId }).lean();
       if (!task) return res.status(404).json({ message: 'Task not found' });
 
+      // Block deletion if PR is raised
+      if (task.status === 'PR Raised') {
+        return res.status(400).json({ 
+          message: 'Cannot delete a task with an active Pull Request. Close or reject the PR on GitHub first.' 
+        });
+      }
+
+      // Delete the GitHub branch if one was created
+      if (task.githubBranchName && project.githubRepoOwner && project.githubRepoName) {
+        try {
+          const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+          await octokit.request('DELETE /repos/{owner}/{repo}/git/refs/{ref}', {
+            owner: project.githubRepoOwner,
+            repo: project.githubRepoName,
+            ref: `heads/${task.githubBranchName}`
+          });
+        } catch (branchErr) {
+          console.warn(`Could not delete branch ${task.githubBranchName}:`, branchErr.message);
+        }
+      }
+
       await ProjectTask.findByIdAndDelete(taskId);
 
       const updatedProject = await getProjectWithSteps(projectId);
@@ -1194,13 +1264,23 @@ router.delete(
         project: updatedProject,
       });
 
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        taskIO.emitToProject(projectId, 'task-deleted', {
+          projectId,
+          stepId,
+          taskId,
+          actor: userId,
+        });
+      }
+
       res.json({
         message: 'Task deleted successfully',
         projectId,
         stepId,
         taskId,
       });
-      invalidateProjectCache(project);
+      invalidateProjectCache(project, [task.assignedTo].filter(Boolean));
     } catch (error) {
       console.error('Error deleting task:', error);
       res.status(500).json({ message: 'Server error' });
@@ -1337,10 +1417,10 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
     const newTask = await ProjectTask.create({
       title,
       description: description || null,
-      status: 'Backlog',
+      status: 'Ready',
       assignedTo,
       assignedToName,
-      assignedBy: req.user?.name || 'Admin',
+      assignedBy: req.user ? req.user.uid : 'Admin',
       createdBy: req.user ? req.user.uid : 'Admin',
       stepId: step._id,
     });
@@ -1372,7 +1452,7 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
     const updatedProject = await getProjectWithSteps(projectId);
     const taskObj = normalizeDoc(newTask.toObject());
 
-    invalidateProjectCache(project);
+    invalidateProjectCache(project, [assignedTo].filter(Boolean));
     res.json({
       message: 'Task created',
       task: taskObj,
@@ -1778,6 +1858,76 @@ router.patch('/:id/github-settings', authMiddleware, async (req, res) => {
   }
 });
 
+// WHAT: Live GitHub activity for a task's branch (commit count + messages). WHY: Powers
+// the task detail dialog without needing to store full commit history in Mongo.
+router.get('/:projectId/steps/:stepId/tasks/:taskId/git-activity', authMiddleware, async (req, res) => {
+  try {
+    const { projectId, taskId } = req.params;
+    const project = await Project.findById(projectId).lean();
+    if (!project) {
+      return res.status(404).json({ message: 'Project not found' });
+    }
+    if (project.ownerUid !== req.user.uid && !project.team.includes(req.user.uid)) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    const task = await ProjectTask.findById(taskId).lean();
+    if (!task) {
+      return res.status(404).json({ message: 'Task not found' });
+    }
+
+    const base = {
+      branch: task.githubBranchName || null,
+      commitCount: 0,
+      commits: [],
+      prUrl: task.githubPrUrl || null,
+      prNumber: task.githubPrNumber || null,
+      merged: Boolean(task.merged),
+    };
+
+    if (!task.githubBranchName || !project.githubRepoOwner || !project.githubRepoName) {
+      return res.json(base);
+    }
+
+    try {
+      const octokit = await buildInstallationOctokitFromOwner(project.ownerUid);
+      const commitsRes = await octokit.request('GET /repos/{owner}/{repo}/commits', {
+        owner: project.githubRepoOwner,
+        repo: project.githubRepoName,
+        sha: task.githubBranchName,
+        per_page: 30,
+      });
+
+      base.commits = (commitsRes.data || []).map((c) => ({
+        sha: c.sha?.substring(0, 7),
+        message: c.commit?.message || '',
+        author: c.commit?.author?.name || c.author?.login || 'Unknown',
+        date: c.commit?.author?.date || null,
+        url: c.html_url,
+      }));
+      base.commitCount = base.commits.length;
+    } catch (ghError) {
+      console.warn(`Failed to fetch commits for branch ${task.githubBranchName}:`, ghError.message);
+      // Fall back to the single latest commit we already have stored, if any.
+      if (task.commitMessage) {
+        base.commits = [{
+          sha: task.commitCode,
+          message: task.commitMessage,
+          author: task.commitAuthor,
+          date: task.commitTimestamp,
+          url: task.commitUrl,
+        }];
+        base.commitCount = 1;
+      }
+    }
+
+    res.json(base);
+  } catch (error) {
+    console.error('Error fetching task git activity:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // WHAT: Merge PR and delete branch. WHY: Feature 2 - Automated Task Workflow.
 router.post('/tasks/:taskId/merge-pr', authMiddleware, async (req, res) => {
   try {
@@ -1827,13 +1977,26 @@ router.post('/tasks/:taskId/merge-pr', authMiddleware, async (req, res) => {
         // We don't fail the request if branch deletion fails, as the merge was successful.
       }
 
-      // 3. Mark task fully completed in Zync
+      // 3. Mark the PR as merged in Zync. Status stays as-is (PR Raised is the final
+      // column); the `merged` flag lets the UI show a "Merged" state instead of
+      // regressing the card backward on the board.
       await ProjectTask.findByIdAndUpdate(taskId, {
         $set: {
-          status: 'Completed',
+          merged: true,
           updatedAt: Date.now()
         }
       });
+
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        taskIO.emitToProject(String(project._id), 'task-updated', {
+          projectId: String(project._id),
+          stepId: String(step._id),
+          taskId: String(taskId),
+          changes: { merged: true },
+          actor: req.user.uid,
+        });
+      }
 
       return res.status(200).json({ message: 'PR successfully merged and branch deleted. Task completed.' });
     } catch (apiError) {

@@ -84,6 +84,12 @@ const Project = require('../models/Project');
 const User = require('../models/User');
 // WHAT: Import cache utility. WHY: Clear caches on GitHub changes.
 const cache = require('../utils/cache');
+// WHAT: Import installation helpers. WHY: Keep the stored GitHub App installation
+// id authoritative and bust derived caches when GitHub reports a change.
+const {
+  persistInstallationId,
+  invalidateInstallationCaches,
+} = require('../utils/githubInstallation');
 // WHAT: Import commit analysis. WHY: Run AI analysis on commits.
 const { analyzeCommit } = require('../utils/commitAnalysisService');
 const Step = require('../models/Step');
@@ -197,18 +203,74 @@ const findLinkedProject = async (repository) => {
 
 // WHAT: Process GitHub webhook payload. WHY: Orchestrates update logic.
 const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) => {
-  // WHAT: Handle installation. WHY: Invalidate repo cache.
+  // WHAT: Keep the stored installationId in lockstep with GitHub.
+  // WHY: This is the ONLY place allowed to conclude "the app was uninstalled".
+  // Inferring it from a failed API call is what used to strand users on the
+  // "Install Zync GitHub App" screen while the app was still installed.
   if (event === 'installation' || event === 'installation_repositories') {
     const installationId = payload.installation?.id;
-    if (installationId) {
-      const user = await User.findOne({ 'githubIntegration.installationId': installationId.toString() }).lean();
-      if (user) {
-        await cache.invalidate(`gh:user-repos:${user.uid}`);
-        debugWebhookLog(`Cleared repo cache for user ${user.uid} upon installation event`);
-        return { processed: true, action: 'cleared_repo_cache' };
-      }
+    const action = payload.action;
+    const accountLogin = payload.installation?.account?.login;
+
+    if (!installationId) {
+      return { ignored: true, reason: 'installation_event_without_id' };
     }
-    return { ignored: true, reason: 'installation_event_user_not_found' };
+
+    // Match by stored id first, then by GitHub login. The login fallback is what
+    // lets a *re-install* (which mints a brand new installation id) reattach to
+    // the right Zync user.
+    let user = await User.findOne({
+      'githubIntegration.installationId': installationId.toString(),
+    }).lean();
+
+    if (!user && accountLogin) {
+      user = await User.findOne({
+        'githubIntegration.username': accountLogin,
+      }).lean();
+    }
+
+    if (!user) {
+      return { ignored: true, reason: 'installation_event_user_not_found' };
+    }
+
+    if (action === 'deleted') {
+      // Authoritative uninstall - safe to clear.
+      const existing = user.githubIntegration || {};
+      await User.updateOne(
+        { uid: user.uid },
+        { $set: { githubIntegration: { ...existing, installationId: null } } }
+      );
+      await invalidateInstallationCaches(user.uid);
+      debugWebhookLog(`Cleared installationId for user ${user.uid} (app uninstalled)`);
+      return { processed: true, action: 'installation_deleted' };
+    }
+
+    if (action === 'created' || action === 'unsuspend' || action === 'new_permissions_accepted') {
+      // Authoritative (re)install - persist the current id so the UI recovers
+      // immediately instead of waiting for a lazy re-resolution.
+      await persistInstallationId(user.uid, installationId);
+      await invalidateInstallationCaches(user.uid);
+      debugWebhookLog(`Stored installationId ${installationId} for user ${user.uid} (${action})`);
+      return { processed: true, action: 'installation_synced' };
+    }
+
+    // added/removed repositories, suspend, etc: the repo set changed.
+    await invalidateInstallationCaches(user.uid);
+    debugWebhookLog(`Cleared repo cache for user ${user.uid} upon installation event (${action})`);
+    return { processed: true, action: 'cleared_repo_cache' };
+  }
+
+  // WHAT: Handle collaborator invitation acceptance. WHY: Updates "My Workspace" UI in real-time.
+  if (event === 'member' && payload.action === 'added') {
+    const { repository } = payload;
+    const linkedProject = await findLinkedProject(repository);
+    if (linkedProject) {
+      await cache.invalidate(`collaborator-assignees:${linkedProject._id}:${linkedProject.ownerUid}`);
+      await cache.invalidate(`projects:${linkedProject.ownerUid}`);
+      debugWebhookLog(`Invalidated caches for project ${linkedProject._id} upon member added event`);
+      return { processed: true, action: 'member_added_cache_invalidated' };
+    }
+    return { ignored: true, reason: 'member_added_but_not_linked' };
   }
 
   // WHAT: Handle repository deletion. WHY: Keeps Zync DB synced with GitHub.
@@ -228,7 +290,9 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
       const uids = [linkedProject.ownerUid, ...(linkedProject.team || [])];
       const keys = uids.map((uid) => `projects:${uid}`);
       await cache.invalidate(...keys);
-      await cache.invalidate(`gh:user-repos:${linkedProject.ownerUid}`);
+      // Deleting a repo invalidates cached installation tokens as well as the
+      // cached repo list, so clear both rather than just the repo list.
+      await invalidateInstallationCaches(linkedProject.ownerUid);
       
       debugWebhookLog(`Deleted project ${linkedProject._id} because github repo was deleted`);
       return { processed: true, action: 'deleted_project' };
@@ -304,25 +368,64 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
     };
   }
 
-  // CHECK FOR COMPLETION COMMIT
+  // WHAT: Auto-progress the task's Kanban status based on branch activity. WHY: The board
+  // moves on its own according to real developer activity instead of manual drag/drop.
   const ref = payload.ref; // e.g. refs/heads/task/something
   if (ref && ref.startsWith('refs/heads/task/')) {
     const branchName = ref.replace('refs/heads/', '');
     const task = await ProjectTask.findOne({ githubBranchName: branchName });
-    if (task && task.completionCommitMessage) {
-      const match = commitsToProcess.find(c => c.message.trim() === task.completionCommitMessage.trim());
-      if (match) {
-        await ProjectTask.updateOne(
-          { _id: task._id },
-          { $set: { commitCode: match.id.substring(0, 7), commitMessage: match.message } }
+    if (task) {
+      const currentStatus = String(task.status || '').toLowerCase();
+      const isBeforeInProgress = ['ready', 'active'].includes(currentStatus);
+      const isBeforeDone = isBeforeInProgress || currentStatus === 'in progress';
+
+      const taskUpdate = {};
+
+      // Any commit pushed to the branch signals work has started ("In Progress").
+      if (isBeforeInProgress) {
+        taskUpdate.status = 'In Progress';
+      }
+
+      // A commit matching the Zync-generated completion message marks the task "Done",
+      // as long as a PR hasn't already been raised for it.
+      if (task.completionCommitMessage) {
+        const match = commitsToProcess.find(
+          (c) => c.message.trim() === task.completionCommitMessage.trim()
         );
-        // Note: we don't set status to "Completed" yet, because a PR is required. 
-        // We could set it to "Code Complete" but "PR Raised" handles the next stage.
-        if (getIo) {
-          getIo().to(linkedProject.ownerUid).emit('notification', {
-            title: 'Task Code Complete',
-            message: `Code for task "${task.title}" has been pushed to the branch!`,
-            type: 'info'
+        if (match) {
+          taskUpdate.commitCode = match.id.substring(0, 7);
+          taskUpdate.commitMessage = match.message;
+          if (isBeforeDone) {
+            taskUpdate.status = 'Done';
+          }
+
+          if (getIo) {
+            getIo().to(linkedProject.ownerUid).emit('notification', {
+              title: 'Task Code Complete',
+              message: `Code for task "${task.title}" has been pushed to the branch!`,
+              type: 'info',
+            });
+          }
+        }
+      }
+
+      if (Object.keys(taskUpdate).length > 0) {
+        await ProjectTask.updateOne({ _id: task._id }, { $set: taskUpdate });
+
+        // Invalidate assignee's project cache so their My Tasks updates in real-time
+        if (task.assignedTo) {
+          const cacheModule = require('../utils/cache');
+          await cacheModule.invalidate(`projects:${task.assignedTo}`);
+        }
+
+        const taskIO = req?.app?.get ? req.app.get('taskIO') : null;
+        if (taskIO) {
+          taskIO.emitToProject(String(linkedProject._id), 'task-updated', {
+            projectId: String(linkedProject._id),
+            stepId: String(task.stepId),
+            taskId: String(task._id),
+            changes: taskUpdate,
+            actor: sender?.login || 'github',
           });
         }
       }

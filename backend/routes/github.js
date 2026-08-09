@@ -81,6 +81,13 @@ const User = require('../models/User');
 const verifyToken = require('../middleware/authMiddleware');
 const { normalizeDoc } = require('../utils/normalize');
 const { getInstallationAccessToken } = require('../utils/githubAppAuth');
+const {
+  getInstallationOctokit,
+  resolveInstallation,
+  invalidateInstallationCaches,
+  reposCacheKey,
+  RESOLUTION,
+} = require('../utils/githubInstallation');
 const cache = require('../utils/cache');
 const {
   ARCHITECTURE_CACHE_MAX_ENTRIES,
@@ -418,9 +425,57 @@ router.post('/install', verifyToken, async (req, res) => {
 
     res.json({ message: 'GitHub App Installation Connected', user: normalizeDoc(updatedUser) });
     cache.delByPattern(`gh:*:${uid}*`).catch(() => {});
+    invalidateInstallationCaches(uid).catch(() => {});
   } catch (error) {
     console.error('Error saving installation ID:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
+/**
+ * WHAT: Authoritative "is the Zync GitHub App installed?" check.
+ * WHY: Lets the UI decide whether to show the install prompt based on GitHub's
+ * answer rather than inferring it from an empty repo list or a failed request.
+ * Also self-heals a missing/stale installationId as a side effect.
+ */
+router.get('/installation-status', verifyToken, async (req, res) => {
+  const uid = req.user.uid;
+
+  try {
+    const user = await User.findOne({ uid }).select('githubIntegration').lean();
+    const github = user?.githubIntegration || {};
+
+    if (!github.username && !github.installationId) {
+      return res.json({
+        connected: false,
+        installed: false,
+        notInstalled: false,
+        reason: 'not_connected',
+      });
+    }
+
+    const resolution = await resolveInstallation(uid, { forceRefresh: true });
+
+    return res.json({
+      connected: true,
+      installed: Boolean(resolution.installationId) && resolution.reason !== RESOLUTION.NOT_INSTALLED,
+      notInstalled: resolution.reason === RESOLUTION.NOT_INSTALLED,
+      suspended: resolution.reason === RESOLUTION.SUSPENDED,
+      // `unknown` means GitHub was unreachable; the UI must not show the
+      // install prompt in that case.
+      indeterminate: resolution.reason === RESOLUTION.UNKNOWN,
+      login: resolution.login,
+    });
+  } catch (error) {
+    console.error('Error checking installation status:', error);
+    return res.status(503).json({
+      connected: true,
+      installed: false,
+      notInstalled: false,
+      indeterminate: true,
+      message: 'Could not verify GitHub installation right now.',
+    });
   }
 });
 
@@ -447,110 +502,167 @@ const disconnectGithub = async (uid, extra = {}) => {
 };
 
 
+// WHAT: Pulls every repository the GitHub App installation can see.
+// WHY: Extracted so it can be retried with a freshly resolved installation.
+const listInstallationRepos = async (octokit) => {
+  let allRepos = [];
+  let currentPage = 1;
+  let hasNextPage = true;
+  const per_page = 100;
+
+  while (hasNextPage && currentPage <= 5) {
+    const response = await octokit.request('GET /installation/repositories', {
+      per_page,
+      page: currentPage,
+    });
+    allRepos = allRepos.concat(response.data.repositories || []);
+
+    const linkHeader = response.headers?.link;
+    hasNextPage = !!(linkHeader && linkHeader.includes('rel="next"'));
+    currentPage++;
+  }
+
+  return allRepos.map((repo) => ({
+    id: repo.id,
+    name: repo.name,
+    full_name: repo.full_name,
+    private: repo.private,
+    owner: repo.owner.login,
+    html_url: repo.html_url,
+  }));
+};
+
+/**
+ * WHAT: Returns the repositories available to the user's GitHub App installation.
+ * WHY: Powers the "Add Project" modal.
+ *
+ * IMPORTANT: This route must NEVER report `notInstalled` unless GitHub itself
+ * confirms the installation is gone. Previously a transient 401/404 (very common
+ * right after a repo is created or deleted, because Octokit's cached installation
+ * token becomes stale) permanently nulled the stored installationId, which made
+ * the UI show "Install Zync GitHub App" forever. Resolution now goes through the
+ * self-healing resolver, which verifies against GitHub and rediscovers the id.
+ */
 router.get('/user-repos', verifyToken, async (req, res) => {
   const uid = req.user.uid;
+  const forceRefresh = req.query.refresh === '1' || req.query.refresh === 'true';
 
   try {
-    const cached = await cache.getJson(`gh:user-repos:${uid}`);
-    if (cached) return res.json(cached);
+    if (!forceRefresh) {
+      const cached = await cache.getJson(reposCacheKey(uid));
+      if (cached) return res.json(cached);
+    }
 
-    const user = await User.findOne({ uid }).lean();
+    const user = await User.findOne({ uid }).select('githubIntegration').lean();
     const github = user?.githubIntegration;
 
-    if (!user || !github?.installationId) {
+    // No GitHub account linked at all - a genuinely different problem.
+    if (!user || (!github?.username && !github?.installationId)) {
       return res.status(400).json({
-        message: 'GitHub App not installed',
-        notInstalled: true
+        message: 'GitHub account is not connected.',
+        notConnected: true,
+        notInstalled: false,
+        repos: [],
       });
     }
 
-    const installationId = github.installationId;
-    const appId = process.env.GITHUB_APP_ID;
-    let privateKey = process.env.GITHUB_PRIVATE_KEY?.replace(/\\n/g, '\n');
-
-    if (!appId || !privateKey) {
-      console.error('Missing GITHUB_APP_ID or GITHUB_PRIVATE_KEY');
-      return res.status(500).json({ message: 'Server configuration error: Missing GitHub credentials' });
-    }
-
-    privateKey = privateKey.replace(/\\n/g, '\n');
-
-    if (!privateKey.includes('BEGIN RSA PRIVATE KEY') || privateKey.length < 50) {
-      console.error('Invalid GITHUB_PRIVATE_KEY format.');
-      return res.status(500).json({ message: 'Server configuration error: Invalid GitHub Private Key format' });
-    }
-
-    const { App } = await import('octokit');
-    let app;
-    try {
-      app = new App({ appId, privateKey });
-    } catch (err) {
-      console.error("Failed to initialize Octokit App:", err.message);
-      return res.status(500).json({ message: 'Internal Server Error: Failed to initialize GitHub App' });
-    }
-
     let octokit;
-    const numericInstallationId = parseInt(installationId, 10);
-    if (isNaN(numericInstallationId)) {
-      console.error(`Invalid installationId format: ${installationId}`);
-      await disconnectGithub(uid);
-      return res.status(400).json({ message: 'Invalid GitHub installation ID. Please reinstall the app.', notInstalled: true });
-    }
-
     try {
-      octokit = await app.getInstallationOctokit(numericInstallationId);
+      octokit = await getInstallationOctokit(uid, { forceRefresh });
     } catch (err) {
-      console.error(`Failed to get installation octokit for ID ${installationId}:`, err.message);
-      if (err.status === 404 || err.status === 401) {
-        await disconnectGithub(uid);
-        return res.status(404).json({ message: 'GitHub App installation not found. Please reinstall.', notInstalled: true });
-      }
-      throw err;
-    }
-
-    try {
-      let allRepos = [];
-      let currentPage = 1;
-      let hasNextPage = true;
-      const per_page = 100;
-
-      while (hasNextPage && currentPage <= 5) {
-        const response = await octokit.request('GET /installation/repositories', { per_page, page: currentPage });
-        allRepos = allRepos.concat(response.data.repositories);
-        
-        const linkHeader = response.headers?.link;
-        hasNextPage = !!(linkHeader && linkHeader.includes('rel="next"'));
-        currentPage++;
+      if (err.code === 'GITHUB_APP_MISCONFIGURED') {
+        console.error('GitHub App credentials missing/invalid on server.');
+        return res.status(500).json({
+          message: 'Server configuration error: Missing GitHub App credentials',
+          repos: [],
+        });
       }
 
-      const repos = allRepos.map(repo => ({
-        id: repo.id,
-        name: repo.name,
-        full_name: repo.full_name,
-        private: repo.private,
-        owner: repo.owner.login,
-        html_url: repo.html_url
-      }));
-
-      const userReposResult = { repos, hasNextPage: false, page: 1 };
-      cache.setJson(`gh:user-repos:${uid}`, userReposResult, 300);
-      res.json(userReposResult);
-    } catch (requestErr) {
-      console.error("Error fetching repositories from GitHub:", requestErr.message);
-      const status = requestErr.status || requestErr.response?.status;
-      if (status === 404 || status === 401) {
+      if (err.code === 'GITHUB_APP_NOT_INSTALLED') {
+        // Authoritative: GitHub says there is no installation for this account.
         await disconnectGithub(uid, { installationId: null });
-        return res.status(400).json({ message: 'GitHub App installation not found or unauthorized. Please reinstall.', notInstalled: true });
+        return res.status(400).json({
+          message: 'GitHub App is not installed on your account.',
+          notInstalled: true,
+          repos: [],
+        });
       }
-      return res.status(500).json({ message: 'Failed to fetch repositories from GitHub.' });
+
+      if (err.code === 'GITHUB_APP_SUSPENDED') {
+        return res.status(400).json({
+          message: 'The Zync GitHub App installation is suspended. Re-enable it on GitHub.',
+          suspended: true,
+          notInstalled: false,
+          repos: [],
+        });
+      }
+
+      // Unresolved for transient reasons: do NOT claim "not installed" and do
+      // NOT touch the stored installation id.
+      console.error('Could not resolve GitHub installation for user:', err.message);
+      return res.status(503).json({
+        message: 'Could not reach GitHub right now. Please try again.',
+        transient: true,
+        notInstalled: false,
+        repos: [],
+      });
     }
 
+    let repos;
+    try {
+      repos = await listInstallationRepos(octokit);
+    } catch (requestErr) {
+      const status = requestErr.status || requestErr.response?.status;
+      console.warn(
+        `[GitHub] installation/repositories failed (status ${status}); retrying with a refreshed installation token.`
+      );
 
+      // A stale installation token is the single most common cause here, and it
+      // happens precisely when a repo was just created or deleted. Re-resolve
+      // and retry once before concluding anything.
+      try {
+        const retryOctokit = await getInstallationOctokit(uid, { forceRefresh: true });
+        repos = await listInstallationRepos(retryOctokit);
+      } catch (retryErr) {
+        if (retryErr.code === 'GITHUB_APP_NOT_INSTALLED') {
+          await disconnectGithub(uid, { installationId: null });
+          return res.status(400).json({
+            message: 'GitHub App is not installed on your account.',
+            notInstalled: true,
+            repos: [],
+          });
+        }
+
+        console.error('Error fetching repositories from GitHub after retry:', retryErr.message);
+        return res.status(503).json({
+          message: 'Failed to fetch repositories from GitHub. Please try again.',
+          transient: true,
+          notInstalled: false,
+          repos: [],
+        });
+      }
+    }
+
+    // An installed app with zero accessible repos is NOT "not installed" - the
+    // user just needs to grant repository access. Surfacing this separately is
+    // what stops the misleading install prompt.
+    const userReposResult = {
+      repos,
+      hasNextPage: false,
+      page: 1,
+      notInstalled: false,
+      noRepoAccess: repos.length === 0,
+    };
+
+    cache.setJson(reposCacheKey(uid), userReposResult, 300);
+    res.json(userReposResult);
   } catch (error) {
     console.error('Error fetching installation repos:', error);
     res.status(500).json({
       message: 'Failed to fetch repositories due to an internal error.',
-      error: error.message
+      error: error.message,
+      notInstalled: false,
+      repos: [],
     });
   }
 });

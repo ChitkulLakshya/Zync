@@ -98,7 +98,39 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useMe } from "@/hooks/useMe";
 import { useGitHubRepos } from "@/hooks/useGitHubData";
 import { useProjects } from "@/hooks/useProjects";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter
+} from "@/components/ui/dialog";
+
+const LANGUAGE_COLORS: Record<string, string> = {
+  JavaScript: "#f1e05a",
+  TypeScript: "#3178c6",
+  Python: "#3572A5",
+  Java: "#b07219",
+  "C++": "#f34b7d",
+  C: "#555555",
+  "C#": "#178600",
+  PHP: "#4F5D95",
+  Ruby: "#701516",
+  Go: "#00ADD8",
+  Rust: "#dea584",
+  Swift: "#F05138",
+  Kotlin: "#A97BFF",
+  Dart: "#00B4AB",
+  HTML: "#e34c26",
+  CSS: "#563d7c",
+  Vue: "#41b883",
+  Svelte: "#ff3e00",
+  Shell: "#89e051",
+  Lua: "#000080",
+  Jupyter: "#DA5B0B",
+  "Jupyter Notebook": "#DA5B0B",
+};
 
 const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
   const { toast } = useToast();
@@ -370,7 +402,7 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                         <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                           {repo.language && (
                             <span className="flex items-center gap-2">
-                              <span className="w-3 h-3 rounded-full bg-primary" />
+                              <span className="w-3 h-3 rounded-full" style={{ backgroundColor: LANGUAGE_COLORS[repo.language] || '#8b949e' }} />
                               {repo.language}
                             </span>
                           )}

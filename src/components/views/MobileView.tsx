@@ -86,15 +86,10 @@ import {
   FileText,
   Video,
   Settings,
-  Bell
+  Bell,
+  MessageSquare
 } from "lucide-react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
-import Workspace from "@/components/workspace/Workspace";
-import TasksView from "./TasksView";
-import CalendarView from "./CalendarView";
-import { NotesView } from "@/components/notes/NotesView";
-import MeetView from "./MeetView";
-import SettingsView from "./SettingsView";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { useMe } from "@/hooks/useMe";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -105,7 +100,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import MobileActivityLogView from "@/components/views/mobile/MobileActivityLogView";
 import MobileDashboardView from "@/components/views/mobile/MobileDashboardView";
 import MobileTeamView from "@/components/views/mobile/MobileTeamView";
-import MessagesPage from "./MessagesPage";
+import MobileWorkspace from "@/components/views/mobile/MobileWorkspace";
+import MobileTasks from "@/components/views/mobile/MobileTasks";
+import MobileCalendar from "@/components/views/mobile/MobileCalendar";
+import MobileNotes from "@/components/views/mobile/MobileNotes";
+import MobileMeet from "@/components/views/mobile/MobileMeet";
+import MobileSettings from "@/components/views/mobile/MobileSettings";
+import MobileMessages from "@/components/views/mobile/MobileMessages";
 
 const MobileView = () => {
   const [activeTab, setActiveTab] = useState("Home");
@@ -336,14 +337,9 @@ const MobileView = () => {
   );
 
   const drawerItems = [
-    { id: 'Home', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'Projects', label: 'Projects', icon: Folder },
-    { id: 'Tasks', label: 'My Tasks', icon: CheckSquare },
-    { id: 'People', label: 'Team', icon: Users },
+    { id: 'Messages', label: 'Messages', icon: MessageSquare },
     ...(canViewActivityLog ? [{ id: 'Activity', label: 'Activity', icon: Bell }] : []),
-    { id: 'Calendar', label: 'Calendar', icon: Calendar },
-    { id: 'Notes', label: 'Notes', icon: FileText },
-    { id: 'Meet', label: 'Meet', icon: Video },
     { id: 'Settings', label: 'Settings', icon: Settings },
   ];
 
@@ -353,16 +349,14 @@ const MobileView = () => {
         return currentUser ? <MobileDashboardView currentUser={currentUser} /> : null;
       case "Projects":
         return currentUser ? (
-          <div className="p-4">
-            <Workspace
-              onNavigate={handleNavigate}
-              onSelectProject={handleSelectProject}
-              currentUser={currentUser}
-            />
-          </div>
+          <MobileWorkspace
+            currentUser={currentUser}
+            onNavigate={handleNavigate}
+            onSelectProject={handleSelectProject}
+          />
         ) : null;
       case "Tasks":
-        return currentUser ? <TasksView currentUser={currentUser} users={usersList} /> : null;
+        return currentUser ? <MobileTasks currentUser={currentUser} users={usersList} /> : null;
       case "Activity":
         return (
           <MobileActivityLogView
@@ -400,22 +394,21 @@ const MobileView = () => {
         );
       case "Messages":
         return (
-          <MessagesPage
+          <MobileMessages
             users={usersList}
             currentUser={currentUser}
             userStatuses={{}}
             initialSelectedUser={selectedChatUser}
-            onNavigateBack={() => setActiveTab("People")}
           />
         );
       case "Calendar":
-        return <CalendarView />;
+        return <MobileCalendar currentUser={currentUser} users={usersList} />;
       case "Notes":
-        return <NotesView user={currentUser ? { uid: currentUser.uid, displayName: currentUser.displayName || undefined, email: currentUser.email || undefined, photoURL: currentUser.photoURL || undefined } : null} users={usersList} />;
+        return <MobileNotes user={currentUser ? { uid: currentUser.uid, displayName: currentUser.displayName || undefined, email: currentUser.email || undefined, photoURL: currentUser.photoURL || undefined } : null} users={usersList} />;
       case "Meet":
-        return <MeetView currentUser={currentUser} usersList={usersList} userStatuses={{}} />;
+        return <MobileMeet currentUser={currentUser} usersList={usersList} userStatuses={{}} />;
       case "Settings":
-        return <SettingsView />;
+        return <MobileSettings />;
       default:
         return null;
     }
@@ -447,13 +440,27 @@ const MobileView = () => {
       hideActivityLog={!canViewActivityLog}
       activeTab={activeTab}
       onTabChange={setActiveTab}
+      onFabClick={
+        activeTab === 'Notes'
+          ? () => {
+              const event = new CustomEvent('mobile-notes-new');
+              window.dispatchEvent(event);
+            }
+          : activeTab === 'Tasks'
+            ? undefined
+            : activeTab === 'Calendar'
+              ? undefined
+              : activeTab === 'People'
+                ? undefined
+                : () => navigate('/new-project')
+      }
       user={currentUser ? {
         displayName: currentUser.displayName || undefined,
         email: currentUser.email || undefined,
         photoURL: currentUser.photoURL ? getFullUrl(currentUser.photoURL) : undefined
       } : null}
       drawerContent={DrawerContent}
-      headerTitle={activeTab === 'Home' ? 'Dashboard' : activeTab}
+      headerTitle={activeTab === 'Home' ? 'Workspace' : activeTab}
     >
       {userMeError && currentUser && (
         <div className="p-3 border-b border-border/10 bg-transparent shrink-0">

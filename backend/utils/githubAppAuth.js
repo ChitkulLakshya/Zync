@@ -114,4 +114,4 @@ const getInstallationAccessToken = async (installationId) => { // WHAT: Defines 
     }
 };
 
-module.exports = { getInstallationAccessToken }; // WHAT: Exports the getInstallationAccessToken function. WHY: Makes it available for other files that need to authenticate GitHub API calls.
+module.exports = { getInstallationAccessToken, getAppJwt }; // WHAT: Exports the token helper and the App JWT generator. WHY: The installation resolver needs to authenticate as the App itself to verify/rediscover installations.

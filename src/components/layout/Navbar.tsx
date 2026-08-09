@@ -170,12 +170,12 @@ const Navbar = () => {
                 <img 
                   src="/zync-white.webp" 
                   alt="Zync Logo" 
-                  className="w-8 h-8 rounded-lg relative z-10 block dark:hidden" 
+                  className="h-10 lg:h-12 w-auto object-contain relative z-10 block dark:hidden" 
                 />
                 <img 
                   src="/zync-dark.webp" 
                   alt="Zync Logo" 
-                  className="w-8 h-8 rounded-lg relative z-10 hidden dark:block" 
+                  className="h-10 lg:h-12 w-auto object-contain relative z-10 hidden dark:block" 
                 />
               </>
             ) : (

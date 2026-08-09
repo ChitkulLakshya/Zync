@@ -95,6 +95,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { lazy, Suspense } from "react";
 // Imports a custom hook to detect if the user's viewport matches a mobile device breakpoint for responsive rendering.
 import { useIsMobile } from "@/hooks/use-mobile";
+import { ConfirmProvider } from "@/hooks/use-confirm";
 
 // Dynamically imports the Index page component to split the bundle and load the landing page on demand.
 const Index = lazy(() => import("./pages/Index"));
@@ -148,6 +149,7 @@ import { useChatNotifications } from "./hooks/use-chat-notifications";
 import { useUserSync } from "./hooks/use-user-sync";
 // Imports a custom hook to manage background synchronization of application data while the user is active.
 import { useSyncData } from "./hooks/useSyncData";
+import { usePushNotifications } from "./hooks/use-push-notifications";
 // Imports the WakeUpService component to ping or initialize backend services as soon as the app loads.
 import { WakeUpService } from "@/components/WakeUpService";
 
@@ -161,6 +163,7 @@ const AppContent = () => {
   useUserSync();
   // Invokes the useSyncData hook to establish background intervals that pull the latest app data (projects, tasks) from the server.
   useSyncData();
+  usePushNotifications();
   // Calls the useLocation hook from React Router to retrieve the current URL location object, which is needed to trigger route-based animations.
   const location = useLocation();
   // Calls the useIsMobile hook to check the current window width against a CSS media query, returning true if the viewport is mobile-sized.
@@ -280,8 +283,9 @@ const App = () => (
   >
     {/* Wraps the app in the ThemeProvider to inject Tailwind dark/light CSS variables into the root HTML element. */}
     <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
-      {/* Wraps the app in TooltipProvider to provide a singular DOM context where all Radix UI tooltip components can portal to. */}
-      <TooltipProvider>
+      <ConfirmProvider>
+        {/* Wraps the app in TooltipProvider to provide a singular DOM context where all Radix UI tooltip components can portal to. */}
+        <TooltipProvider>
         {/* Mounts the standard Toaster component at the root level so toast notifications can render on top of any page. */}
         <Toaster />
         {/* Mounts the Sonner toaster component at the root level to support alternative richer notification styles globally. */}
@@ -291,7 +295,8 @@ const App = () => (
           {/* Renders the inner application shell that contains the actual routes, layout, and hook initializations. */}
           <AppContent />
         </BrowserRouter>
-      </TooltipProvider>
+        </TooltipProvider>
+      </ConfirmProvider>
     </ThemeProvider>
   </PersistQueryClientProvider>
 );

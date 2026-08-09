@@ -77,4 +77,5 @@
 export * from "./hooks/useAppInstallStatus";
 // Imports the default export from the local "components/InstallPromptView" file and re-exports it as a named export "InstallPromptView", providing a clean entry point for the UI component.
 export { default as InstallPromptView } from "./components/InstallPromptView";
+export { default as NotificationPermissionGate } from "./components/NotificationPermissionGate";
 

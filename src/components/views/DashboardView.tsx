@@ -107,6 +107,7 @@ import { Github } from '@/components/ui/GithubIcon';;
 import { useGitHubStats, useGitHubEvents, useGitHubContributions } from '@/hooks/useGitHubData';
 import { useProjects } from '@/hooks/useProjects';
 import { useQueryClient } from '@tanstack/react-query';
+import { useConfirm } from '@/hooks/use-confirm';
 
 interface DashboardViewProps {
   currentUser: any;
@@ -122,6 +123,7 @@ const DashboardView = ({
   mockProjects,
 }: DashboardViewProps) => {
   const queryClient = useQueryClient();
+  const { confirm } = useConfirm();
   const { data: realProjects = [] } = useProjects();
   const projects = isPreview && mockProjects ? mockProjects : realProjects;
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
@@ -202,7 +204,13 @@ const DashboardView = ({
   };
 
   const handleUnlink = async () => {
-    if (!confirm('Are you sure you want to unlink your GitHub account?')) {
+    const isConfirmed = await confirm({
+      title: 'Unlink GitHub',
+      description: 'Are you sure you want to unlink your GitHub account?',
+      checkboxLabel: 'I confirm I want to unlink GitHub'
+    });
+    
+    if (!isConfirmed) {
       return;
     }
 
@@ -305,7 +313,7 @@ const DashboardView = ({
         steps.reduce(
           (s: number, step: any) =>
             s +
-            (step.tasks?.filter((t: any) => t.status === 'Completed' || t.status === 'Done')
+            (step.tasks?.filter((t: any) => t.status === 'Done')
               .length || 0),
           0
         )
@@ -352,7 +360,7 @@ const DashboardView = ({
             <CardContent className="pt-6 text-center">
               <Star className="h-8 w-8 text-foreground mx-auto mb-2" />
               <p className="text-2xl font-bold">{completedTasks}</p>
-              <p className="text-sm text-muted-foreground">Completed</p>
+              <p className="text-sm text-muted-foreground">Done</p>
             </CardContent>
           </Card>
         </div>
@@ -372,7 +380,7 @@ const DashboardView = ({
                   const steps = project.steps || [];
                   const tasks = steps.flatMap((s: any) => s.tasks || []);
                   const done = tasks.filter(
-                    (t: any) => t.status === 'Completed' || t.status === 'Done'
+                    (t: any) => t.status === 'Done'
                   ).length;
                   const total = tasks.length;
                   const pct = total > 0 ? Math.round((done / total) * 100) : 0;

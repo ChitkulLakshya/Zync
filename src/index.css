@@ -660,3 +660,17 @@
 .dark::view-transition-new(root) {
   z-index: 2;
 }
+
+/* Force hide all scrollbars on mobile devices */
+@media (max-width: 768px) {
+  * {
+    scrollbar-width: none !important;
+    -ms-overflow-style: none !important;
+  }
+  
+  *::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+  }
+}

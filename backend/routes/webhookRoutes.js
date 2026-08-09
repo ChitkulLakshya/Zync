@@ -99,7 +99,7 @@ const computeStatusFromCommit = ({ fromStatus, hasOwnerGeneratedCommitCode }) =>
     return 'Done';
   }
 
-  if (normalizedFrom === 'done' || normalizedFrom.includes('complete')) {
+  if (normalizedFrom === 'done' || normalizedFrom === 'pr raised') {
     return null;
   }
 

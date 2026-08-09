@@ -96,6 +96,8 @@ interface GitCommandsDrawerProps {
         title: string;
         _id?: string;
         projectName?: string;
+        githubBranchName?: string;
+        completionCommitMessage?: string;
     } | null;
     project: {
         githubRepoOwner?: string;
@@ -162,20 +164,13 @@ export const GitCommandsDrawer = ({ open, onOpenChange, task, project }: GitComm
     if (!task) {return null;}
 
 
-    const slug = task.title
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/(^-|-$)/g, '')
-        .substring(0, 50);
-
-    const branchName = `feature/${slug}`;
+    const taskId = task._id || task.id;
+    const branchName = task.githubBranchName || `task/${task.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '').substring(0, 30)}-${taskId}`;
     const repoUrl = project?.githubRepoOwner && project?.githubRepoName
         ? `https://github.com/${project.githubRepoOwner}/${project.githubRepoName}.git`
         : "git remote add origin <your-repo-url>";
 
-
-    const taskId = task._id || task.id;
-    const commitMessage = `feat: ${task.title} [ZYNC-COMPLETE #${taskId}]`;
+    const commitMessage = task.completionCommitMessage || `Complete Task: ${taskId}`;
 
     return (
         <Sheet open={open} onOpenChange={onOpenChange}>
@@ -203,8 +198,8 @@ export const GitCommandsDrawer = ({ open, onOpenChange, task, project }: GitComm
                             />
                             <CommandBlock
                                 stepNumber={2}
-                                label="Create Feature Branch"
-                                command={`git checkout -b ${branchName}`}
+                                label="Checkout Task Branch"
+                                command={`git fetch origin ${branchName} && git checkout ${branchName} || git checkout -b ${branchName}`}
                             />
                             <CommandBlock
                                 stepNumber={3}

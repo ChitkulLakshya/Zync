@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { Camera, Pencil, Check, Copy, ShieldAlert, Plus } from 'lucide-react';
 import { TeamLogoDisplay } from '@/components/ui/TeamLogoDisplay';
@@ -40,6 +41,7 @@ export function TeamSettingsSidebar({
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deletePin, setDeletePin] = useState('');
+  const [deleteConfirmChecked, setDeleteConfirmChecked] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
 
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -311,7 +313,7 @@ export function TeamSettingsSidebar({
               Please enter your Security PIN to confirm.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 space-y-4">
             <Input
               type="password"
               placeholder="Enter Security PIN"
@@ -320,12 +322,22 @@ export function TeamSettingsSidebar({
               maxLength={6}
               className="text-center tracking-[0.5em] text-lg font-mono"
             />
+            <div className="flex items-center space-x-2 pt-2">
+              <Checkbox 
+                id="delete-confirm-checkbox" 
+                checked={deleteConfirmChecked} 
+                onCheckedChange={(checked) => setDeleteConfirmChecked(checked === true)} 
+              />
+              <Label htmlFor="delete-confirm-checkbox" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                I confirm I want to delete this team
+              </Label>
+            </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setDeletePin(''); }} disabled={actionLoading}>
+            <Button variant="outline" onClick={() => { setDeleteDialogOpen(false); setDeletePin(''); setDeleteConfirmChecked(false); }} disabled={actionLoading}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteTeam} disabled={actionLoading || deletePin.length < 4}>
+            <Button variant="destructive" onClick={handleDeleteTeam} disabled={actionLoading || deletePin.length < 4 || !deleteConfirmChecked}>
               {actionLoading ? 'Deleting...' : 'Delete Team'}
             </Button>
           </DialogFooter>

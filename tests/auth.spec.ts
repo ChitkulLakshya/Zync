@@ -19,7 +19,7 @@ test.describe('Authentication Flow', () => {
     // It should eventually take us to login or we can manually go there
     await page.goto('/login');
     await expect(page).toHaveURL(/.*login/);
-    await expect(page.getByRole('heading', { name: /login to zync/i })).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('heading', { name: /welcome back/i })).toBeVisible({ timeout: 15000 });
     
     // Test that the form elements are present
     await expect(page.getByLabel(/email/i)).toBeVisible();

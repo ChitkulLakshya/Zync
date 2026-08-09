@@ -98,7 +98,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from '@/components/ui/use-toast';
 import { DelayedLoaderGate } from '@/loading/DelayedLoaderGate';
 import { Textarea } from '@/components/ui/textarea';
-import { Camera, AlertTriangle, Check, ChevronsUpDown, Mail, Headphones, MessageSquare, Newspaper, UserMinus, Trash2, Copy, LogOut, Crown, Users,  } from 'lucide-react';
+import { Camera, AlertTriangle, Check, ChevronsUpDown, Mail, Headphones, MessageSquare, Newspaper, UserMinus, Trash2, Copy, LogOut, Crown, Users, Bell, BellOff } from 'lucide-react';
 import { Github } from '@/components/ui/GithubIcon';;
 import { cn, API_BASE_URL, getFullUrl } from '@/lib/utils';
 import { getLogoById, getDeterministicLogoId } from '@/lib/team-logos';
@@ -128,6 +128,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useTheme } from 'next-themes';
+import { useConfirm } from '@/hooks/use-confirm';
 
 const countries = [
   { name: 'United States', code: 'US', dial_code: '+1', flag: '🇺🇸' },
@@ -152,6 +153,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
   const { data: realUserData, isLoading: isMeLoading } = useMe();
   const userData = isPreview && mockMe ? mockMe : realUserData;
   const [currentUser, setCurrentUser] = useState(isPreview && mockMe ? mockMe : auth.currentUser);
+  const { confirm } = useConfirm();
 
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
@@ -451,7 +453,12 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
   };
 
   const handleGithubDisconnect = async () => {
-    if (!window.confirm('Are you sure you want to unlink your GitHub account?')) {
+    const isConfirmed = await confirm({
+      title: 'Unlink GitHub',
+      description: 'Are you sure you want to unlink your GitHub account?',
+      checkboxLabel: 'I confirm I want to unlink GitHub'
+    });
+    if (!isConfirmed) {
       return;
     }
     setIsConnectingGithub(true);
@@ -545,7 +552,12 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
   };
 
   const handleGoogleDisconnect = async () => {
-    if (!window.confirm('Disconnect Google Calendar?')) {
+    const isConfirmed = await confirm({
+      title: 'Disconnect Google Calendar',
+      description: 'Disconnect Google Calendar?',
+      checkboxLabel: 'I confirm I want to disconnect Google Calendar'
+    });
+    if (!isConfirmed) {
       return;
     }
     setIsConnectingGoogle(true);
@@ -1022,6 +1034,33 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {typeof Notification !== 'undefined' && Notification.permission === 'granted' ? (
+                      <Bell className="h-4 w-4 text-emerald-500" />
+                    ) : (
+                      <BellOff className="h-4 w-4 text-muted-foreground" />
+                    )}
+                    <Label>Push Notifications</Label>
+                  </div>
+                  <Button
+                    variant={typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'outline' : 'default'}
+                    size="sm"
+                    onClick={async () => {
+                      if (typeof Notification === 'undefined') { return; }
+                      if (Notification.permission === 'granted') { return; }
+                      const result = await Notification.requestPermission();
+                      if (result === 'granted') {
+                        toast({ title: 'Notifications Enabled', description: 'You will receive push notifications for tasks and meetings.' });
+                      } else {
+                        toast({ title: 'Notifications Blocked', description: 'Enable them in your browser settings to receive alerts.', variant: 'destructive' });
+                      }
+                    }}
+                    disabled={typeof Notification !== 'undefined' && Notification.permission === 'granted'}
+                  >
+                    {typeof Notification !== 'undefined' && Notification.permission === 'granted' ? 'Enabled' : 'Enable'}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -1208,6 +1247,7 @@ function TeamTabContent({
   isPreview,
   mockTeams,
 }: any) {
+  const { confirm } = useConfirm();
   const queryClient = useQueryClient();
   const [actionLoading, setActionLoading] = useState(false);
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
@@ -1399,15 +1439,19 @@ function TeamTabContent({
 
   const handleRemoveMember = async (teamId: string, memberUid: string) => {
     if (!currentUser) {return;}
-    if (!window.confirm('Remove this member from the team?')) {return;}
+    const isConfirmed = await confirm({
+      title: 'Remove Member',
+      description: 'Remove this member from the team?',
+      checkboxLabel: 'I confirm I want to remove this member'
+    });
+    if (!isConfirmed) {return;}
 
     setActionLoading(true);
     try {
       const token = await currentUser.getIdToken();
-      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/remove-member`, {
+      const res = await fetch(`${API_BASE_URL}/api/teams/${teamId}/members/${memberUid}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: memberUid })
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
       });
 
       if (!res.ok) {
@@ -1559,7 +1603,12 @@ function TeamTabContent({
     if (!currentUser) {
       return;
     }
-    if (!window.confirm('Are you sure you want to leave this team?')) {
+    const isConfirmed = await confirm({
+      title: 'Leave Team',
+      description: 'Are you sure you want to leave this team?',
+      checkboxLabel: 'I confirm I want to leave this team'
+    });
+    if (!isConfirmed) {
       return;
     }
 
@@ -1594,9 +1643,12 @@ function TeamTabContent({
     if (!currentUser) {
       return;
     }
-    if (
-      !window.confirm('Are you sure you want to DELETE this team? This action cannot be undone.')
-    ) {
+    const isConfirmed = await confirm({
+      title: 'Delete Team',
+      description: 'Are you sure you want to DELETE this team? This action cannot be undone.',
+      checkboxLabel: 'I confirm I want to delete this team'
+    });
+    if (!isConfirmed) {
       return;
     }
 
@@ -1637,11 +1689,13 @@ function TeamTabContent({
     const team = teamsData.find((t: any) => t.id === teamId);
     const member = team?.memberDetails?.find((m: any) => m.uid === newOwnerId);
 
-    if (
-      !confirm(
-        `Are you sure you want to request an ownership transfer to ${member?.displayName || 'this member'}? An email will be sent to you to verify.`
-      )
-    ) {
+    const isConfirmed = await confirm({
+      title: 'Transfer Ownership',
+      description: `Are you sure you want to request an ownership transfer to ${member?.displayName || 'this member'}? An email will be sent to you to verify.`,
+      checkboxLabel: 'I confirm I want to transfer ownership'
+    });
+    
+    if (!isConfirmed) {
       return;
     }
 

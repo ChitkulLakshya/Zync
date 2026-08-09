@@ -113,6 +113,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // Imports the specialized LinkedIn button to provide a third-party OAuth login option.
 import { LinkedinSignInButton } from "@/components/auth/LinkedinSignInButton";
+import { InstallPromptView, useAppInstallStatus } from "@/features/install-wall";
 
 // Defines the main React component for the mobile-specific login view.
 const LoginMobile = () => {
@@ -130,6 +131,7 @@ const LoginMobile = () => {
   const location = useLocation();
   // Destructures the toast function to easily trigger UI notifications.
   const { toast } = useToast();
+  const { hasCheckedStatus, requiresInstallWall, isIOS, isAndroid } = useAppInstallStatus();
 
   // Runs a side effect on mount to listen for changes in the user's authentication state.
   useEffect(() => {
@@ -317,6 +319,10 @@ const LoginMobile = () => {
       setLoading(false);
     }
   };
+
+  if (hasCheckedStatus && requiresInstallWall) {
+    return <InstallPromptView isIOS={isIOS} isAndroid={isAndroid} appName="ZYNC" />;
+  }
 
   // Checks if a user session is already active (i.e. they closed the tab without logging out).
   if (currentUser) {

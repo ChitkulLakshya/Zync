@@ -296,9 +296,17 @@ const Signup = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <Card className="w-full max-w-md bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
+      <div className="w-full max-w-md">
+        {/* Logo + Name */}
+        <div className="flex flex-col items-center mb-8">
+          <img src="/zync-white.webp" alt="Zync" className="h-24 w-auto rounded-2xl block dark:hidden" />
+          <img src="/zync-dark.webp" alt="Zync" className="h-24 w-auto rounded-2xl hidden dark:block" />
+          <h1 className="text-3xl font-bold tracking-tight mt-4">Zync</h1>
+        </div>
+
+      <Card className="bg-card/50 backdrop-blur-xl border-border/10 shadow-none">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
+          <CardTitle className="text-xl font-semibold">Create an account</CardTitle>
           <CardDescription>
             Enter your email below to create your account
           </CardDescription>
@@ -374,6 +382,7 @@ const Signup = () => {
           </p>
         </CardFooter>
       </Card>
+      </div>
 
       <AlertDialog open={!!confirmState} onOpenChange={(open) => { if (!open) {handleConfirm(false);} }}>
         <AlertDialogContent>

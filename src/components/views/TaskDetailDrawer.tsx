@@ -143,7 +143,7 @@ const TaskDetailDrawer = ({ task, open, onOpenChange, isOwner, onTaskRefresh }: 
                 <SheetHeader className="flex flex-col p-6 border-b border-border/10 space-y-4">
                     <div className="flex items-start justify-between gap-4">
                         <div className="flex items-center gap-2">
-                            <Badge variant={task.status === 'Completed' ? 'default' : 'secondary'} className="capitalize px-3 py-1">
+                            <Badge variant={task.status === 'Done' ? 'default' : 'secondary'} className="capitalize px-3 py-1">
                                 {task.status}
                             </Badge>
                             {}

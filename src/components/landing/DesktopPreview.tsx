@@ -963,12 +963,12 @@ const DesktopPreview = () => {
             <img
               src="/zync-white.webp"
               alt="Zync"
-              className="h-9 w-auto rounded-lg block dark:hidden"
+              className="h-9 w-auto object-contain block dark:hidden"
             />
             <img
               src="/zync-dark.webp"
               alt="Zync"
-              className="h-9 w-auto rounded-lg hidden dark:block"
+              className="h-9 w-auto object-contain hidden dark:block"
             />
           </>
         </div>

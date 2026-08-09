@@ -74,10 +74,8 @@
  * ============================================================================
  */
 // Imports the primary NewProject component from the shared pages directory.
-import NewProject from "@/pages/NewProject";
+import MobileNewProject from "@/components/views/mobile/MobileNewProject";
 
-// Defines a lightweight wrapper component for mobile routing, rendering the NewProject view.
-const NewProjectMobile = () => <NewProject />;
+const NewProjectMobile = () => <MobileNewProject />;
 
-// Exports the mobile wrapper for the router.
 export default NewProjectMobile;
