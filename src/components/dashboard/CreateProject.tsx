@@ -104,14 +104,29 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
     const user = auth.currentUser;
     const ownerId = user ? user.uid : "anonymous";
     let token = "";
+    let interval: ReturnType<typeof setInterval> | null = null;
+    
     try {
       token = user ? await user.getIdToken() : "";
+      if (!token) {
+        toast({ 
+          title: "Authentication Error", 
+          description: "Failed to authenticate. Please ensure you're logged in and try again.", 
+          variant: "destructive" 
+        });
+        setIsGenerating(false);
+        return;
+      }
     } catch (tokenErr) {
       console.error("Failed to get token:", tokenErr);
+      toast({ 
+        title: "Authentication Error", 
+        description: "Failed to authenticate. Please ensure you're logged in and try again.", 
+        variant: "destructive" 
+      });
+      setIsGenerating(false);
+      return;
     }
-
-    // Trigger immediate redirect to workspace
-    onProjectCreated(null);
 
     // Trigger persistent dynamic progress toast
     const toastController = toast({
@@ -128,7 +143,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
     });
 
     let progress = 10;
-    const interval = setInterval(() => {
+    interval = setInterval(() => {
       if (progress < 95) {
         progress += Math.floor(Math.random() * 8) + 4; // increment between 4% and 11%
         if (progress > 95) {progress = 95;}
@@ -174,7 +189,9 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
         }),
       });
 
-      clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -183,25 +200,37 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
 
       const data = await response.json();
 
-      // Show success toast
+      // Show success toast with optional warning
+      const hasWarning = data.warning;
       toastController.update({
         id: toastController.id,
         title: "Project Created Successfully!",
         description: (
           <div className="w-full mt-2 space-y-1">
             <div className="text-xs text-green-500 font-medium font-sans">Your new project and GitHub repository are ready.</div>
+            {hasWarning && (
+              <div className="text-xs text-yellow-600 font-medium font-sans mt-1">
+                Note: {data.warning}
+              </div>
+            )}
             <div className="h-1.5 w-full bg-green-500/20 rounded-full overflow-hidden">
               <div className="h-full bg-green-500 transition-all duration-500" style={{ width: '100%' }} />
             </div>
           </div>
         ),
-        duration: 4000,
+        duration: hasWarning ? 8000 : 4000,
       });
 
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       sessionStorage.setItem('newlyCreatedProjectId', data._id || data.id);
+      setIsGenerating(false);
+      
+      // Redirect to workspace after successful project creation
+      onProjectCreated(null);
     } catch (error: any) {
-      clearInterval(interval);
+      if (interval) {
+        clearInterval(interval);
+      }
       console.error("Generation error:", error);
       toastController.update({
         id: toastController.id,
@@ -214,6 +243,7 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
         variant: "destructive",
         duration: 6000,
       });
+      setIsGenerating(false);
     }
   };
 
