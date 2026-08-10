@@ -82,14 +82,43 @@ CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
   );
 
   const text = response.data?.choices?.[0]?.message?.content || '';
-  const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  
+  // Clean markdown code blocks
+  let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  
+  // Handle common JSON formatting issues
+  jsonString = jsonString
+    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
+    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+    .replace(/'/g, '"')     // Replace single quotes with double quotes
+    .trim();
 
   let parsed;
   try {
     parsed = JSON.parse(jsonString);
   } catch (e) {
     console.error('Failed to parse Kilo Code Gateway response:', jsonString);
-    throw new Error('Failed to parse architecture analysis response');
+    console.error('Parse error:', e.message);
+    
+    // Try to extract JSON from the response if it's embedded in other text
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+        console.log('Successfully extracted JSON from embedded text');
+      } catch (retryError) {
+        console.error('Failed to parse extracted JSON:', retryError.message);
+        throw new Error('Failed to parse architecture analysis response');
+      }
+    } else {
+      throw new Error('Failed to parse architecture analysis response');
+    }
+  }
+
+  // Validate basic structure
+  if (!parsed || typeof parsed !== 'object') {
+    console.error('Invalid response structure:', parsed);
+    throw new Error('Invalid architecture response structure');
   }
 
   return parsed;
@@ -166,14 +195,43 @@ CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
   );
 
   const text = response.data?.choices?.[0]?.message?.content || '';
-  const jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  
+  // Clean markdown code blocks
+  let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+  
+  // Handle common JSON formatting issues
+  jsonString = jsonString
+    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
+    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
+    .replace(/'/g, '"')     // Replace single quotes with double quotes
+    .trim();
 
   let parsed;
   try {
     parsed = JSON.parse(jsonString);
   } catch (e) {
     console.error('Failed to parse Kilo Code Gateway response:', jsonString);
-    throw new Error('Failed to parse architecture generation response');
+    console.error('Parse error:', e.message);
+    
+    // Try to extract JSON from the response if it's embedded in other text
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+        console.log('Successfully extracted JSON from embedded text');
+      } catch (retryError) {
+        console.error('Failed to parse extracted JSON:', retryError.message);
+        throw new Error('Failed to parse architecture generation response');
+      }
+    } else {
+      throw new Error('Failed to parse architecture generation response');
+    }
+  }
+
+  // Validate basic structure
+  if (!parsed || typeof parsed !== 'object') {
+    console.error('Invalid response structure:', parsed);
+    throw new Error('Invalid architecture response structure');
   }
 
   return parsed;

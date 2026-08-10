@@ -13,9 +13,10 @@ import {
   type Edge,
   type Connection,
 } from '@xyflow/react';
+import { Download, Upload } from 'lucide-react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import '@xyflow/react/dist/style.css';
-import { mockArchitectureData } from './mockArchitectureData';
+import mockArchitectureData from './mockArchitectureData';
 import LiquidGlassNode from './LiquidGlassNode';
 import type { ArchitectureNode, ArchitectureEdge, ArchitectureDiagram } from './mockArchitectureData';
 import { useToast } from '@/hooks/use-toast';
@@ -143,51 +144,7 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 
 type FlowPositionFn = (clientPos: { x: number; y: number }) => { x: number; y: number };
 
-const getLayoutedElements = async (
-  nodes: Node[],
-  edges: Edge[],
-  direction = 'DOWN'
-): Promise<{ nodes: Node[]; edges: Edge[] }> => {
-  const graph = {
-    id: 'root',
-    layoutOptions: {
-      'elk.algorithm': 'layered',
-      'elk.layered.spacing.nodeNodeBetweenLayers': '80',
-      'elk.spacing.nodeNode': '60',
-      'elk.direction': direction,
-    },
-    children: nodes.map((node) => ({
-      id: node.id,
-      width: node.width ?? 200,
-      height: node.height ?? 80,
-    })),
-    edges: edges.map((edge) => ({
-      id: edge.id,
-      sources: [edge.source],
-      targets: [edge.target],
-    })),
-  };
-
-  try {
-    const layoutedGraph = await elk.layout(graph);
-    const layoutedChildren = layoutedGraph.children ?? [];
-    const layoutedNodes = nodes.map((node) => {
-      const layoutedChild = layoutedChildren.find((c: any) => c.id === node.id);
-      if (layoutedChild) {
-        return {
-          ...node,
-          position: { x: layoutedChild.x ?? 0, y: layoutedChild.y ?? 0 },
-        };
-      }
-      return node;
-    });
-
-    return { nodes: layoutedNodes, edges };
-  } catch (error) {
-    console.error('ELK layout failed, using default positions:', error);
-    return { nodes, edges };
-  }
-};
+const elk = new ELK();
 
 const saveToStorage = (nodes: Node[], edges: Edge[], projectId?: string) => {
   try {
@@ -240,7 +197,7 @@ const normalizeFlowNodes = (nodes: any[]): Node[] => {
     .map((node, index) => ({
       id: node.id,
       type: 'liquidGlass',
-      position: { x: (index % 4) * 280, y: Math.floor(index / 4) * 220 },
+      position: { x: (index % 4) * 320, y: Math.floor(index / 4) * 250 },
       data: {
         label: node.label || node.id,
         sublabel: node.sublabel,
@@ -269,31 +226,56 @@ const normalizeFlowEdges = (edges: any[]): Edge[] => {
 
 const NodePalette: React.FC<{ onAddNode: (type: string) => void }> = ({ onAddNode }) => {
   const [dragType, setDragType] = useState<string | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <div className="w-44 p-3 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 shadow-md flex flex-col gap-1 shrink-0 overflow-y-auto">
-      <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Components</h3>
-      {nodePaletteItems.map((item) => (
-        <div
-          key={item.type}
-          draggable
-          onDragStart={(e) => {
-            e.dataTransfer.setData('application/reactflow', item.type);
-            e.dataTransfer.effectAllowed = 'move';
-            setDragType(item.type);
-          }}
-          onDragEnd={() => setDragType(null)}
-          className={`flex items-center gap-2 p-2 rounded-lg cursor-grab border border-border/30 transition-colors text-xs ${
-            dragType === item.type ? 'bg-primary/10 border-primary/50' : 'bg-background/50 hover:bg-secondary/50'
-          }`}
+    <div className="absolute top-4 left-4 z-10">
+      {!isExpanded ? (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="p-2 bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 shadow-md hover:bg-secondary/50 transition-colors"
+          title="Add components"
         >
-          <span className="text-sm">{item.icon}</span>
-          <span className="font-medium">{item.label}</span>
+          <svg className="w-5 h-5 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+        </button>
+      ) : (
+        <div className="bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 shadow-md flex flex-col gap-1 p-2 min-w-[160px]">
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Add Node</h3>
+            <button
+              onClick={() => setIsExpanded(false)}
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          {nodePaletteItems.map((item) => (
+            <div
+              key={item.type}
+              draggable
+              onDragStart={(e) => {
+                e.dataTransfer.setData('application/reactflow', item.type);
+                e.dataTransfer.effectAllowed = 'move';
+                setDragType(item.type);
+              }}
+              onDragEnd={() => setDragType(null)}
+              className={`flex items-center gap-2 p-2 rounded-lg cursor-grab border border-border/30 transition-colors text-xs ${
+                dragType === item.type ? 'bg-primary/10 border-primary/50' : 'bg-background/50 hover:bg-secondary/50'
+              }`}
+            >
+              <span className="text-sm">{item.icon}</span>
+              <span className="font-medium">{item.label}</span>
+            </div>
+          ))}
+          <p className="text-[9px] text-muted-foreground mt-1 pt-1 border-t border-border/30">
+            Drag to canvas to add
+          </p>
         </div>
-      ))}
-      <div className="mt-2 pt-2 border-t border-border/30">
-        <p className="text-[10px] text-muted-foreground">Drag components onto the canvas to add them.</p>
-      </div>
+      )}
     </div>
   );
 };
@@ -309,39 +291,35 @@ const SelectedNodePanel: React.FC<{
   const data = node.data as any;
 
   return (
-    <div className="w-72 p-4 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 shadow-md flex flex-col gap-3 shrink-0 overflow-y-auto">
+    <div className="w-64 p-3 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 shadow-md flex flex-col gap-2 shrink-0 overflow-y-auto">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Properties</h3>
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Edit Node</h3>
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs p-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-muted-foreground">Label</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[9px] text-muted-foreground">Label</label>
         <input
-          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1.5 text-foreground"
+          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1 text-foreground"
           value={data.label || ''}
           onChange={(e) => onUpdate(node.id, { label: e.target.value })}
         />
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-muted-foreground">Sublabel</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[9px] text-muted-foreground">Tech Stack</label>
         <input
-          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1.5 text-foreground"
-          value={data.sublabel || ''}
-          onChange={(e) => onUpdate(node.id, { sublabel: e.target.value })}
-        />
-      </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-muted-foreground">Tech Stack</label>
-        <input
-          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1.5 text-foreground"
+          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1 text-foreground"
           value={data.techStack || ''}
           onChange={(e) => onUpdate(node.id, { techStack: e.target.value })}
         />
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-muted-foreground">Status</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[9px] text-muted-foreground">Status</label>
         <select
-          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1.5 text-foreground"
+          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1 text-foreground"
           value={data.status || 'healthy'}
           onChange={(e) => onUpdate(node.id, { status: e.target.value })}
         >
@@ -350,22 +328,12 @@ const SelectedNodePanel: React.FC<{
           <option value="down">Down</option>
         </select>
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-muted-foreground">Tasks</label>
-        <input
-          type="number"
-          min="0"
-          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1.5 text-foreground"
-          value={data.tasks ?? 0}
-          onChange={(e) => onUpdate(node.id, { tasks: parseInt(e.target.value || '0', 10) })}
-        />
-      </div>
-      <div className="pt-2 border-t border-border/30">
+      <div className="pt-2 border-t border-border/30 mt-1">
         <button
           onClick={() => onDelete(node.id)}
-          className="w-full text-xs text-destructive hover:bg-destructive/10 rounded-lg px-2 py-1.5 transition-colors"
+          className="w-full text-xs text-destructive hover:bg-destructive/10 rounded-lg px-2 py-1 transition-colors"
         >
-          Delete node
+          Delete
         </button>
       </div>
     </div>
@@ -383,33 +351,37 @@ const EdgePanel: React.FC<{
   const data = edge.data as any;
 
   return (
-    <div className="w-64 p-4 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 shadow-md flex flex-col gap-3 shrink-0 overflow-y-auto">
+    <div className="w-56 p-3 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 shadow-md flex flex-col gap-2 shrink-0 overflow-y-auto">
       <div className="flex items-center justify-between">
-        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Edge</h3>
-        <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
+        <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Edit Edge</h3>
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs p-1">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
-      <div className="flex flex-col gap-2">
-        <label className="text-[10px] text-muted-foreground">Label</label>
+      <div className="flex flex-col gap-1.5">
+        <label className="text-[9px] text-muted-foreground">Label</label>
         <input
-          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1.5 text-foreground"
+          className="text-xs bg-background/50 border border-border/50 rounded-lg px-2 py-1 text-foreground"
           value={typeof data?.label === 'string' ? data.label : ''}
           onChange={(e) => onUpdate(edge.id, { label: e.target.value })}
         />
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-[10px] text-muted-foreground">Source</span>
+        <span className="text-[9px] text-muted-foreground">Source</span>
         <span className="text-xs text-foreground truncate">{edge.source}</span>
       </div>
       <div className="flex flex-col gap-1">
-        <span className="text-[10px] text-muted-foreground">Target</span>
+        <span className="text-[9px] text-muted-foreground">Target</span>
         <span className="text-xs text-foreground truncate">{edge.target}</span>
       </div>
-      <div className="pt-2 border-t border-border/30">
+      <div className="pt-2 border-t border-border/30 mt-1">
         <button
           onClick={() => onDelete(edge.id)}
-          className="w-full text-xs text-destructive hover:bg-destructive/10 rounded-lg px-2 py-1.5 transition-colors"
+          className="w-full text-xs text-destructive hover:bg-destructive/10 rounded-lg px-2 py-1 transition-colors"
         >
-          Delete edge
+          Delete
         </button>
       </div>
     </div>
@@ -417,15 +389,40 @@ const EdgePanel: React.FC<{
 };
 
 const SearchPanel: React.FC<{ value: string; onChange: (v: string) => void }> = ({ value, onChange }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
-    <div className="p-2 bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 shadow-md">
-      <input
-        type="text"
-        placeholder="Search nodes..."
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="text-xs bg-background/50 border border-border/50 rounded-md px-2 py-1.5 text-foreground w-40 placeholder:text-muted-foreground"
-      />
+    <div className="bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 shadow-md">
+      {!isExpanded ? (
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="p-2 hover:bg-secondary/50 transition-colors"
+          title="Search nodes"
+        >
+          <svg className="w-4 h-4 text-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </button>
+      ) : (
+        <div className="p-2 flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Search nodes..."
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="text-xs bg-background/50 border border-border/50 rounded-md px-2 py-1 text-foreground w-40 placeholder:text-muted-foreground"
+            autoFocus
+          />
+          <button
+            onClick={() => setIsExpanded(false)}
+            className="text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -435,7 +432,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
   const { toast } = useToast();
 
   const projectId = project?._id || project?.id;
@@ -531,55 +527,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
     };
   }, [projectId]);
 
-  const handleAnalyzeArchitecture = useCallback(async () => {
-    if (!projectId) {return;}
-    setAnalyzing(true);
-    try {
-      const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
-      if (!token) {throw new Error('No auth token');}
-
-      const provider = 'kilo';
-      const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=${provider}&forceRefresh=true`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        const message = err?.error || err?.message || `Analysis failed with status ${res.status}`;
-        throw new Error(message);
-      }
-
-      const projectData = await res.json();
-      const architecture = projectData?.architecture;
-      if (architecture && architecture.highLevel) {
-        const converted = convertBackendArchitectureToDiagram(architecture, projectData?.name || 'Project');
-        setNodesTyped(normalizeFlowNodes(converted.nodes));
-        setEdgesTyped(normalizeFlowEdges(converted.edges));
-        localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
-        toast({ title: 'Analysis complete', description: 'Architecture diagram updated from repo analysis.' });
-      } else {
-        toast({
-          title: 'No architecture found',
-          description: 'Analysis did not return architecture data.',
-          variant: 'destructive',
-        });
-      }
-    } catch (error: any) {
-      console.error('Architecture analysis failed:', error);
-      toast({
-        title: 'Analysis failed',
-        description: error?.message || 'Could not analyze architecture.',
-        variant: 'destructive',
-      });
-    } finally {
-      setAnalyzing(false);
-    }
-  }, [projectId]);
-
   const initialNodes = useMemo(
     () => normalizeFlowNodes(initialData.nodes),
     [initialData]
@@ -624,19 +571,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
     );
   }, [searchTerm, setNodesTyped]);
 
-  const historyRef = useRef<{
-    undoStack: { nodes: Node[]; edges: Edge[] }[];
-    redoStack: { nodes: Node[]; edges: Edge[] }[];
-  }>({ undoStack: [], redoStack: [] });
-
-  const snapshot = useCallback(() => {
-    historyRef.current.undoStack.push({ nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) });
-    if (historyRef.current.undoStack.length > 50) {
-      historyRef.current.undoStack.shift();
-    }
-    historyRef.current.redoStack = [];
-  }, [nodes, edges]);
-
   const isValidConnection = useCallback(
     (connection: any) => {
       const source = connection?.source;
@@ -650,10 +584,9 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
   const onConnect = useCallback(
     (params: Connection) => {
-      snapshot();
       setEdgesTyped((eds: Edge[]) => addEdge(params, eds));
     },
-    [setEdgesTyped, snapshot, isValidConnection]
+    [setEdgesTyped]
   );
 
   const onDrop = useCallback(
@@ -674,7 +607,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
       if (!position) {return;}
 
       const paletteItem = nodePaletteItems.find((item) => item.type === type);
-      snapshot();
       const newNode: Node = {
         id: `node-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         type: 'liquidGlass',
@@ -693,7 +625,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
       setNodesTyped((nds: Node[]) => [...nds, newNode as Node]);
     },
-    [setNodesTyped, snapshot]
+    [setNodesTyped]
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -703,47 +635,24 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
   const onNodesDelete = useCallback(
     (deleted: Node[]) => {
-      snapshot();
       const deletedIds = new Set(deleted.map((n) => n.id));
       setEdgesTyped((eds: Edge[]) => eds.filter((e: Edge) => !deletedIds.has(e.source) && !deletedIds.has(e.target)));
       setSelectedNode((prev) => (prev && deletedIds.has(prev.id) ? null : prev));
       setSelectedEdge((prev) => (prev && (deletedIds.has(prev.source) || deletedIds.has(prev.target)) ? null : prev));
     },
-    [setEdgesTyped, snapshot]
+    [setEdgesTyped]
   );
 
   const onEdgesDelete = useCallback(
     (deleted: Edge[]) => {
-      snapshot();
       setEdgesTyped((eds: Edge[]) => eds.filter((e: Edge) => !deleted.some((d: Edge) => d.id === e.id)));
       setSelectedEdge((prev) => (prev && deleted.some((d: Edge) => d.id === prev.id) ? null : prev));
     },
-    [setEdgesTyped, snapshot]
+    [setEdgesTyped]
   );
-
-  const onLayout = useCallback(
-    async (direction: string) => {
-      snapshot();
-      const layouted = await getLayoutedElements(nodes, edges, direction);
-      setNodesTyped(layouted.nodes as Node[]);
-      setEdgesTyped(layouted.edges as Edge[]);
-    },
-    [nodes, edges, setNodesTyped, setEdgesTyped]
-  );
-
-  const handleReset = useCallback(() => {
-    snapshot();
-    localStorage.removeItem(getStorageKey(projectId));
-    setNodesTyped(normalizeFlowNodes(mockArchitectureData.nodes));
-    setEdgesTyped(normalizeFlowEdges(mockArchitectureData.edges));
-    setSelectedNode(null);
-    setSelectedEdge(null);
-    toast({ title: 'Reset', description: 'Diagram reset to default layout.' });
-  }, [setNodesTyped, setEdgesTyped, toast]);
 
   const handleAddNode = useCallback(
     (type: string) => {
-      snapshot();
       const paletteItem = nodePaletteItems.find((item) => item.type === type);
       const newNode: Node = {
         id: `node-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -779,7 +688,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
   const updateNodeData = useCallback(
     (nodeId: string, data: Partial<Node['data']>) => {
-      snapshot();
       setNodesTyped((nds: Node[]) =>
         nds.map((n) => (n.id === nodeId ? { ...n, data: { ...n.data, ...data } } : n))
       );
@@ -790,7 +698,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
   const deleteSelectedNode = useCallback(
     (nodeId: string) => {
-      snapshot();
       setNodesTyped((nds: Node[]) => nds.filter((n) => n.id !== nodeId));
       setEdgesTyped((eds: Edge[]) => eds.filter((e) => e.source !== nodeId && e.target !== nodeId));
       setSelectedNode(null);
@@ -801,7 +708,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
 
   const deleteSelectedEdge = useCallback(
     (edgeId: string) => {
-      snapshot();
       setEdgesTyped((eds: Edge[]) => eds.filter((e) => e.id !== edgeId));
       setSelectedEdge(null);
       toast({ title: 'Deleted', description: 'Edge removed from diagram.' });
@@ -845,7 +751,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   }, [nodes, edges, toast]);
 
   const handleImport = useCallback(() => {
-    snapshot();
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'application/json';
@@ -877,64 +782,6 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
     document.body.removeChild(input);
   }, [setNodesTyped, setEdgesTyped]);
 
-  const handleUndo = useCallback(() => {
-    const { undoStack, redoStack } = historyRef.current;
-    if (undoStack.length === 0) {return;}
-    const previous = undoStack.pop()!;
-    redoStack.push({ nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) });
-    setNodesTyped(previous.nodes);
-    setEdgesTyped(previous.edges);
-    setSelectedNode(null);
-  }, [nodes, edges, setNodesTyped, setEdgesTyped]);
-
-  const handleRedo = useCallback(() => {
-    const { undoStack, redoStack } = historyRef.current;
-    if (redoStack.length === 0) {return;}
-    const next = redoStack.pop()!;
-    undoStack.push({ nodes: JSON.parse(JSON.stringify(nodes)), edges: JSON.parse(JSON.stringify(edges)) });
-    setNodesTyped(next.nodes);
-    setEdgesTyped(next.edges);
-    setSelectedNode(null);
-  }, [nodes, edges, setNodesTyped, setEdgesTyped]);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const isMeta = e.ctrlKey || e.metaKey;
-      if (isMeta && e.key === 'z') {
-        e.preventDefault();
-        handleUndo();
-      } else if (isMeta && e.key === 'y') {
-        e.preventDefault();
-        handleRedo();
-      } else if (isMeta && e.key === 'e') {
-        e.preventDefault();
-        handleExport();
-      } else if (isMeta && e.key === 'i') {
-        e.preventDefault();
-        handleImport();
-      } else if (isMeta && e.key === 'f') {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleUndo, handleRedo, handleExport, handleImport]);
-
-  const flowInstanceRef = useRef<any>(null);
-
-  const onInit = useCallback((instance: any) => {
-    flowInstanceRef.current = instance;
-    if (instance && instance.fitView) {
-      instance.fitView({ padding: 0.2 });
-    }
-  }, []);
-
-  const handleFitView = useCallback(() => {
-    if (flowInstanceRef.current && flowInstanceRef.current.fitView) {
-      flowInstanceRef.current.fitView({ padding: 0.2 });
-    }
-  }, []);
-
   const nodeCount = nodes.length;
   const edgeCount = edges.length;
 
@@ -948,35 +795,44 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
           </div>
         </div>
       )}
-      {analyzing && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/50 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground">
-            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-            <span>Analyzing repository...</span>
-            <span className="text-xs">This may take a minute.</span>
-          </div>
+      
+      {/* Floating Node Palette */}
+      <NodePalette onAddNode={handleAddNode} />
+      
+      {/* Floating Search Panel - only show when no node/edge selected */}
+      {!selectedNode && !selectedEdge && (
+        <div className="absolute top-4 right-4 z-10">
+          <SearchPanel value={searchTerm} onChange={setSearchTerm} />
         </div>
       )}
-      <NodePalette onAddNode={handleAddNode} />
+      
+      {/* Floating Selected Node Panel */}
       {selectedNode && (
-        <SelectedNodePanel
-          node={selectedNode}
-          onClose={() => setSelectedNode(null)}
-          onUpdate={updateNodeData}
-          onDelete={deleteSelectedNode}
-        />
+        <div className="absolute top-4 right-4 z-10">
+          <SelectedNodePanel
+            node={selectedNode}
+            onClose={() => setSelectedNode(null)}
+            onUpdate={updateNodeData}
+            onDelete={deleteSelectedNode}
+          />
+        </div>
       )}
+      
+      {/* Floating Edge Panel */}
       {selectedEdge && !selectedNode && (
-        <EdgePanel
-          edge={selectedEdge}
-          onClose={() => setSelectedEdge(null)}
-          onUpdate={(edgeId, data) => {
-            setEdgesTyped((eds: Edge[]) => eds.map((e) => e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e));
-            setSelectedEdge((prev) => (prev && prev.id === edgeId ? { ...prev, data: { ...prev.data, ...data } } : prev));
-          }}
-          onDelete={deleteSelectedEdge}
-        />
+        <div className="absolute top-4 right-4 z-10">
+          <EdgePanel
+            edge={selectedEdge}
+            onClose={() => setSelectedEdge(null)}
+            onUpdate={(edgeId, data) => {
+              setEdgesTyped((eds: Edge[]) => eds.map((e) => e.id === edgeId ? { ...e, data: { ...e.data, ...data } } : e));
+              setSelectedEdge((prev) => (prev && prev.id === edgeId ? { ...prev, data: { ...prev.data, ...data } } : prev));
+            }}
+            onDelete={deleteSelectedEdge}
+          />
+        </div>
       )}
+      
       <div className="flex-1 relative min-h-0">
         <ReactFlow
           nodes={nodes}
@@ -991,20 +847,22 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
           onNodeClick={onNodeClick}
           onNodeDoubleClick={onNodeDoubleClick}
           onEdgeClick={onEdgeClick}
-          onNodeDragStop={() => snapshot()}
           isValidConnection={isValidConnection}
-          onInit={onInit}
+          onInit={() => {
+            // Auto-fit on init can be added here if needed
+          }}
           nodeTypes={nodeTypes}
           fitView
-          fitViewOptions={{ padding: 0.2 }}
-          minZoom={0.2}
-          maxZoom={2}
-          defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+          fitViewOptions={{ padding: 0.3, includeHiddenNodes: false }}
+          minZoom={0.1}
+          maxZoom={3}
+          defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
           deleteKeyCode={['Delete', 'Backspace']}
           className="h-full cursor-grab"
+          proOptions={{ hideAttribution: true }}
         >
-          <Background variant={BackgroundVariant.Dots} gap={20} size={1} className="opacity-30" />
-          <Controls className="!bg-surface-glass-regular !backdrop-blur-regular !rounded-xl !border !border-border/50 !shadow-md" />
+          <Background variant={BackgroundVariant.Dots} gap={24} size={1} className="opacity-20" />
+          <Controls className="!bg-surface-glass-regular !backdrop-blur-regular !rounded-xl !border !border-border/50 !shadow-md !gap-1" />
           <MiniMap
             className="!bg-surface-glass-regular !backdrop-blur-regular !rounded-xl !border !border-border/50 !shadow-md"
             nodeColor={(node) => {
@@ -1015,82 +873,28 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
               return '#10b981';
             }}
             maskColor="rgba(0, 0, 0, 0.5)"
+            zoomable
+            pannable
           />
           <Panel position="top-right">
-            <div className="flex gap-1">
-              <button
-                onClick={() => onLayout('DOWN')}
-                className="px-2 py-1 text-xs bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 hover:bg-surface-glass-thick transition-colors"
-              >
-                ↓ Layout
-              </button>
-              <button
-                onClick={() => onLayout('RIGHT')}
-                className="px-2 py-1 text-xs bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 hover:bg-surface-glass-thick transition-colors"
-              >
-                → Layout
-              </button>
+            <div className="flex gap-2 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 p-2 shadow-md">
               <button
                 onClick={handleExport}
-                className="px-2 py-1 text-xs bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 hover:bg-surface-glass-thick transition-colors"
+                className="px-2 py-1 text-xs bg-background/50 rounded-lg border border-border/30 hover:bg-secondary/50 transition-colors flex items-center gap-1"
+                title="Export diagram"
               >
-                Export
+                <Download className="w-3 h-3" />
               </button>
               <button
                 onClick={handleImport}
-                className="px-2 py-1 text-xs bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 hover:bg-surface-glass-thick transition-colors"
+                className="px-2 py-1 text-xs bg-background/50 rounded-lg border border-border/30 hover:bg-secondary/50 transition-colors flex items-center gap-1"
+                title="Import diagram"
               >
-                Import
+                <Upload className="w-3 h-3" />
               </button>
-              <button
-                onClick={handleFitView}
-                className="px-2 py-1 text-xs bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 hover:bg-surface-glass-thick transition-colors"
-              >
-                ⊞ Fit
-              </button>
-              {projectId && (
-                <button
-                  onClick={handleAnalyzeArchitecture}
-                  disabled={analyzing}
-                  className="px-2 py-1 text-xs bg-surface-glass-regular backdrop-blur-regular rounded-lg border border-border/50 hover:bg-surface-glass-thick transition-colors disabled:opacity-60"
-                >
-                  {analyzing ? 'Analyzing...' : '⚡ Analyze'}
-                </button>
-              )}
             </div>
           </Panel>
-          <Panel position="top-left" style={{ pointerEvents: 'auto', marginTop: '40px' }}>
-            <SearchPanel value={searchTerm} onChange={setSearchTerm} />
-          </Panel>
         </ReactFlow>
-      </div>
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-3 bg-surface-glass-regular backdrop-blur-regular rounded-xl border border-border/50 px-4 py-1.5 shadow-md">
-        <span className="text-[11px] text-muted-foreground">
-          <span className="font-semibold text-foreground">{nodeCount}</span> nodes · <span className="font-semibold text-foreground">{edgeCount}</span> edges
-        </span>
-        <span className="text-[11px] text-muted-foreground opacity-60">|</span>
-        <button
-          onClick={handleUndo}
-          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors px-1"
-          title="Undo (Ctrl+Z)"
-        >
-          Undo
-        </button>
-        <button
-          onClick={handleRedo}
-          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors px-1"
-          title="Redo (Ctrl+Y)"
-        >
-          Redo
-        </button>
-        <span className="text-[11px] text-muted-foreground opacity-60">|</span>
-        <button
-          onClick={handleReset}
-          className="text-[11px] text-muted-foreground hover:text-foreground transition-colors px-1"
-          title="Reset to default"
-        >
-          Reset
-        </button>
       </div>
     </div>
   );
