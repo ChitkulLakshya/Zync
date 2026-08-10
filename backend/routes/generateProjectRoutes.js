@@ -204,6 +204,8 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
       return res.status(404).json({ message: 'User not found' }); // If no user is found with the given UID, sends a 404 Not Found response, indicating that the authenticated user does not exist in the database.
     }
 
+    let documentationCommitWarning = null; // Track documentation commit issues
+
     const github = user.githubIntegration;
     if (!github || !github.connected || !github.accessToken) {
       return res.status(400).json({ message: 'GitHub account is not connected. Please connect it first.' });
@@ -334,6 +336,7 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
         } catch (commitErr) {
           const detail = commitErr.response?.data?.message || commitErr.message;
           console.error(`Failed to commit documentation to GitHub:`, detail);
+          documentationCommitWarning = `Documentation commit failed: ${detail}`;
           if (commitErr.response?.data) {
             console.error(`GitHub API Error Details:`, JSON.stringify(commitErr.response.data));
             if (detail === 'Resource not accessible by integration') {
@@ -349,7 +352,14 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
 
     await cache.invalidate(`projects:${user.uid}`);
     const fullProject = await getProjectWithSteps(newProject._id); // Fetches the newly created project along with all its associated steps and tasks using a utility function, providing a complete view of the project.
-    res.status(201).json(fullProject); // Sends a 201 Created status response along with the fully populated project object, indicating successful project generation and creation.
+    
+    // Include documentation warning if commits failed
+    const responsePayload = { ...fullProject };
+    if (documentationCommitWarning) {
+      responsePayload.warning = documentationCommitWarning;
+    }
+    
+    res.status(201).json(responsePayload); // Sends a 201 Created status response along with the fully populated project object, indicating successful project generation and creation.
   } catch (error) { // Catches any error that occurred within the try block.
     console.error('Error generating project:', error); // Logs the error message to the console for debugging purposes.
     res.status(500).json({ message: 'Failed to generate project', error: error.message }); // Sends a 500 Internal Server Error response with a generic failure message and the specific error message, informing the client about the server-side issue.
