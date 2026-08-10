@@ -15,7 +15,6 @@ import {
   type Connection,
 } from '@xyflow/react';
 import { Download, Upload } from 'lucide-react';
-import ELK from 'elkjs/lib/elk.bundled.js';
 import '@xyflow/react/dist/style.css';
 import { mockArchitectureData } from './mockArchitectureData';
 import LiquidGlassNode from './LiquidGlassNode';
@@ -34,7 +33,19 @@ const nodeTypes = {
   liquidGlass: LiquidGlassNode,
 };
 
-const elk = new ELK();
+// Shared ELK instance with cleanup capability
+let elkInstance: any = null;
+
+const getELK = () => {
+  if (!elkInstance) {
+    elkInstance = new (require('elkjs/lib/elk.bundled.js').default)();
+  }
+  return elkInstance;
+};
+
+const cleanupELK = () => {
+  elkInstance = null;
+};
 
 const nodePaletteItems = [
   { type: 'service', label: 'Service', icon: '🛠️', color: '#10b981' },

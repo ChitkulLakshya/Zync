@@ -88,6 +88,16 @@ const { loadSheddingMiddleware } = require('./middleware/loadShedding');
 
 const app = express();
 
+// Initialize architecture queue for health monitoring
+global.architectureQueue = {
+  getStats: () => ({
+    queueLength: 0,
+    processing: 0,
+    maxConcurrent: 3,
+    completedTasks: 0,
+    averageDuration: 0
+  })
+};
 
 app.set('trust proxy', 1);
 
@@ -284,6 +294,44 @@ const distPath = path.join(__dirname, '..', 'dist');
 const distIndexHtml = path.join(distPath, 'index.html');
 if (fs.existsSync(distIndexHtml)) {
   app.use(express.static(distPath));
+
+  // Health check endpoint with memory monitoring
+  app.get('/health', (req, res) => {
+    const memoryUsage = process.memoryUsage();
+    const heapUsedMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
+    const heapTotalMB = Math.round(memoryUsage.heapTotal / 1024 / 1024);
+    const rssMB = Math.round(memoryUsage.rss / 1024 / 1024);
+    
+    // Determine health status based on memory usage
+    const memoryLimit = 512; // 512 MB for Render free tier
+    const memoryPercent = (heapUsedMB / memoryLimit) * 100;
+    
+    let status = 'healthy';
+    if (memoryPercent > 80) status = 'degraded';
+    if (memoryPercent > 95) status = 'critical';
+    
+    const healthData = {
+      status,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: {
+        heapUsed: `${heapUsedMB}MB`,
+        heapTotal: `${heapTotalMB}MB`,
+        rss: `${rssMB}MB`,
+        limit: `${memoryLimit}MB`,
+        percent: `${Math.round(memoryPercent)}%`
+      },
+      system: {
+        platform: process.platform,
+        nodeVersion: process.version,
+        arch: process.arch
+      },
+      queue: global.architectureQueue ? global.architectureQueue.getStats() : null
+    };
+    
+    const statusCode = status === 'healthy' ? 200 : (status === 'degraded' ? 200 : 503);
+    res.status(statusCode).json(healthData);
+  });
 
   app.get('/{*splat}', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/internal')) {

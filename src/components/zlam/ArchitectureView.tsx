@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { API_BASE_URL } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { architectureQueue } from '@/lib/architectureQueue';
+import { fetchWithRetry } from '@/lib/retryHelper';
 
 const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
   const { id } = useParams<{ id: string }>();
@@ -151,19 +153,27 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
       const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
       if (!token) {throw new Error('No auth token');}
 
-      const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=kilo&forceRefresh=true`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      // Use queue for controlled concurrency + retry logic
+      const analyzedProject = await architectureQueue.add(async () => {
+        const res = await fetchWithRetry(
+          `${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=kilo&forceRefresh=true`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+          },
+          {
+            maxRetries: 3,
+            initialDelay: 1000,
+            maxDelay: 10000
+          }
+        );
 
-      if (!res.ok) {
-        throw new Error(`Analysis failed with status ${res.status}`);
-      }
+        return await res.json();
+      }, `regenerate-${projectId}`);
 
-      const analyzedProject = await res.json();
       const analyzedArch = analyzedProject?.architecture;
       
       if (analyzedArch && analyzedArch.highLevel) {
