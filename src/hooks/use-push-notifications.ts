@@ -13,7 +13,7 @@ export const usePushNotifications = () => {
 
     const messagingInstance = messaging;
 
-    const unsubscribeAuth = auth.onAuthStateChanged(async (user) => {
+    const unsubscribeAuth = auth.onAuthStateChanged(async (user: any) => {
       if (!user) {
         registeredTokenRef.current = null;
         return;
@@ -46,7 +46,7 @@ export const usePushNotifications = () => {
       }
     });
 
-    const unsubscribeOnMessage = onMessage(messagingInstance, (payload) => {
+    const unsubscribeOnMessage = onMessage(messagingInstance, (payload: any) => {
       const title = payload.notification?.title || 'Zync Notification';
       const body = payload.notification?.body || '';
       const data = payload.data || {};

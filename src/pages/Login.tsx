@@ -196,7 +196,7 @@ const Login = () => {
   }, [location, navigate, toast]);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
       if (user) {
         setCurrentUser(user);
       } else {

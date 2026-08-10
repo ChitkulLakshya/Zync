@@ -85,7 +85,7 @@ const MobileProjectDetails = () => {
   const [isCreatingTask, setIsCreatingTask] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(user => setCurrentUser(user));
+    const unsubscribe = auth.onAuthStateChanged((user: any) => setCurrentUser(user));
     return () => unsubscribe();
   }, []);
 

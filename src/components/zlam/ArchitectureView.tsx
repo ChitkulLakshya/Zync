@@ -69,7 +69,9 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
   const techCount = integrations.length;
 
   const handleSendMessage = async () => {
-    if (!chatInput.trim()) return;
+    if (!chatInput.trim()) {
+      return;
+    }
     
     const userMessage = chatInput.trim();
     console.log('Sending message:', userMessage);
@@ -139,7 +141,9 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
 
   const handleRegenerateArchitecture = async () => {
     console.log('Regenerating architecture for project:', projectId);
-    if (!projectId) return;
+    if (!projectId) {
+      return;
+    }
     setIsRegenerating(true);
     setChatMessages(prev => [...prev, { role: 'system', content: 'Regenerating architecture...' }]);
     
@@ -163,7 +167,7 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
       const analyzedArch = analyzedProject?.architecture;
       
       if (analyzedArch && analyzedArch.highLevel) {
-        setProjectData(prev => ({ ...prev, architecture: analyzedArch }));
+        setProjectData((prev: any) => ({ ...prev, architecture: analyzedArch }));
         setChatMessages(prev => [...prev, { 
           role: 'assistant', 
           content: '✅ Architecture regenerated successfully! The new architecture has been applied to the diagram.',

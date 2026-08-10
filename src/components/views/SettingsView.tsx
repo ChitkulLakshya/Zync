@@ -167,7 +167,7 @@ export default function SettingsView({ isPreview, mockMe, mockTeams }: SettingsV
     if (isPreview) {
       return;
     }
-    return onAuthStateChanged(auth, (user) => {
+    return onAuthStateChanged(auth, (user: any) => {
       setCurrentUser(user);
     });
   }, [isPreview]);

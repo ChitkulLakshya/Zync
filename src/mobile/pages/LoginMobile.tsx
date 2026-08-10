@@ -136,7 +136,7 @@ const LoginMobile = () => {
   // Runs a side effect on mount to listen for changes in the user's authentication state.
   useEffect(() => {
     // Subscribes to Firebase auth state changes to detect if a user is already signed in.
-    const unsubscribe = onAuthStateChanged(auth, (user) => setCurrentUser(user));
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => setCurrentUser(user));
     // Cleans up the listener when the component unmounts to prevent memory leaks.
     return () => unsubscribe();
   }, []);

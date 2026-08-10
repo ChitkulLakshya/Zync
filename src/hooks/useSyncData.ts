@@ -126,7 +126,7 @@ export function useSyncData() {
   const [currentUser, setCurrentUser] = useState(auth.currentUser);
 
   useEffect(() => {
-    return onAuthStateChanged(auth, (u) => {
+    return onAuthStateChanged(auth, (u: any) => {
       setCurrentUser(u);
     });
   }, []);

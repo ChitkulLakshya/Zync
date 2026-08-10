@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useReactFlow } from '@xyflow/react';
 import {
   ReactFlow,
   Background,
@@ -16,7 +17,7 @@ import {
 import { Download, Upload } from 'lucide-react';
 import ELK from 'elkjs/lib/elk.bundled.js';
 import '@xyflow/react/dist/style.css';
-import mockArchitectureData from './mockArchitectureData';
+import { mockArchitectureData } from './mockArchitectureData';
 import LiquidGlassNode from './LiquidGlassNode';
 import type { ArchitectureNode, ArchitectureEdge, ArchitectureDiagram } from './mockArchitectureData';
 import { useToast } from '@/hooks/use-toast';
@@ -143,8 +144,6 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 };
 
 type FlowPositionFn = (clientPos: { x: number; y: number }) => { x: number; y: number };
-
-const elk = new ELK();
 
 const saveToStorage = (nodes: Node[], edges: Edge[], projectId?: string) => {
   try {
@@ -432,7 +431,9 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   const [selectedEdge, setSelectedEdge] = useState<Edge | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const { toast } = useToast();
+  const flowInstanceRef = useReactFlow();
 
   const projectId = project?._id || project?.id;
 
@@ -595,7 +596,7 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
       const type = event.dataTransfer.getData('application/reactflow');
       if (!type) {return;}
 
-      const converter = flowInstanceRef.current?.screenToFlowPosition;
+      const converter = flowInstanceRef.screenToFlowPosition;
       if (typeof converter !== 'function') {return;}
 
       let position: { x: number; y: number } | undefined;

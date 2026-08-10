@@ -690,7 +690,7 @@ const sectionToPath: Record<string, string> = {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       setCurrentUser(user);
 
       if (

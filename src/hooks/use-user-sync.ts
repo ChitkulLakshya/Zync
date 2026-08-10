@@ -87,7 +87,7 @@ export const useUserSync = () => { // Defines a custom hook named 'useUserSync',
     const shouldSyncInDev = // Defines a variable 'shouldSyncInDev' to determine whether to sync user data in development mode.
       String(import.meta.env.VITE_ENABLE_DEV_USER_SYNC || '').toLowerCase() === 'true'; // Checks the value of the VITE_ENABLE_DEV_USER_SYNC environment variable and converts it to a boolean value.
 
-    const unsubscribe = auth.onAuthStateChanged(async (user) => { // Sets up an event listener for the 'onAuthStateChanged' event of the 'auth' object, which is triggered when the user's authentication state changes.
+    const unsubscribe = auth.onAuthStateChanged(async (user: any) => { // Sets up an event listener for the 'onAuthStateChanged' event of the 'auth' object, which is triggered when the user's authentication state changes.
       if (user && !syncInProgress.current) { // Checks if the user is authenticated and the sync is not already in progress.
         if (import.meta.env.DEV && !shouldSyncInDev) { // Checks if the application is running in development mode and if the 'shouldSyncInDev' variable is false.
           return; // If the conditions are met, the function returns without executing the rest of the code.

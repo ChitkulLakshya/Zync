@@ -101,7 +101,7 @@ const LiquidGlassNode: React.FC<NodeProps> = ({ data, selected }) => {
           )}
         </div>
         
-        {(hasMoreTech || nodeData.sublabel?.length > 50) && (
+        {(hasMoreTech || (nodeData.sublabel && nodeData.sublabel.length > 50)) && (
           <button
             onClick={() => setIsExpanded(!isExpanded)}
             className="text-muted-foreground hover:text-foreground transition-colors"
