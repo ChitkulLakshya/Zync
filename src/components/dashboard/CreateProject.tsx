@@ -132,10 +132,20 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
     const toastController = toast({
       title: "Creating Project",
       description: (
-        <div className="w-full mt-2 space-y-1">
-          <div className="text-xs text-muted-foreground">Initializing GitHub repository...</div>
-          <div className="h-1.5 w-full bg-secondary/30 rounded-full overflow-hidden">
-            <div className="h-full bg-primary transition-all duration-300 animate-pulse" style={{ width: '10%' }} />
+        <div className="w-full mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <div className="text-xs font-medium text-foreground">Initializing GitHub repository...</div>
+            </div>
+            <div className="text-xs font-semibold text-primary">10%</div>
+          </div>
+          <div className="h-2 w-full bg-secondary/20 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-500 ease-out relative" 
+              style={{ width: '10%' }} 
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+            </div>
           </div>
         </div>
       ),
@@ -163,10 +173,20 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
           id: toastController.id,
           title: "Creating Project",
           description: (
-            <div className="w-full mt-2 space-y-1">
-              <div className="text-xs text-muted-foreground">{statusText}</div>
-              <div className="h-1.5 w-full bg-secondary/30 rounded-full overflow-hidden">
-                <div className="h-full bg-primary transition-all duration-300" style={{ width: `${progress}%` }} />
+            <div className="w-full mt-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="text-xs font-medium text-foreground">{statusText}</div>
+                </div>
+                <div className="text-xs font-semibold text-primary">{progress}%</div>
+              </div>
+              <div className="h-2 w-full bg-secondary/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-500 ease-out relative" 
+                  style={{ width: `${progress}%` }} 
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                </div>
               </div>
             </div>
           ),
@@ -206,15 +226,29 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
         id: toastController.id,
         title: "Project Created Successfully!",
         description: (
-          <div className="w-full mt-2 space-y-1">
-            <div className="text-xs text-green-500 font-medium font-sans">Your new project and GitHub repository are ready.</div>
-            {hasWarning && (
-              <div className="text-xs text-yellow-600 font-medium font-sans mt-1">
-                Note: {data.warning}
+          <div className="w-full mt-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <div className="text-xs font-medium text-green-600 dark:text-green-400">Your new project and GitHub repository are ready.</div>
+                {hasWarning && (
+                  <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 font-medium">
+                    ⚠️ {data.warning}
+                  </div>
+                )}
               </div>
-            )}
-            <div className="h-1.5 w-full bg-green-500/20 rounded-full overflow-hidden">
-              <div className="h-full bg-green-500 transition-all duration-500" style={{ width: '100%' }} />
+              <div className="text-green-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-green-500/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500/80 to-green-500 transition-all duration-700 ease-out relative" 
+                style={{ width: '100%' }} 
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+              </div>
             </div>
           </div>
         ),
@@ -236,8 +270,27 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
         id: toastController.id,
         title: "Generation Failed",
         description: (
-          <div className="w-full mt-2 text-xs text-destructive font-medium font-sans">
-            {error.message || "Something went wrong. Please try again."}
+          <div className="w-full mt-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <div className="text-xs font-medium text-destructive">
+                  {error.message || "Something went wrong. Please try again."}
+                </div>
+              </div>
+              <div className="text-destructive">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-destructive/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-destructive/80 to-destructive transition-all duration-700 ease-out relative" 
+                style={{ width: '100%' }} 
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+              </div>
+            </div>
           </div>
         ),
         variant: "destructive",
