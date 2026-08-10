@@ -18,7 +18,9 @@ const defaultOptions: RetryOptions = {
   backoffMultiplier: 2,
   retryableErrors: (error: any) => {
     // Retry on network errors, 5xx errors, and rate limiting
-    if (!error) return false;
+    if (!error) {
+      return false;
+    }
     
     // Network errors
     if (error.code === 'ECONNRESET' || error.code === 'ETIMEDOUT' || error.code === 'ENOTFOUND') {

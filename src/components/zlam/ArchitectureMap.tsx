@@ -33,20 +33,6 @@ const nodeTypes = {
   liquidGlass: LiquidGlassNode,
 };
 
-// Shared ELK instance with cleanup capability
-let elkInstance: any = null;
-
-const getELK = () => {
-  if (!elkInstance) {
-    elkInstance = new (require('elkjs/lib/elk.bundled.js').default)();
-  }
-  return elkInstance;
-};
-
-const cleanupELK = () => {
-  elkInstance = null;
-};
-
 const nodePaletteItems = [
   { type: 'service', label: 'Service', icon: '🛠️', color: '#10b981' },
   { type: 'database', label: 'Database', icon: '🗄️', color: '#3b82f6' },
