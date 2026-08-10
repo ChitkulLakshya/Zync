@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ArchitectureMap from './ArchitectureMap';
 import { useParams, useNavigate } from 'react-router-dom';
+import { ReactFlowProvider } from '@xyflow/react';
 import { ChevronLeft, Info, Layers, Zap, X, Send, RefreshCw, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -268,7 +269,9 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
       <div className="flex-1 flex overflow-hidden">
         {/* Main Diagram Area */}
         <div className="flex-1 relative">
-          <ArchitectureMap project={projectData} />
+          <ReactFlowProvider>
+            <ArchitectureMap project={projectData} />
+          </ReactFlowProvider>
           
           {/* Floating Quick Info Panel for Mobile */}
           {architecture && (

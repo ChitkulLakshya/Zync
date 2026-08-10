@@ -70,7 +70,8 @@ export async function withRetry<T>(
         opts.maxDelay || 10000
       );
       
-      console.warn(`Retry attempt ${attempt + 1}/${opts.maxRetries} after ${delay}ms delay`, error.message);
+      const errMsg = error instanceof Error ? error.message : String(error);
+      console.warn(`Retry attempt ${attempt + 1}/${opts.maxRetries} after ${delay}ms delay`, errMsg);
       
       await new Promise(resolve => setTimeout(resolve, delay));
     }

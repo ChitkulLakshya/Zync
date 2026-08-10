@@ -102,7 +102,9 @@ class ArchitectureQueue {
    * Get average task completion duration
    */
   private getAverageDuration(): number {
-    if (this.completedTasks.size === 0) return 0;
+    if (this.completedTasks.size === 0) {
+      return 0;
+    }
     
     const total = Array.from(this.completedTasks.values()).reduce((sum, duration) => sum + duration, 0);
     return Math.round(total / this.completedTasks.size);
