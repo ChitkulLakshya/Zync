@@ -157,15 +157,20 @@ build/icon.ico
 backend/.cache/
 backend/test-puppeteer.js
 backend/debug_*.png
-*.png
 
 # Google Service Account Key
 google.sheets.json
 google-credentials.json
 
-# Sensitive Keys and Archives
-ssh-key-2026-03-05.key
+# Sensitive Keys and Archives (broad secret patterns)
+*.pem
+*.key
+*.p12
+*.pfx
 backend-deploy.tar.gz
+
+# Prisma generated client (regenerate via `npm run build --prefix backend`)
+backend/prisma/generated/
 
 # Logs and Build Artifacts
 *.log
