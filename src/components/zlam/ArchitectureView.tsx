@@ -94,61 +94,61 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
     if (!chatInput.trim()) {
       return;
     }
-    
+
     const userMessage = chatInput.trim();
-    console.log('Sending message:', userMessage);
+    const historyForApi = chatMessages
+      .filter((m) => m.role === 'user' || m.role === 'assistant')
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
+
     setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setChatInput('');
     setIsTyping(true);
 
-    // Simulate AI agent response
-    setTimeout(() => {
-      const lowerMessage = userMessage.toLowerCase();
-      let response = '';
-      let isAction = false;
+    try {
+      const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
+      if (!token) {throw new Error('No auth token');}
 
-      // Handle regeneration request
-      if (lowerMessage.includes('regenerate') || lowerMessage.includes('regen') || lowerMessage.includes('new architecture') || lowerMessage.includes('start over')) {
-        response = "I'll regenerate the architecture for you. This will analyze the repository again and create a fresh architecture diagram. Shall I proceed?";
-        isAction = true;
+      const res = await fetch(`${API_BASE_URL}/api/architecture-agent/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          projectId,
+          message: userMessage,
+          history: historyForApi,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Agent request failed with status ${res.status}`);
       }
-      // Handle add component requests
-      else if (lowerMessage.includes('add') || lowerMessage.includes('include') || lowerMessage.includes('add component')) {
-        response = "To add a component, please specify what you'd like to add. For example:\n• 'Add a caching service'\n• 'Include a message queue'\n• 'Add authentication service'\n\nI'll then update the architecture accordingly.";
+
+      const data = await res.json();
+      setChatMessages(prev => [...prev, {
+        role: 'assistant',
+        content: data.reply || 'Sorry, I could not come up with a response.',
+        type: data.suggestion ? 'suggestion' : undefined,
+      }]);
+    } catch (error: any) {
+      console.error('Architecture agent failed:', error);
+      // Offline router fallback: basic keyword replies so chat never dead-ends.
+      const lowerMessage = userMessage.toLowerCase();
+      let fallback = 'I can help you modify this architecture. Try asking me to:\n\n• "Regenerate the architecture"\n• "Add a caching service"\n• "Remove the message queue"\n• "Make it more scalable"\n• "Explain the design"\n\nWhat would you like to change?';
+      if (lowerMessage.includes('explain') || lowerMessage.includes('why') || lowerMessage.includes('how')) {
+        fallback = `This architecture is designed as ${highLevel || 'a modern application structure'}.\n\n**Frontend**: ${frontend.structure || 'Uses modern web technologies'} with ${pageCount} pages\n**Backend**: ${backend.structure || 'Provides API services'} with ${apiCount} endpoints\n**Database**: ${database.design || 'Handles data persistence'} with ${collectionCount} collections\n\nThe tech stack includes: ${integrations.slice(0, 5).join(', ') || 'various modern technologies'}.`;
+      } else if (lowerMessage.includes('scale') || lowerMessage.includes('more scalable')) {
+        fallback = 'To make this architecture more scalable, I suggest:\n\n• Add a load balancer\n• Implement caching layer\n• Use message queues for async processing\n• Add database read replicas';
+      } else if (lowerMessage.includes('secure') || lowerMessage.includes('security')) {
+        fallback = 'To improve security, I recommend:\n\n• Add API rate limiting\n• Implement authentication/authorization\n• Add input validation\n• Use HTTPS everywhere';
       }
-      // Handle remove component requests
-      else if (lowerMessage.includes('remove') || lowerMessage.includes('delete') || lowerMessage.includes('take out')) {
-        response = "I can help remove components. Which service or component would you like me to remove from the architecture?";
-        isAction = true;
-      }
-      // Handle tech stack changes
-      else if (lowerMessage.includes('change tech') || lowerMessage.includes('different tech') || lowerMessage.includes('use') && lowerMessage.includes('instead')) {
-        response = "I can help you change the tech stack. What technology would you like to use instead of the current ones?";
-        isAction = true;
-      }
-      // Handle scaling requests
-      else if (lowerMessage.includes('scale') || lowerMessage.includes('more scalable') || lowerMessage.includes('handle more')) {
-        response = "To make this architecture more scalable, I suggest:\n\n• Add a load balancer\n• Implement caching layer\n• Use message queues for async processing\n• Add database read replicas\n\nWould you like me to implement any of these changes?";
-        isAction = true;
-      }
-      // Handle security requests
-      else if (lowerMessage.includes('security') || lowerMessage.includes('secure') || lowerMessage.includes('protect')) {
-        response = "To improve security, I recommend:\n\n• Add API rate limiting\n• Implement authentication/authorization\n• Add input validation\n• Use HTTPS everywhere\n• Add logging and monitoring\n\nShould I add these security layers?";
-        isAction = true;
-      }
-      // Handle explanation requests
-      else if (lowerMessage.includes('explain') || lowerMessage.includes('why') || lowerMessage.includes('how')) {
-        response = `This architecture is designed as ${highLevel || 'a modern application structure'}.\n\n**Frontend**: ${frontend.structure || 'Uses modern web technologies'} with ${pageCount} pages\n**Backend**: ${backend.structure || 'Provides API services'} with ${apiCount} endpoints\n**Database**: ${database.design || 'Handles data persistence'} with ${collectionCount} collections\n\nThe tech stack includes: ${integrations.slice(0, 5).join(', ') || 'various modern technologies'}.`;
-      }
-      // Default response
-      else {
-        response = "I can help you modify this architecture. Try asking me to:\n\n• 'Regenerate the architecture'\n• 'Add a caching service'\n• 'Remove the message queue'\n• 'Make it more scalable'\n• 'Explain the design'\n\nWhat would you like to change?";
-      }
-      
-      console.log('AI response:', response);
-      setChatMessages(prev => [...prev, { role: 'assistant', content: response, type: isAction ? 'suggestion' : undefined }]);
+
+      setChatMessages(prev => [...prev, { role: 'assistant', content: fallback }]);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   const handleQuickAction = (action: string) => {

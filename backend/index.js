@@ -171,6 +171,7 @@ const calendarRoutes = require('./routes/calendarRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const internalMetricsRoutes = require('./routes/internalMetrics');
 const collaboratorRoutes = require('./routes/collaboratorRoutes');
+const architectureAgentRoutes = require('./routes/architectureAgentRoutes');
 
 app.use(
   helmet({
@@ -275,6 +276,7 @@ app.use('/api/design', designRoutes);
 app.use('/api/inspiration', inspirationRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/architecture-agent', architectureAgentRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/webhooks', webhookRoutes);
