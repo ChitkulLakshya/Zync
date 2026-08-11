@@ -19,7 +19,7 @@ class ArchitectureQueue {
   private timeout: number;
   private completedTasks = new Map<string, number>();
 
-  constructor(maxConcurrent = 3, timeout = 30000) {
+  constructor(maxConcurrent = 3, timeout = 120000) {
     this.maxConcurrent = maxConcurrent;
     this.timeout = timeout;
     
@@ -60,28 +60,31 @@ class ArchitectureQueue {
     this.processing++;
     const { task, resolve, reject, id, timestamp } = this.queue.shift()!;
 
-    // Add timeout protection
-    const timeoutId = setTimeout(() => {
-      reject(new Error(`Task ${id} timed out after ${this.timeout}ms`));
+    let settled = false;
+    const settle = (fn: () => void) => {
+      if (settled) {return;}
+      settled = true;
+      clearTimeout(timeoutId);
+      fn();
       this.processing--;
       this.process();
+    };
+
+    // Add timeout protection
+    const timeoutId = setTimeout(() => {
+      settle(() => reject(new Error(`Task ${id} timed out after ${this.timeout}ms`)));
     }, this.timeout);
 
     try {
       const result = await task();
-      clearTimeout(timeoutId);
-      
-      // Track completion time
-      const duration = Date.now() - timestamp;
-      this.completedTasks.set(id, duration);
-      
-      resolve(result);
+      settle(() => {
+        // Track completion time
+        const duration = Date.now() - timestamp;
+        this.completedTasks.set(id, duration);
+        resolve(result);
+      });
     } catch (error) {
-      clearTimeout(timeoutId);
-      reject(error);
-    } finally {
-      this.processing--;
-      this.process();
+      settle(() => reject(error));
     }
   }
 
@@ -126,7 +129,7 @@ class ArchitectureQueue {
 }
 
 // Singleton instance for architecture generation
-export const architectureQueue = new ArchitectureQueue(3, 30000);
+export const architectureQueue = new ArchitectureQueue(3, 120000);
 
 // Export class for custom instances
 export { ArchitectureQueue };
