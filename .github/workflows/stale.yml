@@ -161,7 +161,7 @@ jobs:
             `blocked`, or `epic`.
             
             ---
-            *This is an automated message. If you have questions about this policy, please ask in [Discussions](https://github.com/zync-app/zync/discussions).*
+            *This is an automated message. If you have questions about this policy, please ask in [Discussions](https://github.com/zync-meet/Zync/discussions).*
           
           # Message posted when a stale issue is closed
           close-issue-message: |

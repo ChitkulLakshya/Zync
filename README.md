@@ -57,8 +57,8 @@ Zync integrates deeply with **Google Gemini** and **Groq** to act as your AI co-
 - **Design Inspiration:** Generate UI/UX layouts and styling ideas directly onto your canvas.
 - **Content Generation:** Summarize long meetings, draft professional reports, or write code snippets with a single prompt.
 
-### ⚡️ Zero-Latency Real-Time Sync
-We love the "local-first" philosophy. Zync utilizes **Yjs** (a high-performance CRDT implementation) and **WebSockets** to ensure that whether you are working solo offline or collaborating with 50 people in real-time, your data syncs instantly without conflicts.
+### ⚡️ Real-Time Sync
+Zync utilizes **Yjs** (a high-performance CRDT implementation) and **WebSockets** to keep documents and boards in sync across collaborators in real time without merge conflicts.
 
 ### 🔄 Kanban & GitHub Sync
 Don't duplicate your work. Zync features a built-in Kanban board that bidirectionally syncs with GitHub Issues and Projects. Move a card in Zync, and watch the issue update on GitHub.
@@ -121,7 +121,7 @@ cp backend/.env.example backend/.env
 npm run dev
 ```
 
-*The Frontend will be running at `http://localhost:5173` | The Backend API will be running at `http://localhost:8081`*
+*The Frontend will be running at `http://localhost:8081` | The Backend API will be running at `http://localhost:5000`*
 
 ---
 
@@ -199,8 +199,15 @@ We are building a vibrant, open-source community and we'd love for you to join u
 3. Check out our [Issues Board](https://github.com/zync-meet/Zync/issues) and look for issues labeled `good first issue`.
 4. Connect with us on [LinkedIn](https://www.linkedin.com/company/zync-meet/), reach out via email at [consolemaster.app@gmail.com](mailto:consolemaster.app@gmail.com), or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
 
+See also: [Code of Conduct](docs/CODE_OF_CONDUCT.md) · [Security Policy](SECURITY.md) · [Governance](GOVERNANCE.md) · [Changelog](CHANGELOG.md)
+
 ---
 
 ## 📜 License
 
-Zync is open-source software licensed under the [MIT License](LICENSE).
+Zync is open-source software licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+**What that means:** AGPL is a strong copyleft license. If you run a modified
+Zync backend as a network service (even your own instance), you must make your
+modified source code available to the users of that service under AGPL. This
+protects the project from closed-source forks while still allowing self-hosting.

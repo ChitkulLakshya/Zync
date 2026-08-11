@@ -449,10 +449,10 @@ labels:
 # To sync labels using github-label-sync:
 #
 # 1. Install: npm install -g github-label-sync
-# 2. Run: github-label-sync --access-token $GITHUB_TOKEN zync-app/zync
+# 2. Run: github-label-sync --access-token $GITHUB_TOKEN zync-meet/Zync
 #
 # Or with dry-run first:
-# github-label-sync --access-token $GITHUB_TOKEN --dry-run zync-app/zync
+# github-label-sync --access-token $GITHUB_TOKEN --dry-run zync-meet/Zync
 #
 # =============================================================================
 # Label Naming Conventions

@@ -62,6 +62,14 @@ your development environment to submitting your changes for review.
 
 ---
 
+> **⚠️ Platform note.** Zync ships as a **web application** (React + Vite
+> frontend, Express backend). There is no Electron desktop build and no native
+> mobile client in the release. Some sections of this guide (Electron main
+> process, IPC, native packaging) are legacy content from an earlier desktop
+> plan and do **not** apply to the current codebase. The `app-clients/`
+> directories (android-kotlin, desktop-lua) are **experimental** and not part
+> of the supported release.
+
 ## Code of Conduct
 
 <!--
@@ -109,7 +117,7 @@ Ensure you have the following tools installed on your development machine:
 -->
 
 1. **Fork the repository** by clicking the "Fork" button on the
-   [ZYNC GitHub page](https://github.com/ChitkulLakshya/Zync)
+   [ZYNC GitHub page](https://github.com/zync-meet/Zync)
 
 2. **Clone your fork** to your local machine:
    ```bash
@@ -123,14 +131,14 @@ Ensure you have the following tools installed on your development machine:
 3. **Add the upstream remote** to keep your fork in sync:
    ```bash
    # Add the original repository as the upstream remote
-   git remote add upstream https://github.com/ChitkulLakshya/Zync.git
+   git remote add upstream https://github.com/zync-meet/Zync.git
 
    # Verify the remotes are set up correctly
    git remote -v
    # origin    https://github.com/YOUR_USERNAME/Zync.git (fetch)
    # origin    https://github.com/YOUR_USERNAME/Zync.git (push)
-   # upstream  https://github.com/ChitkulLakshya/Zync.git (fetch)
-   # upstream  https://github.com/ChitkulLakshya/Zync.git (push)
+   # upstream  https://github.com/zync-meet/Zync.git (fetch)
+   # upstream  https://github.com/zync-meet/Zync.git (push)
    ```
 
 ### Install Dependencies
@@ -246,16 +254,19 @@ npm run dev:backend
 
 ```bash
 # Run the TypeScript type checker
-npx tsc --noEmit
+npm run typecheck
 
 # Run ESLint to check for code style issues
 npm run lint
 
-# Run the test suite
-npm test
+# Run the frontend unit tests
+npm run test:jest
 
-# Run tests in watch mode (useful during development)
-npm run test:watch
+# Run the backend tests
+npm test --prefix backend
+
+# Build the web app
+npm run build
 ```
 
 ---

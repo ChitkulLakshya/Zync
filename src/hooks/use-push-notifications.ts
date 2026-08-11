@@ -5,6 +5,25 @@ import { toast } from 'sonner';
 
 const VAPID_KEY = import.meta.env.VITE_FIREBASE_VAPID_KEY as string | undefined;
 
+// The Firebase messaging SW is emitted at dist/assets/firebase-messaging-sw-*.js
+// (built from src/firebase-messaging-sw.js). getToken() needs it registered
+// so background notifications arrive.
+const FIREBASE_SW_URL = new URL(
+  import.meta.env.BASE_URL + 'firebase-messaging-sw.js',
+  import.meta.url
+);
+
+async function registerFirebaseMessagingSw() {
+  if (!('serviceWorker' in navigator)) { return; }
+  try {
+    const registration = await navigator.serviceWorker.register(FIREBASE_SW_URL);
+    return registration;
+  } catch (err) {
+    console.warn('Firebase messaging SW registration failed:', err);
+    return undefined;
+  }
+}
+
 export const usePushNotifications = () => {
   const registeredTokenRef = useRef<string | null>(null);
 
@@ -24,9 +43,10 @@ export const usePushNotifications = () => {
       }
 
       try {
+        const swRegistration = (await registerFirebaseMessagingSw()) || (await navigator.serviceWorker.ready);
         const token = await getToken(messagingInstance, {
           vapidKey: VAPID_KEY,
-          serviceWorkerRegistration: await navigator.serviceWorker.ready,
+          serviceWorkerRegistration: swRegistration,
         });
 
         if (token && token !== registeredTokenRef.current) {
