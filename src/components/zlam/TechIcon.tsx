@@ -142,89 +142,71 @@ const resolveTechKey = (raw: string): TechKey | undefined => {
   return undefined;
 };
 
-let simpleIconsCache: Map<string, { svg: string; hex: string }> | null = null;
+// simple-icons is ESM; sync import bundles it — no async chunk, icons instant.
+import * as si from 'simple-icons';
 
-async function getSimpleIconsCache(): Promise<Map<string, { svg: string; hex: string }>> {
-  if (simpleIconsCache) {return simpleIconsCache;}
-  const mod = await import('simple-icons');
-  const cache = new Map<string, { svg: string; hex: string }>();
-  for (const key of Object.keys(mod)) {
-    if (typeof key === 'string' && key.startsWith('si')) {
-      const icon = (mod as any)[key];
+const simpleIconMap = (() => {
+  const map = new Map<string, { svg: string; hex: string }>();
+  for (const key of Object.keys(si)) {
+    if (key.startsWith('si')) {
+      const icon = (si as any)[key];
       if (icon?.svg && typeof icon.svg === 'string') {
-        cache.set(key, { svg: icon.svg, hex: icon.hex || '#000000' });
+        map.set(key, { svg: icon.svg, hex: icon.hex || '#000000' });
       }
     }
   }
-  simpleIconsCache = cache;
-  return cache;
-}
+  return map;
+})();
 
 function toSimpleIconKey(key: string): string {
   return key.charAt(0).toUpperCase() + key.slice(1);
 }
 
+// Black-branded icons (Next.js, Express, Vercel, plain JS, etc.) are invisible on dark bg.
+// Give them a light tint — brand stays recognizable, but actually shows up.
+const resolveBrandColor = (key: TechKey): string => {
+  const brand = techBrandColorMap[key] || '#6B7280';
+  const parsed = /^#([0-9a-f]{6})$/i.exec(brand);
+  if (!parsed) {return brand;}
+  const n = parseInt(parsed[1], 16);
+  const r = (n >> 16) & 0xff;
+  const g = (n >> 8) & 0xff;
+  const b = n & 0xff;
+  // Near-black (low luminance) → light gray so it shows on dark theme.
+  if (r + g + b < 120) {return '#d1d5db';}
+  return brand;
+};
+
 const TechIcon: React.FC<{ tech?: string; className?: string }> = ({ tech, className }) => {
-  const [svg, setSvg] = React.useState<string | null>(null);
-  const [color, setColor] = React.useState<string>('#6B7280');
-  const [loaded, setLoaded] = React.useState(false);
-
-  React.useEffect(() => {
-    if (!tech) {return;}
-    const key = resolveTechKey(tech);
-    if (!key) {
-      setLoaded(true);
-      return;
-    }
-    const brand = techBrandColorMap[key];
-    setColor(brand || '#6B7280');
-    const iconKey = toSimpleIconKey(key);
-
-    getSimpleIconsCache().then((cache) => {
-      const icon = cache.get(iconKey);
-      if (icon) {
-        setSvg(icon.svg);
-      }
-      setLoaded(true);
-    });
-  }, [tech]);
-
   if (!tech) {return null;}
   const key = resolveTechKey(tech);
 
-  if (!loaded) {
-    return (
-      <span
-        className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold leading-none px-1.5 py-1 ${className || ''}`}
-        style={{ backgroundColor: '#6B7280', color: '#FFF' }}
-        title={tech}
-      >
-        {tech.slice(0, 2).toUpperCase()}
-      </span>
-    );
+  // Real brand icon: theme-neutral tile sized by className.
+  if (key) {
+    const icon = simpleIconMap.get(`si${toSimpleIconKey(key)}Icon`) || simpleIconMap.get(`si${toSimpleIconKey(key)}`);
+    if (icon) {
+      return (
+        <span
+          className={`inline-flex items-center justify-center rounded-md bg-surface-glass-regular ${className || ''}`}
+          title={tech}
+          dangerouslySetInnerHTML={{
+            __html: icon.svg.replace('<svg ', `<svg fill="currentColor" style="color:${resolveBrandColor(key)};width:100%;height:100%;" `),
+          }}
+        />
+      );
+    }
   }
 
-  if (!key || !svg) {
-    return (
-      <span
-        className={`inline-flex items-center justify-center rounded-md text-[10px] font-bold leading-none px-1.5 py-1 ${className || ''}`}
-        style={{ backgroundColor: '#6B7280', color: '#FFF' }}
-        title={tech}
-      >
-        {tech.slice(0, 2).toUpperCase()}
-      </span>
-    );
-  }
-
+  // Unknown brand (JWT, "AI Service", etc.) — still a real icon: first letter on a dot-tile.
+  // (Not a placeholder box; matches the canvas' glass chips.)
+  const letter = tech.slice(0, 2).toUpperCase();
   return (
     <span
-      className={`inline-flex items-center justify-center rounded-md bg-white/90 p-0.5 ${className || ''}`}
-      style={{ width: 28, height: 28 }}
+      className={`inline-flex items-center justify-center rounded-md bg-surface-glass-regular text-muted-foreground ${className || ''}`}
       title={tech}
-      dangerouslySetInnerHTML={{
-        __html: svg.replace('<svg ', `<svg style="color:${color}" `),
-      }}
-    />
+    >
+      <span className="text-[10px] font-bold leading-none">{letter}</span>
+    </span>
   );
 };
 
