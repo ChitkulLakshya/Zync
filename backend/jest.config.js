@@ -77,5 +77,10 @@ module.exports = {
   testEnvironment: 'node',
   // Includes both `*.test.js` and legacy `*_test.js` suffixes.
   testMatch: ['**/tests/**/*.test.js', '**/tests/**/*_test.js', '**/__tests__/**/*.test.js'],
+  // ESM-only transitive deps (jose, jwks-rsa via firebase-admin) must go
+  // through Babel instead of being required as CJS, which throws
+  // "SyntaxError: Unexpected token 'export'".
+  transform: { '^.+\\.js$': 'babel-jest' },
+  transformIgnorePatterns: ['node_modules/(?!jose|jwks-rsa|@panva/asn1.js|firebase-admin|@firebase/)'],
   clearMocks: true,
 };

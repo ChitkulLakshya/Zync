@@ -106,12 +106,14 @@ jest.mock('groq-sdk', () => MockGroq);
 
 jest.mock('axios', () => ({
   post: jest.fn(() => Promise.resolve({ data: { name: 'Test Project', owner: { login: 'test-user' } } })),
-  get: jest.fn(() => Promise.resolve({ data: { sha: 'mock-sha' } })),
+  // fetchRepoContext calls `contents` which returns an array; a bare object
+  // caused "treeResponse.data.map is not a function" (500).
+  get: jest.fn(() => Promise.resolve({ data: [] })),
   put: jest.fn(() => Promise.resolve({ data: { ok: true } })),
 }));
 
 jest.mock('../models/User', () => ({
-  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid', uid: 'test-user-id', githubIntegration: { connected: true, accessToken: 'U2FsdGVkX1+tLv+IlzivHIceTIzAY1tuZmS6x6CQub8DlSbxMTk1gz7RnT3jqSQv' } }) })),
+  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid', uid: 'test-user-id', githubIntegration: { connected: true, accessToken: 'U2FsdGVkX1/X+G/ybPUZMYiPqt7h54wizf+UsnU3WUJyOR4pksAf1zDA1M5ylFnm' } }) })),
 }));
 jest.mock('../models/Project', () => ({
   create: jest.fn(() => Promise.resolve({ _id: 'project_oid' })),
