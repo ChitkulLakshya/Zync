@@ -70,11 +70,12 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['**/tests/**/*.test.js', '**/__tests__/**/*.test.js'],
+  // Includes both `*.test.js` and legacy `*_test.js` suffixes.
+  testMatch: ['**/tests/**/*.test.js', '**/tests/**/*_test.js', '**/__tests__/**/*.test.js'],
   clearMocks: true,
 };

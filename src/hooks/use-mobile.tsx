@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import * as React from "react"; // Imports all React library components and assigns them to the 'React' namespace so they can be used in this file.

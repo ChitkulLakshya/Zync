@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const logger = console; // WHAT: Assign console to logger. WHY: To provide basic logging for task socket events.

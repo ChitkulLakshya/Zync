@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 // Imports the Express.js framework, which is a popular Node.js web application framework. This is needed to create and manage server routes and middleware for handling HTTP requests.

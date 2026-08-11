@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const fs = require('fs'); // Imports the built-in Node.js 'fs' (file system) module, which provides methods for interacting with the file system, such as reading and writing files. This is needed to read the static JSON data file.

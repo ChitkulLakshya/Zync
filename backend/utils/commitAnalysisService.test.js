@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const { describe, test, expect } = require("bun:test"); // WHAT: Import testing utilities from Bun. WHY: To structure and run unit tests for the commit analysis service.

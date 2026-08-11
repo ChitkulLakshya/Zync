@@ -1,8 +1,12 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Zync backend API server",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zync-meet/Zync.git"
+  },
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
@@ -11,9 +15,9 @@
     "create-meet": "node scripts/meet/create_meet_space.js",
     "test": "jest"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["zync", "collaboration", "team", "real-time"],
+  "author": "ZYNC Team",
+  "license": "AGPL-3.0-only",
   "type": "commonjs",
   "dependencies": {
     "@prisma/client": "5.22.0",

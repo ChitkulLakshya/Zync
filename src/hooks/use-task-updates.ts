@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect, useCallback, useRef } from 'react'; // Imports the useEffect, useCallback, and useRef hooks from the 'react' library, which are used for handling side effects, memoizing functions, and creating references to DOM nodes or values, respectively.

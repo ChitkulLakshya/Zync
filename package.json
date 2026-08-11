@@ -2,7 +2,11 @@
   "name": "zync",
   "private": true,
   "version": "1.0.0",
+  "license": "AGPL-3.0-only",
   "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
   "author": {
     "name": "ZYNC Team",
     "email": "consolemaster.app@gmail.com",

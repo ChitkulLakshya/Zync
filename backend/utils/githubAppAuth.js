@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const jwt = require('jsonwebtoken'); // WHAT: Imports the jsonwebtoken library. WHY: Needed to create and sign JSON Web Tokens for GitHub App authentication.

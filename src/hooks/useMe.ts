@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useQuery } from '@tanstack/react-query'; // Imports the 'useQuery' hook from '@tanstack/react-query' to enable data fetching and caching, which is necessary for this feature to manage data retrieval and updates.

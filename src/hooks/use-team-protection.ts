@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect } from "react"; // Imports the 'useEffect' hook from the 'react' library, which is used to handle side effects in functional components, such as setting up subscriptions or making API calls.
