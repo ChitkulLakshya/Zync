@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 /**
@@ -84,15 +84,19 @@
 
 const { MongoClient } = require('mongodb');
 
+// Credentials come from the environment — never hardcode URIs in source.
+// See backend/.env.example: SOURCE_URI, SOURCE_DB, TARGET_URI, TARGET_DB.
+const SOURCE_URI = process.env.SOURCE_URI;
+const SOURCE_DB = process.env.SOURCE_DB || 'zync-production';
+const TARGET_URI = process.env.TARGET_URI;
+const TARGET_DB = process.env.TARGET_DB || 'ZYNC_USER';
 
-const SOURCE_URI =
-  'mongodb+srv://chitkullakshya_db_user:GAJbowG2cvz59ub0@zync.qgvjh6f.mongodb.net/?appName=Zync';
-const SOURCE_DB = 'zync-production';
-
-
-const TARGET_URI =
-  'mongodb://ZYNC_USER:Zync_Backend_Pass_2026%21@G76E39710C3F23C-ZYNCDB.adb.ap-hyderabad-1.oraclecloudapps.com:27017/ZYNC_USER?authMechanism=PLAIN&authSource=$external&ssl=true&retryWrites=false&loadBalanced=true';
-const TARGET_DB = 'ZYNC_USER';
+if (!SOURCE_URI || !TARGET_URI) {
+  console.error(
+    'ERROR: SOURCE_URI and TARGET_URI must be set. Refusing to run with empty connection strings.'
+  );
+  process.exit(1);
+}
 
 
 const BATCH_SIZE = 100;

@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express');
@@ -264,7 +264,9 @@ app.use('/api/github-app', webhookJsonParser);
 
 app.use(express.json());
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Uploaded files are NOT served publicly. The generic upload route is
+// auth-gated + quota'd; profile photos go through Cloudinary. If a file needs
+// to be fetched, expose an authenticated download endpoint instead.
 
 app.use('/api/projects', projectRoutes);
 app.use('/api/generate-project', generationRoutes);
@@ -288,8 +290,18 @@ app.use('/api/google', require('./routes/googleRoutes'));
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/collaborator', collaboratorRoutes);
-app.use('/api/cache/sample', require('./routes/redisCacheSampleRoutes'));
-app.use('/internal', internalMetricsRoutes);
+// Internal routes require an admin secret — never public. Set INTERNAL_API_SECRET.
+const internalAuth = (req, res, next) => {
+  const secret = process.env.INTERNAL_API_SECRET;
+  if (!secret) {
+    return res.status(503).json({ message: 'Internal API not configured' });
+  }
+  if (req.get('x-internal-secret') !== secret) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
+app.use('/internal', internalAuth, internalMetricsRoutes);
 
 
 const distPath = path.join(__dirname, '..', 'dist');
@@ -355,7 +367,9 @@ const MONGO_OPTIONS = {
   dbName: 'ZYNC_USER',
   retryWrites: false,
   tls: true,
-  tlsAllowInvalidCertificates: true,
+  // tlsAllowInvalidCertificates intentionally removed: disabling certificate
+  // validation on production TLS is a MITM vector. Use a trusted CA for the
+  // database instead of disabling validation.
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 60000,
   connectTimeoutMS: 30000,

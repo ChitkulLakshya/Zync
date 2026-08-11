@@ -89,7 +89,13 @@ const CryptoJS = require('crypto-js');
 const { generateArchitectureWithKilo } = require('../services/kiloCodeGateway');
 const { checkAndReserveGen, refundGen } = require('../services/usageService');
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'fallback-encryption-key-123';
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY ||
+  (process.env.NODE_ENV === 'production'
+    ? (() => {
+        throw new Error('ENCRYPTION_KEY is required in production');
+      })()
+    : 'dev-only-encryption-key-123');
 
 const decryptToken = (ciphertext) => {
   if (!ciphertext) return null;

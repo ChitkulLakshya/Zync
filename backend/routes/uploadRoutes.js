@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express'); // Imports the 'express' module, which is a web framework for Node.js, to create and manage server-side applications.
@@ -140,18 +140,43 @@ const upload = multer({ // Initializes Multer with the specified configuration f
   storage, // Sets the storage engine for Multer to the 'storage' configuration defined above, which handles where and how files are saved.
   limits: { fileSize: 10 * 1024 * 1024 }, // Sets a file size limit of 10 megabytes (10 * 1024 * 1024 bytes) for uploaded files to prevent excessively large uploads.
   fileFilter: (req, file, cb) => { // Defines a function to filter incoming files, allowing or rejecting them based on custom criteria.
-    if (BLOCKED_MIME_TYPES.includes(file.mimetype)) { // Checks if the MIME type of the uploaded file is present in the 'BLOCKED_MIME_TYPES' array.
-      return cb(new Error('File type not allowed'), false); // If the file type is blocked, calls the callback with an error message and 'false' to reject the file.
+    // Strict ALLOWLIST — reject anything not explicitly safe. Blocklist-only
+    // let HTML/SVG/prose slip through as `text/plain`/unknown mimetypes.
+    if (BLOCKED_MIME_TYPES.includes(file.mimetype) || !SAFE_EXTENSIONS[file.mimetype]) {
+      return cb(new Error('File type not allowed'), false); // If the file type is not allowed, rejects the file.
     }
-    cb(null, true); // If the file type is not blocked, calls the callback with no error (null) and 'true' to accept the file.
+    cb(null, true); // Accepts the file.
   },
 });
 
 
-router.post('/', upload.single('file'), async (req, res) => { // Defines a POST route at the root path ('/') that uses Multer's 'upload.single' middleware to handle a single file upload named 'file'.
+const { isAvailable, getRedisClient } = require('../utils/redisClient');
+const DAILY_UPLOAD_LIMIT = 50; // per-user per-day
+
+async function checkUploadQuota(uid) {
+  if (!isAvailable()) {return { ok: true };} // fail-open when Redis down
+  const client = getRedisClient();
+  try {
+    const key = `zync:upload:user:${uid}:${new Date().toISOString().slice(0, 10)}`;
+    const count = await client.incr(key);
+    await client.expire(key, 24 * 60 * 60);
+    if (count > DAILY_UPLOAD_LIMIT) {return { ok: false, count };}
+    return { ok: true, count };
+  } catch (err) {
+    console.error('[upload] quota check failed:', err.message);
+    return { ok: true }; // fail-open; do not block legitimate users on Redis hiccup
+  }
+}
+
+router.post('/', authMiddleware, upload.single('file'), async (req, res) => { // Authenticated POST route that uses Multer's 'upload.single' middleware to handle a single file upload named 'file'.
   try { // Starts a try block to catch any synchronous or asynchronous errors that occur during file processing.
     if (!req.file) { // Checks if no file was uploaded (i.e., Multer did not process a file successfully).
       return res.status(400).json({ message: 'No file uploaded' }); // If no file is present, sends a 400 Bad Request response with an error message.
+    }
+
+    const quota = await checkUploadQuota(req.user.uid);
+    if (!quota.ok) {
+      return res.status(429).json({ message: `Daily upload limit of ${DAILY_UPLOAD_LIMIT} reached` });
     }
 
     const fileUrl = `/uploads/${req.file.filename}`; // Constructs the URL where the uploaded file can be accessed, based on the temporary storage path and filename.

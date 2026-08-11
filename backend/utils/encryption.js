@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const crypto = require('crypto'); // WHAT: Imports the built-in Node.js crypto module. WHY: Needed to perform cryptographic operations like encryption and decryption.
@@ -78,7 +78,16 @@ const crypto = require('crypto'); // WHAT: Imports the built-in Node.js crypto m
 const ALGORITHM = 'aes-256-cbc'; // WHAT: Defines the encryption algorithm. WHY: AES-256-CBC is a standard, secure symmetric encryption algorithm.
 const ENCODING = 'hex'; // WHAT: Defines the character encoding for the cipher text. WHY: Hex is commonly used to represent binary data as a readable string.
 const IV_LENGTH = 16; // WHAT: Sets the Initialization Vector length to 16 bytes. WHY: AES block size is 128 bits (16 bytes), requiring a 16-byte IV.
-const KEY = process.env.MASTER_ENCRYPTION_KEY || '12345678901234567890123456789012'; // WHAT: Retrieves the encryption key from environment or falls back to a default. WHY: Secures the application data, fallback is for development if env is not set.
+// Never fall back to a hardcoded key: in production a missing key must fail
+// loudly (it silently using a known key would make every encrypted value
+// readable). In dev a fixed key is tolerable — the value is not production data.
+const KEY =
+  process.env.MASTER_ENCRYPTION_KEY ||
+  (process.env.NODE_ENV === 'production'
+    ? (() => {
+        throw new Error('MASTER_ENCRYPTION_KEY is required in production');
+      })()
+    : 'dev-only-master-encryption-key-1234');
 
 const encrypt = (text) => { // WHAT: Defines an encryption function. WHY: To provide a reusable utility for encrypting sensitive strings.
   if (!text) return null; // WHAT: Checks if the input text is falsy. WHY: Avoids errors when attempting to encrypt empty or null values.

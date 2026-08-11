@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express');
@@ -94,10 +94,16 @@ const {
   ARCHITECTURE_CACHE_TTL_MS,
 } = require('../config/freeTierLimits');
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY ||
+  (process.env.NODE_ENV === 'production'
+    ? (() => {
+        throw new Error('ENCRYPTION_KEY is required in production');
+      })()
+    : 'dev-only-encryption-key-123');
 
-if (!ENCRYPTION_KEY) {
-  console.warn("WARNING: ENCRYPTION_KEY is not defined in environment variables.");
+if (!process.env.ENCRYPTION_KEY && process.env.NODE_ENV !== 'production') {
+  console.warn('WARNING: ENCRYPTION_KEY not set; using dev-only fallback key.');
 }
 
 const encryptToken = (token) => {

@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express');
@@ -108,7 +108,13 @@ async function invalidateProjectCache(project, additionalUids = []) {
   await cache.invalidate(...keys);
 }
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY;
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY ||
+  (process.env.NODE_ENV === 'production'
+    ? (() => {
+        throw new Error('ENCRYPTION_KEY is required in production');
+      })()
+    : 'dev-only-encryption-key-123');
 const ARCHITECTURE_CACHE_TTL_MS = Number.parseInt(
   process.env.ARCHITECTURE_CACHE_TTL_MS || '21600000',
   10
