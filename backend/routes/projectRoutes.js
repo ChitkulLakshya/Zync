@@ -95,6 +95,7 @@ const {
 } = require('../utils/projectHelper');
 const cache = require('../utils/cache');
 const { analyzeArchitectureWithKilo } = require('../services/kiloCodeGateway');
+const { checkAndReserveGen, refundGen } = require('../services/usageService');
 const {
   getInstallationOctokit,
   invalidateInstallationCaches,
@@ -686,11 +687,28 @@ router.post('/:id/analyze-architecture', authMiddleware, async (req, res) => {
       }
     }
 
-    const analyzedArch = await analyzeArchitectureWithKilo({
-      repoContext: context || `Project description: ${project.description || 'No description'}`,
-      projectName: project.name,
-      model: 'kilo-auto/free',
-    });
+    // Quota gate: hard 429 past weekly generation cap. Cache served above — zero cost.
+    const reserve = await checkAndReserveGen(req.user.uid);
+    if (!reserve.ok) {
+      return res.status(429).json({
+        message: `You've used all ${reserve.limit} architecture generations this week. Resets soon.`,
+        used: reserve.used,
+        limit: reserve.limit,
+      });
+    }
+
+    let analyzedArch;
+    try {
+      analyzedArch = await analyzeArchitectureWithKilo({
+        repoContext: context || `Project description: ${project.description || 'No description'}`,
+        projectName: project.name,
+        model: 'kilo-auto/free',
+      });
+    } catch (genError) {
+      // Refund on failure — transient kilo errors must not burn the user's quota.
+      await refundGen(req.user.uid, reserve.key);
+      throw genError;
+    }
 
     console.log('Analysis Result:', JSON.stringify(analyzedArch, null, 2));
 

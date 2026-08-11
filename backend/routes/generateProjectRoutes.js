@@ -87,6 +87,7 @@ const { invalidateInstallationCaches } = require('../utils/githubInstallation');
 const axios = require('axios');
 const CryptoJS = require('crypto-js');
 const { generateArchitectureWithKilo } = require('../services/kiloCodeGateway');
+const { checkAndReserveGen, refundGen } = require('../services/usageService');
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'fallback-encryption-key-123';
 
@@ -219,12 +220,19 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
     let githubRepoName = '';
     let githubRepoOwner = '';
 
+    // GitHub rejects control characters (incl. newlines) in repo descriptions.
+    const repoDescription = String(description || '')
+      .replace(/[ -]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 350); // GitHub API limit is 350 chars
+
     try {
       const response = await axios.post(
         'https://api.github.com/user/repos',
         {
           name: name,
-          description: description || '',
+          description: repoDescription,
           private: true,
           auto_init: true
         },
@@ -295,11 +303,24 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
         context += fetchedContext;
       }
 
-      const analyzedArch = await generateArchitectureWithKilo({
-        projectName: name,
-        projectDescription: description || '',
-        model: 'kilo-auto/free',
-      });
+      // Quota gate before the expensive gen. Over-limit → skip gen (project still
+      // created, not stranded). Transient kilo failure → refund (retry is free).
+      let analyzedArch = null;
+      const reserve = await checkAndReserveGen(req.user.uid);
+      if (reserve.ok) {
+        try {
+          analyzedArch = await generateArchitectureWithKilo({
+            projectName: name,
+            projectDescription: description || '',
+            model: 'kilo-auto/free',
+          });
+        } catch (genError) {
+          await refundGen(req.user.uid, reserve.key);
+          throw genError;
+        }
+      } else {
+        console.warn(`[usage] ${req.user.uid} exceeded weekly architecture gen limit`);
+      }
 
       if (analyzedArch && Object.keys(analyzedArch).length > 0) {
         await Project.updateOne(

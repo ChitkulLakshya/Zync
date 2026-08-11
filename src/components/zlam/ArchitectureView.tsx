@@ -29,7 +29,26 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
   const [chatInput, setChatInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [quota, setQuota] = useState<{ gensUsed: number; gensLimit: number; resetOn: string } | null>(null);
   const messagesEndRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchQuota = async () => {
+      try {
+        const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
+        if (!token) {return;}
+        const res = await fetch(`${API_BASE_URL}/api/architecture-agent/quota`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) {return;}
+        const data = await res.json();
+        if (!cancelled) {setQuota(data);}
+      } catch { /* quota chip is cosmetic; fail silent */ }
+    };
+    fetchQuota();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -239,6 +258,16 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
           <Badge variant="outline" className="text-xs">
             {architecture ? 'Analyzed' : 'Not Analyzed'}
           </Badge>
+
+          {quota && (
+            <Badge
+              variant={quota.gensUsed >= quota.gensLimit ? 'destructive' : 'outline'}
+              className="text-xs"
+              title={`Resets ${new Date(quota.resetOn).toLocaleDateString()}`}
+            >
+              ⚡ {quota.gensUsed}/{quota.gensLimit} this week
+            </Badge>
+          )}
           
           <Button
             variant="ghost"
