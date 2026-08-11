@@ -1,15 +1,18 @@
-FROM node:18-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --production
+# npm ci for reproducible installs; omit dev deps for a smaller image.
+# prisma generate must run after install (the generated client is not committed).
+RUN npm ci --omit=dev && npx prisma generate
 
 COPY . .
 
-ENV PORT=8080
+# App reads PORT env (default 5000). Render injects its own PORT.
+ENV PORT=5000
 
-EXPOSE 8080
+EXPOSE 5000
 
 CMD ["npm", "start"]
