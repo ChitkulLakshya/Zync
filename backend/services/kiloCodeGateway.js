@@ -12,6 +12,59 @@ const KILO_CODE_GATEWAY_URL = process.env.KILO_CODE_GATEWAY_URL || '';
 const KILO_CODE_GATEWAY_API_KEY = process.env.KILO_CODE_GATEWAY_API_KEY || '';
 const KILO_CODE_GATEWAY_MODEL = process.env.KILO_CODE_GATEWAY_MODEL || 'kilo-auto/free';
 
+/**
+ * Repair + parse a model reply into JSON. The model sometimes leaks stray
+ * ASCII/smart quotes into string values (e.g. `JWT"s signature`) and fuzzy
+ * apostrophes (`don't`), which break strict JSON.parse.
+ */
+const parseModelJson = (text, errorTag = 'response') => {
+  // Clean markdown code blocks
+  let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+
+  // Handle common JSON formatting issues
+  jsonString = jsonString
+    .replace(/,\s*}/g, '}')              // trailing commas in objects
+    .replace(/,\s*]/g, ']')              // trailing commas in arrays
+    .replace(/[‘’]/g, "'")     // smart single quotes -> straight
+    .replace(/[“”]/g, '"')     // smart double quotes -> straight
+    .replace(/'/g, '"')                  // single quotes -> double quotes
+    // Remove stray double quotes that sit between word characters
+    // (e.g. `JWT"s`). Structural JSON quotes never sit between two word chars,
+    // so this only deletes leaked prose quotes.
+    .replace(/(\w)"(\w)/g, '$1$2')
+    .trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(jsonString);
+  } catch (e) {
+    console.error(`Failed to parse Kilo Code Gateway ${errorTag}:`, jsonString);
+    console.error('Parse error:', e.message);
+
+    // Try to extract JSON from the response if it's embedded in other text
+    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      try {
+        parsed = JSON.parse(jsonMatch[0]);
+        console.log('Successfully extracted JSON from embedded text');
+      } catch (retryError) {
+        console.error(`Failed to parse extracted JSON: ${retryError.message}`);
+        throw new Error(`Failed to parse architecture generation ${errorTag}`);
+      }
+    } else {
+      throw new Error(`Failed to parse architecture generation ${errorTag}`);
+    }
+  }
+
+  // Validate basic structure
+  if (!parsed || typeof parsed !== 'object') {
+    console.error('Invalid response structure:', parsed);
+    throw new Error('Invalid architecture response structure');
+  }
+
+  return parsed;
+};
+
 const analyzeArchitectureWithKilo = async ({ repoContext, projectName, model }) => {
   const selectedModel = model || KILO_CODE_GATEWAY_MODEL;
   if (!KILO_CODE_GATEWAY_URL || !KILO_CODE_GATEWAY_API_KEY) {
@@ -82,46 +135,7 @@ CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
   );
 
   const text = response.data?.choices?.[0]?.message?.content || '';
-  
-  // Clean markdown code blocks
-  let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-  
-  // Handle common JSON formatting issues
-  jsonString = jsonString
-    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
-    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
-    .replace(/'/g, '"')     // Replace single quotes with double quotes
-    .trim();
-
-  let parsed;
-  try {
-    parsed = JSON.parse(jsonString);
-  } catch (e) {
-    console.error('Failed to parse Kilo Code Gateway response:', jsonString);
-    console.error('Parse error:', e.message);
-    
-    // Try to extract JSON from the response if it's embedded in other text
-    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-        console.log('Successfully extracted JSON from embedded text');
-      } catch (retryError) {
-        console.error('Failed to parse extracted JSON:', retryError.message);
-        throw new Error('Failed to parse architecture analysis response');
-      }
-    } else {
-      throw new Error('Failed to parse architecture analysis response');
-    }
-  }
-
-  // Validate basic structure
-  if (!parsed || typeof parsed !== 'object') {
-    console.error('Invalid response structure:', parsed);
-    throw new Error('Invalid architecture response structure');
-  }
-
-  return parsed;
+  return parseModelJson(text, 'analysis response');
 };
 
 const generateArchitectureWithKilo = async ({ projectName, projectDescription, model }) => {
@@ -195,46 +209,7 @@ CRITICAL RULES FOR INTEGRATIONS/SERVICES ARRAYS:
   );
 
   const text = response.data?.choices?.[0]?.message?.content || '';
-  
-  // Clean markdown code blocks
-  let jsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
-  
-  // Handle common JSON formatting issues
-  jsonString = jsonString
-    .replace(/,\s*}/g, '}')  // Remove trailing commas in objects
-    .replace(/,\s*]/g, ']')  // Remove trailing commas in arrays
-    .replace(/'/g, '"')     // Replace single quotes with double quotes
-    .trim();
-
-  let parsed;
-  try {
-    parsed = JSON.parse(jsonString);
-  } catch (e) {
-    console.error('Failed to parse Kilo Code Gateway response:', jsonString);
-    console.error('Parse error:', e.message);
-    
-    // Try to extract JSON from the response if it's embedded in other text
-    const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      try {
-        parsed = JSON.parse(jsonMatch[0]);
-        console.log('Successfully extracted JSON from embedded text');
-      } catch (retryError) {
-        console.error('Failed to parse extracted JSON:', retryError.message);
-        throw new Error('Failed to parse architecture generation response');
-      }
-    } else {
-      throw new Error('Failed to parse architecture generation response');
-    }
-  }
-
-  // Validate basic structure
-  if (!parsed || typeof parsed !== 'object') {
-    console.error('Invalid response structure:', parsed);
-    throw new Error('Invalid architecture response structure');
-  }
-
-  return parsed;
+  return parseModelJson(text, 'generation response');
 };
 
 module.exports = {
