@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 // Declares a constant variable named 'express' and assigns it the Express.js module. `require()` is a Node.js function used to import modules.
@@ -82,8 +82,10 @@ const router = express.Router();
 // Declares a constant variable named 'nodemailer' and assigns it the Nodemailer module. `require()` is a Node.js function used to import modules.
 // This line imports the Nodemailer library, which is used to send emails from Node.js applications, specifically for notifying an admin about new beta signups.
 const nodemailer = require('nodemailer');
-// Imports the Octokit class.
-const { Octokit } = require('octokit');
+// NOTE: Repository invitations are intentionally NOT automated. Granting push
+// access from an unverified public beta form is a self-serve repo-access vector
+// — anyone could invite themselves. The route below only records the request
+// and emails an admin, who reviews and invites manually.
 
 // Defines a new route handler for HTTP POST requests to the root path ('/') relative to where this router is mounted.
 // The `async` keyword indicates that this function will perform asynchronous operations, allowing `await` to be used inside.
@@ -108,38 +110,10 @@ router.post('/', async (req, res) => {
   // Starts a `try` block, which encloses code that might throw an error.
   // This block is used to safely execute the email sending logic, allowing any potential errors during the process to be caught and handled gracefully.
   try {
-    let inviteStatusMessage = "No GitHub invitation sent (GitHub token not configured).";
+    // Repository access is NOT auto-granted (see note above). The admin reviews
+    // the request and sends a GitHub invitation manually.
+    let inviteStatusMessage = 'Invitation deferred to admin review.';
     let inviteSuccess = false;
-
-    // Automate the GitHub Repository Invitation using Octokit
-    if (process.env.GITHUB_ADMIN_TOKEN && process.env.GITHUB_REPO_OWNER && process.env.GITHUB_REPO_NAME) {
-      try {
-        const octokit = new Octokit({ auth: process.env.GITHUB_ADMIN_TOKEN });
-        
-        await octokit.request('PUT /repos/{owner}/{repo}/collaborators/{username}', {
-          owner: process.env.GITHUB_REPO_OWNER,
-          repo: process.env.GITHUB_REPO_NAME,
-          username: githubUsername,
-          permission: 'push' // Grants write access. This can be 'pull' or 'triage' if preferred.
-        });
-        
-        inviteStatusMessage = `Successfully sent GitHub repository invitation to @${githubUsername}.`;
-        inviteSuccess = true;
-        console.log(`[BETA SIGNUP] ${inviteStatusMessage}`);
-      } catch (ghError) {
-        // Status 422 generally means validation failed, such as user is already a collaborator
-        if (ghError.status === 422) {
-          inviteStatusMessage = `Invitation to @${githubUsername} was skipped (user is already a collaborator, or invitation is already pending).`;
-          inviteSuccess = true;
-          console.log(`[BETA SIGNUP] ${inviteStatusMessage}`);
-        } else {
-          inviteStatusMessage = `Failed to send GitHub repository invitation to @${githubUsername}. Error: ${ghError.message}`;
-          console.error(`[BETA SIGNUP ERROR] ${inviteStatusMessage}`);
-        }
-      }
-    } else {
-      console.warn('GITHUB_ADMIN_TOKEN, GITHUB_REPO_OWNER, or GITHUB_REPO_NAME missing. Skipping automated GitHub invitation.');
-    }
 
     // Declares a constant variable 'adminEmail'. It attempts to retrieve the 'ADMIN_EMAIL' environment variable.
     // If `process.env.ADMIN_EMAIL` is falsy (e.g., not set), it defaults to the string 'admin@example.com'.
