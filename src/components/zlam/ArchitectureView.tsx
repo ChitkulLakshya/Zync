@@ -7,10 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { KILO_API_BASE_URL } from '@/lib/utils';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { architectureQueue } from '@/lib/architectureQueue';
-import { fetchWithRetry } from '@/lib/retryHelper';
+import { API_BASE_URL } from '@/lib/utils';
 
 const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
   const { id } = useParams<{ id: string }>();
@@ -62,7 +59,7 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
         const { auth } = await import('@/lib/firebase');
         const token = await auth.currentUser?.getIdToken?.();
         if (!token) {throw new Error('No auth token');}
-        const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+        const res = await fetch(`${KILO_API_BASE_URL}/api/projects/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {throw new Error(`Failed to fetch project: ${res.status}`);}
