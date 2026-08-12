@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useState, useEffect, useRef } from 'react';
@@ -99,7 +99,7 @@ import {
   Star,
   Trash2,
   Send,
-  ChevronsLeft,
+   ChevronsLeft,
   ChevronsRight,
   PanelLeft,
 } from 'lucide-react';
@@ -118,7 +118,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useTheme } from 'next-themes';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -159,6 +159,7 @@ import CreateProject from '@/components/dashboard/CreateProject';
 import ProjectDetails from '@/pages/ProjectDetails';
 import TeamGateway from './TeamGateway';
 import MeetView from './MeetView';
+import ArchitectureView from '@/components/zlam/ArchitectureView';
 import { usePresence } from '@/hooks/usePresence';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -270,7 +271,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     return () => window.removeEventListener('ZYNC-open-chat', handleOpenChat);
   }, [activeSection, beginTransition, location.pathname, navigate]);
 
-  const pathToSection: Record<string, string> = {
+const pathToSection: Record<string, string> = {
     '/dashboard': 'Dashboard',
     '/dashboard/home': 'Dashboard',
     '/dashboard/workspace': 'My Workspace',
@@ -279,7 +280,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     '/dashboard/design': 'Design',
     '/dashboard/tasks': 'Tasks',
     '/dashboard/notes': 'Notes',
-
     '/dashboard/activity': 'Activity log',
     '/dashboard/people': 'People',
     '/dashboard/meet': 'Meet',
@@ -288,7 +288,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     '/dashboard/new-project': 'New Project',
   };
 
-  const sectionToPath: Record<string, string> = {
+const sectionToPath: Record<string, string> = {
     Dashboard: '/dashboard',
     'My Workspace': '/dashboard/workspace',
     'My Projects': '/dashboard/projects',
@@ -296,7 +296,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
     Design: '/dashboard/design',
     Tasks: '/dashboard/tasks',
     Notes: '/dashboard/notes',
-
     'Activity log': '/dashboard/activity',
     People: '/dashboard/people',
     Meet: '/dashboard/meet',
@@ -691,7 +690,7 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
   });
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       setCurrentUser(user);
 
       if (
@@ -846,6 +845,9 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
 
       case 'My Workspace':
         if (location.pathname.startsWith('/dashboard/workspace/project/')) {
+          if (location.pathname.endsWith('/architecture')) {
+            return <ArchitectureView />;
+          }
           return <ProjectDetails />;
         }
         return (

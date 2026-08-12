@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const { describe, test, expect } = require("bun:test"); // WHAT: Imports testing utilities from bun test. WHY: To define test suites, test cases, and assertions for the email templates.

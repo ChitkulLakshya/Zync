@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect, useRef } from 'react'; // Imports the 'useEffect' and 'useRef' hooks from the 'react' library, which are used for handling side effects and creating references to values, respectively.
@@ -86,7 +86,7 @@ export const useActivityTracker = () => { // Defines the 'useActivityTracker' ho
   const sessionIdRef = useRef<string | null>(null); // Creates a reference to the session ID, initialized to null, so that it can be accessed and updated across renders.
 
   useEffect(() => { // Uses the 'useEffect' hook to handle the authentication state change side effect, which is only run once when the component mounts.
-    const unsubscribe = auth.onAuthStateChanged(async (user) => { // Sets up an authentication state change listener, which is called when the user's authentication state changes.
+    const unsubscribe = auth.onAuthStateChanged(async (user: any) => { // Sets up an authentication state change listener, which is called when the user's authentication state changes.
       if (user && !sessionIdRef.current) { // Checks if the user is authenticated and the session ID is not set.
         try { // Attempts to parse the current session from local storage.
           const raw = localStorage.getItem('currentSession'); // Retrieves the current session from local storage.

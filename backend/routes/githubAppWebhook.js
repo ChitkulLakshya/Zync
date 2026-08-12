@@ -70,11 +70,12 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express'); // Imports the Express.js framework, which is essential for building web applications and APIs in Node.js.
 const router = express.Router(); // Creates a new router object from Express, allowing for modular route definitions separate from the main application.
+const authMiddleware = require('../middleware/authMiddleware'); // Authenticates the request before allowing access to the job-status endpoint.
 const verifyGithub = require('../middleware/verifyGithub'); // Imports a custom middleware function responsible for verifying the authenticity of incoming GitHub webhooks.
 const { processGithubWebhookJob } = require('../services/githubWebhookWorker'); // Imports the function that contains the core logic for processing a GitHub webhook event.
 const { // Starts an object destructuring assignment to extract specific functions from the webhook queue service.
@@ -130,7 +131,7 @@ router.post('/webhook', verifyGithub, async (req, res) => { // Defines an HTTP P
 });
 
 
-router.get('/webhook/jobs/:deliveryId', (req, res) => { // Defines an HTTP GET route for '/webhook/jobs/:deliveryId', allowing clients to query the status of a specific job.
+router.get('/webhook/jobs/:deliveryId', authMiddleware, (req, res) => { // Defines an HTTP GET route for '/webhook/jobs/:deliveryId', requiring authentication, allowing clients to query the status of a specific job.
   const { deliveryId } = req.params; // Uses object destructuring to extract the `deliveryId` parameter from the URL.
   const job = getWebhookJobStatus(deliveryId); // Calls `getWebhookJobStatus` to retrieve the status of the job associated with the extracted delivery ID.
   if (!job) { // Checks if no job was found for the given delivery ID.

@@ -30,7 +30,7 @@ Zync does not just passively track Git commits. It implements an active asynchro
 - **Database Architecture**: Pure MongoDB cluster accessed via dual ORMs:
   - **Prisma**: Configured specifically for MongoDB (`@db.ObjectId`) for type-safe relational models.
   - **Mongoose**: Manages flexible, recursive document structures.
-- **AI Engine**: Groq SDK (`groq-sdk`), Google Gemini API (`@google/genai`)
+- **AI Engine**: Kilo Code Gateway (Architecture Agent), Groq SDK (`groq-sdk` for project scaffolding & commit analysis)
 - **Infrastructure**: Helmet, Express Rate Limit, Load Shedding Event Loop monitor, Puppeteer/Playwright E2E testing framework.
 
 ---

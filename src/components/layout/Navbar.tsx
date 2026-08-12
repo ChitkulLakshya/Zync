@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useTheme } from "next-themes";
@@ -167,15 +167,15 @@ const Navbar = () => {
           <Link to="/" className="flex items-center gap-2">
             {mounted ? (
               <>
-                <img 
-                  src="/zync-white.webp" 
-                  alt="Zync Logo" 
-                  className="h-10 lg:h-12 w-auto object-contain relative z-10 block dark:hidden" 
+                <img
+                  src="/zync-white.webp"
+                  alt="Zync Logo"
+                  className="h-10 lg:h-12 w-auto object-contain relative z-10 rounded-lg block dark:hidden"
                 />
-                <img 
-                  src="/zync-dark.webp" 
-                  alt="Zync Logo" 
-                  className="h-10 lg:h-12 w-auto object-contain relative z-10 hidden dark:block" 
+                <img
+                  src="/zync-dark.webp"
+                  alt="Zync Logo"
+                  className="h-10 lg:h-12 w-auto object-contain relative z-10 rounded-lg hidden dark:block"
                 />
               </>
             ) : (

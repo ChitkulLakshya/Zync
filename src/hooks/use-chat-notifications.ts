@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect, useRef } from 'react'; // Imports the useEffect and useRef hooks from the 'react' library, which are used for handling side effects and storing references to values, respectively.
@@ -86,7 +86,7 @@ export const useChatNotifications = () => { // Defines a custom hook called useC
   const notifiedIds = useRef(new Set<string>()); // Initializes a reference to a set of notified message IDs using the useRef hook, which is used for keeping track of messages that have already been notified.
 
   useEffect(() => { // Uses the useEffect hook to handle side effects, such as setting up event listeners and unsubscribing from them when the component unmounts.
-    const unsubscribeAuth = auth.onAuthStateChanged((user) => { // Sets up an event listener for the onAuthStateChanged event, which is triggered when the user's authentication state changes.
+    const unsubscribeAuth = auth.onAuthStateChanged((user: any) => { // Sets up an event listener for the onAuthStateChanged event, which is triggered when the user's authentication state changes.
       if (!user) { // Checks if the user is not authenticated, in which case the function returns without doing anything.
         return; // Returns from the function if the user is not authenticated.
       }

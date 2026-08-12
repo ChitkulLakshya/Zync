@@ -41,13 +41,20 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run ESLint
         run: npm run lint
 
       - name: Run TypeScript type check
         run: npx tsc --noEmit
+
+      - name: Dependency audit (root)
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: Dependency audit (backend)
+        run: npm audit --audit-level=high --omit=dev
+        working-directory: backend
 
   # ===========================================================================
   # Unit Tests
@@ -69,16 +76,20 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run frontend unit tests
-        run: npm run test:jest
+        run: npm run test:frontend
 
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Run frontend E2E tests
         run: npm run test:e2e
+
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: backend
 
       - name: Run backend tests
         run: npm test
@@ -104,7 +115,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Vite frontend
         run: npm run build

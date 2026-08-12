@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"; // Imports the useQuery, useMutation, and useQueryClient hooks from the @tanstack/react-query library, which are used for data fetching and caching.

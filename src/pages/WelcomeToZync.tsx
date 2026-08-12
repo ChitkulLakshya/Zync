@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect } from 'react';
@@ -131,7 +131,7 @@ const WelcomeToZync = () => {
   useEffect(() => {
     // What: Listener for authentication state.
     // Why: When the auth state resolves, we check if the user is present.
-    return onAuthStateChanged(auth, (u) => {
+    return onAuthStateChanged(auth, (u: any) => {
       if (!u) {
         // What: Redirects unauthenticated users to the login page.
         // Why: Protects this route from unauthorized access.

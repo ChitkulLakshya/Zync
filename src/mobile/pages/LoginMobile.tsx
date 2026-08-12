@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 // Imports React hooks to manage component state and lifecycle side effects.
@@ -136,7 +136,7 @@ const LoginMobile = () => {
   // Runs a side effect on mount to listen for changes in the user's authentication state.
   useEffect(() => {
     // Subscribes to Firebase auth state changes to detect if a user is already signed in.
-    const unsubscribe = onAuthStateChanged(auth, (user) => setCurrentUser(user));
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => setCurrentUser(user));
     // Cleans up the listener when the component unmounts to prevent memory leaks.
     return () => unsubscribe();
   }, []);

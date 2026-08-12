@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express');
@@ -106,19 +106,28 @@ jest.mock('groq-sdk', () => MockGroq);
 
 jest.mock('axios', () => ({
   post: jest.fn(() => Promise.resolve({ data: { name: 'Test Project', owner: { login: 'test-user' } } })),
+  // fetchRepoContext calls `contents` which returns an array; a bare object
+  // caused "treeResponse.data.map is not a function" (500).
+  get: jest.fn(() => Promise.resolve({ data: [] })),
+  put: jest.fn(() => Promise.resolve({ data: { ok: true } })),
 }));
 
 jest.mock('../models/User', () => ({
-  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid', uid: 'test-user-id', githubIntegration: { connected: true, accessToken: 'U2FsdGVkX1+tLv+IlzivHIceTIzAY1tuZmS6x6CQub8DlSbxMTk1gz7RnT3jqSQv' } }) })),
+  findOne: jest.fn(() => ({ lean: () => Promise.resolve({ _id: 'user_oid', uid: 'test-user-id', githubIntegration: { connected: true, accessToken: 'U2FsdGVkX1/X+G/ybPUZMYiPqt7h54wizf+UsnU3WUJyOR4pksAf1zDA1M5ylFnm' } }) })),
 }));
 jest.mock('../models/Project', () => ({
   create: jest.fn(() => Promise.resolve({ _id: 'project_oid' })),
+  updateOne: jest.fn(() => Promise.resolve({ nModified: 1 })),
 }));
 jest.mock('../models/Step', () => ({
   insertMany: jest.fn((steps) => Promise.resolve(steps.map((s, idx) => ({ ...s, _id: `step_${idx}` })))),
 }));
 jest.mock('../models/ProjectTask', () => ({
   insertMany: jest.fn((tasks) => Promise.resolve(tasks.map((t, idx) => ({ ...t, _id: `task_${idx}` })))),
+}));
+jest.mock('../services/kiloCodeGateway', () => ({
+  analyzeArchitectureWithKilo: jest.fn(() => Promise.resolve({ highLevel: 'Mocked Kilo Architecture' })),
+  generateArchitectureWithKilo: jest.fn(() => Promise.resolve({ highLevel: 'Mocked Kilo Architecture', frontend: {}, backend: {}, database: {}, integrations: [] })),
 }));
 jest.mock('../utils/projectHelper', () => ({
   getProjectWithSteps: jest.fn(() => Promise.resolve({ id: 'new-project-id', name: 'Test Project' })),

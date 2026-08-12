@@ -2,6 +2,8 @@
 
 Zync is a highly complex, full-stack application designed for real-time, conflict-free collaboration. This document provides a comprehensive breakdown of the entire technology stack, verified directly against the production `package.json` files.
 
+> 📡 **Looking for hosting/cloud services?** See [`service_inventory.md`](./service_inventory.md) for the complete inventory of Vercel, Render, MongoDB Atlas, Firebase, Cloudinary, AI gateways, and third-party APIs.
+
 ---
 
 ## 🎨 Frontend Architecture
@@ -69,8 +71,8 @@ Zync utilizes a pure NoSQL database architecture, using MongoDB as the single so
 Zync integrates several advanced services to automate project management and provide intelligent context.
 
 ### Generative AI (LLMs)
-- **Google Gemini** (`@google/generative-ai`): Powers the AI Project Architect, generating full project roadmaps, tech stack recommendations, and intelligent outlines.
-- **Groq** (`groq-sdk`): Integrated for ultra-low latency, fast-inference completions where speed is critical.
+- **Kilo Code Gateway** (`kilo-auto/free` via REST): Primary Architecture Agent — processes natural language chat and outputs structured JSON architecture maps. Configured via `KILO_CODE_GATEWAY_URL` / `KILO_CODE_GATEWAY_API_KEY`.
+- **Groq** (`groq-sdk`): High-speed, low-latency AI completions for project scaffolding (`taskGenerator.js`) and GitHub commit analysis (`commitAnalysisService.js`). Configured via `GROQ_API_KEY`.
 
 ### Web Scraping & Orchestration
 - **Puppeteer** (`puppeteer`, `puppeteer-extra-plugin-stealth`): Used for headless browser automation (e.g., the Design Inspiration service scraping Behance/Dribbble).

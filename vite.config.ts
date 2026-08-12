@@ -47,6 +47,16 @@ export default defineConfig(({ mode: _mode }) => ({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
+        // Bundle the Firebase messaging SW through Vite so the `define`
+        // placeholders get substituted from env at build time.
+        'firebase-messaging-sw': path.resolve(__dirname, 'src/firebase-messaging-sw.js'),
+      },
+      output: {
+        // Keep the SW at a stable, predictable URL for registration.
+        entryFileNames: (chunk) =>
+          chunk.name === 'firebase-messaging-sw'
+            ? 'firebase-messaging-sw.js'
+            : 'assets/[name]-[hash].js',
       },
     },
   },
@@ -92,7 +102,7 @@ export default defineConfig(({ mode: _mode }) => ({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,json}'],
         navigateFallback: '/index.html',
 
-        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
       },
       devOptions: {
         enabled: true,

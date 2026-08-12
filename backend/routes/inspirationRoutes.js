@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 // Declares a constant variable named 'express' and assigns it the Express.js framework module, which is imported using Node.js's 'require()' function. This is needed to build web applications and define routes.

@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect, useState, useRef, useCallback } from "react";
@@ -282,7 +282,7 @@ const ProjectDetails = () => {
 
       // What: Sends a POST request to the analyze-architecture endpoint.
       // Why: Instructs the backend to perform the heavy lifting of analyzing the project.
-      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture`, {
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/analyze-architecture?provider=kilo&forceRefresh=true`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -362,7 +362,7 @@ const ProjectDetails = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    const unsubscribe = auth.onAuthStateChanged((user: any) => {
       setCurrentUser(user);
     });
     return () => unsubscribe();

@@ -41,8 +41,8 @@ Zync's ingestion, internal transfer, and processing of information received from
 ## 4. Data Storage, Encryption & Retention
 
 ### Encryption Standards
-- **In Transit**: All frontend client-server interactions enforce TLS 1.3 encryption over HTTPS and WSS (WebSocket Secure).
-- **At Rest**: Third-party OAuth refresh tokens and session credentials are encrypted prior to database persistence using AES-256-GCM.
+- **In Transit**: All frontend client-server interactions are served over TLS (HTTPS and WSS).
+- **At Rest**: Third-party OAuth refresh tokens and session credentials are encrypted prior to database persistence using AES-256-CBC with a random IV.
 
 ### Lifecycle & Purging
 - **Local Browser Caches**: Collaborative scratch buffers cached in browser `IndexedDB` are wiped upon explicit user sign-out or session expiration.

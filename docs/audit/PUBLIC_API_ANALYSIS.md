@@ -20,7 +20,7 @@ Zync leverages targeted, zero-auth public developer APIs to actively enrich coll
 For core operational logic, Zync avoids unverified free public APIs in favor of robust enterprise SDKs:
 
 - **Authentication**: Firebase Authentication IDP verified cryptographically via `firebase-admin`.
-- **AI Orchestration**: Groq SDK (`groq-sdk`) and Google GenAI (`@google/genai`) for low-latency JSON roadmap generation.
+- **AI Orchestration**: Kilo Code Gateway (Architecture Agent chat) + Groq SDK (`groq-sdk` for project scaffolding & commit analysis).
 - **Database & Storage Layer**: Dual Prisma/Mongoose ORM architecture running on a pure MongoDB cluster.
 - **Multiplayer State**: WebSockets (`socket.io`) combined with Yjs CRDT binary persistence (`y-indexeddb`).
 

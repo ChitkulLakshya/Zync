@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useEffect, useState, useRef } from "react";
@@ -131,7 +131,7 @@ interface WorkspaceProps {
   usersList?: any[];
 }
 
-const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }: WorkspaceProps) => {
+const Workspace = ({ onSelectProject, onOpenNote, onNavigate, currentUser, usersList = [] }: WorkspaceProps) => {
   const { toast } = useToast();
   const { confirm } = useConfirm();
   
@@ -437,9 +437,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
 
   const handleOpenArchitecture = (e: React.MouseEvent, project: Project) => {
     e.stopPropagation();
-    const projectId = getProjectId(project);
-    if (!projectId) { return; }
-    onSelectProject(projectId);
+    navigate(`/dashboard/workspace/project/${getProjectId(project)}/architecture`);
   };
 
   const fetchCollaboratorData = async (projectId: string) => {
@@ -877,7 +875,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   {repoLoadState === 'not-installed' ? (
                     <>
                       <p>The Zync GitHub App is not installed on your account.</p>
-                      <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                      <a href={`https://github.com/apps/${import.meta.env.VITE_GITHUB_APP_NAME || 'ZYNC-meet'}/installations/new`} target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
                         Install Zync App on GitHub
                       </a>
                     </>
@@ -888,7 +886,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                   ) : repoLoadState === 'no-repo-access' ? (
                     <>
                       <p>No repositories accessible. Grant the Zync App access to repositories on GitHub.</p>
-                      <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                      <a href={`https://github.com/apps/${import.meta.env.VITE_GITHUB_APP_NAME || 'ZYNC-meet'}/installations/new`} target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
                         Manage App permissions on GitHub
                       </a>
                     </>
@@ -994,7 +992,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                         {repoLoadState === 'not-installed' ? (
                           <>
                             <p>The Zync GitHub App is not installed on your account.</p>
-                            <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                            <a href={`https://github.com/apps/${import.meta.env.VITE_GITHUB_APP_NAME || 'ZYNC-meet'}/installations/new`} target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
                               Install Zync App on GitHub
                             </a>
                           </>
@@ -1005,7 +1003,7 @@ const Workspace = ({ onSelectProject, onOpenNote, currentUser, usersList = [] }:
                         ) : repoLoadState === 'no-repo-access' ? (
                           <>
                             <p>No repositories accessible. Grant the Zync App access to repositories on GitHub.</p>
-                            <a href="https://github.com/apps/ZYNC-meet/installations/new" target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
+                            <a href={`https://github.com/apps/${import.meta.env.VITE_GITHUB_APP_NAME || 'ZYNC-meet'}/installations/new`} target="_blank" rel="noreferrer" className="text-foreground hover:underline mt-2 block">
                               Manage App permissions on GitHub
                             </a>
                           </>

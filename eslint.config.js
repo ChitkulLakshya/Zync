@@ -13,6 +13,7 @@ export default tseslint.config(
       'public',
       'backend/',
       'dev-dist',
+      '.claude/',
     ],
   },
   {

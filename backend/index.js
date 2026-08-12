@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 const express = require('express');
@@ -88,6 +88,16 @@ const { loadSheddingMiddleware } = require('./middleware/loadShedding');
 
 const app = express();
 
+// Initialize architecture queue for health monitoring
+global.architectureQueue = {
+  getStats: () => ({
+    queueLength: 0,
+    processing: 0,
+    maxConcurrent: 3,
+    completedTasks: 0,
+    averageDuration: 0
+  })
+};
 
 app.set('trust proxy', 1);
 
@@ -161,6 +171,7 @@ const calendarRoutes = require('./routes/calendarRoutes');
 const supportRoutes = require('./routes/supportRoutes');
 const internalMetricsRoutes = require('./routes/internalMetrics');
 const collaboratorRoutes = require('./routes/collaboratorRoutes');
+const architectureAgentRoutes = require('./routes/architectureAgentRoutes');
 
 app.use(
   helmet({
@@ -253,7 +264,9 @@ app.use('/api/github-app', webhookJsonParser);
 
 app.use(express.json());
 
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Uploaded files are NOT served publicly. The generic upload route is
+// auth-gated + quota'd; profile photos go through Cloudinary. If a file needs
+// to be fetched, expose an authenticated download endpoint instead.
 
 app.use('/api/projects', projectRoutes);
 app.use('/api/generate-project', generationRoutes);
@@ -265,6 +278,7 @@ app.use('/api/design', designRoutes);
 app.use('/api/inspiration', inspirationRoutes);
 app.use('/api/notes', noteRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/architecture-agent', architectureAgentRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/webhooks', webhookRoutes);
@@ -276,14 +290,62 @@ app.use('/api/google', require('./routes/googleRoutes'));
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/support', supportRoutes);
 app.use('/api/collaborator', collaboratorRoutes);
-app.use('/api/cache/sample', require('./routes/redisCacheSampleRoutes'));
-app.use('/internal', internalMetricsRoutes);
+// Internal routes require an admin secret — never public. Set INTERNAL_API_SECRET.
+const internalAuth = (req, res, next) => {
+  const secret = process.env.INTERNAL_API_SECRET;
+  if (!secret) {
+    return res.status(503).json({ message: 'Internal API not configured' });
+  }
+  if (req.get('x-internal-secret') !== secret) {
+    return res.status(403).json({ message: 'Forbidden' });
+  }
+  next();
+};
+app.use('/internal', internalAuth, internalMetricsRoutes);
 
 
 const distPath = path.join(__dirname, '..', 'dist');
 const distIndexHtml = path.join(distPath, 'index.html');
 if (fs.existsSync(distIndexHtml)) {
   app.use(express.static(distPath));
+
+  // Health check endpoint with memory monitoring
+  app.get('/health', (req, res) => {
+    const memoryUsage = process.memoryUsage();
+    const heapUsedMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
+    const heapTotalMB = Math.round(memoryUsage.heapTotal / 1024 / 1024);
+    const rssMB = Math.round(memoryUsage.rss / 1024 / 1024);
+    
+    // Determine health status based on memory usage
+    const memoryLimit = 512; // 512 MB for Render free tier
+    const memoryPercent = (heapUsedMB / memoryLimit) * 100;
+    
+    let status = 'healthy';
+    if (memoryPercent > 80) status = 'degraded';
+    if (memoryPercent > 95) status = 'critical';
+    
+    const healthData = {
+      status,
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+      memory: {
+        heapUsed: `${heapUsedMB}MB`,
+        heapTotal: `${heapTotalMB}MB`,
+        rss: `${rssMB}MB`,
+        limit: `${memoryLimit}MB`,
+        percent: `${Math.round(memoryPercent)}%`
+      },
+      system: {
+        platform: process.platform,
+        nodeVersion: process.version,
+        arch: process.arch
+      },
+      queue: global.architectureQueue ? global.architectureQueue.getStats() : null
+    };
+    
+    const statusCode = status === 'healthy' ? 200 : (status === 'degraded' ? 200 : 503);
+    res.status(statusCode).json(healthData);
+  });
 
   app.get('/{*splat}', (req, res, next) => {
     if (req.path.startsWith('/api') || req.path.startsWith('/internal')) {
@@ -305,7 +367,9 @@ const MONGO_OPTIONS = {
   dbName: 'ZYNC_USER',
   retryWrites: false,
   tls: true,
-  tlsAllowInvalidCertificates: true,
+  // tlsAllowInvalidCertificates intentionally removed: disabling certificate
+  // validation on production TLS is a MITM vector. Use a trusted CA for the
+  // database instead of disabling validation.
   serverSelectionTimeoutMS: 30000,
   socketTimeoutMS: 60000,
   connectTimeoutMS: 30000,

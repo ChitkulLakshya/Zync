@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 // Imports the clsx utility which conditionally joins CSS class names together efficiently.
@@ -80,10 +80,16 @@ import { twMerge } from "tailwind-merge";
 
 // Exports the base URL for backend API requests, determining the correct URL based on whether the app is in development mode or production.
 export const API_BASE_URL = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL || "");
+// Exports the base URL for the Kilo Code Gateway (architecture-agent). Uses VITE_KILO_API_URL if
+// set (e.g. a separate Render account), otherwise falls back to the main API URL.
+export const KILO_API_BASE_URL =
+  (import.meta.env.DEV
+    ? (import.meta.env.VITE_KILO_API_URL || "http://localhost:5000")
+    : (import.meta.env.VITE_KILO_API_URL || import.meta.env.VITE_API_URL || ""));
 // Exports the base URL for the Socket.IO server, prioritizing explicit socket URLs, falling back to the API URL, and defaulting to localhost during development.
-export const SOCKET_BASE_URL = import.meta.env.DEV
-  ? (import.meta.env.VITE_SOCKET_URL || "")
-  : (import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || "");
+export const SOCKET_BASE_URL =
+  import.meta.env.VITE_SOCKET_URL ||
+  (import.meta.env.DEV ? "http://localhost:5000" : (import.meta.env.VITE_API_URL || ""));
 
 // Defines and exports the 'cn' (class name) utility function, widely used in modern React apps to cleanly combine conditional Tailwind classes without conflicts.
 export function cn(...inputs: ClassValue[]) {

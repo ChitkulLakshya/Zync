@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useState } from "react";
@@ -101,11 +101,101 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
 
     setIsGenerating(true);
 
+    const user = auth.currentUser;
+    const ownerId = user ? user.uid : "anonymous";
+    let token = "";
+    let interval: ReturnType<typeof setInterval> | null = null;
+    
     try {
-      const user = auth.currentUser;
-      const ownerId = user ? user.uid : "anonymous";
-      const token = user ? await user.getIdToken() : "";
+      token = user ? await user.getIdToken() : "";
+      if (!token) {
+        toast({ 
+          title: "Authentication Error", 
+          description: "Failed to authenticate. Please ensure you're logged in and try again.", 
+          variant: "destructive" 
+        });
+        setIsGenerating(false);
+        return;
+      }
+    } catch (tokenErr) {
+      console.error("Failed to get token:", tokenErr);
+      toast({ 
+        title: "Authentication Error", 
+        description: "Failed to authenticate. Please ensure you're logged in and try again.", 
+        variant: "destructive" 
+      });
+      setIsGenerating(false);
+      return;
+    }
 
+    // Trigger persistent dynamic progress toast
+    const toastController = toast({
+      title: "Creating Project",
+      description: (
+        <div className="w-full mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="flex-1">
+              <div className="text-xs font-medium text-foreground">Initializing GitHub repository...</div>
+            </div>
+            <div className="text-xs font-semibold text-primary">10%</div>
+          </div>
+          <div className="h-2 w-full bg-secondary/20 rounded-full overflow-hidden">
+            <div 
+              className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-500 ease-out relative" 
+              style={{ width: '10%' }} 
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+            </div>
+          </div>
+        </div>
+      ),
+      duration: 120000, // 2 minutes timeout
+    });
+
+    let progress = 10;
+    interval = setInterval(() => {
+      if (progress < 95) {
+        progress += Math.floor(Math.random() * 8) + 4; // increment between 4% and 11%
+        if (progress > 95) {progress = 95;}
+
+        let statusText = "Initializing GitHub repository...";
+        if (progress > 80) {
+          statusText = "Finalizing commit changes...";
+        } else if (progress > 60) {
+          statusText = "Writing project configuration & documentation...";
+        } else if (progress > 40) {
+          statusText = "Analyzing architecture plan using Kilo Code Gateway...";
+        } else if (progress > 25) {
+          statusText = "Provisioning codebase structure...";
+        }
+
+        toastController.update({
+          id: toastController.id,
+          title: "Creating Project",
+          description: (
+            <div className="w-full mt-3 space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="flex-1">
+                  <div className="text-xs font-medium text-foreground">{statusText}</div>
+                </div>
+                <div className="text-xs font-semibold text-primary">{progress}%</div>
+              </div>
+              <div className="h-2 w-full bg-secondary/20 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-primary/80 to-primary transition-all duration-500 ease-out relative" 
+                  style={{ width: `${progress}%` }} 
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                </div>
+              </div>
+            </div>
+          ),
+          duration: 120000,
+        });
+      }
+    }, 800);
+
+    try {
       const response = await fetch(`${API_BASE_URL}/api/generate-project`, {
         method: "POST",
         headers: {
@@ -119,6 +209,10 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
         }),
       });
 
+      if (interval) {
+        clearInterval(interval);
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to generate project");
@@ -126,23 +220,82 @@ const CreateProject = ({ onProjectCreated }: CreateProjectProps) => {
 
       const data = await response.json();
 
-      toast({
-        title: "Project Created!",
-        description: "Your new project and GitHub repository are ready.",
+      // Show success toast with optional warning
+      const hasWarning = data.warning;
+      toastController.update({
+        id: toastController.id,
+        title: "Project Created Successfully!",
+        description: (
+          <div className="w-full mt-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <div className="text-xs font-medium text-green-600 dark:text-green-400">Your new project and GitHub repository are ready.</div>
+                {hasWarning && (
+                  <div className="text-xs text-yellow-600 dark:text-yellow-400 mt-1 font-medium">
+                    ⚠️ {data.warning}
+                  </div>
+                )}
+              </div>
+              <div className="text-green-500">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-green-500/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-green-500/80 to-green-500 transition-all duration-700 ease-out relative" 
+                style={{ width: '100%' }} 
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+              </div>
+            </div>
+          </div>
+        ),
+        duration: hasWarning ? 8000 : 4000,
       });
 
       queryClient.invalidateQueries({ queryKey: ["projects"] });
       sessionStorage.setItem('newlyCreatedProjectId', data._id || data.id);
-      onProjectCreated(data);
-
+      setIsGenerating(false);
+      
+      // Redirect to workspace after successful project creation
+      onProjectCreated(null);
     } catch (error: any) {
+      if (interval) {
+        clearInterval(interval);
+      }
       console.error("Generation error:", error);
-      toast({
+      toastController.update({
+        id: toastController.id,
         title: "Generation Failed",
-        description: error.message || "Something went wrong. Please try again.",
-        variant: "destructive"
+        description: (
+          <div className="w-full mt-3 space-y-2">
+            <div className="flex items-start gap-2">
+              <div className="flex-1">
+                <div className="text-xs font-medium text-destructive">
+                  {error.message || "Something went wrong. Please try again."}
+                </div>
+              </div>
+              <div className="text-destructive">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </div>
+            </div>
+            <div className="h-2 w-full bg-destructive/10 rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-gradient-to-r from-destructive/80 to-destructive transition-all duration-700 ease-out relative" 
+                style={{ width: '100%' }} 
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+              </div>
+            </div>
+          </div>
+        ),
+        variant: "destructive",
+        duration: 6000,
       });
-    } finally {
       setIsGenerating(false);
     }
   };

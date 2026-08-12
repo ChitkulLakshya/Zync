@@ -188,6 +188,22 @@
     box-shadow: var(--shadow-md), var(--glass-bevel);
   }
 
+  /* xyflow Controls look white-boxed: buttons keep default background: #fefefe.
+     Theme them to match the glass surface. */
+  .react-flow__controls-button {
+    background: var(--glass-regular) !important;
+    border: none !important;
+    border-bottom: none !important;
+    color: hsl(var(--foreground)) !important;
+    backdrop-filter: blur(16px);
+  }
+  .react-flow__controls-button:hover {
+    background: var(--glass-thick) !important;
+  }
+  .react-flow__controls-button svg {
+    fill: currentColor;
+  }
+
   .gradient-text {
     @apply bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent;
   }
@@ -456,6 +472,34 @@
   50% {
     opacity: 0;
   }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(-25%);
+    animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+  }
+  50% {
+    transform: translateY(0);
+    animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-bounce {
+  animation: bounce 1s infinite;
 }
 
 .text-glow {

@@ -1,10 +1,9 @@
 # =============================================================================
-# GitHub Actions — Release — ZYNC Desktop Application
+# GitHub Actions — Release — ZYNC Web Application
 # =============================================================================
 #
-# This workflow creates a new release when a version tag is pushed.
-# It builds the Electron app for all platforms and uploads the
-# installers as release assets.
+# Creates a release when a version tag is pushed. Zync ships as a web app;
+# the release artifact is the built Vite bundle.
 #
 # Usage: git tag v1.0.0 && git push origin v1.0.0
 #
@@ -22,21 +21,9 @@ permissions:
 
 jobs:
   release:
-    name: Release (${{ matrix.os }})
-    timeout-minutes: 45
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: windows-latest
-            platform: win
-          - os: macos-latest
-            platform: mac
-          - os: ubuntu-latest
-            platform: linux
-
-    runs-on: ${{ matrix.os }}
+    name: Release Web Bundle
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -49,7 +36,7 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Build Vite frontend
         run: npm run build

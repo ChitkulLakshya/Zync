@@ -14,7 +14,7 @@ The architectural philosophy of Zync is built upon five foundational pillars:
 1. **Local-First & Offline Resilience:** User interface rendering and document editing must never block on network latency. By leveraging local browser storage (**IndexedDB** via **Dexie** and **localStorage** via **TanStack Query Persister**), users can launch workspaces and edit rich-text canvases offline, with deterministic synchronization occurring seamlessly upon network restoration.
 2. **Decentralized Conflict Resolution (CRDTs):** Collaborative authoring abandons centralized server-locking and Operational Transformation (OT) in favor of **Conflict-free Replicated Data Types (Yjs)**. State updates are exchanged as compressed binary vectors over low-latency WebSockets.
 3. **Thin-Auth Identity Synchronization:** Cryptographic identity verification and OAuth token exchanges are delegated to **Firebase Authentication**, while domain-specific user roles, workspace permissions, and relational hierarchies are synchronized and persisted in a self-hosted **MongoDB** cluster.
-4. **Heterogeneous AI Orchestration:** Artificial intelligence tasks are dynamically routed based on latency and reasoning requirements. Ultra-low latency structural generation (such as project roadmaps and Kanban boards) utilizes **Groq's LPU Llama-3-70B** engine with strict JSON schema enforcement, while complex multimodal document summarization and design brainstorming leverage **Google Gemini**.
+4. **Heterogeneous AI Orchestration:** Artificial intelligence tasks are dynamically routed based on latency and reasoning requirements. The **Architecture Agent** (natural language chat → structured JSON architecture maps) uses the **Kilo Code Gateway** (`kilo-auto/free`). Ultra-low latency project scaffolding and GitHub commit analysis use **Groq's LPU** (`groq-sdk`) with strict JSON schema enforcement.
 5. **Agentic Liquid Glass UI Design System:** The presentation layer strictly adheres to Apple-inspired Liquid Glass principles, establishing visual hierarchy and elevation through translucency (`backdrop-filter: blur`), surface lightness, and spring-driven physics rather than heavy skeuomorphic drop shadows or hardcoded color palettes.
 
 ---
@@ -29,7 +29,7 @@ To prevent documentation redundancy and maintain a single source of truth across
 * ⚡️ **[Performance & Caching Strategy](./performance_and_caching_strategy.md):** Deep-dive into distributed **Redis** caching tiers, TanStack Query client persisters, database connection pooling, and Event Loop lag monitoring.
 
 ### Specialized AI & Collaboration Subsystems
-* 🧠 **[AI Project Architect](./ai_project_architect.md):** Specification of natural language project generation using the **Groq Llama 3 SDK** (`openai/gpt-oss-120b`), structured JSON schema enforcement, and **Mongoose** bulk insert operations.
+* 🧠 **[AI Project Architect](./ai_project_architect.md):** Specification of natural language project generation using the **Groq SDK** (`groq-sdk`), structured JSON schema enforcement, and **Mongoose** bulk insert operations.
 * 📝 **[Real-Time Notes Editor](./realtime_notes_editor.md):** CRDT collaboration engine utilizing **Yjs** binary state relay over **Socket.IO** (`/notes` namespace), **IndexedDB** persistence, and **BlockNote** rich text canvas.
 * 💬 **[Instant Chat Messaging System](./instant_chat_system.md):** High-throughput real-time messaging engine hosted on **Socket.IO** (`/chat` namespace), featuring multi-tab socket multiplexing and an asynchronous offline catchup delivery engine.
 * 📋 **[Kanban Board & GitHub Sync](./kanban_github_sync.md):** Bidirectional synchronization pipeline linking drag-and-drop Kanban card states to GitHub repository commits, pull requests, and automated AI architectural impact analysis.
@@ -76,8 +76,8 @@ graph TD
 
     subgraph ExternalServices ["🌐 External Cloud & AI Services"]
         FirebaseAuth["Firebase Authentication (OAuth & Identity Provider)"]
-        GroqAPI["Groq LPU API (Llama-3-70B Ultra-Low Latency Inference)"]
-        GeminiAPI["Google Gemini API (Multimodal Generative AI)"]
+        KiloGateway["Kilo Code Gateway (Architecture Agent: kilo-auto/free)"]
+        GroqAPI["Groq LPU API (Project Scaffolding & Commit Analysis)"]
         GitHubAPI["GitHub API & Webhook Ingress (Octokit / Apps)"]
         ScrapeTargets["Design Galleries (Dribbble, Awwwards, Godly, Lapa)"]
     end
@@ -111,8 +111,8 @@ graph TD
     %% External Integrations
     React -- "OAuth / Credential Exchange" --> FirebaseAuth
     AuthMid -- "Verify IdToken (Public Keys Cache)" --> FirebaseAuth
-    Controllers -- "Structured JSON Prompting" --> GroqAPI
-    Controllers -- "Multimodal Content Gen" --> GeminiAPI
+    Controllers -- "Architecture Agent Chat (Structured JSON)" --> KiloGateway
+    Controllers -- "Project Scaffolding & Commit Analysis" --> GroqAPI
     Controllers <--> GitHubAPI
     Workers -- "HMAC SHA-256 Webhooks" --> GitHubAPI
     Controllers -- "Puppeteer Stealth Singleton" --> ScrapeTargets
@@ -175,7 +175,7 @@ sequenceDiagram
 * **Justification:** Relational ORMs like Prisma provide superior developer ergonomics, automated migrations, strict type safety, and clean relational inclusion syntax (`include: { owner: true, members: true }`). However, Prisma's schema engine is rigid when dealing with schema-less JSON payloads, dynamic array manipulations, and massive bulk insert operations.
 * **Architecture Solution:** Zync deploys a **Dual-ORM Architecture** over MongoDB. Prisma is utilized strictly for relational domain modeling (Workspace hierarchy, Teams, User permissions, Link analytics), ensuring type safety across business logic. Mongoose is utilized for high-frequency, schema-flexible operations:
   * **Chat Messages:** Utilizing atomic MongoDB array operators (`$push`, `$pull`) and high-speed pagination.
-  * **AI Project Generation:** Ingesting arbitrary, multi-level JSON structures generated by Groq directly into `Project.architecture` without schema validation failures, and executing high-performance bulk inserts (`Step.insertMany`, `ProjectTask.insertMany`) in a single database round-trip.
+  * **AI Project Generation:** Ingesting arbitrary, multi-level JSON structures generated by Groq (`groq-sdk`) directly into `Project.architecture` without schema validation failures, and executing high-performance bulk inserts (`Step.insertMany`, `ProjectTask.insertMany`) in a single database round-trip.
   * **CRDT Document Storage:** Storing raw binary `Uint8Array` Yjs state vectors in capped Mongoose document collections.
 
 ### 4.3 Decision 3: Decentralized Local-First Collaboration (Yjs CRDTs vs OT)
@@ -200,13 +200,13 @@ sequenceDiagram
   3. **`/tasks` Namespace:** Manages Kanban board column reordering, task creation, and GitHub webhook push broadcasts across project members (`emitToProject`).
   4. **`/presence` Namespace:** Tracks global online/offline status. To prevent disruptive UI flickering (green dot changing to grey and back during page refreshes or brief WiFi drops), disconnection events trigger a **30-second debounce timer** before evicting the user from the active online registry.
 
-### 4.6 Decision 6: Heterogeneous AI Orchestration (Groq LPU vs Google Gemini)
-* **Context:** Zync provides intelligent features requiring different AI performance profiles: instant project workspace generation from rough concepts, automated Git commit architectural analysis, and long-form document summarization.
-* **Rejected Alternative:** Using a single LLM provider (e.g., exclusively GPT-4o or exclusively Google Gemini) for all AI workflows across the application.
-* **Justification:** Standard generative models (like Gemini Pro or GPT-4) can take 5 to 15 seconds to generate complex, deeply nested JSON structures (such as a full 5-column Kanban board with 20 tasks and architectural tech stacks). This latency breaks interactive user flow during project setup.
-* **Architecture Solution:** Zync implements **Heterogeneous AI Orchestration**, routing prompts based on latency and formatting constraints:
-  * **Groq LPU Llama-3-70B (`groq-sdk`):** Deployed for latency-critical, structured workflows: the **AI Project Architect** (`/api/generate-project`) and **GitHub Webhook Commit Analysis** (`githubWebhookWorker.js`). Groq's Language Processing Unit (LPU) hardware achieves inference speeds exceeding 300 tokens/second. The backend enforces `response_format: { type: 'json_object' }`, guaranteeing parsable JSON returned in $<2$ seconds.
-  * **Google Gemini (`@google/generative-ai`):** Deployed for open-ended, creative, and long-context workflows: multimodal canvas content generation, design layout brainstorming, and meeting transcript summarization.
+### 4.6 Decision 6: Heterogeneous AI Orchestration (Kilo Gateway vs Groq LPU)
+* **Context:** Zync provides intelligent features requiring different AI performance profiles: natural-language architecture chat with structured JSON output, instant project workspace generation from rough concepts, and automated Git commit architectural analysis.
+* **Rejected Alternative:** Using a single LLM provider for all AI workflows across the application.
+* **Justification:** Standard generative models can take 5 to 15 seconds to generate complex, deeply nested JSON structures (such as a full 5-column Kanban board with 20 tasks and architectural tech stacks). This latency breaks interactive user flow during project setup, and a single provider introduces vendor-coupling.
+* **Architecture Solution:** Zync implements **Heterogeneous AI Orchestration**, routing prompts based on subsystem needs:
+  * **Kilo Code Gateway (`kilo-auto/free`):** Deployed for the **Architecture Agent** (`/api/architecture-agent/chat`). The gateway accepts a natural-language user prompt and returns a structured JSON architecture map (frontend/backend/database/integrations). Configured via `KILO_CODE_GATEWAY_URL` / `KILO_CODE_GATEWAY_API_KEY`.
+  * **Groq LPU (`groq-sdk`):** Deployed for latency-critical, structured workflows: the **AI Project Architect** (`/api/generate-project` via `taskGenerator.js`) and **GitHub Webhook Commit Analysis** (`commitAnalysisService.js`). Groq's Language Processing Unit (LPU) hardware achieves inference speeds exceeding 300 tokens/second. The backend enforces `response_format: { type: 'json_object' }`, guaranteeing parsable JSON returned in $<2$ seconds.
 
 ### 4.7 Decision 7: Stealth Virtualized Browser Pooling (Puppeteer Extra Singleton)
 * **Context:** The Design Inspiration Service (`/api/inspiration`) aggregates UI/UX showcases by scraping modern design galleries (Dribbble, Awwwards, Godly, Lapa Ninja).
@@ -362,7 +362,7 @@ To guarantee 100% technical accuracy and eliminate documentation drift, the foll
 | **Caching & Pub/Sub Layer** | Redis in-memory cache and message broker for Socket.IO scaling. | `backend/package.json`<br>`backend/utils/redisClient.js` | `redis@^5.10.0` | ✅ **Verified:** Redis client v5 actively bootstrapped via `connectRedis()` in `index.js`. |
 | **Authentication Provider** | Identity management and JWT verification handled by Firebase Admin SDK. | `backend/package.json`<br>`backend/index.js` | `firebase-admin@^11.11.1`, `firebase@^12.9.0` | ✅ **Verified:** Thin-Auth pattern active; Firebase Admin validates tokens on protected endpoints. |
 | **Socket.IO Namespaces** | Real-time traffic isolated across 4 dedicated namespaces: `/notes`, `/presence`, `/chat`, `/tasks`. | `backend/index.js` lines 135-140<br>`backend/sockets/*.js` | `socket.io@^4.8.3`, `socket.io-client@^4.8.3` | ✅ **Verified & Clarified:** Legacy docs inconsistently listed 3 namespaces; codebase audit confirms **all 4 namespaces** are independently initialized and active. |
-| **Generative AI Engines** | Heterogeneous routing: Groq LPU (Llama 3) for fast JSON struct generation; Google Gemini for content. | `backend/package.json`<br>`backend/routes/generateProjectRoutes.js` | `groq-sdk@^0.36.0`, `@google/generative-ai@^0.24.1`, `@google/genai@^2.10.0` | ✅ **Verified:** Both SDKs actively installed and orchestrated based on latency constraints. |
+| **Generative AI Engines** | Heterogeneous routing: Kilo Gateway for architecture agent; Groq LPU for project scaffolding + commit analysis. | `backend/package.json`<br>`backend/services/kiloCodeGateway.js`<br>`backend/utils/taskGenerator.js` | `groq-sdk@^0.36.0`, custom HTTP client to `KILO_CODE_GATEWAY_URL` | ✅ **Verified:** Kilo Gateway for architecture agent; Groq SDK for fast structured JSON. |
 | **Scraping & Automation** | Virtualized browser pooling via Puppeteer Extra with Stealth plugin and Cheerio parser. | `backend/package.json`<br>`backend/services/scraperService.js` | `puppeteer@^24.35.0`, `puppeteer-extra@^3.3.6`, `puppeteer-extra-plugin-stealth@^2.10.4`, `cheerio@^1.0.0-rc.12` | ✅ **Verified:** Stealth singleton pattern implemented with 5-minute idle auto-close. |
 | **GitHub Webhook Ingress** | Bidirectional Kanban sync with cryptographic HMAC SHA-256 raw buffer validation. | `backend/package.json`<br>`backend/index.js` lines 243-249 | `octokit@^5.0.4`, custom `express.json` verify buffer | ✅ **Verified:** `webhookJsonParser` captures `req.rawBody` exclusively on `/api/webhooks` and `/api/github-app` for signature verification. |
 | **Rate Limiting & Defense** | DDoS protection throttling IPs to 100 requests/15min in production; dynamic load shedding. | `backend/index.js` lines 225-240<br>`backend/middleware/loadShedding.js` | `express-rate-limit@^8.3.1` | ✅ **Verified:** Rate limiter and `loadSheddingMiddleware` globally applied to `/api/*`. |

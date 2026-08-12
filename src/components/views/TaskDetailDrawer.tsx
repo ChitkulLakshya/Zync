@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import {
@@ -87,7 +87,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
-import { CheckSquare, Calendar, FolderKanban, User, Clock, Flag, X, GitBranch, GitPullRequest, GitMerge, Copy, ExternalLink, Github, GitCommit } from "lucide-react";
+import { CheckSquare, Calendar, FolderKanban, User, Clock, Flag, X, GitBranch, GitPullRequest, GitMerge, Copy, ExternalLink, GitCommit } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { TaskGitSync } from "./TaskGitSync";
@@ -231,7 +231,7 @@ const TaskDetailDrawer = ({ task, open, onOpenChange, isOwner, onTaskRefresh }: 
                                 <Separator />
                                 <div className="space-y-3">
                                     <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                        <Github className="w-4 h-4" /> GitHub Workflow
+                                        <GitBranch className="w-4 h-4" /> GitHub Workflow
                                     </h3>
                                     <div className="bg-card/50 backdrop-blur-md rounded-lg p-4 space-y-4 border border-border/10">
                                         <div className="space-y-2">

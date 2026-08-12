@@ -6,7 +6,7 @@
 #   bash deploy.sh
 #
 # Prerequisites:
-#   - SSH key at ./ssh-key-2026-03-05.key
+#   - SSH key path (export SSH_KEY=/path/to/key)
 #   - VM_IP environment variable set, OR edit the default below
 #   - First-time setup already completed (see ORACLE_VM_SETUP.md)
 # ──────────────────────────────────────────────────────────────────────
@@ -14,26 +14,37 @@
 set -euo pipefail
 
 # ── Configuration ────────────────────────────────────────────────────
-SSH_KEY="./ssh-key-2026-03-05.key"
-VM_USER="ubuntu"
-VM_IP="${VM_IP:-68.233.96.221}"       # Oracle Cloud VM public IP
-REMOTE_DIR="/home/ubuntu/zync-backend"
+# No defaults for SSH key, user, or IP — they MUST be provided. A committed
+# default IP/key is a security hazard (wrong-target deploys, leaked infra).
+SSH_KEY="${SSH_KEY:-}"
+VM_USER="${VM_USER:-ubuntu}"
+VM_IP="${VM_IP:-}"
+REMOTE_DIR="/home/$VM_USER/zync-backend"
 PM2_PROCESS_NAME="zync-backend"
 
-if [ "$VM_IP" = "YOUR_VM_PUBLIC_IP" ]; then
-  echo "ERROR: Set VM_IP first.  export VM_IP=<your-ip>"
+if [ -z "$VM_IP" ]; then
+  echo "ERROR: Set VM_IP.  export VM_IP=<your-ip>"
+  exit 1
+fi
+if [ -z "$SSH_KEY" ]; then
+  echo "ERROR: Set SSH_KEY.  export SSH_KEY=/path/to/your-ssh-key"
+  exit 1
+fi
+if [ ! -f "$SSH_KEY" ]; then
+  echo "ERROR: SSH key not found at $SSH_KEY"
   exit 1
 fi
 
-SSH_CMD="ssh -i $SSH_KEY -o StrictHostKeyChecking=no $VM_USER@$VM_IP"
-SCP_CMD="scp -i $SSH_KEY -o StrictHostKeyChecking=no"
+# Host-key verification stays ON — no StrictHostKeyChecking=no.
+SSH_CMD="ssh -i $SSH_KEY $VM_USER@$VM_IP"
+SCP_CMD="scp -i $SSH_KEY"
 
 echo "🚀 Deploying Zync backend to $VM_IP ..."
 
 # ── 1. Sync backend folder (excluding node_modules, .env, uploads) ───
 echo "📦 Uploading backend files..."
 rsync -avz --progress \
-  -e "ssh -i $SSH_KEY -o StrictHostKeyChecking=no" \
+  -e "ssh -i $SSH_KEY" \
   --exclude 'node_modules' \
   --exclude '.env' \
   --exclude 'uploads/*' \

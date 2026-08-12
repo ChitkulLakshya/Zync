@@ -70,11 +70,17 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 module.exports = {
   testEnvironment: 'node',
-  testMatch: ['**/tests/**/*.test.js', '**/__tests__/**/*.test.js'],
+  // Includes both `*.test.js` and legacy `*_test.js` suffixes.
+  testMatch: ['**/tests/**/*.test.js', '**/tests/**/*_test.js', '**/__tests__/**/*.test.js'],
+  // ESM-only transitive deps (jose, jwks-rsa via firebase-admin) must go
+  // through Babel instead of being required as CJS, which throws
+  // "SyntaxError: Unexpected token 'export'".
+  transform: { '^.+\\.js$': 'babel-jest' },
+  transformIgnorePatterns: ['node_modules/(?!jose|jwks-rsa|@panva/asn1.js|firebase-admin|@firebase/)'],
   clearMocks: true,
 };

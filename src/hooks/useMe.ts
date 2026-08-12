@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 import { useQuery } from '@tanstack/react-query'; // Imports the 'useQuery' hook from '@tanstack/react-query' to enable data fetching and caching, which is necessary for this feature to manage data retrieval and updates.
@@ -109,7 +109,7 @@ export const useMe = () => { // Defines the 'useMe' hook, which is used to fetch
   // The 'useState' hook is used to create a state variable and an 'Updater' function to manage the state, which is necessary for functional components to manage state changes.
 
   useEffect(() => { // Uses the 'useEffect' hook to run a side effect when the component mounts or updates, which is necessary to manage authentication state changes and update the 'user' state variable.
-    return onAuthStateChanged(auth, (u) => { // Calls the 'onAuthStateChanged' function to monitor authentication state changes and update the 'user' state variable, which is necessary to manage user sessions and authentication state.
+    return onAuthStateChanged(auth, (u: any) => { // Calls the 'onAuthStateChanged' function to monitor authentication state changes and update the 'user' state variable, which is necessary to manage user sessions and authentication state.
       setUser(u); // Updates the 'user' state variable with the new authentication state, which is necessary to reflect changes in the authentication state.
     });
   }, []); // The empty dependency array means the effect will only run once when the component mounts, which is necessary to prevent unnecessary re-renders and optimize performance.

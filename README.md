@@ -52,13 +52,13 @@ Many productivity apps claim to be a canvas, but Zync actually merges the doc an
 <br/>
 
 ### 🤖 Multimodal AI Partner
-Zync integrates deeply with **Google Gemini** and **Groq** to act as your AI co-pilot. 
-- **Project Architect:** Instantly turn a rough outline into a structured project plan with tasks and deliverables.
-- **Design Inspiration:** Generate UI/UX layouts and styling ideas directly onto your canvas.
-- **Content Generation:** Summarize long meetings, draft professional reports, or write code snippets with a single prompt.
+Zync integrates with **Kilo Code Gateway** (primary architecture agent) and **Groq** (fast task generation & commit analysis) as AI co-pilots.
+- **Architecture Agent:** Natural-language chat → structured JSON architecture maps via Kilo Gateway (`kilo-auto/free`).
+- **Project Architect:** Instant project scaffolding with tasks & deliverables via Groq ultra-low-latency inference.
+- **Commit Analysis:** GitHub webhook integration uses Groq to summarize architectural impact of commits.
 
-### ⚡️ Zero-Latency Real-Time Sync
-We love the "local-first" philosophy. Zync utilizes **Yjs** (a high-performance CRDT implementation) and **WebSockets** to ensure that whether you are working solo offline or collaborating with 50 people in real-time, your data syncs instantly without conflicts.
+### ⚡️ Real-Time Sync
+Zync utilizes **Yjs** (a high-performance CRDT implementation) and **WebSockets** to keep documents and boards in sync across collaborators in real time without merge conflicts.
 
 ### 🔄 Kanban & GitHub Sync
 Don't duplicate your work. Zync features a built-in Kanban board that bidirectionally syncs with GitHub Issues and Projects. Move a card in Zync, and watch the issue update on GitHub.
@@ -95,7 +95,7 @@ Zync is built using enterprise-grade, modern open-source tools:
 - **Real-Time Engine**: Built on **Yjs** for conflict-free replicated data types (CRDTs), ensuring all clients stay perfectly in sync. **Socket.IO** handles the bidirectional transport layer.
 - **Backend**: A robust **Node.js/Express** API that handles authentication, REST endpoints, and orchestration.
 - **Database Layer**: **Prisma** handles complex relational data, while **MongoDB (Mongoose)** manages unstructured document data. **Redis** acts as our high-performance pub/sub and caching layer.
-- **AI Engine**: LangChain-powered orchestration hooking into **Gemini** and **Groq** APIs.
+- **AI Engine**: Kilo Code Gateway (architecture agent chat) + Groq SDK (project scaffolding & commit analysis).
 
 ---
 
@@ -121,7 +121,7 @@ cp backend/.env.example backend/.env
 npm run dev
 ```
 
-*The Frontend will be running at `http://localhost:5173` | The Backend API will be running at `http://localhost:8081`*
+*The Frontend will be running at `http://localhost:8081` | The Backend API will be running at `http://localhost:5000`*
 
 ---
 
@@ -171,7 +171,7 @@ Dive deeper into Zync's internals by exploring our comprehensive documentation i
 
 - [x] Hyper-fused Markdown + Canvas Editor
 - [x] Real-time CRDT Sync
-- [x] Gemini AI Integrations
+- [x] Kilo Gateway Architecture Agent
 - [x] GitHub Kanban Bidirectional Sync
 - [ ] Desktop App (Electron/Tauri)
 - [ ] End-to-End Encryption (E2EE) for Workspaces
@@ -199,8 +199,15 @@ We are building a vibrant, open-source community and we'd love for you to join u
 3. Check out our [Issues Board](https://github.com/zync-meet/Zync/issues) and look for issues labeled `good first issue`.
 4. Connect with us on [LinkedIn](https://www.linkedin.com/company/zync-meet/), reach out via email at [consolemaster.app@gmail.com](mailto:consolemaster.app@gmail.com), or start a [GitHub Discussion](https://github.com/zync-meet/Zync/discussions) to get help.
 
+See also: [Code of Conduct](docs/CODE_OF_CONDUCT.md) · [Security Policy](SECURITY.md) · [Governance](GOVERNANCE.md) · [Changelog](CHANGELOG.md)
+
 ---
 
 ## 📜 License
 
-Zync is open-source software licensed under the [MIT License](LICENSE).
+Zync is open-source software licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+**What that means:** AGPL is a strong copyleft license. If you run a modified
+Zync backend as a network service (even your own instance), you must make your
+modified source code available to the users of that service under AGPL. This
+protects the project from closed-source forks while still allowing self-hosting.

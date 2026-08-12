@@ -70,7 +70,7 @@
  * ============================================================================
  * @author Chitkul Lakshya <consolemaster.app@gmail.com>
  * @copyright Copyright (c) 2026 Zync Meet. All rights reserved.
- * @license Proprietary and Confidential
+ * @license AGPL-3.0-only
  * ============================================================================
  */
 
@@ -81,19 +81,7 @@ const { MongoMemoryServer } = require('mongodb-memory-server');
 
 jest.setTimeout(30000);
 
-process.env.GEMINI_API_KEY_SECONDARY = 'mock-key';
 process.env.ENCRYPTION_KEY = 'mock-encryption-key';
-
-jest.mock('@google/generative-ai', () => ({
-  GoogleGenerativeAI: class {
-    getGenerativeModel() {
-      return {
-        generateContent: () =>
-          Promise.resolve({ response: { text: () => '{}' } }),
-      };
-    }
-  },
-}));
 
 jest.mock('../middleware/authMiddleware.js', () => {
   const mockTracker = jest.fn((req, res, next) => {
@@ -206,13 +194,6 @@ describe('Project Routes Security', () => {
     expect(mockAuthMiddlewareTracker).toHaveBeenCalled();
   });
 
-  it('POST /projects/generate should require auth', async () => {
-    await request(app)
-      .post('/projects/generate')
-      .send({ name: 'Test', description: 'Desc' });
-
-    expect(mockAuthMiddlewareTracker).toHaveBeenCalled();
-  });
 
   it('GET /projects should require auth', async () => {
     await request(app).get('/projects');
