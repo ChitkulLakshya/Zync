@@ -2,6 +2,8 @@
 
 Zync is a highly complex, full-stack application designed for real-time, conflict-free collaboration. This document provides a comprehensive breakdown of the entire technology stack, verified directly against the production `package.json` files.
 
+> 📡 **Looking for hosting/cloud services?** See [`service_inventory.md`](./service_inventory.md) for the complete inventory of Vercel, Render, MongoDB Atlas, Firebase, Cloudinary, AI gateways, and third-party APIs.
+
 ---
 
 ## 🎨 Frontend Architecture
