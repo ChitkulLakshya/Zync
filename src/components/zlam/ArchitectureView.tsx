@@ -6,12 +6,13 @@ import { ChevronLeft, Info, Layers, Zap, X, Send, RefreshCw, Plus, Sparkles } fr
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { KILO_API_BASE_URL } from '@/lib/utils';
-import { API_BASE_URL } from '@/lib/utils';
+import { KILO_API_BASE_URL, API_BASE_URL } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { architectureQueue } from '@/lib/architectureQueue';
 import { fetchWithRetry } from '@/lib/retryHelper';
+
+const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [projectData, setProjectData] = useState<any>(project || null);
@@ -580,4 +581,6 @@ import { fetchWithRetry } from '@/lib/retryHelper';
       </Dialog>
     </div>
   );
+};
+
 export default ArchitectureView;
