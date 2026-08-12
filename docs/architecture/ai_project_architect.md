@@ -1,8 +1,12 @@
 # 🧠 AI Project Architect
 
-The AI Project Architect is a core backend service in Zync that instantly translates a user's rough project idea (Name and Description) into a fully populated, structured project workspace. 
+The AI Project Architect is a core backend service in Zync that instantly translates a user's rough project idea (Name and Description) into a fully populated, structured project workspace.
 
-This document details the exact technical implementation of the feature based on `backend/routes/generateProjectRoutes.js`.
+This document details the exact technical implementation of the feature based on `backend/routes/generateProjectRoutes.js` and `backend/utils/taskGenerator.js`.
+
+> ⚠️ **AI Provider Routing Note.** Zync uses two AI providers depending on the subsystem:
+> - **Project Architect** (this doc) → **Groq SDK** for ultra-low-latency JSON scaffolding.
+> - **Architecture Agent** (chat) → **Kilo Code Gateway** (`kilo-auto/free`). See `backend/services/kiloCodeGateway.js`.
 
 ---
 
@@ -11,8 +15,8 @@ This document details the exact technical implementation of the feature based on
 When a user submits a prompt via the UI to generate a new project, the frontend sends a `POST` request to `/api/generate-project`. The flow operates as follows:
 
 ### 1. AI Inference (Groq Engine)
-Instead of Google Gemini, this specific orchestration relies on the **Groq SDK** (`groq-sdk`) to achieve ultra-low latency generation.
-- **Model**: It utilizes an OpenAI-compatible model string (`openai/gpt-oss-120b`) routed through the Groq client.
+This orchestration relies on the **Groq SDK** (`groq-sdk`) to achieve ultra-low-latency generation.
+- **Model**: It utilizes an OpenAI-compatible model string routed through the Groq client.
 - **Prompt Engineering**: The backend injects the user's `name` and `description` into a strict system prompt acting as a "senior software architect."
 - **Structured Output**: The API is constrained using `response_format: { type: 'json_object' }` to guarantee the model returns parsable JSON rather than markdown.
 

@@ -52,10 +52,10 @@ Many productivity apps claim to be a canvas, but Zync actually merges the doc an
 <br/>
 
 ### 🤖 Multimodal AI Partner
-Zync integrates deeply with **Google Gemini** and **Groq** to act as your AI co-pilot. 
-- **Project Architect:** Instantly turn a rough outline into a structured project plan with tasks and deliverables.
-- **Design Inspiration:** Generate UI/UX layouts and styling ideas directly onto your canvas.
-- **Content Generation:** Summarize long meetings, draft professional reports, or write code snippets with a single prompt.
+Zync integrates with **Kilo Code Gateway** (primary architecture agent) and **Groq** (fast task generation & commit analysis) as AI co-pilots.
+- **Architecture Agent:** Natural-language chat → structured JSON architecture maps via Kilo Gateway (`kilo-auto/free`).
+- **Project Architect:** Instant project scaffolding with tasks & deliverables via Groq ultra-low-latency inference.
+- **Commit Analysis:** GitHub webhook integration uses Groq to summarize architectural impact of commits.
 
 ### ⚡️ Real-Time Sync
 Zync utilizes **Yjs** (a high-performance CRDT implementation) and **WebSockets** to keep documents and boards in sync across collaborators in real time without merge conflicts.
@@ -95,7 +95,7 @@ Zync is built using enterprise-grade, modern open-source tools:
 - **Real-Time Engine**: Built on **Yjs** for conflict-free replicated data types (CRDTs), ensuring all clients stay perfectly in sync. **Socket.IO** handles the bidirectional transport layer.
 - **Backend**: A robust **Node.js/Express** API that handles authentication, REST endpoints, and orchestration.
 - **Database Layer**: **Prisma** handles complex relational data, while **MongoDB (Mongoose)** manages unstructured document data. **Redis** acts as our high-performance pub/sub and caching layer.
-- **AI Engine**: LangChain-powered orchestration hooking into **Gemini** and **Groq** APIs.
+- **AI Engine**: Kilo Code Gateway (architecture agent chat) + Groq SDK (project scaffolding & commit analysis).
 
 ---
 
@@ -171,7 +171,7 @@ Dive deeper into Zync's internals by exploring our comprehensive documentation i
 
 - [x] Hyper-fused Markdown + Canvas Editor
 - [x] Real-time CRDT Sync
-- [x] Gemini AI Integrations
+- [x] Kilo Gateway Architecture Agent
 - [x] GitHub Kanban Bidirectional Sync
 - [ ] Desktop App (Electron/Tauri)
 - [ ] End-to-End Encryption (E2EE) for Workspaces

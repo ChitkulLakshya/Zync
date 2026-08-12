@@ -22,8 +22,7 @@ Comprehensive reference of every cloud service, hosting provider, third-party AP
 | Provider / Model | Gateway / SDK | Role / Subsystem | Configuration |
 |---|---|---|---|
 | **Kilo Code Gateway** (`kilo-auto/free`) | Direct HTTP REST API | Primary Architecture Agent engine — processes natural language chat and outputs structured JSON architecture maps. | `KILO_CODE_GATEWAY_URL`, `KILO_CODE_GATEWAY_API_KEY` |
-| **Groq** (`groq-sdk`) | Groq API Client | High-speed, low-latency AI completions for fallback project scaffolding and task breakdown generation. | `GROQ_API_KEY` |
-| **Google Gemini** | `@google/generative-ai` | Secondary AI provider for general assistant queries and project roadmap generation. | `GEMINI_API_KEY_SECONDARY` |
+| **Groq** (`groq-sdk`) | Groq API Client | High-speed, low-latency AI completions for project scaffolding (`taskGenerator.js`) and GitHub commit analysis (`commitAnalysisService.js`). | `GROQ_API_KEY` |
 
 ---
 

@@ -14,7 +14,7 @@ sequenceDiagram
     participant Route as 🛡️ Webhook Ingress (/api/github/webhook)
     participant Queue as 📬 In-Memory Webhook Queue
     participant Worker as ⚙️ Webhook Worker
-    participant Groq as 🤖 Groq AI Analysis
+    participant Groq as 🤖 Groq (Commit Analysis)
     participant Mongo as 📦 MongoDB (Project Collection)
     participant WS as ⚡ Socket.IO Gateway
 
@@ -56,7 +56,7 @@ To prevent Denial of Service (DoS) during massive force pushes or initial reposi
 
 ### Architectural Impact Analysis
 Commit message arrays are extracted and passed through `analyzeArchitectureImpact`:
-* **AI Summarization**: If `GROQ_API_KEY` is configured, Llama 3 inspects the commit delta to generate a high-level natural language summary of architectural modifications.
+* **AI Summarization**: If `GROQ_API_KEY` is configured, Groq's Llama 3 inspects the commit delta to generate a high-level natural language summary of architectural modifications.
 * **Regex Task Linking**: A fallback regex scanner (`/\b(?:TASK-\d+|ID-\d+|#\d+)\b/i`) tallies direct mentions of project task identifiers across the commit logs.
 
 ---
