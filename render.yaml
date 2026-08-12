@@ -1,19 +1,69 @@
-# Render Blueprint — use "Apply" in the Render dashboard or link this repo so
-# build/start commands stay aligned with low-memory production deploys.
-#
+# Render Blueprint — apply in the Render dashboard or link this repo.
 # https://render.com/docs/blueprint-spec
+#
+# Two services ship from this single repo:
+#
+#   zync          — Main Zync backend (projects, users, sockets, GitHub, etc.)
+#   zync-kilo-gw  — Kilo Code Gateway micro-service (AI architecture agent)
+#                   Deploy this on the NEW Render account / workspace.
+#
+# Each service requires its own set of env vars configured in the Render
+# dashboard (or via render.yaml `envVars` for non-secret values).
+# Secrets (API keys, DB URIs) should ALWAYS be set via the dashboard,
+# never committed to this file.
 
 services:
+  # ─── Main Zync Backend ─────────────────────────────────────────────────────
   - type: web
     name: zync
     runtime: node
     plan: free
     branch: main
-    buildCommand: HUSKY=0 npm install && npm run build
-    startCommand: npm start
-    healthCheckPath: /
+    rootDir: backend
+    buildCommand: HUSKY=0 npm install
+    startCommand: node index.js
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: HUSKY
         value: "0"
+      # Set these secrets in the Render dashboard (not here):
+      #   MONGO_URI, REDIS_URL, FIREBASE_SERVICE_ACCOUNT,
+      #   GITHUB_APP_ID, GITHUB_PRIVATE_KEY, GITHUB_WEBHOOK_SECRET,
+      #   GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET,
+      #   MASTER_ENCRYPTION_KEY, ENCRYPTION_KEY,
+      #   CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET,
+      #   GROQ_API_KEY, GEMINI_API_KEY_SECONDARY,
+      #   KILO_CODE_GATEWAY_URL, KILO_CODE_GATEWAY_API_KEY,
+      #   FRONTEND_URL (set to your Vercel app URL)
+
+  # ─── Kilo Code Gateway (AI Architecture Service) ───────────────────────────
+  # Deploy this on the NEW Render account.
+  # Build & start from the same repo — just a different entry point.
+  - type: web
+    name: zync-kilo-gw
+    runtime: node
+    plan: free
+    branch: main
+    rootDir: backend
+    buildCommand: HUSKY=0 npm install
+    startCommand: node kilo-gateway-server.js
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HUSKY
+        value: "0"
+      - key: KILO_CODE_GATEWAY_MODEL
+        value: kilo-auto/free
+      # Set these secrets in the Render dashboard (not here):
+      #   MONGO_URI               — same Atlas cluster as main backend
+      #   REDIS_URL               — same Redis instance (quota tracking)
+      #   REDIS_TLS               — true if rediss://
+      #   FIREBASE_SERVICE_ACCOUNT — for Firebase token verification
+      #   GCP_SERVICE_ACCOUNT_KEY  — alias used by firebaseAdmin.js
+      #   KILO_CODE_GATEWAY_URL   — your Kilo gateway base URL
+      #   KILO_CODE_GATEWAY_API_KEY — your Kilo API key
+      #   FRONTEND_URL            — your Vercel app URL (CORS)
+      #   ALLOWED_ORIGINS         — any extra origins (comma-separated)

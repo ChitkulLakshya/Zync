@@ -6,7 +6,7 @@ import { ChevronLeft, Info, Layers, Zap, X, Send, RefreshCw, Plus, Sparkles } fr
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { API_BASE_URL } from '@/lib/utils';
+import { KILO_API_BASE_URL } from '@/lib/utils';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { architectureQueue } from '@/lib/architectureQueue';
@@ -38,7 +38,7 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
       try {
         const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
         if (!token) {return;}
-        const res = await fetch(`${API_BASE_URL}/api/architecture-agent/quota`, {
+        const res = await fetch(`${KILO_API_BASE_URL}/api/architecture-agent/quota`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {return;}
@@ -109,7 +109,7 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
       const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
       if (!token) {throw new Error('No auth token');}
 
-      const res = await fetch(`${API_BASE_URL}/api/architecture-agent/chat`, {
+      const res = await fetch(`${KILO_API_BASE_URL}/api/architecture-agent/chat`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

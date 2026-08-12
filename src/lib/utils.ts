@@ -80,6 +80,12 @@ import { twMerge } from "tailwind-merge";
 
 // Exports the base URL for backend API requests, determining the correct URL based on whether the app is in development mode or production.
 export const API_BASE_URL = import.meta.env.DEV ? "" : (import.meta.env.VITE_API_URL || "");
+// Exports the base URL for the Kilo Code Gateway (architecture-agent). Uses VITE_KILO_API_URL if
+// set (e.g. a separate Render account), otherwise falls back to the main API URL.
+export const KILO_API_BASE_URL =
+  (import.meta.env.DEV
+    ? (import.meta.env.VITE_KILO_API_URL || "http://localhost:5000")
+    : (import.meta.env.VITE_KILO_API_URL || import.meta.env.VITE_API_URL || ""));
 // Exports the base URL for the Socket.IO server, prioritizing explicit socket URLs, falling back to the API URL, and defaulting to localhost during development.
 export const SOCKET_BASE_URL =
   import.meta.env.VITE_SOCKET_URL ||
