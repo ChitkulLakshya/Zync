@@ -1,6 +1,31 @@
 {
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://apis.google.com https://www.googleapis.com https://www.gstatic.com https://www.google.com; connect-src 'self' https://github.com https://api.github.com https://*.googleapis.com https://www.google.com https://www.gstatic.com https://*.firebaseio.com https://*.firebase.google.com wss://*.glitch.me; img-src 'self' data: blob: https://avatars.githubusercontent.com https://*.githubusercontent.com https://*.googleusercontent.com https://*.google.com https://ui-avatars.com https://res.cloudinary.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; worker-src 'self' blob:; frame-src 'self' https://github.com https://*.firebaseapp.com https://*.google.com; font-src 'self' data: https://fonts.gstatic.com; object-src 'none'; base-uri 'self'; form-action 'self'"
+        }
+      ]
+    },
+    {
       "source": "/index.html",
       "headers": [
         {
