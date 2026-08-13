@@ -161,9 +161,13 @@ const MobileProjectDetails = () => {
     setIsCreatingTask(true);
     try {
       const assignedUser = users.find(u => u.uid === selectedAssigneeId);
+      const token = await currentUser?.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${selectedStepId}/tasks`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           title: newTaskTitle,
           description: newTaskDesc,

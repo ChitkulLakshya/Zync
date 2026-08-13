@@ -85,7 +85,7 @@ const getAppJwt = () => { // WHAT: Defines a function to generate a JWT for the 
     const now = Math.floor(Date.now() / 1000); // WHAT: Gets the current time in seconds since epoch. WHY: JWT claims like 'iat' and 'exp' require time in seconds.
     const payload = { // WHAT: Creates the JWT payload object. WHY: Defines the claims (issued at, expiration, issuer) required by GitHub.
         iat: now - 60, // WHAT: Sets the 'issued at' time to 60 seconds in the past. WHY: Prevents token rejection due to clock drift between servers.
-        exp: now + (10 * 60), // WHAT: Sets the 'expiration' time to 10 minutes in the future. WHY: Limits the validity window of the token for security; GitHub enforces a max of 10 minutes.
+        exp: now + (5 * 60), // WHAT: Sets the 'expiration' time to 5 minutes in the future. WHY: Leaves buffer for clock drift so it doesn't exceed 10m max.
         iss: appId // WHAT: Sets the 'issuer' to the GitHub App ID. WHY: Tells GitHub which App is presenting the token.
     };
 

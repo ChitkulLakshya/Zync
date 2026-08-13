@@ -525,14 +525,22 @@ const ProjectDetails = () => {
 
       if (!realStepId || !realTaskId) { return; }
 
-      await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${realTaskId}`, {
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${realStepId}/tasks/${realTaskId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           ...updates,
           assignedBy: auth.currentUser?.displayName || 'Admin'
         })
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to update task");
+      }
     } catch (error) {
       console.error("Failed to update task", error);
       fetchProject();
@@ -576,11 +584,12 @@ const ProjectDetails = () => {
       const assignedUser = users.find(u => u.uid === selectedAssigneeId);
       const assignedToName = assignedUser ? (assignedUser.displayName || assignedUser.email) : undefined;
 
+      const token = await auth.currentUser?.getIdToken();
       const response = await fetch(`${API_BASE_URL}/api/projects/${project.id}/steps/${selectedStepId}/tasks`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           title: newTaskTitle,

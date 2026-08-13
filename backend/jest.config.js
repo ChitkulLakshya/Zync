@@ -75,6 +75,9 @@
  */
 module.exports = {
   testEnvironment: 'node',
+  // Run tests sequentially to avoid ESM module loading race conditions
+  // with jose/jwks-rsa (firebase-admin transitive deps) under parallel workers.
+  maxWorkers: 1,
   // Includes both `*.test.js` and legacy `*_test.js` suffixes.
   testMatch: ['**/tests/**/*.test.js', '**/tests/**/*_test.js', '**/__tests__/**/*.test.js'],
   // ESM-only transitive deps (jose, jwks-rsa via firebase-admin) must go
@@ -83,4 +86,7 @@ module.exports = {
   transform: { '^.+\\.js$': 'babel-jest' },
   transformIgnorePatterns: ['node_modules/(?!jose|jwks-rsa|@panva/asn1.js|firebase-admin|@firebase/)'],
   clearMocks: true,
+  moduleNameMapper: {
+    '^octokit$': '<rootDir>/tests/__mocks__/octokit.js',
+  },
 };

@@ -13,7 +13,7 @@
     "dev:watch": "nodemon index.js",
     "build": "npx prisma generate",
     "create-meet": "node scripts/meet/create_meet_space.js",
-    "test": "jest"
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
   },
   "keywords": [
     "zync",
@@ -45,7 +45,7 @@
     "nodemailer": "^9.0.1",
     "octokit": "^5.0.4",
     "pg": "^8.16.3",
-    "puppeteer": "^24.35.0",
+    "puppeteer": "^25.6.0",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.10.4",
     "redis": "^5.10.0",

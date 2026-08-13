@@ -170,7 +170,7 @@ const registerWebhookProcessor = (processor) => { // WHAT: Sets the processor fu
   webhookProcessor = processor; // WHAT: Assigns the variable. WHY: State update.
 };
 
-const enqueueWebhookJob = ({ deliveryId, event, payload, getIo }) => { // WHAT: Adds a new job to the queue. WHY: Entry point for incoming webhooks.
+const enqueueWebhookJob = ({ deliveryId, event, payload, getIo, getTaskIO }) => { // WHAT: Adds a new job to the queue. WHY: Entry point for incoming webhooks.
   const normalizedDeliveryId = String(deliveryId || '').trim(); // WHAT: Normalizes the ID. WHY: Ensures consistent string matching.
   if (!normalizedDeliveryId) { // WHAT: Validates the ID. WHY: Deduplication is impossible without it.
     throw new Error('deliveryId is required for webhook queue idempotency'); // WHAT: Throws if missing. WHY: Enforces strict idempotency constraints.
@@ -203,6 +203,7 @@ const enqueueWebhookJob = ({ deliveryId, event, payload, getIo }) => { // WHAT: 
     event: job.event, // WHAT: Passes event. WHY: Might be needed by processor.
     payload: payload || {}, // WHAT: Passes the actual webhook payload. WHY: The data to be processed.
     getIo: typeof getIo === 'function' ? getIo : null, // WHAT: Passes the websocket getter. WHY: Allows the processor to emit real-time updates.
+    getTaskIO: typeof getTaskIO === 'function' ? getTaskIO : null, // WHAT: Passes the task-socket-namespace getter. WHY: Allows the processor to broadcast per-task Kanban updates (task-updated) without holding a reference to the raw `req`.
   });
   pruneOldJobs(); // WHAT: Triggers a cleanup. WHY: Ensures map doesn't grow indefinitely on every enqueue.
   scheduleDrain(); // WHAT: Kicks off processing. WHY: Ensures the job will eventually be run.

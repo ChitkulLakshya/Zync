@@ -77,7 +77,7 @@ const mongoose = require('mongoose');
 
 const projectTaskSchema = new mongoose.Schema(
   {
-    displayId: { type: String, default: null },
+    displayId: { type: String },
     title: { type: String, required: true },
     description: { type: String, default: null },
     status: { type: String, default: 'Ready' },
@@ -89,7 +89,7 @@ const projectTaskSchema = new mongoose.Schema(
     assignedBy: { type: String, default: null },
 
 
-    commitCode: { type: String, default: null },
+    commitCode: { type: String },
     commitMessage: { type: String, default: null },
     commitUrl: { type: String, default: null },
     commitAuthor: { type: String, default: null },

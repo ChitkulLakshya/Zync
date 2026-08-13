@@ -62,147 +62,149 @@ export function ActivitySummaryCard({
           Activity Summary
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex gap-2">
-            <Select
-              value={selectedTeamId === 'all' ? undefined : selectedTeamId}
-              onValueChange={(v) => {
-                setSelectedTeamId(v);
-                if (v === 'all') {
-                  setSelectedUserId(currentUserId || 'all');
-                } else {
-                  setSelectedUserId('all');
-                }
-              }}
-            >
-              <SelectTrigger className="w-[170px] h-9 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[11px] text-muted-foreground backdrop-blur-md hover:bg-black/10 dark:hover:bg-white/10">
-                {selectedTeamId !== 'all' && selectedTeamOption ? (
-                  (() => {
-                    const logoId =
-                      selectedTeamOption.logoId ||
-                      getDeterministicLogoId(selectedTeamOption.id);
-                    const {
-                      icon: LogoIcon,
-                      fgColor,
-                      bgColor,
-                      borderColor,
-                    } = getLogoById(logoId);
-                    return (
-                      <div className="flex items-center gap-2 truncate">
-                        <span
-                          className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
-                          style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
-                        >
-                          <LogoIcon className="h-3 w-3" />
-                        </span>
-                        <span className="truncate">{selectedTeamOption.name}</span>
-                      </div>
-                    );
-                  })()
-                ) : (
-                  <SelectValue placeholder="Select Team" />
-                )}
-              </SelectTrigger>
-              <SelectContent className="bg-background/80 backdrop-blur-xl border-border text-foreground">
-                {normalizedTeamFilterOptions.length === 0 ? (
-                  <SelectItem
-                    value="__no_team_available"
-                    disabled
-                    className="text-muted-foreground focus:bg-accent"
-                  >
-                    No teams available
-                  </SelectItem>
-                ) : (
-                  normalizedTeamFilterOptions.map((t: any) => {
-                    const logoId = t.logoId || getDeterministicLogoId(t.id);
-                    const {
-                      icon: LogoIcon,
-                      fgColor,
-                      bgColor,
-                      borderColor,
-                    } = getLogoById(logoId);
-                    return (
-                      <SelectItem
-                        key={t.id}
-                        value={t.id}
-                        className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
-                      >
-                        <div className="flex items-center gap-2">
+          {normalizedTeamFilterOptions.length > 0 && (
+            <div className="flex gap-2">
+              <Select
+                value={selectedTeamId === 'all' ? undefined : selectedTeamId}
+                onValueChange={(v) => {
+                  setSelectedTeamId(v);
+                  if (v === 'all') {
+                    setSelectedUserId(currentUserId || 'all');
+                  } else {
+                    setSelectedUserId('all');
+                  }
+                }}
+              >
+                <SelectTrigger className="w-[170px] h-9 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[11px] text-muted-foreground backdrop-blur-md hover:bg-black/10 dark:hover:bg-white/10">
+                  {selectedTeamId !== 'all' && selectedTeamOption ? (
+                    (() => {
+                      const logoId =
+                        selectedTeamOption.logoId ||
+                        getDeterministicLogoId(selectedTeamOption.id);
+                      const {
+                        icon: LogoIcon,
+                        fgColor,
+                        bgColor,
+                        borderColor,
+                      } = getLogoById(logoId);
+                      return (
+                        <div className="flex items-center gap-2 truncate">
                           <span
-                            className="inline-flex h-5 w-5 items-center justify-center rounded-full border"
+                            className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border"
                             style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
                           >
                             <LogoIcon className="h-3 w-3" />
                           </span>
-                          <span>{t.name}</span>
+                          <span className="truncate">{selectedTeamOption.name}</span>
                         </div>
-                      </SelectItem>
-                    );
-                  })
-                )}
-              </SelectContent>
-            </Select>
-
-            {selectedTeamId !== 'all' && (
-              <Select value={selectedUserId} onValueChange={setSelectedUserId}>
-                <SelectTrigger className="w-[170px] h-9 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[11px] text-muted-foreground backdrop-blur-md hover:bg-black/10 dark:hover:bg-white/10">
-                  {selectedUserId !== 'all' && selectedMemberOption ? (
-                    <div className="flex items-center gap-2 truncate">
-                      {selectedMemberOption.photoURL ? (
-                        <img
-                          src={getFullUrl(selectedMemberOption.photoURL)}
-                          referrerPolicy="no-referrer"
-                          alt={selectedMemberOption.label}
-                          className="h-5 w-5 rounded-full object-cover border border-border shrink-0"
-                        />
-                      ) : (
-                        <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
-                          {(selectedMemberOption.label || 'M').charAt(0).toUpperCase()}
-                        </span>
-                      )}
-                      <span className="truncate">{selectedMemberOption.label}</span>
-                    </div>
+                      );
+                    })()
                   ) : (
-                    <SelectValue placeholder="Select Member" />
+                    <SelectValue placeholder="Select Team" />
                   )}
                 </SelectTrigger>
                 <SelectContent className="bg-background/80 backdrop-blur-xl border-border text-foreground">
-                  {selectedTeamMemberOptions.length === 0 ? (
+                  {normalizedTeamFilterOptions.length === 0 ? (
                     <SelectItem
-                      value="__no_member_available"
+                      value="__no_team_available"
                       disabled
                       className="text-muted-foreground focus:bg-accent"
                     >
-                      No members found
+                      No teams available
                     </SelectItem>
                   ) : (
-                    selectedTeamMemberOptions.map((u) => (
-                      <SelectItem
-                        key={u.uid}
-                        value={u.uid}
-                        className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
-                      >
-                        <div className="flex items-center gap-2">
-                          {u.photoURL ? (
-                            <img
-                              src={getFullUrl(u.photoURL)}
-                              referrerPolicy="no-referrer"
-                              alt={u.label}
-                              className="h-5 w-5 rounded-full object-cover border border-border"
-                            />
-                          ) : (
-                            <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
-                              {(u.label || 'M').charAt(0).toUpperCase()}
+                    normalizedTeamFilterOptions.map((t: any) => {
+                      const logoId = t.logoId || getDeterministicLogoId(t.id);
+                      const {
+                        icon: LogoIcon,
+                        fgColor,
+                        bgColor,
+                        borderColor,
+                      } = getLogoById(logoId);
+                      return (
+                        <SelectItem
+                          key={t.id}
+                          value={t.id}
+                          className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span
+                              className="inline-flex h-5 w-5 items-center justify-center rounded-full border"
+                              style={{ color: fgColor, backgroundColor: bgColor, borderColor }}
+                            >
+                              <LogoIcon className="h-3 w-3" />
                             </span>
-                          )}
-                          <span>{u.label}</span>
-                        </div>
-                      </SelectItem>
-                    ))
+                            <span>{t.name}</span>
+                          </div>
+                        </SelectItem>
+                      );
+                    })
                   )}
                 </SelectContent>
               </Select>
-            )}
-          </div>
+
+              {selectedTeamId !== 'all' && (
+                <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+                  <SelectTrigger className="w-[170px] h-9 bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-[11px] text-muted-foreground backdrop-blur-md hover:bg-black/10 dark:hover:bg-white/10">
+                    {selectedUserId !== 'all' && selectedMemberOption ? (
+                      <div className="flex items-center gap-2 truncate">
+                        {selectedMemberOption.photoURL ? (
+                          <img
+                            src={getFullUrl(selectedMemberOption.photoURL)}
+                            referrerPolicy="no-referrer"
+                            alt={selectedMemberOption.label}
+                            className="h-5 w-5 rounded-full object-cover border border-border shrink-0"
+                          />
+                        ) : (
+                          <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
+                            {(selectedMemberOption.label || 'M').charAt(0).toUpperCase()}
+                          </span>
+                        )}
+                        <span className="truncate">{selectedMemberOption.label}</span>
+                      </div>
+                    ) : (
+                      <SelectValue placeholder="Select Member" />
+                    )}
+                  </SelectTrigger>
+                  <SelectContent className="bg-background/80 backdrop-blur-xl border-border text-foreground">
+                    {selectedTeamMemberOptions.length === 0 ? (
+                      <SelectItem
+                        value="__no_member_available"
+                        disabled
+                        className="text-muted-foreground focus:bg-accent"
+                      >
+                        No members found
+                      </SelectItem>
+                    ) : (
+                      selectedTeamMemberOptions.map((u) => (
+                        <SelectItem
+                          key={u.uid}
+                          value={u.uid}
+                          className="cursor-pointer focus:bg-accent focus:text-accent-foreground"
+                        >
+                          <div className="flex items-center gap-2">
+                            {u.photoURL ? (
+                              <img
+                                src={getFullUrl(u.photoURL)}
+                                referrerPolicy="no-referrer"
+                                alt={u.label}
+                                className="h-5 w-5 rounded-full object-cover border border-border"
+                              />
+                            ) : (
+                              <span className="inline-flex h-5 w-5 items-center justify-center rounded-full border border-border/20 bg-accent text-[10px] font-semibold text-foreground">
+                                {(u.label || 'M').charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                            <span>{u.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
           <div className="flex items-center gap-1 bg-black/5 dark:bg-white/5 border border-border rounded-lg px-3 py-1.5 text-xs text-muted-foreground">
             <Calendar className="h-3.5 w-3.5" />
             <span>{new Date().getFullYear()}</span>

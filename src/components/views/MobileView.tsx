@@ -237,11 +237,9 @@ const MobileView = () => {
     const fetchActivityData = async () => {
       try {
         const token = await currentUser.getIdToken();
-        const [sessionsRes, projectsRes, ownedTeamsRes, myTeamsRes] = await Promise.all([
+        const [sessionsRes, projectsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${API_BASE_URL}/api/projects`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         if (cancelled) { return; }
@@ -264,15 +262,7 @@ const MobileView = () => {
           }
         }
 
-        if (ownedTeamsRes.ok) {
-          const teams = await ownedTeamsRes.json();
-          setOwnedTeams(Array.isArray(teams) ? teams : []);
-        }
-
-        if (myTeamsRes.ok) {
-          const teams = await myTeamsRes.json();
-          setMyTeams(Array.isArray(teams) ? teams : []);
-        }
+        // Fetch teams globally instead of here to fix visibility issues
 
         if (usersList.length > 0) {
           const teamSessionsRes = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
@@ -299,6 +289,46 @@ const MobileView = () => {
       clearInterval(intervalId);
     };
   }, [activeTab, currentUser, usersList]);
+
+  // Global fetch for teams so `canViewActivityLog` is accurate even when on other pages
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+    
+    let cancelled = false;
+    const fetchTeams = async () => {
+      try {
+        const token = await currentUser.getIdToken();
+        const [ownedTeamsRes, myTeamsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (ownedTeamsRes.ok) {
+          const teams = await ownedTeamsRes.json();
+          setOwnedTeams(Array.isArray(teams) ? teams : []);
+        }
+        
+        if (myTeamsRes.ok) {
+          const teams = await myTeamsRes.json();
+          setMyTeams(Array.isArray(teams) ? teams : []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch mobile teams for activity log visibility:', err);
+      }
+    };
+
+    fetchTeams();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser]);
 
   const handleDeleteLog = async (logId: string) => {
     if (!currentUser) { return; }
@@ -337,17 +367,13 @@ const MobileView = () => {
   };
 
 
-  const canViewActivityLog = myTeams.some(
-    (t) => t.ownerId === currentUser?.uid || t.admins?.includes(currentUser?.uid)
-  );
-
   const drawerItems = [
     { id: 'My Workspace', label: 'My Workspace', icon: FolderKanban },
     { id: 'My Projects', label: 'My Projects', icon: Github },
     { id: 'Calendar', label: 'Calendar', icon: Calendar },
     { id: 'Notes', label: 'Notes', icon: FileText },
     { id: 'Messages', label: 'Messages', icon: MessageSquare },
-    ...(canViewActivityLog ? [{ id: 'Activity', label: 'Activity', icon: Bell }] : []),
+    { id: 'Activity', label: 'Activity', icon: Bell },
     { id: 'Settings', label: 'Settings', icon: Settings },
   ];
 
@@ -466,7 +492,6 @@ const MobileView = () => {
 
   return (
     <MobileLayout
-      hideActivityLog={!canViewActivityLog}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       onFabClick={

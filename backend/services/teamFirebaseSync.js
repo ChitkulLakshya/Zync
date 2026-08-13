@@ -124,6 +124,8 @@ const upsertTeamSnapshot = async (team) => { // WHAT: Upserts a team into Firest
   const ownerId = extractOwnerUid(team); // WHAT: Extracts the owner's UID. WHY: Crucial for determining who controls the team.
   const memberIds = safeArray(team.members).map(normalizeUid).filter(Boolean); // WHAT: Normalizes the array of member IDs. WHY: Ensures all IDs are valid strings.
   const members = Array.from(new Set([...memberIds, ownerId].filter(Boolean))); // WHAT: Creates a deduplicated array of all members including the owner. WHY: Ensures the owner is always treated as a member and no duplicates exist.
+  const adminIds = safeArray(team.admins).map(normalizeUid).filter(Boolean); // WHAT: Normalizes the array of admin IDs. WHY: Needed for role syncing.
+  const pendingMemberIds = safeArray(team.pendingMembers).map(normalizeUid).filter(Boolean); // WHAT: Normalizes pending members. WHY: Syncs join requests.
   const now = new Date().toISOString(); // WHAT: Grabs the current ISO timestamp. WHY: Used for updated and synced timestamps.
 
   const payload = { // WHAT: Constructs the payload for Firestore. WHY: Maps the application's team structure to Firestore's schema.
@@ -131,6 +133,8 @@ const upsertTeamSnapshot = async (team) => { // WHAT: Upserts a team into Firest
     ownerId, // WHAT: Sets the ownerId. WHY: Stores the primary owner.
     leaderId: ownerId, // WHAT: Mirrors ownerId to leaderId. WHY: Compatibility with older schemas or clients.
     members, // WHAT: Sets the array of member IDs. WHY: Allows querying for all members.
+    admins: adminIds, // WHAT: Sets the array of admin IDs. WHY: Allows querying for admins.
+    pendingMembers: pendingMemberIds, // WHAT: Sets the array of pending member IDs. WHY: Syncs pending join requests.
     inviteCode: team.inviteCode || '', // WHAT: Stores the invite code. WHY: Allows joining via link.
     logoId: team.logoId || 'rocket', // WHAT: Sets the logo ID. WHY: Default fallback to 'rocket'.
     type: team.type || 'Other', // WHAT: Sets the team type. WHY: Default fallback to 'Other'.

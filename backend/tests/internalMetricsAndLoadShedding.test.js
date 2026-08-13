@@ -76,6 +76,8 @@
 const request = require('supertest');
 const express = require('express');
 
+jest.mock('../middleware/authMiddleware', () => (_req, _res, next) => next());
+
 const ORIGINAL_MEMORY_USAGE = process.memoryUsage;
 
 describe('internal metrics route', () => {
