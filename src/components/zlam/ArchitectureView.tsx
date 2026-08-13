@@ -62,7 +62,7 @@ const ArchitectureView: React.FC<{ project?: any }> = ({ project }) => {
         const { auth } = await import('@/lib/firebase');
         const token = await auth.currentUser?.getIdToken?.();
         if (!token) {throw new Error('No auth token');}
-        const res = await fetch(`${API_BASE_URL}/api/projects/${id}`, {
+        const res = await fetch(`${KILO_API_BASE_URL}/api/projects/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) {throw new Error(`Failed to fetch project: ${res.status}`);}
