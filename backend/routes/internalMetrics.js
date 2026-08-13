@@ -79,6 +79,8 @@ const express = require('express');
 // Creates a new router object from Express.
 // This allows us to define modular, mountable route handlers, grouping related routes here before exporting them to the main application.
 const router = express.Router();
+// Imports the auth middleware to ensure only authenticated users can access internal metrics.
+const authMiddleware = require('../middleware/authMiddleware');
 // Uses object destructuring to import the 'getWebhookQueueMetrics' function from the specified module.
 // This is needed to access the specific function responsible for retrieving real-time metrics about the webhook processing queue.
 const { getWebhookQueueMetrics } = require('../services/webhookQueue');
@@ -89,7 +91,7 @@ const bytesToMb = (bytes) => Number((bytes / (1024 * 1024)).toFixed(2));
 
 // Defines a GET route handler for the '/metrics' path using the Express router.
 // This sets up an API endpoint at '/metrics' that, when accessed via a GET request, will execute the provided function to gather and return system and application metrics.
-router.get('/metrics', (_req, res) => {
+router.get('/metrics', authMiddleware, (_req, res) => {
   // Calls the Node.js global 'process.memoryUsage()' function to get current memory statistics for the process.
   // This is needed to collect current memory statistics (like RSS, heapUsed, heapTotal) of the running Node.js application.
   const memoryUsage = process.memoryUsage();

@@ -190,7 +190,7 @@ const MobilePreview = () => {
                             {mockProjects.map(project => (
                                 <Card
                                     key={project.id}
-                                    className="bg-secondary/5 border-border/10 rounded-2xl overflow-hidden"
+                                    className="bg-card/60 dark:bg-card/40 backdrop-blur-xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl overflow-hidden"
                                 >
                                     <CardHeader className="p-3 pb-2">
                                         <div className="flex justify-between items-start">
@@ -238,7 +238,7 @@ const MobilePreview = () => {
                         <div className="p-3 space-y-3">
                             <h2 className="text-sm font-bold text-foreground">People</h2>
                             {mockPeople.map(person => (
-                                <Card key={person.id} className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl">
+                                <Card key={person.id} className="p-2.5 bg-card/60 dark:bg-card/40 backdrop-blur-xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl">
                                     <div className="flex items-center gap-2.5">
                                         <div className="relative">
                                             <Avatar className="w-8 h-8">
@@ -263,7 +263,7 @@ const MobilePreview = () => {
                     {activeTab === "calendar" && (
                         <div className="p-3 space-y-3">
                             <h2 className="text-sm font-bold text-foreground">January 2026</h2>
-                            <Card className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl">
+                            <Card className="p-2.5 bg-card/60 dark:bg-card/40 backdrop-blur-xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl">
                                 <div className="grid grid-cols-7 gap-0.5 text-center mb-1">
                                     {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
                                         <div key={i} className="text-[8px] text-muted-foreground font-medium py-0.5">{d}</div>
@@ -293,7 +293,7 @@ const MobilePreview = () => {
                                     })}
                                 </div>
                             </Card>
-                            <Card className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl flex items-center gap-3">
+                            <Card className="p-2.5 bg-card/60 dark:bg-card/40 backdrop-blur-xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl flex items-center gap-3">
                                 <div className="w-1 h-8 bg-task-orange rounded-full" />
                                 <div>
                                     <div className="text-[10px] font-medium text-foreground">Sprint Planning</div>
@@ -312,7 +312,7 @@ const MobilePreview = () => {
                                 </Button>
                             </div>
                             {mockNotes.map(note => (
-                                <Card key={note.id} className="p-2.5 bg-secondary/5 border-border/10 rounded-2xl">
+                                <Card key={note.id} className="p-2.5 bg-card/60 dark:bg-card/40 backdrop-blur-xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl">
                                     <div className="flex items-center gap-2">
                                         <div className="w-8 h-8 rounded-lg bg-secondary/20 flex items-center justify-center text-foreground border border-border/10">
                                             <FileText className="w-4 h-4" />
@@ -331,7 +331,7 @@ const MobilePreview = () => {
                         <div className="p-3 space-y-3">
                             <h2 className="text-sm font-bold text-foreground">My Tasks</h2>
                             {mockTasks.map(task => (
-                                <Card key={task.id} className={`p-2.5 bg-secondary/5 border-border/10 rounded-2xl ${task.done ? "opacity-60" : ""}`}>
+                                <Card key={task.id} className={`p-2.5 bg-card/60 dark:bg-card/40 backdrop-blur-xl backdrop-saturate-180 border border-white/10 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.06)] rounded-2xl ${task.done ? "opacity-60" : ""}`}>
                                     <div className="flex items-center gap-2">
                                         <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center ${task.done ? "bg-foreground border-foreground" : "border-muted-foreground/30"
                                             }`}>

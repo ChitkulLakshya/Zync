@@ -140,8 +140,6 @@ const userSchema = new mongoose.Schema(
   }
 );
 
-userSchema.index({ uid: 1 }, { unique: true });
-userSchema.index({ email: 1 }, { unique: true });
 userSchema.index({ displayName: 'text', firstName: 'text', lastName: 'text' });
 
 module.exports = mongoose.model('User', userSchema);

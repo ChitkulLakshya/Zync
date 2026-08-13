@@ -18,10 +18,13 @@ const MobileSettings = () => {
   const { confirm } = useConfirm();
 
   const handleSignOut = async () => {
-    const ok = await confirm({ title: 'Sign Out', description: 'Are you sure you want to sign out?' });
-    if (!ok) {return;}
-    await signOutAndClearState(auth);
-    navigate('/');
+    try {
+      await signOutAndClearState(auth);
+    } catch (err) {
+      console.error('Sign out error:', err);
+    } finally {
+      window.location.href = '/login';
+    }
   };
 
   return (

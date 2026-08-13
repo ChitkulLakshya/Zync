@@ -100,9 +100,9 @@ export function cn(...inputs: ClassValue[]) {
 // Defines a utility to construct absolute URLs for resources (like images) that might only have relative paths stored in the database.
 export function getFullUrl(path: string | undefined | null) {
   // Returns an empty string if no valid path was provided, preventing undefined reference errors.
-  if (!path) {return '';}
+  if (!path) { return ''; }
   // Immediately returns the original path if it is already a fully qualified external URL or a local blob URL.
-  if (path.startsWith('http') || path.startsWith('blob:')) {return path;}
+  if (path.startsWith('http') || path.startsWith('blob:')) { return path; }
   // Constructs and returns the full absolute URL by prepending the API_BASE_URL to the relative path, ensuring a proper forward slash separator.
   return `${API_BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
 }
@@ -125,7 +125,7 @@ export function pickUserForDisplay(userData: any, firebaseUser: any | null | und
 // Exports a robust utility function to extract a human-readable display name from a user object regardless of its shape or origin.
 export function getUserName(user: any) {
   // Returns a generic "User" fallback if the user object is missing entirely.
-  if (!user) {return "User";}
+  if (!user) { return "User"; }
   // Attempts multiple properties in descending order of preference: displayName, combination of first/last, explicitly 'name', or the first half of their email.
   return user.displayName ||
     (user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : null) ||

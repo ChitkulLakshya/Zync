@@ -81,6 +81,7 @@ const {
 } = require('../services/webhookQueue');
 
 jest.mock('../middleware/verifyGithub', () => (_req, _res, next) => next());
+jest.mock('../middleware/authMiddleware', () => (_req, _res, next) => next());
 
 const mockProjectFindOne = jest.fn();
 const mockProjectUpdateOne = jest.fn();

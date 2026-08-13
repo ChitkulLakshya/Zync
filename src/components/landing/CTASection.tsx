@@ -105,12 +105,12 @@ const CTASection = () => {
   return (
     <section
       id="cta"
-      className="py-20 md:py-32 relative overflow-hidden bg-background border-t border-black/5 dark:border-white/5"
+      className="py-10 md:py-32 relative overflow-hidden bg-background border-t border-black/5 dark:border-white/5"
     >
       {/* Isometric Architectural Matrix */}
       <IsometricMatrix />
 
-      <div className="container mx-auto px-4 relative z-10 flex flex-col items-center">
+      <div className="container mx-auto px-4 sm:px-6 relative z-10 flex flex-col items-center">
         {/* Massive Typography */}
         <div className="mb-12 md:mb-16 text-center px-4">
           <h2 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tighter text-foreground mb-4 md:mb-6 uppercase leading-[1.1]">

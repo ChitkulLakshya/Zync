@@ -202,7 +202,7 @@ const findLinkedProject = async (repository) => {
 };
 
 // WHAT: Process GitHub webhook payload. WHY: Orchestrates update logic.
-const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) => {
+const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo, getTaskIO }) => {
   // WHAT: Keep the stored installationId in lockstep with GitHub.
   // WHY: This is the ONLY place allowed to conclude "the app was uninstalled".
   // Inferring it from a failed API call is what used to strand users on the
@@ -335,6 +335,20 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
           }
         }
         await cache.invalidate(`projects:${linkedProject.ownerUid}`);
+
+        // WHAT: Broadcast the status change to everyone viewing this project's board.
+        // WHY: Without this, the card only moves to "PR Raised" after a manual refresh -
+        // the owner notification above doesn't refresh anyone's Kanban board.
+        const taskIO = typeof getTaskIO === 'function' ? getTaskIO() : null;
+        if (taskIO) {
+          taskIO.emitToProject(String(linkedProject._id), 'task-updated', {
+            projectId: String(linkedProject._id),
+            stepId: String(task.stepId),
+            taskId: String(task._id),
+            changes: { status: 'PR Raised', githubPrUrl: pull_request.html_url, githubPrNumber: pull_request.number },
+            actor: repository?.sender?.login || payload.sender?.login || 'github',
+          });
+        }
       }
       
       return { processed: true, action: 'pr_raised_linked_to_task' };
@@ -418,7 +432,7 @@ const processGithubWebhookJob = async ({ deliveryId, event, payload, getIo }) =>
           await cacheModule.invalidate(`projects:${task.assignedTo}`);
         }
 
-        const taskIO = req?.app?.get ? req.app.get('taskIO') : null;
+        const taskIO = typeof getTaskIO === 'function' ? getTaskIO() : null;
         if (taskIO) {
           taskIO.emitToProject(String(linkedProject._id), 'task-updated', {
             projectId: String(linkedProject._id),

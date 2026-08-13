@@ -152,54 +152,29 @@ router.get('/holidays', verifyToken, async (req, res) => {
         // This is an if statement that checks if the 'ok' property of the 'response' object is 'false'. The 'ok' property is 'true' if the HTTP status code is in the 200-299 range, otherwise 'false'.
         // This checks if the external API request was unsuccessful (e.g., 5xx server error, 4xx client error other than 404), indicating a general failure to retrieve data.
         if (!response.ok) {
-            // If the 'response.ok' is 'false', this line sends an HTTP 502 (Bad Gateway) status code to the client with a generic JSON error message. 'return' stops further execution.
-            // This indicates that the server, acting as a gateway, received an invalid response from the upstream (Nager.Date) server, informing the client of an issue with the external service.
-            return res.status(502).json({ message: 'Failed to fetch holidays from Nager.Date API.' });
+            return res.json([]);
         }
 
-        // Declares a constant variable 'data' and assigns it the result of asynchronously parsing the 'response' body as JSON. 'await' pauses execution until the JSON parsing is complete.
-        // This extracts the actual holiday data from the successful HTTP response received from the Nager.Date API, converting it from a raw JSON string into a JavaScript object.
         const data = await response.json();
+        if (!Array.isArray(data)) {
+            return res.json([]);
+        }
 
-        // Declares a constant variable 'holidays' and assigns it a new array. 'data.map()' iterates over each item ('h') in the 'data' array and transforms it into a new object.
-        // This processes the raw holiday data received from the external API, mapping it to a standardized and potentially simplified format that is more suitable for the application's needs and client consumption.
         const holidays = data.map((h) => ({
-            // Creates a 'date' property in the new object, assigning it the value of the 'date' property from the original holiday object 'h'.
-            // This extracts the date of the holiday, ensuring it's included in the standardized output.
             date: h.date,
-            // Creates a 'localName' property in the new object, assigning it the value of the 'localName' property from the original holiday object 'h'.
-            // This extracts the local name of the holiday, ensuring it's included in the standardized output.
             localName: h.localName,
-            // Creates a 'name' property in the new object, assigning it the value of the 'name' property from the original holiday object 'h'.
-            // This extracts the common name of the holiday, ensuring it's included in the standardized output.
             name: h.name,
-            // Creates a 'countryCode' property in the new object, assigning it the value of the 'countryCode' property from the original holiday object 'h'.
-            // This extracts the country code associated with the holiday, ensuring it's included in the standardized output.
+            countryCode: h.countryCode || countryCode,
             fixed: h.fixed,
-            // Creates a 'fixed' property in the new object, assigning it the value of the 'fixed' property from the original holiday object 'h'.
-            // This extracts the boolean indicating if the holiday has a fixed date, ensuring it's included in the standardized output.
             global: h.global,
-            // Creates a 'global' property in the new object, assigning it the value of the 'global' property from the original holiday object 'h'.
-            // This extracts the boolean indicating if the holiday is global for the country, ensuring it's included in the standardized output.
             types: h.types || [],
         }));
 
-        // Calls the 'set()' method on the 'holidayCache' Map, storing a new key-value pair. The 'cacheKey' is the key, and the value is an object containing the current timestamp (Date.now()) and the processed 'holidays' data.
-        // This stores the newly fetched and processed holiday data in the cache, along with a timestamp, so that subsequent requests for the same year and country can be served from the cache, improving performance.
         holidayCache.set(cacheKey, { timestamp: Date.now(), data: holidays });
-
-        // Sends an HTTP 200 (OK) status code to the client with the processed 'holidays' array as a JSON response.
-        // This sends the final, formatted holiday data back to the client, successfully fulfilling the API request.
         res.json(holidays);
-    // This keyword starts a 'catch' block, which executes if an error occurs in the preceding 'try' block. The 'error' object contains details about the exception.
-    // This provides a mechanism to gracefully handle any unexpected errors that might occur during the API call or data processing, preventing the server from crashing.
     } catch (error) {
-        // Calls the 'error()' method of the 'console' object to log an error message to the console, including a descriptive string and the 'error' object itself.
-        // This logs detailed error information to the server's console, which is crucial for debugging and monitoring issues in a production environment.
-        console.error('Error fetching holidays:', error);
-        // Sends an HTTP 500 (Internal Server Error) status code to the client with a generic JSON error message.
-        // This informs the client that an unexpected server-side error occurred, providing a general error message without exposing sensitive internal details.
-        res.status(500).json({ message: 'Server error fetching holidays.' });
+        console.warn('Error fetching holidays from external service:', error);
+        res.json([]);
     }
 });
 

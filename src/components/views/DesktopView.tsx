@@ -520,17 +520,11 @@ const sectionToPath: Record<string, string> = {
         const token = await currentUser.getIdToken();
 
 
-        const [sessionsRes, projectsRes, ownedTeamsRes, myTeamsRes] = await Promise.all([
+        const [sessionsRes, projectsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_BASE_URL}/api/projects`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/owned`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${API_BASE_URL}/api/teams/mine`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
         ]);
 
         if (cancelled) {
@@ -554,31 +548,6 @@ const sectionToPath: Record<string, string> = {
           }
         }
 
-        if (ownedTeamsRes.ok) {
-          const teamsData = await ownedTeamsRes.json();
-          setOwnedTeams(Array.isArray(teamsData) ? teamsData : []);
-        }
-
-        if (myTeamsRes.ok) {
-          const myTeamsData = await myTeamsRes.json();
-          const normalizedMyTeams = Array.isArray(myTeamsData) ? myTeamsData : [];
-          setMyTeams(normalizedMyTeams);
-
-
-          if (!ownedTeamsRes.ok) {
-            const ownerTeamsFromMine = normalizedMyTeams.filter((team: any) => {
-              const owner =
-                team?.ownerId ||
-                team?.ownerUid ||
-                team?.leaderId ||
-                team?.createdBy ||
-                team?.createdByUid;
-              return owner === currentUser.uid;
-            });
-            setOwnedTeams(ownerTeamsFromMine);
-          }
-        }
-
 
         if (usersList.length > 0) {
           const teamSessionsRes = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
@@ -593,7 +562,7 @@ const sectionToPath: Record<string, string> = {
         }
       } catch (error) {
         if (!cancelled) {
-          console.error('Initial analytics fetch failed:', error);
+          console.error('Interval analytics fetch failed:', error);
         }
       }
     };
@@ -606,6 +575,60 @@ const sectionToPath: Record<string, string> = {
       clearInterval(intervalId);
     };
   }, [activeSection, currentUser, isPreview, usersList]);
+
+  // Global fetch for teams so `canViewActivityLog` is accurate even when on other pages
+  useEffect(() => {
+    if (!currentUser || isPreview) {
+      return;
+    }
+    
+    let cancelled = false;
+    const fetchTeams = async () => {
+      try {
+        const token = await currentUser.getIdToken();
+        const [ownedTeamsRes, myTeamsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (ownedTeamsRes.ok) {
+          const teamsData = await ownedTeamsRes.json();
+          setOwnedTeams(Array.isArray(teamsData) ? teamsData : []);
+        }
+        
+        if (myTeamsRes.ok) {
+          const myTeamsData = await myTeamsRes.json();
+          const normalizedMyTeams = Array.isArray(myTeamsData) ? myTeamsData : [];
+          setMyTeams(normalizedMyTeams);
+
+          if (!ownedTeamsRes.ok) {
+            const ownerTeamsFromMine = normalizedMyTeams.filter((team: any) => {
+              const owner =
+                team?.ownerId ||
+                team?.ownerUid ||
+                team?.leaderId ||
+                team?.createdBy ||
+                team?.createdByUid;
+              return owner === currentUser.uid;
+            });
+            setOwnedTeams(ownerTeamsFromMine);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch teams for activity log visibility:', err);
+      }
+    };
+
+    fetchTeams();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser, isPreview]);
 
   const handleDeleteLog = async (logId: string) => {
     if (!currentUser) {
@@ -760,10 +783,6 @@ const sectionToPath: Record<string, string> = {
 
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const canViewActivityLog = myTeams.some(
-    (t) => t.ownerId === currentUser?.uid || t.admins?.includes(currentUser?.uid)
-  );
-
   const sidebarItems = [
     { icon: Home, label: 'Dashboard', active: activeSection === 'Dashboard' },
     {
@@ -777,9 +796,7 @@ const sectionToPath: Record<string, string> = {
     { icon: Github, label: 'My Projects', active: activeSection === 'My Projects' },
     { icon: CheckSquare, label: 'Tasks', active: activeSection === 'Tasks' },
     { icon: FileText, label: 'Notes', active: activeSection === 'Notes' },
-    ...(canViewActivityLog
-      ? [{ icon: Clock, label: 'Activity log', active: activeSection === 'Activity log' }]
-      : []),
+    { icon: Clock, label: 'Activity log', active: activeSection === 'Activity log' },
     { icon: Users, label: 'People', active: activeSection === 'People' },
     { icon: Video, label: 'Meet', active: activeSection === 'Meet' },
     { icon: Settings, label: 'Settings', active: activeSection === 'Settings' },
@@ -936,8 +953,8 @@ const sectionToPath: Record<string, string> = {
                 currentTeamOwnerId={
                   typeof userData?.teamId === 'object'
                     ? userData?.teamId?.ownerId ||
-                      userData?.teamId?.ownerUid ||
-                      userData?.teamId?.leaderId
+                    userData?.teamId?.ownerUid ||
+                    userData?.teamId?.leaderId
                     : undefined
                 }
                 currentTeamLogoId={
@@ -985,11 +1002,11 @@ const sectionToPath: Record<string, string> = {
             user={
               currentUser
                 ? {
-                    uid: currentUser.uid,
-                    displayName: currentUser.displayName || undefined,
-                    email: currentUser.email || undefined,
-                    photoURL: currentUser.photoURL || undefined,
-                  }
+                  uid: currentUser.uid,
+                  displayName: currentUser.displayName || undefined,
+                  email: currentUser.email || undefined,
+                  photoURL: currentUser.photoURL || undefined,
+                }
                 : null
             }
             users={usersList}

@@ -86,7 +86,7 @@ export const usePresence = (userId: string | undefined) => {
     const [statuses, setStatuses] = useState<Record<string, UserStatus>>({});
 
     useEffect(() => {
-        if (!userId) {return;}
+        if (!userId) { return; }
 
         const socketUrl = SOCKET_BASE_URL;
 

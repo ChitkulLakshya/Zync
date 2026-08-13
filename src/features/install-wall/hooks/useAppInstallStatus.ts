@@ -139,14 +139,9 @@ export const useAppInstallStatus = (): AppInstallStatus => {
 
   // Memoizes the calculation for 'requiresInstallWall' to avoid unnecessary re-evaluations on every render, recalculating only when its dependencies change.
   const requiresInstallWall = useMemo(() => {
-    // Immediately returns false if the status hasn't been checked yet, preventing the install wall from flashing on the screen before the environment is fully verified.
-    if (!hasCheckedStatus) {
-      return false;
-    }
-    // Returns true if the device is a mobile device AND it is NOT currently running in standalone mode, meaning mobile web browser users are prompted to install.
-    return isMobileDevice && !isStandalone;
-  // Declares dependencies so the memoized value recalculates if the check status, device type, or standalone mode state changes.
-  }, [hasCheckedStatus, isMobileDevice, isStandalone]);
+    // Temporarily disabled install wall to allow direct mobile web browser access
+    return false;
+  }, []);
 
   // Returns the final aggregated object containing all derived environmental flags and state values, matching the AppInstallStatus interface.
   return {

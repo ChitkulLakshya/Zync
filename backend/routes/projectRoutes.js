@@ -1127,6 +1127,33 @@ router.post(
 
       const updatedProject = await getProjectWithSteps(projectId);
       invalidateProjectCache(project, [assignedTo].filter(Boolean));
+
+      // Broadcast task-created to all connected members of this project so
+      // the Kanban board updates live without a manual refresh.
+      const taskIO = req.app.get('taskIO');
+      if (taskIO) {
+        const createdTask = await ProjectTask.findById(newTask._id).lean();
+        taskIO.emitToProject(projectId, 'task-created', {
+          projectId,
+          stepId,
+          taskId: String(newTask._id),
+          task: createdTask,
+          actor: req.user.uid,
+        });
+        // If an assignee was set, also notify that user directly so their
+        // Assigned Tasks view refreshes even if they haven't joined the
+        // project room yet.
+        if (assignedTo) {
+          taskIO.emitToUser(assignedTo, 'task-assigned', {
+            projectId,
+            stepId,
+            taskId: String(newTask._id),
+            task: createdTask,
+            actor: req.user.uid,
+          });
+        }
+      }
+
       res.status(201).json(updatedProject);
     } catch (error) {
       console.error('Error creating task:', error);
@@ -1477,6 +1504,29 @@ router.post('/:projectId/quick-task', authMiddleware, async (req, res) => {
     const taskObj = normalizeDoc(newTask.toObject());
 
     invalidateProjectCache(project, [assignedTo].filter(Boolean));
+
+    // Broadcast task-created to all connected members of this project so
+    // the Kanban board updates live without a manual refresh.
+    const taskIO = req.app.get('taskIO');
+    if (taskIO) {
+      taskIO.emitToProject(projectId, 'task-created', {
+        projectId,
+        stepId: step._id?.toString() || step.id,
+        taskId: String(newTask._id),
+        task: taskObj,
+        actor: req.user.uid,
+      });
+      if (assignedTo) {
+        taskIO.emitToUser(assignedTo, 'task-assigned', {
+          projectId,
+          stepId: step._id?.toString() || step.id,
+          taskId: String(newTask._id),
+          task: taskObj,
+          actor: req.user.uid,
+        });
+      }
+    }
+
     res.json({
       message: 'Task created',
       task: taskObj,

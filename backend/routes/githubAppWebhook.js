@@ -112,6 +112,7 @@ router.post('/webhook', verifyGithub, async (req, res) => { // Defines an HTTP P
       event, // Passes the GitHub event type to the job data.
       payload: req.body, // Passes the entire request body (the webhook payload) to the job data for processing.
       getIo: () => req.app.get('io'), // Provides a function to lazily retrieve the Socket.IO instance from the Express app, allowing the worker to emit real-time updates.
+      getTaskIO: () => req.app.get('taskIO'), // Provides a function to lazily retrieve the task socket namespace, allowing the worker to broadcast per-task Kanban updates (task-updated) to project rooms.
     });
 
     debugWebhookLog( // Calls the debug logging function to output information about the enqueued webhook.

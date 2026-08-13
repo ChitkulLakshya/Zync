@@ -116,7 +116,7 @@ const typingListeners = new Set<TypingCallback>();
  * only one connection per userId will be maintained.
  */
 export function connectChat(userId: string): Socket {
-  if (socket?.connected) {return socket;}
+  if (socket?.connected) { return socket; }
 
   const socketUrl = SOCKET_BASE_URL;
 

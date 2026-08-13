@@ -101,7 +101,7 @@ const joinedProjects = new Set<string>();
  * Connect to the /tasks namespace. Safe to call multiple times.
  */
 export function connectTaskSocket(userId: string): Socket {
-  if (socket?.connected) {return socket;}
+  if (socket?.connected) { return socket; }
 
   const socketUrl = SOCKET_BASE_URL;
 

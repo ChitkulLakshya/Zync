@@ -92,7 +92,6 @@ const teamSchema = new mongoose.Schema(
   }
 );
 
-teamSchema.index({ inviteCode: 1 }, { unique: true });
 teamSchema.index({ members: 1 });
 teamSchema.index({ ownerId: 1 });
 

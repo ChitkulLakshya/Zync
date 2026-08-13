@@ -105,16 +105,16 @@ const Footer = () => {
   };
 
   return (
-    <footer className="bg-background relative overflow-hidden pt-20 md:pt-32 pb-6 border-t border-border/10 w-full">
+    <footer className="bg-background relative overflow-hidden pt-10 md:pt-32 pb-6 border-t border-border/10 w-full">
       {/* Main Grid Content */}
-      <div className="w-full px-6 md:px-16 lg:px-24 xl:px-32 relative z-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-6 md:gap-x-8 gap-y-12 md:gap-y-16 mb-24 md:mb-40">
+      <div className="w-full px-4 sm:px-6 md:px-16 lg:px-24 xl:px-32 relative z-10">
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-x-6 md:gap-x-8 gap-y-6 md:gap-y-16 mb-12 md:mb-40">
           {/* SITEMAP */}
           <div className="col-span-1 lg:col-span-2">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2.5 md:mb-6 font-bold">
               Sitemap
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-2.5 md:space-y-4">
               <li>
                 <button
                   onClick={() => scrollToSection('home')}
@@ -152,10 +152,10 @@ const Footer = () => {
 
           {/* COMPANY */}
           <div className="col-span-1 lg:col-span-2">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2.5 md:mb-6 font-bold">
               Company
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-2.5 md:space-y-4">
               <li>
                 <Link
                   to="/privacy"
@@ -177,10 +177,10 @@ const Footer = () => {
 
           {/* CONTACT */}
           <div className="col-span-1 lg:col-span-2">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2.5 md:mb-6 font-bold">
               Contact
             </h4>
-            <ul className="space-y-4">
+            <ul className="space-y-2.5 md:space-y-4">
               <li>
                 <a
                   href="mailto:consolemaster.app@gmail.com"
@@ -214,15 +214,15 @@ const Footer = () => {
 
           {/* CTA / GET STARTED */}
           <div className="col-span-2 md:col-span-4 lg:col-span-4 lg:col-start-9">
-            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-6 font-bold">
+            <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2.5 md:mb-6 font-bold">
               Get Started
             </h4>
-            <p className="text-lg font-medium text-foreground mb-6 leading-snug">
+            <p className="text-base sm:text-lg font-medium text-foreground mb-4 md:mb-6 leading-snug">
               You read this far. Might as well see what Zync can do for your team.
             </p>
             <Link
               to="/signup"
-              className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors flex items-center gap-1.5 pb-1 border-b border-foreground/30 hover:border-primary w-max mb-6"
+              className="text-[10px] font-bold uppercase tracking-widest text-foreground hover:text-primary transition-colors flex items-center gap-1.5 pb-1 border-b border-foreground/30 hover:border-primary w-max mb-4 md:mb-6"
             >
               Create an account <ArrowRight className="w-3 h-3" />
             </Link>

@@ -74,6 +74,7 @@
  * ============================================================================
  */
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { db } from '@/lib/firebase';
 import {
   doc,
@@ -93,6 +94,8 @@ export interface TeamMetadata {
   leaderId: string;
   ownerId: string;
   members: string[];
+  admins?: string[];
+  pendingMembers?: string[];
   inviteCode: string;
   logoId?: string;
   updatedAt?: string;
@@ -102,6 +105,7 @@ export interface TeamMetadata {
 export const useTeamPersistence = (userId: string | undefined) => {
   const [myTeams, setMyTeams] = useState<TeamMetadata[]>([]);
   const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
 
   const normalizeUid = (value: any): string => {
     if (!value) {
@@ -137,6 +141,12 @@ export const useTeamPersistence = (userId: string | undefined) => {
         [...rawMembers.map((m: any) => normalizeUid(m)).filter(Boolean), ownerId].filter(Boolean)
       )
     );
+    
+    const rawAdmins = Array.isArray(team?.admins) ? team.admins : [];
+    const admins = rawAdmins.map((m: any) => normalizeUid(m)).filter(Boolean);
+    
+    const rawPending = Array.isArray(team?.pendingMembers) ? team.pendingMembers : [];
+    const pendingMembers = rawPending.map((m: any) => normalizeUid(m)).filter(Boolean);
 
     return {
       id,
@@ -144,6 +154,8 @@ export const useTeamPersistence = (userId: string | undefined) => {
       ownerId,
       leaderId: ownerId,
       members,
+      admins,
+      pendingMembers,
       inviteCode: String(team?.inviteCode || ''),
       logoId: team?.logoId || null,
       createdAt: team?.createdAt,
@@ -172,6 +184,10 @@ export const useTeamPersistence = (userId: string | undefined) => {
         });
         setMyTeams(teams);
         setLoading(false);
+        
+        // Enterprise live-sync: trigger React Query cache invalidation across the app
+        queryClient.invalidateQueries({ queryKey: ['myTeams', userId] });
+        queryClient.invalidateQueries({ queryKey: ['teamUsers'] });
       },
       (error) => {
         console.error('Error fetching teams from Firestore:', error);

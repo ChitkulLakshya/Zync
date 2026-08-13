@@ -74,6 +74,7 @@
  * ============================================================================
  */
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -133,6 +134,7 @@ const LANGUAGE_COLORS: Record<string, string> = {
 };
 
 const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -420,6 +422,21 @@ const MyProjectsView = ({ currentUser }: { currentUser: any }) => {
                         <div className="text-sm text-muted-foreground w-full flex justify-between items-center">
                           <span>Updated {new Date(repo.updated_at).toLocaleDateString()}</span>
                           <div className="flex gap-2">
+                            {(() => {
+                              const linkedProject = projects.find((p: any) => p.githubRepoName === repo.name && p.githubRepoOwner === repo.owner.login);
+                              if (linkedProject) {
+                                return (
+                                  <Button variant="default" size="sm" className="h-8" onClick={() => {
+                                    navigate(`/dashboard/workspace/project/${linkedProject.id || linkedProject._id}`, {
+                                      state: { from: '/dashboard/projects' },
+                                    });
+                                  }}>
+                                    Open Workspace
+                                  </Button>
+                                );
+                              }
+                              return null;
+                            })()}
                             {repo.owner.login === userData.githubIntegration.username && (
                                <Button variant="outline" size="sm" className="h-8 bg-card/50 text-foreground" onClick={() => {
                                  setEditingRepo(repo);

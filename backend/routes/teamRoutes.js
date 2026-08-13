@@ -494,6 +494,7 @@ router.delete('/:teamId/members/:memberUid', verifyToken, async (req, res) => {
       );
       // Invalidates the cache entry for the removed member, ensuring fresh data.
       await cache.invalidate(`user:me:${memberUid}`);
+      (team.members || []).forEach(mId => cache.invalidate(`user:me:${mId}`));
     }
     // Runs an asynchronous synchronization task to remove the member from the team in Firebase.
     await runSync('remove-member', () =>
@@ -761,10 +762,12 @@ router.post('/:teamId/transfer-ownership', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'You are already the owner' });
     }
 
-    await Team.findByIdAndUpdate(teamId, { $set: { ownerId: newOwnerId } });
+    const updatedTeam = await Team.findByIdAndUpdate(teamId, { $set: { ownerId: newOwnerId } }, { returnDocument: 'after', lean: true });
     await runSync('transfer-ownership', () =>
       transferTeamOwnership(teamId, uid, newOwnerId)
     );
+    
+    (updatedTeam.members || []).forEach(memberId => cache.invalidate(`user:me:${memberId}`));
 
     res.status(200).json({ message: 'Ownership transferred successfully' });
   } catch (error) {
@@ -897,6 +900,9 @@ router.post('/:teamId/reject-member', verifyToken, async (req, res) => {
       { returnDocument: 'after', lean: true }
     );
 
+    await runSync('reject-member-upsert', () => upsertTeamSnapshot(updatedTeam));
+    (updatedTeam.members || []).forEach(memberId => cache.invalidate(`user:me:${memberId}`));
+
     const user = await User.findOne({ uid: userId }).lean();
     if (user && user.email) {
       try {
@@ -938,6 +944,9 @@ router.post('/:teamId/promote-admin', verifyToken, async (req, res) => {
       { returnDocument: 'after', lean: true }
     );
 
+    await runSync('promote-admin-upsert', () => upsertTeamSnapshot(updatedTeam));
+    (updatedTeam.members || []).forEach(memberId => cache.invalidate(`user:me:${memberId}`));
+
     res.status(200).json(normalizeDoc(updatedTeam));
   } catch (error) {
     console.error('Error promoting admin:', error);
@@ -961,6 +970,9 @@ router.post('/:teamId/demote-admin', verifyToken, async (req, res) => {
       { $pull: { admins: userId } },
       { returnDocument: 'after', lean: true }
     );
+
+    await runSync('demote-admin-upsert', () => upsertTeamSnapshot(updatedTeam));
+    (updatedTeam.members || []).forEach(memberId => cache.invalidate(`user:me:${memberId}`));
 
     res.status(200).json(normalizeDoc(updatedTeam));
   } catch (error) {

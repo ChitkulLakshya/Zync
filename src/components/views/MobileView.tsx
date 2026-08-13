@@ -80,6 +80,7 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import {
   LayoutDashboard,
   Folder,
+  FolderKanban,
   CheckSquare,
   Users,
   Calendar,
@@ -87,8 +88,11 @@ import {
   Video,
   Settings,
   Bell,
-  MessageSquare
+  MessageSquare,
+  LogOut
 } from "lucide-react";
+import { Github } from '@/components/ui/GithubIcon';
+import { signOutAndClearState } from "@/lib/auth-signout";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { API_BASE_URL, getFullUrl } from "@/lib/utils";
 import { useMe } from "@/hooks/useMe";
@@ -107,6 +111,7 @@ import MobileNotes from "@/components/views/mobile/MobileNotes";
 import MobileMeet from "@/components/views/mobile/MobileMeet";
 import MobileSettings from "@/components/views/mobile/MobileSettings";
 import MobileMessages from "@/components/views/mobile/MobileMessages";
+import MyProjectsView from "./MyProjectsView";
 
 const MobileView = () => {
   const [activeTab, setActiveTab] = useState("Home");
@@ -156,8 +161,8 @@ const MobileView = () => {
   const handleNavigate = (path: string) => {
     if (path === "New Project") {
       navigate("/new-project");
-    } else if (path === "Projects") {
-      setActiveTab("Projects");
+    } else if (path === "My Workspace" || path === "Projects") {
+      setActiveTab("My Workspace");
     }
   };
 
@@ -188,9 +193,9 @@ const MobileView = () => {
       const assignedUserIds = Array.isArray(task?.assignedUserIds) ? task.assignedUserIds : [];
       const hasRepoLink = Boolean(
         task?.githubRepoOwner ||
-          task?.githubRepoName ||
-          task?.githubRepo ||
-          (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
+        task?.githubRepoName ||
+        task?.githubRepo ||
+        (Array.isArray(task?.repoIds) && task.repoIds.length > 0)
       );
       const hasCommitCode = Boolean(task?.commitCode);
 
@@ -232,11 +237,9 @@ const MobileView = () => {
     const fetchActivityData = async () => {
       try {
         const token = await currentUser.getIdToken();
-        const [sessionsRes, projectsRes, ownedTeamsRes, myTeamsRes] = await Promise.all([
+        const [sessionsRes, projectsRes] = await Promise.all([
           fetch(`${API_BASE_URL}/api/sessions/${currentUser.uid}`, { headers: { Authorization: `Bearer ${token}` } }),
           fetch(`${API_BASE_URL}/api/projects`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { Authorization: `Bearer ${token}` } }),
-          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { Authorization: `Bearer ${token}` } }),
         ]);
 
         if (cancelled) { return; }
@@ -259,15 +262,7 @@ const MobileView = () => {
           }
         }
 
-        if (ownedTeamsRes.ok) {
-          const teams = await ownedTeamsRes.json();
-          setOwnedTeams(Array.isArray(teams) ? teams : []);
-        }
-
-        if (myTeamsRes.ok) {
-          const teams = await myTeamsRes.json();
-          setMyTeams(Array.isArray(teams) ? teams : []);
-        }
+        // Fetch teams globally instead of here to fix visibility issues
 
         if (usersList.length > 0) {
           const teamSessionsRes = await fetch(`${API_BASE_URL}/api/sessions/batch`, {
@@ -294,6 +289,46 @@ const MobileView = () => {
       clearInterval(intervalId);
     };
   }, [activeTab, currentUser, usersList]);
+
+  // Global fetch for teams so `canViewActivityLog` is accurate even when on other pages
+  useEffect(() => {
+    if (!currentUser) {
+      return;
+    }
+    
+    let cancelled = false;
+    const fetchTeams = async () => {
+      try {
+        const token = await currentUser.getIdToken();
+        const [ownedTeamsRes, myTeamsRes] = await Promise.all([
+          fetch(`${API_BASE_URL}/api/teams/owned`, { headers: { Authorization: `Bearer ${token}` } }),
+          fetch(`${API_BASE_URL}/api/teams/mine`, { headers: { Authorization: `Bearer ${token}` } }),
+        ]);
+
+        if (cancelled) {
+          return;
+        }
+
+        if (ownedTeamsRes.ok) {
+          const teams = await ownedTeamsRes.json();
+          setOwnedTeams(Array.isArray(teams) ? teams : []);
+        }
+        
+        if (myTeamsRes.ok) {
+          const teams = await myTeamsRes.json();
+          setMyTeams(Array.isArray(teams) ? teams : []);
+        }
+      } catch (err) {
+        console.error('Failed to fetch mobile teams for activity log visibility:', err);
+      }
+    };
+
+    fetchTeams();
+    
+    return () => {
+      cancelled = true;
+    };
+  }, [currentUser]);
 
   const handleDeleteLog = async (logId: string) => {
     if (!currentUser) { return; }
@@ -332,14 +367,13 @@ const MobileView = () => {
   };
 
 
-  const canViewActivityLog = myTeams.some(
-    (t) => t.ownerId === currentUser?.uid || t.admins?.includes(currentUser?.uid)
-  );
-
   const drawerItems = [
-    { id: 'Projects', label: 'Projects', icon: Folder },
+    { id: 'My Workspace', label: 'My Workspace', icon: FolderKanban },
+    { id: 'My Projects', label: 'My Projects', icon: Github },
+    { id: 'Calendar', label: 'Calendar', icon: Calendar },
+    { id: 'Notes', label: 'Notes', icon: FileText },
     { id: 'Messages', label: 'Messages', icon: MessageSquare },
-    ...(canViewActivityLog ? [{ id: 'Activity', label: 'Activity', icon: Bell }] : []),
+    { id: 'Activity', label: 'Activity', icon: Bell },
     { id: 'Settings', label: 'Settings', icon: Settings },
   ];
 
@@ -347,7 +381,7 @@ const MobileView = () => {
     switch (activeTab) {
       case "Home":
         return currentUser ? <MobileDashboardView currentUser={currentUser} /> : null;
-      case "Projects":
+      case "My Workspace":
         return currentUser ? (
           <MobileWorkspace
             currentUser={currentUser}
@@ -355,6 +389,8 @@ const MobileView = () => {
             onSelectProject={handleSelectProject}
           />
         ) : null;
+      case "My Projects":
+        return currentUser ? <MyProjectsView currentUser={currentUser} /> : null;
       case "Tasks":
         return currentUser ? <MobileTasks currentUser={currentUser} users={usersList} /> : null;
       case "Activity":
@@ -370,10 +406,10 @@ const MobileView = () => {
             currentUserProfile={
               currentUser
                 ? {
-                    displayName: currentUser.displayName || undefined,
-                    email: currentUser.email || undefined,
-                    photoURL: currentUser.photoURL || undefined,
-                  }
+                  displayName: currentUser.displayName || undefined,
+                  email: currentUser.email || undefined,
+                  photoURL: currentUser.photoURL || undefined,
+                }
                 : null
             }
             teamTasks={teamTasks}
@@ -431,13 +467,31 @@ const MobileView = () => {
             {item.label}
           </Button>
         ))}
+
+        <div className="pt-4 border-t border-border/10 mt-4 px-1">
+          <Button
+            variant="ghost"
+            className="w-full justify-start gap-3 h-11 font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
+            onClick={async () => {
+              try {
+                await signOutAndClearState(auth);
+              } catch (err) {
+                console.error('Sign out error:', err);
+              } finally {
+                window.location.href = '/login';
+              }
+            }}
+          >
+            <LogOut className="h-5 w-5 text-destructive" />
+            Sign Out
+          </Button>
+        </div>
       </div>
     </ScrollArea>
   );
 
   return (
     <MobileLayout
-      hideActivityLog={!canViewActivityLog}
       activeTab={activeTab}
       onTabChange={setActiveTab}
       onFabClick={
@@ -460,7 +514,7 @@ const MobileView = () => {
         photoURL: currentUser.photoURL ? getFullUrl(currentUser.photoURL) : undefined
       } : null}
       drawerContent={DrawerContent}
-      headerTitle={activeTab === 'Home' ? 'Workspace' : activeTab}
+      headerTitle="Zync"
     >
       {userMeError && currentUser && (
         <div className="p-3 border-b border-border/10 bg-transparent shrink-0">

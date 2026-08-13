@@ -94,16 +94,22 @@ export interface Country {
 }
 
 export const fetchHolidays = async (year: number, countryCode: string): Promise<Holiday[]> => {
-    const headers = await getAuthHeaders();
-    const response = await fetch(
-        `${API_URL}/holidays?year=${year}&countryCode=${encodeURIComponent(countryCode)}`,
-        { headers },
-    );
-    if (!response.ok) {
-        console.error('Failed to fetch holidays:', response.status);
+    try {
+        const headers = await getAuthHeaders();
+        const response = await fetch(
+            `${API_URL}/holidays?year=${year}&countryCode=${encodeURIComponent(countryCode)}`,
+            { headers },
+        );
+        if (!response.ok) {
+            console.warn('Failed to fetch holidays:', response.status);
+            return [];
+        }
+        const data = await response.json();
+        return Array.isArray(data) ? data : [];
+    } catch (err) {
+        console.warn('Error fetching holidays:', err);
         return [];
     }
-    return response.json();
 };
 
 export const fetchCountries = async (): Promise<Country[]> => {
