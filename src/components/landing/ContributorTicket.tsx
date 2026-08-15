@@ -435,24 +435,36 @@ const ContributorTicket = ({ onMint, isApproved }: ContributorTicketProps) => {
           <div className="mt-8 pt-6 border-t border-black/5 dark:border-white/5 flex items-center justify-between">
             <div className="flex -space-x-2">
               <img
-                src="https://github.com/prem22k.png"
+                src="https://avatars.githubusercontent.com/prem22k?s=48"
                 className="w-6 h-6 rounded-full border border-background"
                 alt="prem22k"
+                width={24}
+                height={24}
+                loading="lazy"
               />
               <img
-                src="https://github.com/chitkullakshya.png"
+                src="https://avatars.githubusercontent.com/chitkullakshya?s=48"
                 className="w-6 h-6 rounded-full border border-background"
                 alt="chitkullakshya"
+                width={24}
+                height={24}
+                loading="lazy"
               />
               <img
-                src="https://github.com/eesha264.png"
+                src="https://avatars.githubusercontent.com/eesha264?s=48"
                 className="w-6 h-6 rounded-full border border-background"
                 alt="eesha264"
+                width={24}
+                height={24}
+                loading="lazy"
               />
               <img
-                src="https://github.com/thanmayeereddykotha.png"
+                src="https://avatars.githubusercontent.com/thanmayeereddykotha?s=48"
                 className="w-6 h-6 rounded-full border border-background"
                 alt="thanmayeereddykotha"
+                width={24}
+                height={24}
+                loading="lazy"
               />
             </div>
             <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-widest">

@@ -255,7 +255,7 @@ const DesktopPreview = () => {
   const mockName = 'Alex Designer';
   const mockEmail = 'alex@demo.zync.app';
   const mockLogin = 'alexdesigner';
-  const mockAvatar = 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Alex';
+  const mockAvatar = 'https://ui-avatars.com/api/?name=Alex+Designer&size=48&background=random';
 
   const sidebarItems = [
     { icon: Home, label: 'Dashboard' },
@@ -287,37 +287,37 @@ const DesktopPreview = () => {
       uid: '2',
       displayName: 'Sarah Connor',
       email: 'sarah@demo.zync.app',
-      photoURL: 'https://i.pravatar.cc/150?u=Sarah',
+      photoURL: 'https://ui-avatars.com/api/?name=Sarah+Connor&size=48&background=random',
     },
     {
       uid: '3',
       displayName: 'John Doe',
       email: 'john@demo.zync.app',
-      photoURL: 'https://api.dicebear.com/7.x/adventurer/svg?seed=John',
+      photoURL: 'https://ui-avatars.com/api/?name=John+Doe&size=48&background=random',
     },
     {
       uid: '4',
       displayName: 'Ada Lovelace',
       email: 'ada@demo.zync.app',
-      photoURL: 'https://i.pravatar.cc/150?u=Ada',
+      photoURL: 'https://ui-avatars.com/api/?name=Ada+Lovelace&size=48&background=random',
     },
     {
       uid: '5',
       displayName: 'Grace Hopper',
       email: 'grace@demo.zync.app',
-      photoURL: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Grace',
+      photoURL: 'https://ui-avatars.com/api/?name=Grace+Hopper&size=48&background=random',
     },
     {
       uid: '6',
       displayName: 'Alan Turing',
       email: 'alan@demo.zync.app',
-      photoURL: 'https://api.dicebear.com/7.x/lorelei/svg?seed=Alan',
+      photoURL: 'https://ui-avatars.com/api/?name=Alan+Turing&size=48&background=random',
     },
     {
       uid: '7',
       displayName: 'Linus Torvalds',
       email: 'linus@demo.zync.app',
-      photoURL: 'https://i.pravatar.cc/150?u=Linus',
+      photoURL: 'https://ui-avatars.com/api/?name=Linus+Torvalds&size=48&background=random',
     },
   ];
 
