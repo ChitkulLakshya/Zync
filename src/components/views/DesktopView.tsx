@@ -254,8 +254,6 @@ const DesktopView = ({ isPreview = false }: { isPreview?: boolean }) => {
         beginTransition(`${activeSection}->Chat`);
       }
 
-      setIsLanding(false);
-      localStorage.setItem('ZYNC_HAS_SEEN_LANDING', 'true');
       setActiveSection('Chat');
 
       if (location.pathname !== '/dashboard/chat') {
@@ -313,16 +311,12 @@ const sectionToPath: Record<string, string> = {
     }
   }, [location.pathname]);
 
-  const [isLanding, setIsLanding] = useState(false);
-
   const handleSectionChange = (section: string) => {
     if (section !== activeSection) {
       beginTransition(`${activeSection}->${section}`);
     }
 
-    setIsLanding(false);
     setIsExiting(false);
-    localStorage.setItem('ZYNC_HAS_SEEN_LANDING', 'true');
     setActiveSection(section);
     const path = sectionToPath[section];
     if (path && location.pathname !== path) {
@@ -715,16 +709,6 @@ const sectionToPath: Record<string, string> = {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user: any) => {
       setCurrentUser(user);
-
-      if (
-        user &&
-        user.metadata.creationTime === user.metadata.lastSignInTime &&
-        !localStorage.getItem('ZYNC_HAS_SEEN_LANDING')
-      ) {
-        if (location.pathname === '/dashboard') {
-          setIsLanding(true);
-        }
-      }
     });
 
     return () => unsubscribe();
@@ -848,16 +832,6 @@ const sectionToPath: Record<string, string> = {
   const renderActiveView = () => {
     switch (activeSection) {
       case 'Dashboard':
-        if (isLanding) {
-          return (
-            <DashboardHome
-              onNavigate={(section) => {
-                setIsExiting(true);
-                setTimeout(() => handleSectionChange(section), 400);
-              }}
-            />
-          );
-        }
         return <DashboardView currentUser={currentUser} />;
 
       case 'My Workspace':

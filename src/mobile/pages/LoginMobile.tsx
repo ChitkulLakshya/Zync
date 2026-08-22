@@ -133,19 +133,22 @@ const LoginMobile = () => {
   const { toast } = useToast();
   const { hasCheckedStatus, requiresInstallWall, isIOS, isAndroid } = useAppInstallStatus();
 
-  // Runs a side effect on mount to listen for changes in the user's authentication state.
+  // Synchronizes the local currentUser state with Firebase's global authentication observer.
   useEffect(() => {
-    // Subscribes to Firebase auth state changes to detect if a user is already signed in.
-    const unsubscribe = onAuthStateChanged(auth, (user: any) => setCurrentUser(user));
-    // Cleans up the listener when the component unmounts to prevent memory leaks.
+    // Subscribes to auth changes (login, logout, token refresh).
+    const unsubscribe = onAuthStateChanged(auth, (user: any) => {
+      // Updates state with the new user or null if logged out.
+      setCurrentUser(user);
+    });
+    // Unsubscribes from the listener when the component unmounts to prevent memory leaks.
     return () => unsubscribe();
   }, []);
 
-  // Runs a side effect when the location or navigate changes to handle custom authentication tokens in the URL.
+  // Listens for external URL parameters like custom auth tokens or errors from OAuth redirects.
   useEffect(() => {
-    // Parses the URL query parameters to extract data like 'customToken' or 'error'.
+    // Parses query parameters from the current URL.
     const params = new URLSearchParams(location.search);
-    // Retrieves the custom token (usually sent via magic link or a backend OAuth redirect).
+    // Retrieves a custom token if present (e.g. from backend OAuth exchange).
     const customToken = params.get("customToken");
     // Retrieves any error messages passed through the URL.
     const authError = params.get("error");
@@ -181,23 +184,27 @@ const LoginMobile = () => {
   const handleContinue = async () => {
     // Checks if the user is actually loaded into state.
     if (currentUser) {
-      // Redirects them to the dashboard or welcome flow based on their account age.
-      await postLoginRedirect(navigate, currentUser);
+      setIsContinuing(true);
+      try {
+        // Redirects them to the dashboard or welcome flow based on their account age.
+        await postLoginRedirect(navigate, currentUser);
+      } finally {
+        setIsContinuing(false);
+      }
     }
   };
 
   // Defines a handler to log out the current user and allow them to sign in with a different account.
   const handleSwitchAccount = async () => {
     try {
-      // Sets the loading state to true to prevent multiple rapid clicks.
-      setLoading(true);
+      // Sets the signing out state to true.
+      setIsSigningOut(true);
       // Calls the global sign-out utility to clear caches, indexedDB, and log out from Firebase.
       await signOutAndClearState(auth);
       // Clears the local state so the standard login form renders instead of the "Welcome Back" screen.
       setCurrentUser(null);
     } finally {
-      // Resets the loading state regardless of success or failure.
-      setLoading(false);
+      setIsSigningOut(false);
     }
   };
 
@@ -342,12 +349,12 @@ const LoginMobile = () => {
               <CardDescription className="break-all">{currentUser.email}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Button onClick={handleContinue} className="w-full">
-                Continue
+              <Button onClick={handleContinue} className="w-full" disabled={isContinuing || isSigningOut}>
+                {isContinuing ? "Connecting..." : "Continue"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button variant="outline" onClick={handleSwitchAccount} className="w-full" disabled={loading}>
-                {loading ? "Signing out..." : "Switch account"}
+              <Button variant="outline" onClick={handleSwitchAccount} className="w-full" disabled={isContinuing || isSigningOut}>
+                {isSigningOut ? "Signing out..." : "Switch account"}
               </Button>
             </CardContent>
           </Card>

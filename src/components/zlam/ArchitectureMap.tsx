@@ -14,9 +14,9 @@ import {
   type Edge,
   type Connection,
 } from '@xyflow/react';
-import { Download, Upload } from 'lucide-react';
+import { Download, Upload, Sparkles } from 'lucide-react';
 import '@xyflow/react/dist/style.css';
-import { mockArchitectureData } from './mockArchitectureData';
+import { Button } from '@/components/ui/button';
 import LiquidGlassNode from './LiquidGlassNode';
 import type { ArchitectureNode, ArchitectureEdge, ArchitectureDiagram } from './mockArchitectureData';
 import { useToast } from '@/hooks/use-toast';
@@ -142,11 +142,14 @@ const convertBackendArchitectureToDiagram = (arch: any, projectName: string): Ar
 
 type FlowPositionFn = (clientPos: { x: number; y: number }) => { x: number; y: number };
 
-const saveToStorage = (nodes: Node[], edges: Edge[], projectId?: string) => {
+const saveToStorage = (nodes: Node[], edges: Edge[], projectId?: string, projectName?: string) => {
   try {
     const safeNodes = (nodes || []).filter((node) => node && node.id);
+    if (safeNodes.length === 0) {
+      return;
+    }
     const data: ArchitectureDiagram = {
-      name: 'Zync Platform Architecture',
+      name: `${projectName || 'Project'} Architecture`,
       description: 'User-edited architecture diagram',
       nodes: safeNodes.map((node) => {
         const data = (node.data || {}) as any;
@@ -180,7 +183,12 @@ const loadFromStorage = (projectId?: string): ArchitectureDiagram | null => {
   try {
     const raw = localStorage.getItem(getStorageKey(projectId));
     if (!raw) {return null;}
-    return JSON.parse(raw) as ArchitectureDiagram;
+    const parsed = JSON.parse(raw) as ArchitectureDiagram;
+    if (parsed && (parsed.name === 'Zync Platform Architecture' || parsed.description?.includes('Microservices architecture for the Zync collaboration platform'))) {
+      localStorage.removeItem(getStorageKey(projectId));
+      return null;
+    }
+    return parsed;
   } catch (e) {
     console.error('Failed to load diagram:', e);
     return null;
@@ -442,8 +450,50 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
     if (project?.architecture && project.architecture.highLevel) {
       return convertBackendArchitectureToDiagram(project.architecture, project.name || 'Project');
     }
-    return mockArchitectureData;
-  }, [project]);
+    return {
+      name: `${project?.name || 'Project'} Architecture`,
+      description: project?.description || 'Architecture blueprint',
+      nodes: [],
+      edges: [],
+    };
+  }, [project, projectId]);
+
+  const handleAnalyzeRepo = async () => {
+    if (!projectId) return;
+    setAnalyzing(true);
+    try {
+      const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
+      if (!token) throw new Error('No auth token');
+      const provider = 'kilo';
+      const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=${provider}&forceRefresh=true`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || err?.message || `Analysis failed with status ${res.status}`);
+      }
+      const analyzedProject = await res.json();
+      const analyzedArch = analyzedProject?.architecture;
+      if (analyzedArch && analyzedArch.highLevel) {
+        const converted = convertBackendArchitectureToDiagram(analyzedArch, analyzedProject?.name || 'Project');
+        setNodesTyped(normalizeFlowNodes(converted.nodes));
+        setEdgesTyped(normalizeFlowEdges(converted.edges));
+        localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
+        toast({ title: 'Analysis complete', description: 'Architecture diagram generated from repo analysis.' });
+      } else {
+        toast({ title: 'No architecture found', description: 'Analysis did not return architecture data.', variant: 'destructive' });
+      }
+    } catch (error: any) {
+      console.error('Architecture analysis failed:', error);
+      toast({ title: 'Analysis failed', description: error?.message || 'Could not analyze architecture.', variant: 'destructive' });
+    } finally {
+      setAnalyzing(false);
+    }
+  };
 
   useEffect(() => {
     if (!projectId) {return;}
@@ -469,50 +519,10 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
           setNodesTyped(normalizeFlowNodes(converted.nodes));
           setEdgesTyped(normalizeFlowEdges(converted.edges));
           localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
-          toast({ title: 'Architecture loaded', description: 'Project-specific architecture loaded successfully' });
-        } else if (projectData?.githubRepoName && projectData?.githubRepoOwner) {
-          setAnalyzing(true);
-          try {
-            const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
-            if (!token) {throw new Error('No auth token');}
-            const provider = 'kilo';
-            const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=${provider}&forceRefresh=true`, {
-              method: 'POST',
-              headers: {
-                Authorization: `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            });
-            if (!res.ok) {
-              const err = await res.json().catch(() => ({}));
-              throw new Error(err?.error || err?.message || `Analysis failed with status ${res.status}`);
-            }
-            const analyzedProject = await res.json();
-            const analyzedArch = analyzedProject?.architecture;
-            if (analyzedArch && analyzedArch.highLevel) {
-              const converted = convertBackendArchitectureToDiagram(analyzedArch, analyzedProject?.name || 'Project');
-              setNodesTyped(normalizeFlowNodes(converted.nodes));
-              setEdgesTyped(normalizeFlowEdges(converted.edges));
-              localStorage.setItem(getStorageKey(projectId), JSON.stringify(converted));
-              toast({ title: 'Analysis complete', description: 'Architecture diagram generated from repo analysis.' });
-            } else {
-              toast({ title: 'No architecture found', description: 'Analysis did not return architecture data.', variant: 'destructive' });
-            }
-          } catch (error: any) {
-            console.error('Auto architecture analysis failed:', error);
-            toast({ title: 'Analysis failed', description: error?.message || 'Could not analyze architecture.', variant: 'destructive' });
-          } finally {
-            if (!cancelled) {setAnalyzing(false);}
-          }
         }
       } catch (error: any) {
         if (!cancelled) {
           console.error('Failed to load project architecture:', error);
-          toast({
-            title: 'Load failed',
-            description: 'Could not load architecture for this project.',
-            variant: 'destructive',
-          });
         }
       } finally {
         if (!cancelled) {setLoading(false);}
@@ -547,8 +557,8 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   }, [setEdges]);
 
   useEffect(() => {
-    saveToStorage(nodes, edges, projectId);
-  }, [nodes, edges]);
+    saveToStorage(nodes, edges, projectId, project?.name);
+  }, [nodes, edges, projectId, project?.name]);
 
   useEffect(() => {
     if (!searchTerm.trim()) {
@@ -828,6 +838,45 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
             }}
             onDelete={deleteSelectedEdge}
           />
+        </div>
+      )}
+      
+      {/* Empty State Overlay */}
+      {nodes.length === 0 && !loading && !analyzing && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-10 p-4">
+          <div className="max-w-md w-full bg-surface-glass-regular backdrop-blur-regular rounded-2xl border border-border/50 p-6 shadow-xl text-center pointer-events-auto flex flex-col items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
+              <Sparkles className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-foreground">No Architecture Blueprint</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                {project?.githubRepoName
+                  ? `Generate an AI architecture blueprint for ${project.githubRepoOwner || ''}/${project.githubRepoName} or add custom nodes from the palette.`
+                  : 'Start designing your architecture using the node palette in the top-left.'}
+              </p>
+            </div>
+            {project?.githubRepoName && (
+              <Button
+                onClick={handleAnalyzeRepo}
+                size="sm"
+                className="gap-2 text-xs"
+              >
+                <Sparkles className="w-4 h-4" />
+                Analyze Repository Architecture
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Analyzing Overlay */}
+      {analyzing && (
+        <div className="absolute inset-0 bg-background/60 backdrop-blur-sm flex items-center justify-center z-50 pointer-events-auto">
+          <div className="flex flex-col items-center gap-3 text-sm text-muted-foreground bg-surface-glass-regular backdrop-blur-regular border border-border/50 p-6 rounded-2xl shadow-xl">
+            <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="font-medium text-foreground text-xs">Analyzing repository architecture...</span>
+          </div>
         </div>
       )}
       

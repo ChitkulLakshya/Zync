@@ -125,6 +125,8 @@ const Login = () => {
   // What: State to track if an authentication operation is currently in progress.
   // Why: Used to disable buttons and show loading spinners, preventing duplicate submissions.
   const [loading, setLoading] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
 
   // What: State to store the currently authenticated Firebase user object.
   // Why: Allows the component to know if someone is already logged in (e.g. to show 'Continue as User' UI).
@@ -208,25 +210,25 @@ const Login = () => {
 
   const handleContinue = async () => {
     if (currentUser) {
-      setLoading(true);
+      setIsContinuing(true);
       try {
         await postLoginRedirect(navigate, currentUser);
       } finally {
-        setLoading(false);
+        setIsContinuing(false);
       }
     }
   };
 
   const handleSwitchAccount = async () => {
     try {
-      setLoading(true);
+      setIsSigningOut(true);
       await signOutAndClearState(auth);
       setCurrentUser(null);
       toast({ title: 'Signed out', description: 'You can now sign in with a different account.' });
     } catch (error) {
       console.error('Sign out error', error);
     } finally {
-      setLoading(false);
+      setIsSigningOut(false);
     }
   };
 
@@ -395,8 +397,8 @@ const Login = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button onClick={handleContinue} className="w-full h-12 text-lg" disabled={loading}>
-              {loading ? (
+            <Button onClick={handleContinue} className="w-full h-12 text-lg" disabled={isContinuing || isSigningOut}>
+              {isContinuing ? (
                 <>
                   <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
                   Connecting...
@@ -419,10 +421,10 @@ const Login = () => {
               variant="outline"
               onClick={handleSwitchAccount}
               className="w-full"
-              disabled={loading}
+              disabled={isContinuing || isSigningOut}
             >
               <LogOut className="mr-2 h-4 w-4" />
-              {loading ? 'Signing out...' : 'Switch Account'}
+              {isSigningOut ? 'Signing out...' : 'Switch Account'}
             </Button>
           </CardContent>
         </Card>

@@ -74,6 +74,9 @@
  * ============================================================================
  */
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 import { motion, AnimatePresence } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
@@ -83,6 +86,18 @@ import CTASection from "@/components/landing/CTASection";
 import Footer from "@/components/landing/Footer";
 
 const Index = () => {
+  const navigate = useNavigate();
+
+  // What: Automatically redirect authenticated users to the dashboard so they don't land on marketing page.
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        navigate('/dashboard', { replace: true });
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
   // What: State to manage the initialization phases ("loading", "snapping", "done").
   // Why: Gives us fine-grained control over the loading animation sequence.
   const [phase, setPhase] = useState<"loading" | "snapping" | "done">("loading");
@@ -90,13 +105,11 @@ const Index = () => {
   // What: Effect hook that runs once on component mount to trigger phase transitions.
   // Why: We need to transition from "loading" to "snapping", then finally to "done" using timed intervals to orchestrate the animation.
   useEffect(() => {
-
     // What: First timer transitions state to "snapping" after 1200ms.
     // Why: Creates a brief delay before the initial animation snap effect begins.
     const timer1 = setTimeout(() => {
       setPhase("snapping");
     }, 1200);
-
 
     // What: Second timer completes the loading sequence by setting state to "done" after 1500ms.
     // Why: Ensures the snapping animation has time to run before we reveal the main page content.

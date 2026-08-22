@@ -312,20 +312,24 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
       // Quota gate before the expensive gen. Over-limit → skip gen (project still
       // created, not stranded). Transient kilo failure → refund (retry is free).
       let analyzedArch = null;
-      const reserve = await checkAndReserveGen(req.user.uid);
-      if (reserve.ok) {
-        try {
-          analyzedArch = await generateArchitectureWithKilo({
-            projectName: name,
-            projectDescription: description || '',
-            model: 'kilo-auto/free',
-          });
-        } catch (genError) {
-          await refundGen(req.user.uid, reserve.key);
-          throw genError;
+      try {
+        const reserve = await checkAndReserveGen(req.user.uid);
+        if (reserve.ok) {
+          try {
+            analyzedArch = await generateArchitectureWithKilo({
+              projectName: name,
+              projectDescription: description || '',
+              model: 'kilo-auto/free',
+            });
+          } catch (genError) {
+            await refundGen(req.user.uid, reserve.key);
+            console.warn('generateArchitectureWithKilo failed:', genError.message);
+          }
+        } else {
+          console.warn(`[usage] ${req.user.uid} exceeded weekly architecture gen limit`);
         }
-      } else {
-        console.warn(`[usage] ${req.user.uid} exceeded weekly architecture gen limit`);
+      } catch (archGenErr) {
+        console.warn('Architecture generation check failed:', archGenErr.message);
       }
 
       if (analyzedArch && Object.keys(analyzedArch).length > 0) {
@@ -373,8 +377,7 @@ router.post('/', authMiddleware, async (req, res) => { // Defines a POST route h
         }
       }
     } catch (kiloErr) {
-      console.error('Failed to generate initial architecture plan using Kilo Code Gateway:', kiloErr.message);
-      throw kiloErr; // Propagate the Kilo Gateway error so client/backend creation explicitly fails
+      console.warn('Failed to generate initial architecture plan during project creation:', kiloErr.message);
     }
 
     await cache.invalidate(`projects:${user.uid}`);

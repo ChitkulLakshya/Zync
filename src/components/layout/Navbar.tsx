@@ -80,12 +80,15 @@ import { animate } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Menu, X } from 'lucide-react';
-import { Github } from '@/components/ui/GithubIcon';;
+import { Github } from '@/components/ui/GithubIcon';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const { resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
   const [isScrolled, setIsScrolled] = useState(false);
@@ -93,12 +96,19 @@ const Navbar = () => {
   useEffect(() => {
     setMounted(true);
     
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setCurrentUser(user);
+    });
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 80);
     };
     
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      unsubscribe();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
   const scrollToSection = (sectionId: string) => {
@@ -164,7 +174,7 @@ const Navbar = () => {
       }`}>
         <div className="flex items-center justify-between h-16 lg:h-20 w-full">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to={currentUser ? "/dashboard" : "/"} className="flex items-center gap-2">
             {mounted ? (
               <>
                 <img
@@ -213,16 +223,26 @@ const Navbar = () => {
               </Button>
             </a>
             <ThemeToggle />
-            <Link to="/login">
-              <Button variant="ghost" size="default">
-                Log In
-              </Button>
-            </Link>
-            <Link to="/signup">
-              <Button variant="hero" size="default">
-                Sign Up
-              </Button>
-            </Link>
+            {currentUser ? (
+              <Link to="/dashboard">
+                <Button variant="hero" size="default">
+                  Dashboard
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link to="/login">
+                  <Button variant="ghost" size="default">
+                    Log In
+                  </Button>
+                </Link>
+                <Link to="/signup">
+                  <Button variant="hero" size="default">
+                    Sign Up
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
 
           {}
@@ -257,16 +277,26 @@ const Navbar = () => {
                     Star on GitHub
                   </Button>
                 </a>
-                <Link to="/login" onClick={() => setIsOpen(false)}>
-                  <Button variant="ghost" className="w-full justify-center">
-                    Log In
-                  </Button>
-                </Link>
-                <Link to="/signup" onClick={() => setIsOpen(false)}>
-                  <Button variant="hero" className="w-full justify-center">
-                    Sign Up
-                  </Button>
-                </Link>
+                {currentUser ? (
+                  <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                    <Button variant="hero" className="w-full justify-center">
+                      Dashboard
+                    </Button>
+                  </Link>
+                ) : (
+                  <>
+                    <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Button variant="ghost" className="w-full justify-center">
+                        Log In
+                      </Button>
+                    </Link>
+                    <Link to="/signup" onClick={() => setIsOpen(false)}>
+                      <Button variant="hero" className="w-full justify-center">
+                        Sign Up
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
