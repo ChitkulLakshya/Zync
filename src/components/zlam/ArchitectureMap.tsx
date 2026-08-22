@@ -459,11 +459,11 @@ const ArchitectureMap: React.FC<{ project?: any }> = ({ project }) => {
   }, [project, projectId]);
 
   const handleAnalyzeRepo = async () => {
-    if (!projectId) return;
+    if (!projectId) {return;}
     setAnalyzing(true);
     try {
       const token = await (await import('@/lib/firebase')).auth.currentUser?.getIdToken?.();
-      if (!token) throw new Error('No auth token');
+      if (!token) {throw new Error('No auth token');}
       const provider = 'kilo';
       const res = await fetch(`${API_BASE_URL}/api/projects/${projectId}/analyze-architecture?provider=${provider}&forceRefresh=true`, {
         method: 'POST',

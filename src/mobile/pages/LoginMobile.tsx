@@ -123,6 +123,8 @@ const LoginMobile = () => {
   const [password, setPassword] = useState("");
   // Initializes state to track if an authentication request is in progress to disable buttons and show loading spinners.
   const [loading, setLoading] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
   // Initializes state to hold the Firebase User object if a session already exists.
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   // Initializes the navigate function to programmatically route the user to different pages.
